@@ -1,4 +1,6 @@
 import { FaBell, FaBug, FaEnvelope, FaPlus, FaSearch } from 'react-icons/fa'
+import { useNavigate } from 'react-router-dom'
+import { getUser, logout } from '../../lib/auth'
 import {
   Badge,
   DropdownMenu,
@@ -18,6 +20,14 @@ interface HeaderProps {
 }
 
 export default function Header({ onToggleSidebar }: HeaderProps) {
+  const navigate = useNavigate()
+  const user = getUser()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <header
       id="header"
@@ -112,7 +122,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                     alt=""
                     className="-mt-[5px] mr-2.5 h-[30px] w-[30px] rounded-full"
                   />
-                  <span className="hidden md:inline">Adam Schwartz</span>
+                  <span className="hidden md:inline">{user?.name ?? 'Adam Schwartz'}</span>
                   <span className="ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-[#585663]" />
                 </button>
               </DropdownMenuTrigger>
@@ -133,9 +143,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                   <a href="#" className="block no-underline">Setting</a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <a href="#" className="block no-underline">Log Out</a>
-                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleLogout}>Log Out</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </li>
