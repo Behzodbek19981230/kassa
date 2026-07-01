@@ -1,5 +1,5 @@
 import * as TabsPrimitive from '@radix-ui/react-tabs'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 interface TabsProps {
   defaultValue: string

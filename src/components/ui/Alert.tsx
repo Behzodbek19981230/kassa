@@ -2,7 +2,7 @@ import type { HTMLAttributes, ReactNode } from 'react'
 import { useState } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { FaInfoCircle, FaTimes } from 'react-icons/fa'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 const alertVariants = cva('relative rounded-[3px] px-[15px] py-3 text-xs', {
   variants: {

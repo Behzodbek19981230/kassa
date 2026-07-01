@@ -8,7 +8,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../../components/ui'
+} from '@/components/ui'
 
 const basicData = [
   { id: 1, first: 'Mark', last: 'Otto', username: '@mdo' },

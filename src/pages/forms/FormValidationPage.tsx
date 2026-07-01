@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
   Textarea,
-} from '../../components/ui'
+} from '@/components/ui'
 
 const basicSchema = z.object({
   fullname: z.string().min(1, 'Full name is required'),

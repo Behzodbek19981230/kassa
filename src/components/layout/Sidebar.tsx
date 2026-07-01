@@ -14,9 +14,9 @@ import {
   FaSuitcase,
   FaTh,
 } from 'react-icons/fa'
-import { sidebarMenu } from '../../data/sidebarMenu'
-import type { SidebarIcon, SidebarMenuItem } from '../../types'
-import { collectExpandedIds, hasActiveDescendant, isRouteMatch } from '../../utils/sidebarUtils'
+import { sidebarMenu } from '@/data/sidebarMenu'
+import type { SidebarIcon, SidebarMenuItem } from '@/types'
+import { collectExpandedIds, hasActiveDescendant, isRouteMatch } from '@/utils/sidebarUtils'
 
 interface SidebarProps {
   minified: boolean
@@ -41,7 +41,7 @@ function SubMenuBullet({ active }: { active: boolean }) {
   return (
     <FaCircle
       className={`absolute top-1/2 left-1 -translate-y-1/2 text-[7px] ${
-        active ? 'text-ca-theme drop-shadow-[0_0_5px_rgba(0,172,172,0.7)]' : 'text-[#5a6570]'
+        active ? 'text-ca-theme drop-shadow-[0_0_5px_rgba(52,143,226,0.5)]' : 'text-[#cbd5e1]'
       }`}
     />
   )
@@ -83,7 +83,7 @@ function SubMenuItem({
           type="button"
           onClick={() => onToggle(item.id)}
           className={`${rowClass} ${
-            branchActive ? 'text-white' : 'text-[#889097] hover:bg-white/5 hover:text-white'
+            branchActive ? 'text-ca-theme font-medium' : 'text-ca-sidebar-muted hover:bg-ca-silver hover:text-ca-heading'
           }`}
         >
           <SubMenuBullet active={branchActive} />
@@ -98,7 +98,7 @@ function SubMenuItem({
         <ul
           className={`relative m-0 list-none overflow-hidden transition-all duration-200 ${
             inFlyout
-              ? 'border-l border-[#2a333b] bg-[#151c22] pl-3'
+              ? 'border-l border-ca-border bg-ca-silver pl-3'
               : nested
                 ? 'bg-transparent pl-[30px]'
                 : 'bg-transparent pl-[30px]'
@@ -123,8 +123,8 @@ function SubMenuItem({
 
   const linkClass = `${rowClass} no-underline ${
     isActive
-      ? 'bg-ca-theme/15 text-white'
-      : 'text-[#889097] hover:bg-white/5 hover:text-white'
+      ? 'bg-ca-theme/10 text-ca-theme font-medium'
+      : 'text-ca-sidebar-muted hover:bg-ca-silver hover:text-ca-heading'
   }`
 
   return (
@@ -261,7 +261,7 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
       {/* Normal expanded sub-menu */}
       {!minified && (
         <ul
-          className={`relative m-0 list-none overflow-hidden bg-ca-sidebar-dark transition-all duration-200 before:absolute before:top-0 before:bottom-0 before:left-[26px] before:w-[2px] before:bg-[#10181F] ${
+          className={`relative m-0 list-none overflow-hidden bg-ca-sidebar-dark transition-all duration-200 before:absolute before:top-0 before:bottom-0 before:left-[26px] before:w-[2px] before:bg-ca-border ${
             isVisible ? 'max-h-[800px] py-2.5 pl-[30px] opacity-100' : 'max-h-0 py-0 pl-[30px] opacity-0'
           }`}
         >
@@ -281,11 +281,11 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
       {/* Minified hover flyout */}
       {minified && (
         <div className="pointer-events-none absolute top-0 left-full z-[1050] hidden pl-0 group-hover/sub:pointer-events-auto group-hover/sub:block">
-          <div className="ml-0 w-[220px] overflow-hidden rounded-r-[3px] border border-[#1f272e] bg-ca-sidebar-dark shadow-[4px_4px_16px_rgba(0,0,0,0.35)]">
-            <div className="border-b border-[#2a333b] bg-[#232a2f] px-5 py-2.5 text-xs font-semibold text-white">
+          <div className="ml-0 w-[220px] overflow-hidden rounded-r-[3px] border border-ca-border bg-ca-sidebar-dark shadow-[4px_4px_16px_rgba(0,0,0,0.15)]">
+            <div className="border-b border-ca-border bg-ca-silver px-5 py-2.5 text-xs font-semibold text-ca-heading">
               {item.label}
             </div>
-            <ul className="relative m-0 list-none py-2 before:absolute before:top-2 before:bottom-2 before:left-[18px] before:w-[2px] before:bg-[#10181F]">
+            <ul className="relative m-0 list-none py-2 before:absolute before:top-2 before:bottom-2 before:left-[18px] before:w-[2px] before:bg-ca-border">
               {item.children!.map((child) => (
                 <SubMenuItem
                   key={child.id}
@@ -330,7 +330,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
   return (
     <>
       <div
-        className={`fixed top-0 bottom-0 left-0 z-[1000] bg-ca-sidebar pt-[54px] transition-all duration-200 ${widthClass} ${mobileClass} ${minified ? 'overflow-visible' : ''}`}
+        className={`fixed top-0 bottom-0 left-0 z-[1000] border-r border-ca-border bg-ca-sidebar pt-[54px] transition-all duration-200 ${widthClass} ${mobileClass} ${minified ? 'overflow-visible' : ''}`}
       />
 
       <aside
@@ -338,7 +338,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
         className={`fixed top-0 bottom-0 left-0 z-[1010] pt-[54px] transition-all duration-200 ${widthClass} ${mobileClass} ${overflowClass}`}
       >
         <ul className="m-0 list-none p-0">
-          <li className="bg-ca-sidebar-dark p-5 text-white">
+          <li className="border-b border-ca-border bg-ca-sidebar-dark p-5 text-ca-heading">
             <div className={`flex items-start ${minified ? 'justify-center' : ''}`}>
               <div className={`mt-0.5 h-[34px] w-[34px] shrink-0 overflow-hidden rounded-full ${minified ? '' : 'mr-[15px]'}`}>
                 <img src="/assets/img/user-13.jpg" alt="" className="h-full w-full object-cover" />

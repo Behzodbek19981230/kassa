@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
-import type { BreadcrumbItem } from '../../types'
-import { cn } from '../../lib/utils'
+import type { BreadcrumbItem } from '@/types'
+import { cn } from '@/lib/utils'
 
 interface BreadcrumbProps {
   items: BreadcrumbItem[]

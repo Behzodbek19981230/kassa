@@ -1,5 +1,5 @@
 import { FaAngleUp } from 'react-icons/fa'
-import { Button } from './Button'
+import { Button } from '@/components/ui/Button'
 
 export function ScrollToTopButton() {
   return (

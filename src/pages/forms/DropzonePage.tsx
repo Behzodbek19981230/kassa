@@ -1,4 +1,4 @@
-import { Button, Dropzone, PageHeader, Panel } from '../../components/ui'
+import { Button, Dropzone, PageHeader, Panel } from '@/components/ui'
 
 export default function DropzonePage() {
   return (

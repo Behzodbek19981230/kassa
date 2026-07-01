@@ -1,6 +1,6 @@
 import { FaBell, FaBug, FaEnvelope, FaPlus, FaSearch } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
-import { getUser, logout } from '../../lib/auth'
+import { getUser, logout } from '@/lib/auth'
 import {
   Badge,
   DropdownMenu,
@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
   DropdownMediaItem,
   SearchInput,
-} from '../ui'
+} from '@/components/ui'
 
 interface HeaderProps {
   onToggleSidebar: () => void
@@ -31,7 +31,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
   return (
     <header
       id="header"
-      className="fixed top-0 right-0 left-0 z-[1020] h-[54px] bg-white shadow-[0_0_2px_rgba(0,0,0,0.3)]"
+      className="fixed top-0 right-0 left-0 z-[1020] h-[54px] bg-ca-header shadow-[0_0_2px_rgba(0,0,0,0.3)]"
     >
       <div className="flex h-full items-center px-5">
         <div className="flex items-center">

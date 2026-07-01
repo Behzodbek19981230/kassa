@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { ScrollToTopButton, NotificationProvider } from '../ui'
-import Footer from './Footer'
-import Header from './Header'
-import Sidebar from './Sidebar'
+import { ScrollToTopButton, NotificationProvider } from '@/components/ui'
+import Footer from '@/components/layout/Footer'
+import Header from '@/components/layout/Header'
+import Sidebar from '@/components/layout/Sidebar'
 
 export default function Layout() {
   const { pathname } = useLocation()

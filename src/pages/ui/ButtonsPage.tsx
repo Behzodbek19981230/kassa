@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
   PageHeader,
   Panel,
-} from '../../components/ui'
+} from '@/components/ui'
 
 export default function ButtonsPage() {
   return (

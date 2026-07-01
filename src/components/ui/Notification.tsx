@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { FaTimes } from 'react-icons/fa'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 export type NotificationPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
 

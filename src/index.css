@@ -1,74 +1,105 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-@theme {
-  --color-ca-body: #d9e0e7;
-  --color-ca-text: #707478;
-  --color-ca-heading: #242a30;
-  --color-ca-sidebar: #2d353c;
-  --color-ca-sidebar-dark: #1a2229;
-  --color-ca-sidebar-hover: #232a2f;
-  --color-ca-theme: #00acac;
-  --color-ca-theme-dark: #008a8a;
-  --color-ca-sidebar-text: #a8acb1;
-  --color-ca-sidebar-muted: #889097;
-  --color-ca-nav-header: #6d7983;
-  --color-ca-primary: #348fe2;
-  --color-ca-purple: #727cb6;
-  --color-ca-red: #ff5b57;
-  --color-ca-orange: #f59c1a;
-  --color-ca-green: #00acac;
-  --color-ca-aqua: #49b6d6;
-  --color-ca-silver: #f0f3f4;
-  --color-ca-silver-light: #f4f6f7;
-  --color-ca-border: #e2e7eb;
-  --color-ca-footer-border: #cad0d6;
-  --color-ca-nav-text: #585663;
-  --color-ca-badge-bg: #1b1f24;
-  --color-ca-panel-inverse: #242a30;
-  --color-ca-tab-bg: #c1ccd1;
-  --color-ca-table-stripe: #f0f3f5;
-  --color-ca-table-hover: #e8ecf1;
-  --font-ca: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+:root {
+	color-scheme: light;
 }
 
+@theme {
+	/* Background */
+	--color-ca-body: #f5f7fb;
+	--color-ca-header: #ffffff;
+
+	/* Text */
+	--color-ca-heading: #1e293b;
+	--color-ca-text: #64748b;
+	--color-ca-nav-text: #334155;
+
+	/* Sidebar */
+	--color-ca-sidebar: #ffffff;
+	--color-ca-sidebar-dark: #f1f5f9;
+	--color-ca-sidebar-hover: #e2e8f0;
+	--color-ca-sidebar-text: #334155;
+	--color-ca-sidebar-muted: #334155;
+	--color-ca-nav-header: #94a3b8;
+
+	/* Brand */
+	--color-ca-theme: #348fe2;
+	--color-ca-theme-dark: #2178cf;
+	--color-ca-primary: #348fe2;
+
+	/* Status */
+	--color-ca-purple: #8b5cf6;
+	--color-ca-red: #ef4444;
+	--color-ca-orange: #f59e0b;
+	--color-ca-green: #22c55e;
+	--color-ca-aqua: #06b6d4;
+
+	/* Surface */
+	--color-ca-silver: #f8fafc;
+	--color-ca-silver-light: #ffffff;
+	--color-ca-border: #e2e8f0;
+
+	/* Components */
+	--color-ca-badge-bg: #348fe2;
+	--color-ca-panel-inverse: #98c8f4;
+	--color-ca-tab-bg: #e2e8f0;
+	--color-ca-table-stripe: #f8fafc;
+	--color-ca-table-hover: #eff6ff;
+
+	/* Font */
+	--font-ca: 'Inter', 'Open Sans', sans-serif;
+}
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
 }
 
 @keyframes modalIn {
-  from {
-    opacity: 0;
-    scale: 0.96;
-  }
-  to {
-    opacity: 1;
-    scale: 1;
-  }
+	from {
+		opacity: 0;
+		scale: 0.96;
+	}
+	to {
+		opacity: 1;
+		scale: 1;
+	}
 }
 
 @keyframes modalOut {
-  from {
-    opacity: 1;
-    scale: 1;
-  }
-  to {
-    opacity: 0;
-    scale: 0.96;
-  }
+	from {
+		opacity: 1;
+		scale: 1;
+	}
+	to {
+		opacity: 0;
+		scale: 0.96;
+	}
 }
 
 @layer base {
-  body {
-    @apply m-0 min-h-screen bg-ca-body font-ca text-xs text-ca-text antialiased;
-  }
+	body {
+		@apply m-0 min-h-screen bg-ca-body font-ca text-xs text-ca-text antialiased;
+	}
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-medium text-ca-heading;
-  }
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		@apply font-medium text-ca-heading;
+	}
 }

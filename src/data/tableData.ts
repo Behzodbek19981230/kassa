@@ -1,4 +1,4 @@
-import type { TableRow } from '../types'
+import type { TableRow } from '@/types'
 
 export const tableRows: TableRow[] = [
   { engine: 'Trident', browser: 'Internet Explorer 4.0', platform: 'Win 95+', version: '4', grade: 'X' },

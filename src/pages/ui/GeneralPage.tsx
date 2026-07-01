@@ -7,7 +7,7 @@ import {
   Panel,
   Progress,
   WidgetStats,
-} from '../../components/ui'
+} from '@/components/ui'
 import { FaDesktop } from 'react-icons/fa'
 
 export default function GeneralPage() {

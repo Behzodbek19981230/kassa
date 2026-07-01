@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
   useNotification,
-} from '../../components/ui'
+} from '@/components/ui'
 
 const demoText =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed tempus lacus ut lectus rutrum placerat.'

@@ -1,6 +1,6 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react'
-import { cn } from '../../lib/utils'
-import { Input } from './Input'
+import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/Input'
 
 export interface SearchInputProps extends InputHTMLAttributes<HTMLInputElement> {
   onSearch?: () => void

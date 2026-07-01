@@ -1,7 +1,7 @@
 import { FaExpand, FaMinus, FaRedo, FaTimes } from 'react-icons/fa'
-import type { PanelProps } from '../../types'
-import { cn } from '../../lib/utils'
-import { Button } from './Button'
+import type { PanelProps } from '@/types'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/Button'
 import { useState } from 'react'
 
 export function Panel({

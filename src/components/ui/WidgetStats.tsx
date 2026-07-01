@@ -1,6 +1,6 @@
-import type { WidgetStatsProps } from '../../types'
+import type { WidgetStatsProps } from '@/types'
 import { FaArrowCircleRight } from 'react-icons/fa'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 const colorMap = {
   green: 'bg-ca-green',

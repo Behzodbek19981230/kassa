@@ -1,7 +1,7 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
-import { advancedTableRows } from '../../data/advancedTableData'
-import type { AdvancedTableRow } from '../../types'
+import { advancedTableRows } from '@/data/advancedTableData'
+import type { AdvancedTableRow } from '@/types'
 import {
   Badge,
   Button,
@@ -11,7 +11,7 @@ import {
   DataTable,
   PageHeader,
   Panel,
-} from '../../components/ui'
+} from '@/components/ui'
 
 const columnHelper = createColumnHelper<AdvancedTableRow>()
 

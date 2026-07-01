@@ -1,4 +1,4 @@
-import type { SidebarMenuItem } from '../types'
+import type { SidebarMenuItem } from '@/types'
 
 export function isRouteMatch(path: string | undefined, pathname: string): boolean {
   if (!path || path === '#') return false

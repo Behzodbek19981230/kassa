@@ -7,7 +7,7 @@ import {
   type HTMLAttributes,
 } from 'react'
 import { FaTimes } from 'react-icons/fa'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 export const Modal = Dialog.Root
 export const ModalTrigger = Dialog.Trigger

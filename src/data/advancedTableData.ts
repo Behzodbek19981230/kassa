@@ -1,4 +1,4 @@
-import type { AdvancedTableRow } from '../types'
+import type { AdvancedTableRow } from '@/types'
 
 export const advancedTableRows: AdvancedTableRow[] = [
   { id: 1, name: 'Tiger Nixon', position: 'System Architect', office: 'Edinburgh', age: 61, startDate: '2011-04-25', salary: '$320,800', status: 'Active', notes: 'Leads the platform architecture guild and mentors junior engineers on system design.' },

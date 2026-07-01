@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useDropzone, type Accept } from 'react-dropzone'
 import { FaCloudUploadAlt, FaTimes } from 'react-icons/fa'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 interface DropzoneProps {
   onFilesChange?: (files: File[]) => void

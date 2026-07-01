@@ -1,5 +1,5 @@
-import { cn } from '../../lib/utils'
-import { Button } from './Button'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/Button'
 
 interface PaginationProps {
   page: number

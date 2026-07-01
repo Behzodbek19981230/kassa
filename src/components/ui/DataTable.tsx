@@ -25,14 +25,14 @@ import {
   FaSortDown,
   FaSortUp,
 } from 'react-icons/fa'
-import { cn } from '../../lib/utils'
-import { Button } from './Button'
-import { Checkbox } from './Checkbox'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from './DropdownMenu'
-import { Input } from './Input'
-import { Pagination } from './Pagination'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './Select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './Table'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/Button'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/DropdownMenu'
+import { Input } from '@/components/ui/Input'
+import { Pagination } from '@/components/ui/Pagination'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table'
 
 interface DataTableProps<TData> {
   columns: ColumnDef<TData, any>[]

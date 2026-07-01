@@ -1,7 +1,7 @@
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { forwardRef } from 'react'
 import { FaCheck, FaChevronDown } from 'react-icons/fa'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 const Select = SelectPrimitive.Root
 const SelectGroup = SelectPrimitive.Group

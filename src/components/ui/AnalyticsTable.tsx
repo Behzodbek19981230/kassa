@@ -1,5 +1,5 @@
-import { Label } from './Badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './Table'
+import { Label } from '@/components/ui/Badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table'
 
 export interface AnalyticsRow {
   label: string

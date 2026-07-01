@@ -5,7 +5,7 @@ import {
   Panel,
   Tabs,
   TodoList,
-} from '../../components/ui'
+} from '@/components/ui'
 
 const mediaPosts = [
   {

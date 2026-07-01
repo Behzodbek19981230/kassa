@@ -8,7 +8,7 @@ import {
   Tabs,
   TodoList,
   WidgetStats,
-} from '../components/ui'
+} from '@/components/ui'
 
 const analyticsRows = [
   { label: 'Unique Visitor', labelVariant: 'danger' as const, value: '13,203', trend: 'up' as const },

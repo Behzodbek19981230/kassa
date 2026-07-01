@@ -1,5 +1,5 @@
-import type { PageHeaderProps } from '../../types'
-import { Breadcrumb } from './Breadcrumb'
+import type { PageHeaderProps } from '@/types'
+import { Breadcrumb } from '@/components/ui/Breadcrumb'
 
 export function PageHeader({ title, subtitle, breadcrumb }: PageHeaderProps) {
   return (

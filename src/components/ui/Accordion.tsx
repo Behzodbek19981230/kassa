@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import * as AccordionPrimitive from '@radix-ui/react-accordion'
 import { FaChevronDown } from 'react-icons/fa'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 interface AccordionItem {
   value: string

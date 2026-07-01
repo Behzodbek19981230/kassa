@@ -1,4 +1,4 @@
-import type { SidebarMenuItem } from '../types'
+import type { SidebarMenuItem } from '@/types'
 
 export const sidebarMenu: SidebarMenuItem[] = [
   { id: 'navigation', type: 'header', label: 'Navigation' },

@@ -1,7 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table'
-import { tableRows } from '../../data/tableData'
-import type { TableRow } from '../../types'
-import { Button, createSelectColumn, DataTable, PageHeader, Panel } from '../../components/ui'
+import { tableRows } from '@/data/tableData'
+import type { TableRow } from '@/types'
+import { Button, createSelectColumn, DataTable, PageHeader, Panel } from '@/components/ui'
 
 const columnHelper = createColumnHelper<TableRow>()
 
