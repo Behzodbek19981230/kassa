@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ca-body: #d9e0e7;
+  --color-ca-text: #707478;
+  --color-ca-heading: #242a30;
+  --color-ca-sidebar: #2d353c;
+  --color-ca-sidebar-dark: #1a2229;
+  --color-ca-sidebar-hover: #232a2f;
+  --color-ca-theme: #00acac;
+  --color-ca-theme-dark: #008a8a;
+  --color-ca-sidebar-text: #a8acb1;
+  --color-ca-sidebar-muted: #889097;
+  --color-ca-nav-header: #6d7983;
+  --color-ca-primary: #348fe2;
+  --color-ca-purple: #727cb6;
+  --color-ca-red: #ff5b57;
+  --color-ca-orange: #f59c1a;
+  --color-ca-green: #00acac;
+  --color-ca-aqua: #49b6d6;
+  --color-ca-silver: #f0f3f4;
+  --color-ca-silver-light: #f4f6f7;
+  --color-ca-border: #e2e7eb;
+  --color-ca-footer-border: #cad0d6;
+  --color-ca-nav-text: #585663;
+  --color-ca-badge-bg: #1b1f24;
+  --color-ca-panel-inverse: #242a30;
+  --color-ca-tab-bg: #c1ccd1;
+  --color-ca-table-stripe: #f0f3f5;
+  --color-ca-table-hover: #e8ecf1;
+  --font-ca: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes modalOut {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+@layer base {
+  body {
+    @apply m-0 min-h-screen bg-ca-body font-ca text-xs text-ca-text antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-medium text-ca-heading;
+  }
+}
