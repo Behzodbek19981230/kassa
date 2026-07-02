@@ -56,6 +56,7 @@ import { Pagination } from '@/components/ui/Pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { FcDeleteDatabase } from 'react-icons/fc';
 
 function resolveUpdater<T>(updater: Updater<T>, current: T): T {
 	return typeof updater === 'function' ? (updater as (old: T) => T)(current) : updater;
@@ -81,6 +82,7 @@ interface DataTableProps<TData> {
 	renderExpandedRow?: (row: TData) => ReactNode;
 	exportFileName?: string;
 	emptyMessage?: ReactNode;
+	emptyIcon?: ReactNode;
 	isLoading?: boolean;
 	skeletonRows?: number;
 	/**
@@ -123,6 +125,7 @@ export function DataTable<TData>({
 	renderExpandedRow,
 	exportFileName = 'table-export.csv',
 	emptyMessage = 'No data available',
+	emptyIcon = <FcDeleteDatabase className='text-4xl text-ca-border' />,
 	isLoading = false,
 	skeletonRows,
 	manualPagination = false,
@@ -406,19 +409,19 @@ export function DataTable<TData>({
 													)}
 												</div>
 											)}
-										{enableColumnResizing && header.column.getCanResize() && (
-											<div
-												onMouseDown={header.getResizeHandler()}
-												onTouchStart={header.getResizeHandler()}
-												className={cn(
-													'absolute top-0 right-0 h-full w-1 cursor-col-resize touch-none select-none',
-													header.column.getIsResizing()
-														? 'bg-ca-theme'
-														: 'hover:bg-ca-border',
-												)}
-											/>
-										)}
-									</TableHead>
+											{enableColumnResizing && header.column.getCanResize() && (
+												<div
+													onMouseDown={header.getResizeHandler()}
+													onTouchStart={header.getResizeHandler()}
+													className={cn(
+														'absolute top-0 right-0 h-full w-1 cursor-col-resize touch-none select-none',
+														header.column.getIsResizing()
+															? 'bg-ca-theme'
+															: 'hover:bg-ca-border',
+													)}
+												/>
+											)}
+										</TableHead>
 									);
 								})}
 							</TableRow>
@@ -427,7 +430,13 @@ export function DataTable<TData>({
 							table.getHeaderGroups().map((headerGroup) => (
 								<TableRow key={`${headerGroup.id}-filters`}>
 									{headerGroup.headers.map((header) => (
-										<TableHead key={`${header.id}-filter`} className={cn('py-1.5',enableBordered && 'border-x border-b border-ca-border',)}>
+										<TableHead
+											key={`${header.id}-filter`}
+											className={cn(
+												'py-1.5',
+												enableBordered && 'border-x border-b border-ca-border',
+											)}
+										>
 											{header.column.getCanFilter() ? (
 												<Input
 													value={(header.column.getFilterValue() as string) ?? ''}
@@ -450,7 +459,7 @@ export function DataTable<TData>({
 								<TableRow key={`skeleton-${rowIndex}`}>
 									{columns.map((_col, colIndex) => (
 										<TableCell key={colIndex}>
-											<Skeleton className="h-4 w-full" />
+											<Skeleton className='h-4 w-full' />
 										</TableCell>
 									))}
 								</TableRow>
@@ -491,8 +500,11 @@ export function DataTable<TData>({
 							))
 						) : (
 							<TableRow>
-								<TableCell colSpan={columns.length} className='text-center'>
-									{emptyMessage}
+								<TableCell colSpan={columns.length} className='p-0'>
+									<div className='flex h-40 flex-col items-center justify-center gap-2 text-ca-text'>
+										{emptyIcon}
+										<div className='text-xs'>{emptyMessage}</div>
+									</div>
 								</TableCell>
 							</TableRow>
 						)}

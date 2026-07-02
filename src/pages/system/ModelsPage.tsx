@@ -5,7 +5,7 @@ import {
 	type SortingState,
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaEdit, FaEye, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaEye, FaTrash } from 'react-icons/fa';
 import {
 	Button,
 	Checkbox,
@@ -27,6 +27,7 @@ import {
 	useDeleteBrandMutation,
 	useUpdateBrandMutation,
 } from '@/services/brand/brand.queries';
+import { brandService } from '@/services/brand/brand.service';
 import type { Brand, BrandPayload } from '@/services/brand/brand.types';
 
 interface BrandFormState {
@@ -49,7 +50,7 @@ export default function ModelsPage() {
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const nameFilter = columnFilters.find((f) => f.id === 'name')?.value as string | undefined;
 
-	const { data, isLoading, isError, refetch } = useBrandListQuery({
+	const { data, isLoading, isFetching, isError, refetch } = useBrandListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
@@ -65,16 +66,26 @@ export default function ModelsPage() {
 	const [editingId, setEditingId] = useState<number | null>(null);
 	const [form, setForm] = useState<BrandFormState>(emptyForm);
 	const [formError, setFormError] = useState('');
+	const [sortingHint, setSortingHint] = useState('');
 
 	const [viewItem, setViewItem] = useState<Brand | null>(null);
 	const [deleteItem, setDeleteItem] = useState<Brand | null>(null);
 
-	const openCreate = () => {
+	const openCreate = async () => {
 		setFormMode('create');
 		setEditingId(null);
 		setForm(emptyForm);
 		setFormError('');
+		setSortingHint('');
 		setFormOpen(true);
+
+		try {
+			const { first_empty_sorting, message } = await brandService.getNextSorting();
+			setForm((f) => ({ ...f, sorting: String(first_empty_sorting) }));
+			setSortingHint(message);
+		} catch {
+			// keep default sorting if the suggestion request fails
+		}
 	};
 
 	const openEdit = (item: Brand) => {
@@ -82,6 +93,7 @@ export default function ModelsPage() {
 		setEditingId(item.id);
 		setForm({ name: item.name, sorting: String(item.sorting), active: item.status === 1 });
 		setFormError('');
+		setSortingHint('');
 		setFormOpen(true);
 	};
 
@@ -176,7 +188,13 @@ export default function ModelsPage() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					<Button variant='info' size='xs' onClick={openCreate}>
+					<Button
+						variant='info'
+						size='xs'
+						onClick={() => {
+							void openCreate();
+						}}
+					>
 						Qo'shish +
 					</Button>
 				}
@@ -204,8 +222,9 @@ export default function ModelsPage() {
 					enableColumnVisibility
 					enableSorting
 					enableStriping
-					isLoading={isLoading}
+					isLoading={isLoading || isFetching}
 					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>
 
@@ -234,6 +253,7 @@ export default function ModelsPage() {
 								value={form.sorting}
 								onChange={(e) => setForm((f) => ({ ...f, sorting: e.target.value }))}
 							/>
+							{sortingHint && <i className='mt-1 block text-xs text-ca-text'>{sortingHint}</i>}
 						</div>
 						<Checkbox
 							inline

@@ -29,7 +29,7 @@ export function Panel({
 		<div
 			className={cn(
 				'mb-5 overflow-hidden rounded-[3px] bg-white shadow-none',
-				expanded && 'fixed inset-0 z-[1100] m-0 overflow-y-auto rounded-none',
+				expanded && 'fixed inset-0 z-1040 m-0 overflow-y-auto rounded-none',
 				className,
 			)}
 			ref={itemRef}

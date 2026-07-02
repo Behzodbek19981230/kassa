@@ -1,8 +1,11 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { useState } from 'react'
-import { FaEdit, FaEye, FaPlus, FaTrash } from 'react-icons/fa'
+import { FaEdit, FaExclamationTriangle, FaEye, FaPlus, FaTrash } from 'react-icons/fa'
 import {
   Button,
+  Combobox,
+  type ComboboxLoadParams,
+  type ComboboxLoadResult,
   DataTable,
   Input,
   Modal,
@@ -29,6 +32,7 @@ import {
 import { brandSizeService } from '@/services/brand-size/brand-size.service'
 import { BRAND_SIZE_TYPES, type BrandSizePayload } from '@/services/brand-size/brand-size.types'
 import { useBrandListQuery } from '@/services/brand/brand.queries'
+import { brandService } from '@/services/brand/brand.service'
 import {
   useCreateProductCategoryMutation,
   useDeleteProductCategoryMutation,
@@ -69,6 +73,22 @@ export default function ProductCategoriesPage() {
   const { data: brandData } = useBrandListQuery({ limit: 100 })
   const brands = brandData?.results ?? []
   const brandNameById = new Map(brands.map((b) => [b.id, b.name]))
+
+  const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+    const result = await brandService.list({ search: search || undefined, page, limit: 20 })
+    return {
+      options: result.results.map((b) => ({ value: String(b.id), label: b.name })),
+      hasMore: result.pagination.currentPage < result.pagination.lastPage,
+    }
+  }
+
+  const loadBrandFilterOptions = async (params: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+    const result = await loadBrandOptions(params)
+    if (params.page === 1 && !params.search) {
+      return { ...result, options: [{ value: ALL_BRANDS, label: 'Barchasi' }, ...result.options] }
+    }
+    return result
+  }
 
   const { data, isLoading, isError } = useProductCategoryListQuery({
     page,
@@ -268,25 +288,18 @@ export default function ProductCategoriesPage() {
       >
         <div className="mb-3 flex flex-wrap gap-3">
           <div className="w-full max-w-[220px]">
-            <Select
+            <Combobox
               value={brandFilter}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 setBrandFilter(v)
                 setPage(1)
               }}
-            >
-              <SelectTrigger className="h-[34px]">
-                <SelectValue placeholder="Model bo'yicha filtr..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_BRANDS}>Barchasi</SelectItem>
-                {brands.map((brand) => (
-                  <SelectItem key={brand.id} value={String(brand.id)}>
-                    {brand.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              loadOptions={loadBrandFilterOptions}
+              selectedLabel={brandFilter === ALL_BRANDS ? 'Barchasi' : brandNameById.get(Number(brandFilter))}
+              placeholder="Model bo'yicha filtr..."
+              searchPlaceholder="Model qidirish..."
+              className="h-[34px]"
+            />
           </div>
           <div className="w-full max-w-[280px]">
             <Input
@@ -308,6 +321,7 @@ export default function ProductCategoriesPage() {
           enableGlobalFilter={false}
           enableSorting={false}
           emptyMessage={isError ? 'Xatolik yuz berdi' : isLoading ? 'Yuklanmoqda...' : "Ma'lumot topilmadi"}
+          emptyIcon={isError ? <FaExclamationTriangle className="text-4xl text-ca-red" /> : undefined}
         />
 
         {pagination && pagination.lastPage > 1 && (
@@ -331,18 +345,14 @@ export default function ProductCategoriesPage() {
             )}
             <div className="mb-3">
               <label className="mb-1 block text-xs font-semibold text-ca-heading">Model</label>
-              <Select value={form.brand} onValueChange={(v) => setForm((f) => ({ ...f, brand: v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tanlang..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {brands.map((brand) => (
-                    <SelectItem key={brand.id} value={String(brand.id)}>
-                      {brand.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={form.brand}
+                onChange={(v) => setForm((f) => ({ ...f, brand: v }))}
+                loadOptions={loadBrandOptions}
+                selectedLabel={brandNameById.get(Number(form.brand))}
+                placeholder="Tanlang..."
+                searchPlaceholder="Model qidirish..."
+              />
             </div>
 
             <div className="mb-3 grid grid-cols-2 gap-3">

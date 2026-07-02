@@ -20,3 +20,11 @@ export interface BrandPayload {
 }
 
 export type BrandListParams = ListParams
+
+export interface BrandNextSorting {
+  model: string
+  app: string
+  filters: Record<string, unknown>
+  first_empty_sorting: number
+  message: string
+}
