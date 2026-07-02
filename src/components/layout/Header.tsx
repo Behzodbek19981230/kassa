@@ -73,11 +73,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 						href='/'
 						className='flex h-[54px] w-[220px] items-center px-5 text-lg font-medium text-ca-nav-text no-underline'
 					>
-						<span
-							className='mr-2.5 mt-1.5 inline-block h-0 w-0 border-[10px] border-transparent opacity-90'
-							style={{ borderColor: '#4DCACA #31A3A3 #1D8888' }}
-						/>
-						Savdo Soft
+						<img src='/savdo_soft_logo.svg' alt='Logo' className='mr-2 ' />
 					</a>
 					<button
 						type='button'

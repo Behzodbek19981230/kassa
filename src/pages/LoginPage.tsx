@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { FaSignInAlt } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '@/components/ui';
@@ -51,13 +50,7 @@ export default function LoginPage() {
 		<div className='flex min-h-screen items-center justify-center bg-ca-body px-4 py-16'>
 			<div className='w-full max-w-[450px]'>
 				<div className='relative mb-5 px-2.5'>
-					<span
-						className='mr-2.5 inline-block h-0 w-0 border-[14px] align-middle opacity-90'
-						style={{ borderColor: '#4DCACA #31A3A3 #1D8888' }}
-					/>
-					<span className='align-middle text-[28px] font-light text-ca-heading'>Savdo Soft</span>
-
-					<FaSignInAlt className='absolute top-0 right-2.5 text-6xl text-ca-border' />
+					<img src='/savdo_soft_logo.svg' alt='Logo' className='mr-2 ' />
 				</div>
 
 				<div className='rounded-[3px] border border-ca-border bg-white px-10 py-8 shadow-[0_10px_30px_rgba(15,23,42,0.08)]'>
