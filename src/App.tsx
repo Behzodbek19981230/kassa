@@ -14,6 +14,8 @@ import ButtonsPage from '@/pages/ui/ButtonsPage'
 import GeneralPage from '@/pages/ui/GeneralPage'
 import TabsAccordionsPage from '@/pages/ui/TabsAccordionsPage'
 import ModalNotificationPage from '@/pages/ui/ModalNotificationPage'
+import ModelsPage from '@/pages/system/ModelsPage'
+import ProductCategoriesPage from '@/pages/system/ProductCategoriesPage'
 
 export default function App() {
   return (
@@ -40,6 +42,10 @@ export default function App() {
           <Route path="tables/basic" element={<BasicTablePage />} />
           <Route path="tables/buttons" element={<TableButtonsPage />} />
           <Route path="tables/advanced" element={<AdvancedTablePage />} />
+
+          {/* System management */}
+          <Route path="system/product-categories" element={<ProductCategoriesPage />} />
+          <Route path="system/models" element={<ModelsPage />} />
         </Route>
       </Route>
     </Routes>

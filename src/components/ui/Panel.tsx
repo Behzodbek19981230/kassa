@@ -7,6 +7,7 @@ import { useState } from 'react'
 export function Panel({
   title,
   children,
+  actions,
   toolbar,
   footer,
   className = '',
@@ -18,6 +19,7 @@ export function Panel({
     <div className={cn('mb-5 overflow-hidden rounded-[3px] bg-white shadow-none', className)}>
       <div className="flex items-center bg-ca-panel-inverse px-[15px] py-[10px] text-white">
         <div className="order-2 ml-auto flex items-center gap-2">
+          {actions}
           <Button variant="default" size="icon-xs" type="button" aria-label="Expand panel">
             <FaExpand />
           </Button>

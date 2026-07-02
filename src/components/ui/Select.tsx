@@ -40,7 +40,7 @@ const SelectContent = forwardRef<
       position={position}
       sideOffset={4}
       className={cn(
-        'z-50 min-w-[8rem] overflow-hidden rounded-[3px] border border-ca-border bg-white text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
+        'z-[1070] min-w-[8rem] overflow-hidden rounded-[3px] border border-ca-border bg-white text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
         position === 'popper' &&
           'w-[var(--radix-select-trigger-width)] max-h-[var(--radix-select-content-available-height)]',
         className,

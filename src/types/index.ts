@@ -1,15 +1,26 @@
 import type { ReactNode } from 'react'
 
 export type SidebarIcon =
-  | 'laptop'
-  | 'inbox'
-  | 'suitcase'
-  | 'file'
-  | 'th'
-  | 'calendar'
-  | 'area-chart'
-  | 'map-marker'
-  | 'gift'
+  | 'boxes'
+  | 'cart'
+  | 'history'
+  | 'balance-scale'
+  | 'chart-pie'
+  | 'undo'
+  | 'file-invoice'
+  | 'tags'
+  | 'truck'
+  | 'warehouse'
+  | 'bookmark'
+  | 'cogs'
+  | 'layer-group'
+  | 'ruler-combined'
+  | 'shipping-fast'
+  | 'check-circle'
+  | 'exclamation-triangle'
+  | 'users-cog'
+  | 'chart-bar'
+  | 'receipt'
 
 export interface SidebarMenuItem {
   id: string
@@ -58,6 +69,7 @@ export interface WidgetStatsProps {
 export interface PanelProps {
   title: string
   children: ReactNode
+  actions?: ReactNode
   toolbar?: ReactNode
   footer?: ReactNode
   className?: string
