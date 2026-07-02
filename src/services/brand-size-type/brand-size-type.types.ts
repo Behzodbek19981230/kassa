@@ -1,31 +1,25 @@
 import type { ListParams } from '@/services/api/types'
 
-export interface ProductCategory {
+export interface BrandSizeType {
   id: number
   created_time: string
   updated_time: string
   name: string
   sorting: number
-  status: number
-  sup_status: number
+  status: boolean
   created_by: number
   updated_by: number | null
-  brand: number
 }
 
-export interface ProductCategoryPayload {
+export interface BrandSizeTypePayload {
   name: string
   sorting: number
-  status: number
-  sup_status: number
-  brand: number
+  status: boolean
 }
 
-export interface ProductCategoryListParams extends ListParams {
-  brand?: number
-}
+export type BrandSizeTypeListParams = ListParams
 
-export interface ProductCategoryNextSorting {
+export interface BrandSizeTypeNextSorting {
   model: string
   app: string
   filters: Record<string, unknown>

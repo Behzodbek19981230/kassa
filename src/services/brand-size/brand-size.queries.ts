@@ -11,7 +11,7 @@ export function useBrandSizeListQuery(params?: BrandSizeListParams) {
   return useQuery({
     queryKey: brandSizeKeys.list(params),
     queryFn: () => brandSizeService.list(params),
-    enabled: Boolean(params?.product_category),
+    placeholderData: (prev) => prev,
   })
 }
 

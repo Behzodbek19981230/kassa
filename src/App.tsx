@@ -16,6 +16,7 @@ import TabsAccordionsPage from '@/pages/ui/TabsAccordionsPage'
 import ModalNotificationPage from '@/pages/ui/ModalNotificationPage'
 import ModelsPage from '@/pages/system/ModelsPage'
 import ProductCategoriesPage from '@/pages/system/ProductCategoriesPage'
+import ProductMeasurementPage from '@/pages/system/ProductMeasurementPage'
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
           {/* System management */}
           <Route path="system/product-categories" element={<ProductCategoriesPage />} />
           <Route path="system/models" element={<ModelsPage />} />
+          <Route path="system/product-measurement" element={<ProductMeasurementPage />} />
         </Route>
       </Route>
     </Routes>

@@ -3,12 +3,19 @@ import type { PaginatedResponse } from '@/services/api/types'
 import type {
   ProductCategory,
   ProductCategoryListParams,
+  ProductCategoryNextSorting,
   ProductCategoryPayload,
 } from '@/services/product-category/product-category.types'
 
 export const productCategoryService = {
   list: async (params?: ProductCategoryListParams) => {
     const { data } = await apiClient.get<PaginatedResponse<ProductCategory>>('/product-category/', { params })
+    return data
+  },
+  getNextSorting: async (brand: number) => {
+    const { data } = await apiClient.get<ProductCategoryNextSorting>('/product-category/sorting/', {
+      params: { brand },
+    })
     return data
   },
   get: async (id: number) => {

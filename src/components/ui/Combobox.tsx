@@ -1,3 +1,4 @@
+import { useDismissableLayerSurface } from '@radix-ui/react-dismissable-layer'
 import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FaCheck, FaChevronDown, FaSearch, FaSpinner } from 'react-icons/fa'
@@ -69,6 +70,11 @@ export function Combobox({
 
 	const requestId = useRef(0)
 	const listRef = useRef<HTMLDivElement>(null)
+	// Registers the popover content with Radix's dismissable-layer surface
+	// registry so an ancestor Dialog/Modal doesn't treat clicks inside it as
+	// "outside" clicks and close itself (react-popover doesn't register this
+	// itself, unlike react-dialog's own overlay).
+	const registerSurface = useDismissableLayerSurface()
 
 	useEffect(() => {
 		if (!isAsync) setItems(staticOptions ?? [])
@@ -165,7 +171,7 @@ export function Combobox({
 					type='button'
 					disabled={disabled}
 					className={cn(
-						'flex h-[30px] w-full items-center justify-between gap-2 rounded-[3px] border border-[#ccd0d4] bg-white px-2 text-xs text-ca-heading',
+						'flex h-[34px] w-full items-center justify-between gap-2 rounded-[3px] border border-[#ccd0d4] bg-white px-3 text-xs text-ca-heading',
 						'focus:border-[#9fa2a5] focus:outline-none',
 						'disabled:cursor-not-allowed disabled:bg-[#e5e9ed] disabled:opacity-60',
 						className,
@@ -179,6 +185,7 @@ export function Combobox({
 			</PopoverPrimitive.Trigger>
 			<PopoverPrimitive.Portal>
 				<PopoverPrimitive.Content
+					ref={registerSurface}
 					align='start'
 					sideOffset={4}
 					className={cn(

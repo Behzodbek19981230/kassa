@@ -24,10 +24,3 @@ export interface BrandSizeListParams extends ListParams {
   product_category?: number
   type?: number
 }
-
-export const BRAND_SIZE_TYPES = [
-  { value: 1, label: 'Dona' },
-  { value: 2, label: 'Karobka' },
-  { value: 3, label: 'Komplekt' },
-  { value: 4, label: 'Pochka' },
-]

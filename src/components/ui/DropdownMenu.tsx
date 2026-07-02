@@ -1,3 +1,4 @@
+import { useDismissableLayerSurface } from '@radix-ui/react-dismissable-layer'
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { forwardRef, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
@@ -11,9 +12,16 @@ export function DropdownMenuContent({
   align = 'end',
   ...props
 }: DropdownMenuPrimitive.DropdownMenuContentProps) {
+  // Registers this portaled content with Radix's dismissable-layer surface
+  // registry so an ancestor Dialog/Modal doesn't treat clicks inside it as
+  // "outside" clicks and close itself (react-dropdown-menu doesn't register
+  // this itself, unlike react-dialog's own overlay).
+  const registerSurface = useDismissableLayerSurface()
+
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
+        ref={registerSurface}
         align={align}
         sideOffset={0}
         className={cn(

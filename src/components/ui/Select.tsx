@@ -1,3 +1,5 @@
+import { useComposedRefs } from '@radix-ui/react-compose-refs'
+import { useDismissableLayerSurface } from '@radix-ui/react-dismissable-layer'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { forwardRef } from 'react'
 import { FaCheck, FaChevronDown } from 'react-icons/fa'
@@ -14,7 +16,7 @@ const SelectTrigger = forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-[30px] w-full items-center justify-between gap-2 rounded-[3px] border border-[#ccd0d4] bg-white px-2 text-xs text-ca-heading',
+      'flex h-[34px] w-full items-center justify-between gap-2 rounded-[3px] border border-[#ccd0d4] bg-white px-3 text-xs text-ca-heading',
       'focus:border-[#9fa2a5] focus:outline-none',
       'data-[placeholder]:text-ca-text',
       'disabled:cursor-not-allowed disabled:bg-[#e5e9ed] disabled:opacity-60',
@@ -33,28 +35,35 @@ SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
 const SelectContent = forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = 'popper', ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      position={position}
-      sideOffset={4}
-      className={cn(
-        'z-[1070] min-w-[8rem] overflow-hidden rounded-[3px] border border-ca-border bg-white text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
-        position === 'popper' &&
-          'w-[var(--radix-select-trigger-width)] max-h-[var(--radix-select-content-available-height)]',
-        className,
-      )}
-      {...props}
-    >
-      <SelectPrimitive.Viewport
-        className={cn('p-1', position === 'popper' && 'w-full')}
+>(({ className, children, position = 'popper', ...props }, ref) => {
+  // Registers this portaled content with Radix's dismissable-layer surface
+  // registry so an ancestor Dialog/Modal doesn't treat clicks inside it as
+  // "outside" clicks and close itself (react-select doesn't register this
+  // itself, unlike react-dialog's own overlay).
+  const registerSurface = useDismissableLayerSurface()
+  const composedRef = useComposedRefs(ref, registerSurface)
+
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Content
+        ref={composedRef}
+        position={position}
+        sideOffset={4}
+        className={cn(
+          'z-[1070] min-w-[8rem] overflow-hidden rounded-[3px] border border-ca-border bg-white text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
+          position === 'popper' &&
+            'w-[var(--radix-select-trigger-width)] max-h-[var(--radix-select-content-available-height)]',
+          className,
+        )}
+        {...props}
       >
-        {children}
-      </SelectPrimitive.Viewport>
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-))
+        <SelectPrimitive.Viewport className={cn('p-1', position === 'popper' && 'w-full')}>
+          {children}
+        </SelectPrimitive.Viewport>
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
+  )
+})
 SelectContent.displayName = SelectPrimitive.Content.displayName
 
 const SelectItem = forwardRef<
