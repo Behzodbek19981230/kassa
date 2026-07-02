@@ -89,9 +89,6 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 						<span className='block h-0.5 w-5 bg-ca-heading' />
 						<span className='block h-0.5 w-5 bg-ca-heading' />
 					</button>
-				</div>
-
-				<ul className='ml-auto flex list-none items-center p-0'>
 					<li className='hidden items-center gap-4 px-3 text-xs text-ca-nav-text md:flex'>
 						<span className='flex items-center gap-1.5'>
 							<FaCalendarAlt className='text-ca-nav-text' />
@@ -106,7 +103,9 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 							{usdRate ? `${usdRate.rate.toLocaleString('ru-RU')} so'm` : '...'}
 						</span>
 					</li>
+				</div>
 
+				<ul className='ml-auto flex list-none items-center p-0'>
 					{/* <li>
 						<button
 							type='button'

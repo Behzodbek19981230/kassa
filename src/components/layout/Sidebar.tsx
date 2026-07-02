@@ -386,17 +386,25 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
 				className={`fixed top-0 bottom-0 left-0 z-[1010] pt-[54px] transition-all duration-200 ${widthClass} ${mobileClass} ${overflowClass}`}
 			>
 				<ul className='m-0 list-none p-0'>
-					<li className='border-b border-ca-border bg-ca-panel-inverse p-5 text-ca-heading'>
-						<div className={`flex items-start ${minified ? 'justify-center' : ''}`}>
+					<li
+						className='relative overflow-hidden border-b border-ca-border p-5'
+						style={{
+							backgroundImage: 'url(/assets/img/gallery/gallery-10.jpg)',
+							backgroundSize: 'cover',
+							backgroundPosition: 'center',
+						}}
+					>
+						<div className='absolute inset-0 bg-ca-theme/80' />
+						<div className={`relative flex items-start ${minified ? 'justify-center' : ''}`}>
 							<div
 								className={`mt-0.5 h-[34px] w-[34px] shrink-0 overflow-hidden rounded-full ${minified ? '' : 'mr-[15px]'}`}
 							>
 								<img src='/assets/img/user-13.jpg' alt='' className='h-full w-full object-cover' />
 							</div>
 							{!minified && (
-								<div className='text-sm leading-snug'>
+								<div className='text-sm leading-snug text-white'>
 									{fullName ?? 'Foydalanuvchi'}
-									<small className='mt-0 block text-[11px] text-ca-sidebar-muted'>{roleLabel}</small>
+									<small className='mt-0 block text-[11px] text-white/70'>{roleLabel}</small>
 								</div>
 							)}
 						</div>
