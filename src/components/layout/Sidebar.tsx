@@ -64,7 +64,7 @@ function SubMenuBullet({ active }: { active: boolean }) {
 	return (
 		<FaCircle
 			className={`absolute top-1/2 left-1 -translate-y-1/2 text-[7px] ${
-				active ? 'text-ca-theme drop-shadow-[0_0_5px_rgba(52,143,226,0.5)]' : 'text-[#cbd5e1]'
+				active ? 'text-ca-theme drop-shadow-[0_0_5px_rgba(52,143,226,0.5)]' : 'text-ca-border'
 			}`}
 		/>
 	);
@@ -111,7 +111,7 @@ function SubMenuItem({
 	const isActive = isRouteMatch(item.path, pathname);
 	const isVisible = branchActive || isOpen;
 
-	const rowClass = `relative flex w-full items-center text-left text-xs font-light transition-colors ${
+	const rowClass = `relative flex w-full items-center text-left text-sm font-light transition-colors ${
 		inFlyout ? 'px-5 py-2' : 'px-5 py-[6px]'
 	}`;
 
@@ -210,7 +210,7 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
 
 	if (!hasChildren) {
 		const active = isDirectActive;
-		const linkClass = `flex items-center px-5 py-2 text-xs leading-5 no-underline transition-colors ${
+		const linkClass = `flex items-center px-5 py-2 text-sm leading-5 no-underline transition-colors ${
 			active
 				? 'bg-ca-theme text-white'
 				: 'text-ca-sidebar-text hover:bg-ca-sidebar-hover hover:text-ca-sidebar-text'
@@ -250,7 +250,7 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
 		);
 	}
 
-	const parentClass = `flex w-full items-center px-5 py-2 text-xs leading-5 no-underline transition-colors ${
+	const parentClass = `flex w-full items-center px-5 py-2 text-sm leading-5 no-underline transition-colors ${
 		branchActive
 			? 'bg-ca-theme text-white'
 			: isVisible
@@ -295,7 +295,7 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
 							</span>
 						) : (
 							<FaCaretRight
-								className={`text-[10px] transition-transform duration-200 ${
+								className={`text-sm transition-transform duration-200 ${
 									isVisible ? 'rotate-90' : ''
 								} ${branchActive ? 'text-white/80' : 'text-ca-sidebar-text/80'}`}
 							/>
@@ -328,7 +328,7 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
 			{minified && (
 				<div className='pointer-events-none absolute top-0 left-full z-[1050] hidden pl-0 group-hover/sub:pointer-events-auto group-hover/sub:block'>
 					<div className='ml-0 w-[220px] overflow-hidden rounded-r-[3px] border border-ca-border bg-ca-sidebar-dark shadow-[4px_4px_16px_rgba(0,0,0,0.15)]'>
-						<div className='border-b border-ca-border bg-ca-silver px-5 py-2.5 text-xs font-semibold text-ca-heading'>
+						<div className='border-b border-ca-border bg-ca-silver px-5 py-2.5 text-sm font-semibold text-ca-heading'>
 							{item.label}
 						</div>
 						<ul className='relative m-0 list-none py-2 before:absolute before:top-2 before:bottom-2 before:left-[18px] before:w-[2px] before:bg-ca-border'>

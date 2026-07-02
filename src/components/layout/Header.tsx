@@ -1,7 +1,10 @@
-import { FaBell, FaBug, FaEnvelope, FaPlus, FaSearch } from 'react-icons/fa';
+import { useEffect, useState } from 'react';
+import { FaBell, FaBug, FaCalendarAlt, FaClock, FaDollarSign, FaEnvelope, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, getRefreshToken } from '@/lib/auth';
+// import { useTheme } from '@/lib/theme';
 import { useLogoutMutation } from '@/services/auth/auth.queries';
+import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useUserInfoQuery } from '@/services/user/user.queries';
 import {
 	Badge,
@@ -14,17 +17,41 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 	DropdownMediaItem,
-	SearchInput,
 } from '@/components/ui';
 
 interface HeaderProps {
 	onToggleSidebar: () => void;
 }
 
+function useClock() {
+	const [now, setNow] = useState(() => new Date());
+	useEffect(() => {
+		const id = setInterval(() => setNow(new Date()), 1000);
+		return () => clearInterval(id);
+	}, []);
+	return now;
+}
+
+function formatDate(date: Date) {
+	const dd = String(date.getDate()).padStart(2, '0');
+	const mm = String(date.getMonth() + 1).padStart(2, '0');
+	return `${dd}.${mm}.${date.getFullYear()}`;
+}
+
+function formatTime(date: Date) {
+	const hh = String(date.getHours()).padStart(2, '0');
+	const mi = String(date.getMinutes()).padStart(2, '0');
+	const ss = String(date.getSeconds()).padStart(2, '0');
+	return `${hh}:${mi}:${ss}`;
+}
+
 export default function Header({ onToggleSidebar }: HeaderProps) {
 	const navigate = useNavigate();
 	const { data: user } = useUserInfoQuery();
 	const logoutMutation = useLogoutMutation();
+	// const { theme, toggleTheme } = useTheme();
+	const now = useClock();
+	const { data: usdRate } = useCurrencyRateQuery('USD');
 
 	const handleLogout = async () => {
 		const refresh = getRefreshToken();
@@ -44,7 +71,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 				<div className='flex items-center'>
 					<a
 						href='/'
-						className='flex h-[54px] w-[220px] items-center px-5 text-lg font-thin text-[#333] no-underline'
+						className='flex h-[54px] w-[220px] items-center px-5 text-lg font-medium text-ca-nav-text no-underline'
 					>
 						<span
 							className='mr-2.5 mt-1.5 inline-block h-0 w-0 border-[10px] border-transparent opacity-90'
@@ -58,16 +85,38 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 						className='ml-4 flex flex-col gap-1 p-2.5 lg:hidden'
 						aria-label='Toggle sidebar'
 					>
-						<span className='block h-0.5 w-5 bg-[#333]' />
-						<span className='block h-0.5 w-5 bg-[#333]' />
-						<span className='block h-0.5 w-5 bg-[#333]' />
+						<span className='block h-0.5 w-5 bg-ca-heading' />
+						<span className='block h-0.5 w-5 bg-ca-heading' />
+						<span className='block h-0.5 w-5 bg-ca-heading' />
 					</button>
 				</div>
 
 				<ul className='ml-auto flex list-none items-center p-0'>
-					<li className='hidden sm:block'>
-						<SearchInput placeholder='Enter keyword' rounded icon={<FaSearch />} className='my-3' />
+					<li className='hidden items-center gap-4 px-3 text-xs text-ca-nav-text md:flex'>
+						<span className='flex items-center gap-1.5'>
+							<FaCalendarAlt className='text-ca-nav-text' />
+							{formatDate(now)}
+						</span>
+						<span className='flex items-center gap-1.5 font-medium text-ca-nav-text tabular-nums'>
+							<FaClock className='text-ca-nav-text' />
+							{formatTime(now)}
+						</span>
+						<span className='flex items-center gap-1.5'>
+							<FaDollarSign className='text-ca-green' />
+							{usdRate ? `${usdRate.rate.toLocaleString('ru-RU')} so'm` : '...'}
+						</span>
 					</li>
+
+					{/* <li>
+						<button
+							type='button'
+							onClick={toggleTheme}
+							className='px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60'
+							aria-label={theme === 'dark' ? "Yorug' rejimga o'tish" : "Qorong'i rejimga o'tish"}
+						>
+							{theme === 'dark' ? <FaSun /> : <FaMoon />}
+						</button>
+					</li> */}
 
 					<li>
 						<DropdownMenu>
@@ -125,7 +174,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 										className='-mt-[5px] mr-2.5 h-[30px] w-[30px] rounded-full'
 									/>
 									<span className='hidden md:inline'>{user?.username ?? 'Admin'}</span>
-									<span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-[#585663]' />
+									<span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />
 								</button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent>

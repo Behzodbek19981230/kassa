@@ -7,12 +7,12 @@
 @theme {
 	/* Background */
 	--color-ca-body: #f5f7fb;
-	--color-ca-header: #ffffff;
+	--color-ca-header: #348fe2;
 
 	/* Text */
 	--color-ca-heading: #1e293b;
 	--color-ca-text: #64748b;
-	--color-ca-nav-text: #334155;
+	--color-ca-nav-text: #ffffff;
 
 	/* Sidebar */
 	--color-ca-sidebar: #ffffff;
