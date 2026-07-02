@@ -22,10 +22,12 @@ export interface BrandSizePayload {
 export interface BrandSizeListParams extends ListParams {
   brand?: number
   product_category?: number
+  type?: number
 }
 
 export const BRAND_SIZE_TYPES = [
   { value: 1, label: 'Dona' },
-  { value: 2, label: 'Komplekt' },
-  { value: 3, label: 'Pochka' },
+  { value: 2, label: 'Karobka' },
+  { value: 3, label: 'Komplekt' },
+  { value: 4, label: 'Pochka' },
 ]

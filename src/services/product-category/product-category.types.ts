@@ -22,6 +22,5 @@ export interface ProductCategoryPayload {
 }
 
 export interface ProductCategoryListParams extends ListParams {
-  name?: string
   brand?: number
 }

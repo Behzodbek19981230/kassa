@@ -19,6 +19,4 @@ export interface BrandPayload {
   sup_status: number
 }
 
-export interface BrandListParams extends ListParams {
-  name?: string
-}
+export type BrandListParams = ListParams

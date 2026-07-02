@@ -29,6 +29,7 @@ export {
 } from '@/components/ui/DropdownMenu'
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table'
 export { DataTable, createSelectColumn, createExpandColumn } from '@/components/ui/DataTable'
+export { Skeleton } from '@/components/ui/Skeleton'
 export { Pagination } from '@/components/ui/Pagination'
 export { MediaList, MediaListItem } from '@/components/ui/MediaList'
 export { TodoList, TodoItem } from '@/components/ui/TodoList'

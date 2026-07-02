@@ -1,7 +1,9 @@
+import { createColumnHelper } from '@tanstack/react-table'
 import { useState } from 'react'
 import { FaEdit, FaEye, FaPlus, FaTrash } from 'react-icons/fa'
 import {
   Button,
+  DataTable,
   Input,
   Modal,
   ModalBody,
@@ -17,12 +19,6 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
   useNotification,
 } from '@/components/ui'
 import {
@@ -62,6 +58,8 @@ interface SizeRowState {
 const emptyForm: CategoryFormState = { name: '', sorting: '0', brand: '' }
 const emptySizeRow: SizeRowState = { size: '0', type: '' }
 
+const columnHelper = createColumnHelper<ProductCategory>()
+
 export default function ProductCategoriesPage() {
   const { notify } = useNotification()
   const [page, setPage] = useState(1)
@@ -75,7 +73,7 @@ export default function ProductCategoriesPage() {
   const { data, isLoading, isError } = useProductCategoryListQuery({
     page,
     limit: PAGE_SIZE,
-    name: nameFilter || undefined,
+    search: nameFilter || undefined,
     brand: brandFilter === ALL_BRANDS ? undefined : Number(brandFilter),
   })
 
@@ -196,6 +194,8 @@ export default function ProductCategoriesPage() {
   const handleDelete = async () => {
     if (!deleteItem) return
     try {
+      const existingSizes = await brandSizeService.list({ product_category: deleteItem.id })
+      await Promise.all(existingSizes.results.map((s) => deleteSizeMutation.mutateAsync(s.id)))
       await deleteMutation.mutateAsync(deleteItem.id)
       notify({ title: "Mahsulot toifasi o'chirildi" })
       setDeleteItem(null)
@@ -207,6 +207,46 @@ export default function ProductCategoriesPage() {
   const results = data?.results ?? []
   const pagination = data?.pagination
   const isSaving = createMutation.isPending || updateMutation.isPending
+
+  const columns = [
+    columnHelper.accessor('sorting', { header: 'Tartibi', size: 90 }),
+    columnHelper.accessor('brand', {
+      header: 'Model',
+      size: 220,
+      cell: (info) => brandNameById.get(info.getValue()) ?? info.getValue(),
+    }),
+    columnHelper.accessor('name', { header: 'Nomi' }),
+    columnHelper.display({
+      id: 'actions',
+      header: 'Harakatlar',
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div className="flex justify-center gap-1">
+          <Button variant="info" size="icon" onClick={() => setViewItem(row.original)} aria-label="Ko'rish">
+            <FaEye />
+          </Button>
+          <Button
+            variant="warning"
+            size="icon"
+            onClick={() => {
+              void openEdit(row.original)
+            }}
+            aria-label="Tahrirlash"
+          >
+            <FaEdit />
+          </Button>
+          <Button
+            variant="danger"
+            size="icon"
+            onClick={() => setDeleteItem(row.original)}
+            aria-label="O'chirish"
+          >
+            <FaTrash />
+          </Button>
+        </div>
+      ),
+    }),
+  ]
 
   return (
     <>
@@ -226,103 +266,49 @@ export default function ProductCategoriesPage() {
           </Button>
         }
       >
-        <div className="overflow-x-auto">
-          <Table className="rounded-[3px] border border-ca-border">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[90px]">Tartibi</TableHead>
-                <TableHead className="w-[220px]">Model</TableHead>
-                <TableHead>Nomi</TableHead>
-                <TableHead className="w-[140px] text-center">Harakatlar</TableHead>
-              </TableRow>
-              <TableRow>
-                <TableHead className="py-1.5" />
-                <TableHead className="py-1.5">
-                  <Select
-                    value={brandFilter}
-                    onValueChange={(v) => {
-                      setBrandFilter(v)
-                      setPage(1)
-                    }}
-                  >
-                    <SelectTrigger className="h-[30px]">
-                      <SelectValue placeholder="Tanlang..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={ALL_BRANDS}>Barchasi</SelectItem>
-                      {brands.map((brand) => (
-                        <SelectItem key={brand.id} value={String(brand.id)}>
-                          {brand.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TableHead>
-                <TableHead className="py-1.5">
-                  <Input
-                    value={nameFilter}
-                    onChange={(e) => {
-                      setNameFilter(e.target.value)
-                      setPage(1)
-                    }}
-                    placeholder="Qidirish..."
-                    className="h-[30px]"
-                  />
-                </TableHead>
-                <TableHead className="py-1.5" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {results.length ? (
-                results.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.sorting}</TableCell>
-                    <TableCell className="font-medium text-ca-heading">
-                      {brandNameById.get(item.brand) ?? item.brand}
-                    </TableCell>
-                    <TableCell className="font-medium text-ca-heading">{item.name}</TableCell>
-                    <TableCell>
-                      <div className="flex justify-center gap-1">
-                        <Button
-                          variant="info"
-                          size="icon"
-                          onClick={() => setViewItem(item)}
-                          aria-label="Ko'rish"
-                        >
-                          <FaEye />
-                        </Button>
-                        <Button
-                          variant="warning"
-                          size="icon"
-                          onClick={() => {
-                            void openEdit(item)
-                          }}
-                          aria-label="Tahrirlash"
-                        >
-                          <FaEdit />
-                        </Button>
-                        <Button
-                          variant="danger"
-                          size="icon"
-                          onClick={() => setDeleteItem(item)}
-                          aria-label="O'chirish"
-                        >
-                          <FaTrash />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    {isError ? 'Xatolik yuz berdi' : isLoading ? 'Yuklanmoqda...' : "Ma'lumot topilmadi"}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+        <div className="mb-3 flex flex-wrap gap-3">
+          <div className="w-full max-w-[220px]">
+            <Select
+              value={brandFilter}
+              onValueChange={(v) => {
+                setBrandFilter(v)
+                setPage(1)
+              }}
+            >
+              <SelectTrigger className="h-[34px]">
+                <SelectValue placeholder="Model bo'yicha filtr..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_BRANDS}>Barchasi</SelectItem>
+                {brands.map((brand) => (
+                  <SelectItem key={brand.id} value={String(brand.id)}>
+                    {brand.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full max-w-[280px]">
+            <Input
+              value={nameFilter}
+              onChange={(e) => {
+                setNameFilter(e.target.value)
+                setPage(1)
+              }}
+              placeholder="Nomi bo'yicha qidirish..."
+              className="h-[34px]"
+            />
+          </div>
         </div>
+
+        <DataTable
+          columns={columns}
+          data={results}
+          enablePagination={false}
+          enableGlobalFilter={false}
+          enableSorting={false}
+          emptyMessage={isError ? 'Xatolik yuz berdi' : isLoading ? 'Yuklanmoqda...' : "Ma'lumot topilmadi"}
+        />
 
         {pagination && pagination.lastPage > 1 && (
           <div className="mt-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
