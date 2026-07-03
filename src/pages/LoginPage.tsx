@@ -50,7 +50,7 @@ export default function LoginPage() {
 		<div className='flex min-h-screen items-center justify-center bg-ca-body px-4 py-16'>
 			<div className='w-full max-w-[450px]'>
 				<div className='relative mb-5 px-2.5'>
-					<img src='/savdo_soft_logo.svg' alt='Logo' className='mr-2 ' />
+					<img src='/logo.png' alt='Logo' className='mr-2 ' />
 				</div>
 
 				<div className='rounded-[3px] border border-ca-border bg-white px-10 py-8 shadow-[0_10px_30px_rgba(15,23,42,0.08)]'>

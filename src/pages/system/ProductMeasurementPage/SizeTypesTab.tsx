@@ -1,11 +1,10 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaEye, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Button, buttonProps, DataTable, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import DeleteTypeModal from '@/pages/system/ProductMeasurementPage/components/DeleteTypeModal';
 import TypeFormModal from '@/pages/system/ProductMeasurementPage/components/TypeFormModal';
-import TypeViewModal from '@/pages/system/ProductMeasurementPage/components/TypeViewModal';
 import { useBrandSizeTypeListQuery } from '@/services/brand-size-type/brand-size-type.queries';
 import type { BrandSizeType } from '@/services/brand-size-type/brand-size-type.types';
 
@@ -39,12 +38,12 @@ export default function SizeTypesTab() {
 			size: 190,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
-					<OpenDialogButton
+					{/* <OpenDialogButton
 						element={(props) => <Button {...props} />}
 						elementProps={{ ...buttonProps(<FaEye />, 'info', 'icon'), 'aria-label': "Ko'rish" }}
 						dialog={TypeViewModal}
 						dialogProps={{ item: row.original }}
-					/>
+					/> */}
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
 						elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}

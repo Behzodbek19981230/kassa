@@ -1,7 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
 import {
 	Button,
 	Checkbox,
+	FormField,
 	Input,
 	Modal,
 	ModalBody,
@@ -15,11 +19,13 @@ import { useCreateBrandMutation, useUpdateBrandMutation } from '@/services/brand
 import { brandService } from '@/services/brand/brand.service';
 import type { Brand, BrandPayload } from '@/services/brand/brand.types';
 
-interface BrandFormState {
-	name: string;
-	sorting: string;
-	active: boolean;
-}
+const brandFormSchema = z.object({
+	name: z.string().min(1, 'Nomi kiritilishi shart'),
+	sorting: z.string(),
+	active: z.boolean(),
+});
+
+type BrandFormValues = z.infer<typeof brandFormSchema>;
 
 interface BrandFormModalProps {
 	open: boolean;
@@ -30,13 +36,22 @@ interface BrandFormModalProps {
 
 export default function BrandFormModal({ open, setOpen, mode, item }: BrandFormModalProps) {
 	const { notify } = useNotification();
-	const [form, setForm] = useState<BrandFormState>(
-		mode === 'edit' && item
-			? { name: item.name, sorting: String(item.sorting), active: item.status === 1 }
-			: { name: '', sorting: '0', active: true },
-	);
 	const [formError, setFormError] = useState('');
 	const [sortingHint, setSortingHint] = useState('');
+
+	const {
+		register,
+		control,
+		handleSubmit,
+		setValue,
+		formState: { errors },
+	} = useForm<BrandFormValues>({
+		resolver: zodResolver(brandFormSchema),
+		defaultValues:
+			mode === 'edit' && item
+				? { name: item.name, sorting: String(item.sorting), active: item.status === 1 }
+				: { name: '', sorting: '0', active: true },
+	});
 
 	const createMutation = useCreateBrandMutation();
 	const updateMutation = useUpdateBrandMutation();
@@ -47,7 +62,7 @@ export default function BrandFormModal({ open, setOpen, mode, item }: BrandFormM
 			.getNextSorting()
 			.then(({ first_empty_sorting, message }) => {
 				setSortingHint(message);
-				if (mode === 'create') setForm((f) => ({ ...f, sorting: String(first_empty_sorting) }));
+				if (mode === 'create') setValue('sorting', String(first_empty_sorting));
 			})
 			.catch(() => {
 				// keep default sorting if the suggestion request fails
@@ -55,17 +70,13 @@ export default function BrandFormModal({ open, setOpen, mode, item }: BrandFormM
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	const handleSubmit = async () => {
-		if (!form.name.trim()) {
-			setFormError('Nomi kiritilishi shart');
-			return;
-		}
-
+	const onSubmit = handleSubmit(async (values) => {
+		setFormError('');
 		const payload: BrandPayload = {
-			name: form.name.trim(),
-			sorting: Number(form.sorting) || 0,
-			status: form.active ? 1 : 0,
-			sup_status: form.active ? 1 : 0,
+			name: values.name.trim(),
+			sorting: Number(values.sorting) || 0,
+			status: values.active ? 1 : 0,
+			sup_status: values.active ? 1 : 0,
 		};
 
 		try {
@@ -80,7 +91,7 @@ export default function BrandFormModal({ open, setOpen, mode, item }: BrandFormM
 		} catch {
 			setFormError('Saqlashda xatolik yuz berdi');
 		}
-	};
+	});
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
@@ -88,40 +99,42 @@ export default function BrandFormModal({ open, setOpen, mode, item }: BrandFormM
 				<ModalHeader>
 					<ModalTitle>{mode === 'edit' ? 'Modelni tahrirlash' : "Model qo'shish"}</ModalTitle>
 				</ModalHeader>
-				<ModalBody>
-					{formError && (
-						<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
-							{formError}
-						</div>
-					)}
-					<div className='mb-3'>
-						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Nomi</label>
-						<Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-					</div>
-					<div className='mb-3'>
-						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Tartibi</label>
-						<Input
-							type='number'
-							value={form.sorting}
-							onChange={(e) => setForm((f) => ({ ...f, sorting: e.target.value }))}
+				<form onSubmit={onSubmit} noValidate>
+					<ModalBody>
+						{formError && (
+							<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+								{formError}
+							</div>
+						)}
+						<FormField label='Nomi' error={errors.name?.message} required horizontal={false} className='mb-3'>
+							<Input {...register('name')} />
+						</FormField>
+						<FormField label='Tartibi' error={errors.sorting?.message} horizontal={false} className='mb-3'>
+							<Input type='number' {...register('sorting')} />
+							{sortingHint && <i className='mt-1 block text-xs text-ca-text'>{sortingHint}</i>}
+						</FormField>
+						<Controller
+							name='active'
+							control={control}
+							render={({ field }) => (
+								<Checkbox
+									inline
+									label='Faol'
+									checked={field.value}
+									onCheckedChange={(v) => field.onChange(!!v)}
+								/>
+							)}
 						/>
-						{sortingHint && <i className='mt-1 block text-xs text-ca-text'>{sortingHint}</i>}
-					</div>
-					<Checkbox
-						inline
-						label='Faol'
-						checked={form.active}
-						onCheckedChange={(v) => setForm((f) => ({ ...f, active: !!v }))}
-					/>
-				</ModalBody>
-				<ModalFooter>
-					<Button variant='white' onClick={() => setOpen(false)}>
-						Bekor qilish
-					</Button>
-					<Button variant='success' onClick={handleSubmit} disabled={isSaving}>
-						Saqlash
-					</Button>
-				</ModalFooter>
+					</ModalBody>
+					<ModalFooter>
+						<Button type='button' variant='white' onClick={() => setOpen(false)}>
+							Bekor qilish
+						</Button>
+						<Button type='submit' variant='success' disabled={isSaving}>
+							Saqlash
+						</Button>
+					</ModalFooter>
+				</form>
 			</ModalContent>
 		</Modal>
 	);

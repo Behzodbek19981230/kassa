@@ -1,10 +1,17 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaEye, FaTrash } from 'react-icons/fa';
-import { Button, buttonProps, type ComboboxLoadParams, type ComboboxLoadResult, DataTable, PageHeader, Panel } from '@/components/ui';
+import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
+import {
+	Button,
+	buttonProps,
+	type ComboboxLoadParams,
+	type ComboboxLoadResult,
+	DataTable,
+	PageHeader,
+	Panel,
+} from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import CategoryFormModal from '@/pages/system/ProductCategoriesPage/components/CategoryFormModal';
-import CategoryViewModal from '@/pages/system/ProductCategoriesPage/components/CategoryViewModal';
 import DeleteCategoryModal from '@/pages/system/ProductCategoriesPage/components/DeleteCategoryModal';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
 import { brandService } from '@/services/brand/brand.service';
@@ -68,12 +75,12 @@ export default function ProductCategoriesPage() {
 			meta: { align: 'right' },
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
-					<OpenDialogButton
+					{/* <OpenDialogButton
 						element={(props) => <Button {...props} />}
 						elementProps={{ ...buttonProps(<FaEye />, 'info', 'icon'), 'aria-label': "Ko'rish" }}
 						dialog={CategoryViewModal}
 						dialogProps={{ item: row.original }}
-					/>
+					/> */}
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
 						elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}

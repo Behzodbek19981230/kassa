@@ -1,10 +1,14 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { FaPlus, FaTrash } from 'react-icons/fa';
+import { z } from 'zod';
 import {
 	Button,
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
+	FormField,
 	Input,
 	Modal,
 	ModalBody,
@@ -32,11 +36,13 @@ import {
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import type { ProductCategory, ProductCategoryPayload } from '@/services/product-category/product-category.types';
 
-interface CategoryFormState {
-	name: string;
-	sorting: string;
-	brand: string;
-}
+const categoryFormSchema = z.object({
+	name: z.string().min(1, 'Nomi kiritilishi shart'),
+	sorting: z.string(),
+	brand: z.string().min(1, 'Model tanlanishi shart'),
+});
+
+type CategoryFormValues = z.infer<typeof categoryFormSchema>;
 
 interface SizeRowState {
 	id?: number;
@@ -62,11 +68,23 @@ export default function CategoryFormModal({ open, setOpen, mode, item }: Categor
 	const { data: sizeTypeData } = useBrandSizeTypeListQuery({ limit: 100 });
 	const sizeTypeNameById = new Map((sizeTypeData?.results ?? []).map((t) => [t.id, t.name]));
 
-	const [form, setForm] = useState<CategoryFormState>(
-		mode === 'edit' && item
-			? { name: item.name, sorting: String(item.sorting), brand: String(item.brand) }
-			: { name: '', sorting: '0', brand: '' },
-	);
+	const {
+		control,
+		register,
+		handleSubmit,
+		setValue,
+		watch,
+		formState: { errors },
+	} = useForm<CategoryFormValues>({
+		resolver: zodResolver(categoryFormSchema),
+		defaultValues:
+			mode === 'edit' && item
+				? { name: item.name, sorting: String(item.sorting), brand: String(item.brand) }
+				: { name: '', sorting: '0', brand: '' },
+	});
+
+	const brandValue = watch('brand');
+
 	const [sizeRows, setSizeRows] = useState<SizeRowState[]>([{ ...emptySizeRow }]);
 	const [removedSizeIds, setRemovedSizeIds] = useState<number[]>([]);
 	const [formError, setFormError] = useState('');
@@ -108,11 +126,11 @@ export default function CategoryFormModal({ open, setOpen, mode, item }: Categor
 	};
 
 	const handleBrandChange = async (value: string) => {
-		setForm((f) => ({ ...f, brand: value }));
+		setValue('brand', value);
 		if (mode !== 'create' || !value) return;
 		try {
 			const { first_empty_sorting, message } = await productCategoryService.getNextSorting(Number(value));
-			setForm((f) => ({ ...f, sorting: String(first_empty_sorting) }));
+			setValue('sorting', String(first_empty_sorting));
 			setSortingHint(message);
 		} catch {
 			// keep existing sorting if the suggestion request fails
@@ -135,20 +153,19 @@ export default function CategoryFormModal({ open, setOpen, mode, item }: Categor
 		});
 	};
 
-	const handleSubmit = async () => {
-		if (!form.name.trim()) {
-			setFormError('Nomi kiritilishi shart');
-			return;
-		}
-		if (!form.brand) {
-			setFormError('Model tanlanishi shart');
+	const onSubmit = handleSubmit(async (values) => {
+		setFormError('');
+
+		const validRows = sizeRows.filter((row) => row.type && Number(row.size) > 0);
+		if (validRows.length === 0) {
+			setFormError("Kamida bitta o'lcham va tur qo'shilishi shart");
 			return;
 		}
 
-		const brand = Number(form.brand);
+		const brand = Number(values.brand);
 		const payload: ProductCategoryPayload = {
-			name: form.name.trim(),
-			sorting: Number(form.sorting) || 0,
+			name: values.name.trim(),
+			sorting: Number(values.sorting) || 0,
 			status: 1,
 			sup_status: 1,
 			brand,
@@ -163,19 +180,17 @@ export default function CategoryFormModal({ open, setOpen, mode, item }: Categor
 			await Promise.all(removedSizeIds.map((id) => deleteSizeMutation.mutateAsync(id)));
 
 			await Promise.all(
-				sizeRows
-					.filter((row) => row.type && Number(row.size) > 0)
-					.map((row) => {
-						const sizePayload: BrandSizePayload = {
-							size: Number(row.size),
-							type: Number(row.type),
-							brand,
-							product_category: categoryId,
-						};
-						return row.id
-							? updateSizeMutation.mutateAsync({ id: row.id, payload: sizePayload })
-							: createSizeMutation.mutateAsync(sizePayload);
-					}),
+				validRows.map((row) => {
+					const sizePayload: BrandSizePayload = {
+						size: Number(row.size),
+						type: Number(row.type),
+						brand,
+						product_category: categoryId,
+					};
+					return row.id
+						? updateSizeMutation.mutateAsync({ id: row.id, payload: sizePayload })
+						: createSizeMutation.mutateAsync(sizePayload);
+				}),
 			);
 
 			notify({ title: mode === 'edit' ? 'Mahsulot toifasi yangilandi' : "Mahsulot toifasi qo'shildi" });
@@ -183,7 +198,7 @@ export default function CategoryFormModal({ open, setOpen, mode, item }: Categor
 		} catch {
 			setFormError('Saqlashda xatolik yuz berdi');
 		}
-	};
+	});
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
@@ -191,106 +206,113 @@ export default function CategoryFormModal({ open, setOpen, mode, item }: Categor
 				<ModalHeader>
 					<ModalTitle>{mode === 'edit' ? 'Tahrirlash' : 'Yaratish'}</ModalTitle>
 				</ModalHeader>
-				<ModalBody>
-					{formError && (
-						<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
-							{formError}
-						</div>
-					)}
-					<div className='mb-3'>
-						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Model</label>
-						<Combobox
-							value={form.brand}
-							onChange={(v) => {
-								void handleBrandChange(v);
-							}}
-							loadOptions={loadBrandOptions}
-							selectedLabel={brandNameById.get(Number(form.brand))}
-							placeholder='Tanlang...'
-							searchPlaceholder='Model qidirish...'
-						/>
-					</div>
-
-					<div className='mb-3 grid grid-cols-2 gap-3'>
-						<div>
-							<label className='mb-1 block text-xs font-semibold text-ca-heading'>Tartibi</label>
-							<Input
-								type='number'
-								value={form.sorting}
-								onChange={(e) => setForm((f) => ({ ...f, sorting: e.target.value }))}
-							/>
-							{sortingHint && <i className='mt-1 block text-xs text-ca-text'>{sortingHint}</i>}
-						</div>
-						<div>
-							<label className='mb-1 block text-xs font-semibold text-ca-heading'>Nomi</label>
-							<Input
-								value={form.name}
-								onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-							/>
-						</div>
-					</div>
-
-					{!form.brand ? (
-						<p className='text-xs text-ca-theme'>Avval brandni tanlang</p>
-					) : (
-						<div className='border-t border-ca-border pt-3'>
-							<div className='mb-2 grid grid-cols-[1fr_1fr_32px] gap-3'>
-								<label className='text-xs font-semibold text-ca-heading'>
-									O'lchami (Misol: 9.99)
-								</label>
-								<label className='text-xs font-semibold text-ca-heading'>Tip</label>
-								<span />
+				<form onSubmit={onSubmit} noValidate>
+					<ModalBody>
+						{formError && (
+							<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+								{formError}
 							</div>
-							{sizeRows.map((row, index) => (
-								<div key={index} className='mb-2 grid grid-cols-[1fr_1fr_32px] items-center gap-3'>
-									<Input
-										type='number'
-										step='0.01'
-										value={row.size}
-										onChange={(e) => updateSizeRow(index, { size: e.target.value })}
-									/>
+						)}
+						<FormField label='Model' error={errors.brand?.message} required horizontal={false} className='mb-3'>
+							<Controller
+								name='brand'
+								control={control}
+								render={({ field }) => (
 									<Combobox
-										value={row.type}
-										onChange={(v) => updateSizeRow(index, { type: v })}
-										loadOptions={loadSizeTypeOptions}
-										selectedLabel={sizeTypeNameById.get(Number(row.type))}
+										value={field.value}
+										onChange={(v) => {
+											void handleBrandChange(v);
+										}}
+										loadOptions={loadBrandOptions}
+										selectedLabel={brandNameById.get(Number(field.value))}
 										placeholder='Tanlang...'
-										searchPlaceholder='Tur qidirish...'
+										searchPlaceholder='Model qidirish...'
 									/>
-									{index === sizeRows.length - 1 ? (
-										<Button
-											variant='default'
-											size='icon'
-											type='button'
-											onClick={addSizeRow}
-											aria-label="Qator qo'shish"
-										>
-											<FaPlus />
-										</Button>
-									) : (
-										<Button
-											variant='danger'
-											size='icon'
-											type='button'
-											onClick={() => removeSizeRow(index)}
-											aria-label="Qatorni o'chirish"
-										>
-											<FaTrash />
-										</Button>
-									)}
-								</div>
-							))}
+								)}
+							/>
+						</FormField>
+
+						<div className='mb-3 grid grid-cols-2 gap-3'>
+							<FormField
+								label='Tartibi'
+								error={errors.sorting?.message}
+								horizontal={false}
+								className='mb-0'
+							>
+								<Input type='number' {...register('sorting')} />
+								{sortingHint && <i className='mt-1 block text-xs text-ca-text'>{sortingHint}</i>}
+							</FormField>
+							<FormField label='Nomi' error={errors.name?.message} required horizontal={false} className='mb-0'>
+								<Input {...register('name')} />
+							</FormField>
 						</div>
-					)}
-				</ModalBody>
-				<ModalFooter>
-					<Button variant='white' onClick={() => setOpen(false)}>
-						Yopish
-					</Button>
-					<Button variant='primary' onClick={handleSubmit} disabled={isSaving}>
-						Saqlash
-					</Button>
-				</ModalFooter>
+
+						{!brandValue ? (
+							<p className='text-xs text-ca-theme'>Avval brandni tanlang</p>
+						) : (
+							<div className='border-t border-ca-border pt-3'>
+								<div className='mb-2 grid grid-cols-[1fr_1fr_32px] gap-3'>
+									<label className='text-xs font-semibold text-ca-heading'>
+										O'lchami (Misol: 9.99)
+										<span className='text-ca-red'> *</span>
+									</label>
+									<label className='text-xs font-semibold text-ca-heading'>
+										Tip
+										<span className='text-ca-red'> *</span>
+									</label>
+									<span />
+								</div>
+								{sizeRows.map((row, index) => (
+									<div key={index} className='mb-2 grid grid-cols-[1fr_1fr_32px] items-center gap-3'>
+										<Input
+											type='number'
+											step='0.01'
+											value={row.size}
+											onChange={(e) => updateSizeRow(index, { size: e.target.value })}
+										/>
+										<Combobox
+											value={row.type}
+											onChange={(v) => updateSizeRow(index, { type: v })}
+											loadOptions={loadSizeTypeOptions}
+											selectedLabel={sizeTypeNameById.get(Number(row.type))}
+											placeholder='Tanlang...'
+											searchPlaceholder='Tur qidirish...'
+										/>
+										{index === sizeRows.length - 1 ? (
+											<Button
+												variant='default'
+												size='icon'
+												type='button'
+												onClick={addSizeRow}
+												aria-label="Qator qo'shish"
+											>
+												<FaPlus />
+											</Button>
+										) : (
+											<Button
+												variant='danger'
+												size='icon'
+												type='button'
+												onClick={() => removeSizeRow(index)}
+												aria-label="Qatorni o'chirish"
+											>
+												<FaTrash />
+											</Button>
+										)}
+									</div>
+								))}
+							</div>
+						)}
+					</ModalBody>
+					<ModalFooter>
+						<Button type='button' variant='white' onClick={() => setOpen(false)}>
+							Yopish
+						</Button>
+						<Button type='submit' variant='primary' disabled={isSaving}>
+							Saqlash
+						</Button>
+					</ModalFooter>
+				</form>
 			</ModalContent>
 		</Modal>
 	);

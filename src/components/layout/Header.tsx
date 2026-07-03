@@ -71,9 +71,9 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 				<div className='flex items-center'>
 					<a
 						href='/'
-						className='flex h-[54px] w-[220px] items-center px-5 text-lg font-medium text-ca-nav-text no-underline'
+						className='flex h-[54px] w-[220px] items-center justify-center px-5 text-lg font-medium text-ca-nav-text no-underline'
 					>
-						<img src='/savdo_soft_logo.svg' alt='Logo' className='mr-2 ' />
+						<img src='/logo.png' alt='Logo' className='mr-2 ' />
 					</a>
 					<button
 						type='button'

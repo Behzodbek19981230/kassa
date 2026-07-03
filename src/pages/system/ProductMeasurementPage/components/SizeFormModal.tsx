@@ -1,9 +1,13 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
 import {
 	Button,
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
+	FormField,
 	Input,
 	Modal,
 	ModalBody,
@@ -25,12 +29,14 @@ import { brandService } from '@/services/brand/brand.service';
 import { useProductCategoryListQuery } from '@/services/product-category/product-category.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
 
-interface SizeFormState {
-	brand: string;
-	product_category: string;
-	type: string;
-	size: string;
-}
+const sizeFormSchema = z.object({
+	brand: z.string().min(1, 'Model tanlanishi shart'),
+	product_category: z.string().min(1, 'Mahsulot toifasi tanlanishi shart'),
+	type: z.string().min(1, "O'lcham turi tanlanishi shart"),
+	size: z.string(),
+});
+
+type SizeFormValues = z.infer<typeof sizeFormSchema>;
 
 interface SizeFormModalProps {
 	open: boolean;
@@ -41,6 +47,7 @@ interface SizeFormModalProps {
 
 export default function SizeFormModal({ open, setOpen, mode, item }: SizeFormModalProps) {
 	const { notify } = useNotification();
+	const [formError, setFormError] = useState('');
 
 	const { data: brandData } = useBrandListQuery({ limit: 100 });
 	const brandNameById = new Map((brandData?.results ?? []).map((b) => [b.id, b.name]));
@@ -51,17 +58,27 @@ export default function SizeFormModal({ open, setOpen, mode, item }: SizeFormMod
 	const { data: typeData } = useBrandSizeTypeListQuery({ limit: 100 });
 	const typeNameById = new Map((typeData?.results ?? []).map((t) => [t.id, t.name]));
 
-	const [form, setForm] = useState<SizeFormState>(
-		mode === 'edit' && item
-			? {
-					brand: String(item.brand),
-					product_category: String(item.product_category),
-					type: String(item.type),
-					size: item.size,
-				}
-			: { brand: '', product_category: '', type: '', size: '0' },
-	);
-	const [formError, setFormError] = useState('');
+	const {
+		control,
+		register,
+		handleSubmit,
+		setValue,
+		watch,
+		formState: { errors },
+	} = useForm<SizeFormValues>({
+		resolver: zodResolver(sizeFormSchema),
+		defaultValues:
+			mode === 'edit' && item
+				? {
+						brand: String(item.brand),
+						product_category: String(item.product_category),
+						type: String(item.type),
+						size: item.size,
+					}
+				: { brand: '', product_category: '', type: '', size: '0' },
+	});
+
+	const brandValue = watch('brand');
 
 	const createMutation = useCreateBrandSizeMutation();
 	const updateMutation = useUpdateBrandSizeMutation();
@@ -76,9 +93,9 @@ export default function SizeFormModal({ open, setOpen, mode, item }: SizeFormMod
 	};
 
 	const loadCategoryOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		if (!form.brand) return { options: [], hasMore: false };
+		if (!brandValue) return { options: [], hasMore: false };
 		const result = await productCategoryService.list({
-			brand: Number(form.brand),
+			brand: Number(brandValue),
 			search: search || undefined,
 			page,
 			limit: 20,
@@ -97,29 +114,13 @@ export default function SizeFormModal({ open, setOpen, mode, item }: SizeFormMod
 		};
 	};
 
-	const handleBrandChange = (value: string) => {
-		setForm((f) => ({ ...f, brand: value, product_category: '' }));
-	};
-
-	const handleSubmit = async () => {
-		if (!form.brand) {
-			setFormError('Model tanlanishi shart');
-			return;
-		}
-		if (!form.product_category) {
-			setFormError('Mahsulot toifasi tanlanishi shart');
-			return;
-		}
-		if (!form.type) {
-			setFormError("O'lcham turi tanlanishi shart");
-			return;
-		}
-
+	const onSubmit = handleSubmit(async (values) => {
+		setFormError('');
 		const payload: BrandSizePayload = {
-			size: Number(form.size) || 0,
-			type: Number(form.type),
-			brand: Number(form.brand),
-			product_category: Number(form.product_category),
+			size: Number(values.size) || 0,
+			type: Number(values.type),
+			brand: Number(values.brand),
+			product_category: Number(values.product_category),
 		};
 
 		try {
@@ -134,7 +135,7 @@ export default function SizeFormModal({ open, setOpen, mode, item }: SizeFormMod
 		} catch {
 			setFormError('Saqlashda xatolik yuz berdi');
 		}
-	};
+	});
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
@@ -142,73 +143,96 @@ export default function SizeFormModal({ open, setOpen, mode, item }: SizeFormMod
 				<ModalHeader>
 					<ModalTitle>{mode === 'edit' ? "O'lchamni tahrirlash" : "O'lcham qo'shish"}</ModalTitle>
 				</ModalHeader>
-				<ModalBody>
-					{formError && (
-						<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
-							{formError}
-						</div>
-					)}
-					<div className='mb-3'>
-						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Model</label>
-						<Combobox
-							value={form.brand}
-							onChange={handleBrandChange}
-							loadOptions={loadBrandOptions}
-							selectedLabel={brandNameById.get(Number(form.brand))}
-							placeholder='Tanlang...'
-							searchPlaceholder='Model qidirish...'
-						/>
-					</div>
-
-					<div className='mb-3'>
-						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Mahsulot toifasi</label>
-						{form.brand ? (
-							<Combobox
-								value={form.product_category}
-								onChange={(v) => setForm((f) => ({ ...f, product_category: v }))}
-								loadOptions={loadCategoryOptions}
-								selectedLabel={categoryNameById.get(Number(form.product_category))}
-								placeholder='Tanlang...'
-								searchPlaceholder='Toifa qidirish...'
-							/>
-						) : (
-							<p className='text-xs text-ca-theme'>Avval brandni tanlang</p>
+				<form onSubmit={onSubmit} noValidate>
+					<ModalBody>
+						{formError && (
+							<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+								{formError}
+							</div>
 						)}
-					</div>
+						<FormField label='Model' error={errors.brand?.message} required horizontal={false} className='mb-3'>
+							<Controller
+								name='brand'
+								control={control}
+								render={({ field }) => (
+									<Combobox
+										value={field.value}
+										onChange={(v) => {
+											field.onChange(v);
+											setValue('product_category', '');
+										}}
+										loadOptions={loadBrandOptions}
+										selectedLabel={brandNameById.get(Number(field.value))}
+										placeholder='Tanlang...'
+										searchPlaceholder='Model qidirish...'
+									/>
+								)}
+							/>
+						</FormField>
 
-					<div className='mb-3 grid grid-cols-2 gap-3'>
-						<div>
-							<label className='mb-1 block text-xs font-semibold text-ca-heading'>Turi</label>
-							<Combobox
-								value={form.type}
-								onChange={(v) => setForm((f) => ({ ...f, type: v }))}
-								loadOptions={loadTypeOptions}
-								selectedLabel={typeNameById.get(Number(form.type))}
-								placeholder='Tanlang...'
-								searchPlaceholder='Tur qidirish...'
-							/>
+						<FormField
+							label='Mahsulot toifasi'
+							error={errors.product_category?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
+							{brandValue ? (
+								<Controller
+									name='product_category'
+									control={control}
+									render={({ field }) => (
+										<Combobox
+											value={field.value}
+											onChange={field.onChange}
+											loadOptions={loadCategoryOptions}
+											selectedLabel={categoryNameById.get(Number(field.value))}
+											placeholder='Tanlang...'
+											searchPlaceholder='Toifa qidirish...'
+										/>
+									)}
+								/>
+							) : (
+								<p className='text-xs text-ca-theme'>Avval brandni tanlang</p>
+							)}
+						</FormField>
+
+						<div className='mb-3 grid grid-cols-2 gap-3'>
+							<FormField label='Turi' error={errors.type?.message} required horizontal={false} className='mb-0'>
+								<Controller
+									name='type'
+									control={control}
+									render={({ field }) => (
+										<Combobox
+											value={field.value}
+											onChange={field.onChange}
+											loadOptions={loadTypeOptions}
+											selectedLabel={typeNameById.get(Number(field.value))}
+											placeholder='Tanlang...'
+											searchPlaceholder='Tur qidirish...'
+										/>
+									)}
+								/>
+							</FormField>
+							<FormField
+								label="O'lchami (Misol: 9.99)"
+								error={errors.size?.message}
+								horizontal={false}
+								className='mb-0'
+							>
+								<Input type='number' step='0.01' {...register('size')} />
+							</FormField>
 						</div>
-						<div>
-							<label className='mb-1 block text-xs font-semibold text-ca-heading'>
-								O'lchami (Misol: 9.99)
-							</label>
-							<Input
-								type='number'
-								step='0.01'
-								value={form.size}
-								onChange={(e) => setForm((f) => ({ ...f, size: e.target.value }))}
-							/>
-						</div>
-					</div>
-				</ModalBody>
-				<ModalFooter>
-					<Button variant='white' onClick={() => setOpen(false)}>
-						Yopish
-					</Button>
-					<Button variant='primary' onClick={handleSubmit} disabled={isSaving}>
-						Saqlash
-					</Button>
-				</ModalFooter>
+					</ModalBody>
+					<ModalFooter>
+						<Button type='button' variant='white' onClick={() => setOpen(false)}>
+							Yopish
+						</Button>
+						<Button type='submit' variant='primary' disabled={isSaving}>
+							Saqlash
+						</Button>
+					</ModalFooter>
+				</form>
 			</ModalContent>
 		</Modal>
 	);

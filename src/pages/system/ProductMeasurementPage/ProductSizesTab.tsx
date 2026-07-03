@@ -1,11 +1,17 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaEye, FaTrash } from 'react-icons/fa';
-import { Button, buttonProps, type ComboboxLoadParams, type ComboboxLoadResult, DataTable, Panel } from '@/components/ui';
+import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
+import {
+	Button,
+	buttonProps,
+	type ComboboxLoadParams,
+	type ComboboxLoadResult,
+	DataTable,
+	Panel,
+} from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import DeleteSizeModal from '@/pages/system/ProductMeasurementPage/components/DeleteSizeModal';
 import SizeFormModal from '@/pages/system/ProductMeasurementPage/components/SizeFormModal';
-import SizeViewModal from '@/pages/system/ProductMeasurementPage/components/SizeViewModal';
 import { useBrandSizeListQuery } from '@/services/brand-size/brand-size.queries';
 import type { BrandSize } from '@/services/brand-size/brand-size.types';
 import { useBrandSizeTypeListQuery } from '@/services/brand-size-type/brand-size-type.queries';
@@ -112,12 +118,12 @@ export default function ProductSizesTab() {
 			size: 190,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
-					<OpenDialogButton
+					{/* <OpenDialogButton
 						element={(props) => <Button {...props} />}
 						elementProps={{ ...buttonProps(<FaEye />, 'info', 'icon'), 'aria-label': "Ko'rish" }}
 						dialog={SizeViewModal}
 						dialogProps={{ item: row.original }}
-					/>
+					/> */}
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
 						elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}
