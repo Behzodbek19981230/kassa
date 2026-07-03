@@ -5,6 +5,7 @@ import {
 	FaBalanceScale,
 	FaBookmark,
 	FaBoxes,
+	FaBuilding,
 	FaCaretRight,
 	FaChartBar,
 	FaChartPie,
@@ -57,6 +58,7 @@ const iconMap: Record<SidebarIcon, ReactNode> = {
 	'users-cog': <FaUsersCog />,
 	'chart-bar': <FaChartBar />,
 	receipt: <FaReceipt />,
+	building: <FaBuilding />,
 };
 
 function SubMenuBullet({ active }: { active: boolean }) {

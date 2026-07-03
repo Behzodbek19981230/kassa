@@ -18,6 +18,10 @@ import ModelsPage from '@/pages/system/ModelsPage';
 import ProductCategoriesPage from '@/pages/system/ProductCategoriesPage';
 import ProductMeasurementPage from '@/pages/system/ProductMeasurementPage';
 import ConsignorPage from '@/pages/system/ConsignorPage';
+import UserPage from '@/pages/system/UserPage';
+import CompanyPage from '@/pages/system/CompanyPage';
+import RegionPage from '@/pages/system/RegionPage';
+import DistrictPage from '@/pages/system/DistrictPage';
 
 export default function App() {
 	return (
@@ -50,6 +54,10 @@ export default function App() {
 					<Route path='system/models' element={<ModelsPage />} />
 					<Route path='system/product-measurement' element={<ProductMeasurementPage />} />
 						<Route path='system/consignors' element={<ConsignorPage />} />
+						<Route path='system/users' element={<UserPage />} />
+						<Route path='system/companies' element={<CompanyPage />} />
+						<Route path='system/regions' element={<RegionPage />} />
+						<Route path='system/districts' element={<DistrictPage />} />
 				</Route>
 			</Route>
 		</Routes>

@@ -20,7 +20,8 @@ export type SidebarIcon =
 	| 'exclamation-triangle'
 	| 'users-cog'
 	| 'chart-bar'
-	| 'receipt';
+	| 'receipt'
+	| 'building';
 
 export interface SidebarMenuItem {
 	id: string;

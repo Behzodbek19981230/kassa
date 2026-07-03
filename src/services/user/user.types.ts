@@ -1,3 +1,25 @@
+import type { ListParams } from '@/services/api/types'
+
+export interface UserRegionDetail {
+  id: number
+  name: string
+}
+
+export interface UserDistrictDetail {
+  id: number
+  name: string
+}
+
+export interface UserRoleDetail {
+  id: number
+  name: string
+}
+
+export interface UserCompanyDetail {
+  id: number
+  name: string
+}
+
 export interface User {
   id: number
   username: string
@@ -10,14 +32,34 @@ export interface User {
   email: string
   is_active: boolean
   date_joined: string
-  role: unknown | null
-  roles: unknown | null
-  region: unknown | null
-  region_detail: unknown | null
-  district: unknown | null
-  district_detail: unknown | null
-  companies: unknown[]
-  companies_detail: unknown[]
-  address: unknown | null
+  role: number | null
+  role_detail?: UserRoleDetail | null
+  region: number | null
+  region_detail?: UserRegionDetail | null
+  district: number | null
+  district_detail?: UserDistrictDetail | null
+  companies: number[]
+  companies_detail?: UserCompanyDetail[]
+  address: string | null
   avatar: string | null
 }
+
+export interface UserPayload {
+  username: string
+  first_name: string
+  last_name: string
+  second_name: string
+  gender: string
+  date_of_birthday: string
+  phone_number: string
+  email: string
+  is_active: boolean
+  region: number
+  district: number
+  role: number
+  companies: number[]
+  address: string
+  password?: string
+}
+
+export type UserListParams = ListParams
