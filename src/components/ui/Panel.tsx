@@ -68,7 +68,7 @@ export function Panel({
 						<FaTimes />
 					</Button>
 				</div>
-				<h4 className='order-1 flex-1 text-xs leading-5 font-normal'>{title}</h4>
+				<h4 className='order-1 flex-1 text-sm leading-5 font-normal text-ca-nav-text'>{title}</h4>
 			</div>
 			{toolbar && !collapsed && (
 				<div className='border-t border-ca-border bg-white px-[15px] py-[10px]'>{toolbar}</div>

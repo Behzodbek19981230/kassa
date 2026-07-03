@@ -1,4 +1,4 @@
-export { Button, buttonVariants } from '@/components/ui/Button'
+export { Button, buttonProps, buttonVariants } from '@/components/ui/Button'
 export { Badge, Label, badgeVariants } from '@/components/ui/Badge'
 export { Input } from '@/components/ui/Input'
 export { Textarea } from '@/components/ui/Textarea'

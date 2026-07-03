@@ -28,7 +28,6 @@ import {
 import { sidebarMenu } from '@/data/sidebarMenu';
 import type { SidebarIcon, SidebarMenuItem } from '@/types';
 import { collectExpandedIds, hasActiveDescendant, isRouteMatch } from '@/utils/sidebarUtils';
-import { useUserInfoQuery } from '@/services/user/user.queries';
 
 interface SidebarProps {
 	minified: boolean;
@@ -354,9 +353,6 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
 export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile }: SidebarProps) {
 	const { pathname } = useLocation();
 	const [expanded, setExpanded] = useState<Set<string>>(() => new Set(collectExpandedIds(sidebarMenu, pathname)));
-	const { data: user } = useUserInfoQuery();
-	const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() || user?.username;
-	const roleLabel = typeof user?.role === 'string' ? user.role : 'Foydalanuvchi';
 	useEffect(() => {
 		const activeIds = collectExpandedIds(sidebarMenu, pathname);
 		setExpanded((prev) => new Set([...prev, ...activeIds]));
@@ -385,8 +381,13 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
 				id='sidebar'
 				className={`fixed top-0 bottom-0 left-0 z-[1010] pt-[54px] transition-all duration-200 ${widthClass} ${mobileClass} ${overflowClass}`}
 			>
-				<ul className='m-0 list-none p-0'>
-					<li
+				<ul className='m-0 list-none py-5'>
+					<li>
+						<div className={`px-5 text-sm font-semibold ${minified ? 'opacity-0' : 'opacity-100'}`}>
+							Menyular
+						</div>
+					</li>
+					{/* <li
 						className='relative overflow-hidden border-b border-ca-border p-5'
 						style={{
 							backgroundImage: 'url(/assets/img/gallery/gallery-10.jpg)',
@@ -408,7 +409,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
 								</div>
 							)}
 						</div>
-					</li>
+					</li> */}
 				</ul>
 
 				<ul className={`m-0 list-none p-0 pb-12 ${minified ? 'overflow-visible' : ''}`}>

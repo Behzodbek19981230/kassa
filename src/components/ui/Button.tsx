@@ -56,4 +56,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = 'Button'
 
+export const buttonProps = (
+  children?: ButtonProps['children'],
+  variant?: ButtonProps['variant'],
+  size?: ButtonProps['size'],
+): ButtonProps => ({ children, variant, size })
+
 export { Button, buttonVariants }
