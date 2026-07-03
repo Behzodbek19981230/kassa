@@ -2,15 +2,22 @@ import * as TabsPrimitive from '@radix-ui/react-tabs'
 import { cn } from '@/lib/utils'
 
 interface TabsProps {
-  defaultValue: string
+  defaultValue?: string
+  value?: string
+  onValueChange?: (value: string) => void
   items: { value: string; label: string; content: React.ReactNode }[]
   inverse?: boolean
   className?: string
 }
 
-export function Tabs({ defaultValue, items, inverse = true, className }: TabsProps) {
+export function Tabs({ defaultValue, value, onValueChange, items, inverse = true, className }: TabsProps) {
   return (
-    <TabsPrimitive.Root defaultValue={defaultValue} className={className}>
+    <TabsPrimitive.Root
+      defaultValue={value === undefined ? (defaultValue ?? items[0]?.value) : undefined}
+      value={value}
+      onValueChange={onValueChange}
+      className={className}
+    >
       <TabsPrimitive.List
         className={cn(
           'm-0 flex list-none overflow-hidden rounded-t-[5px] p-0',

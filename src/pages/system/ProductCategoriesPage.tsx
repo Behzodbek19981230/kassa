@@ -15,7 +15,6 @@ import {
 	ModalHeader,
 	ModalTitle,
 	PageHeader,
-	Pagination,
 	Panel,
 	useNotification,
 } from '@/components/ui';
@@ -40,9 +39,6 @@ import { productCategoryService } from '@/services/product-category/product-cate
 import type { ProductCategory, ProductCategoryPayload } from '@/services/product-category/product-category.types';
 import type { ColumnFiltersState, PaginationState } from '@tanstack/react-table';
 import type { SortingState } from '@tanstack/react-table';
-
-const PAGE_SIZE = 10;
-const ALL_BRANDS = '__all__';
 
 interface CategoryFormState {
 	name: string;
@@ -70,6 +66,7 @@ export default function ProductCategoriesPage() {
 
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const nameFilter = columnFilters.find((f) => f.id === 'name')?.value as string | undefined;
+	const brandFilter = columnFilters.find((f) => f.id === 'brand')?.value as string | undefined;
 
 	const { data: brandData } = useBrandListQuery({ limit: 100 });
 	const brands = brandData?.results ?? [];
@@ -98,6 +95,7 @@ export default function ProductCategoriesPage() {
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
+		brand: brandFilter ? Number(brandFilter) : undefined,
 		ordering,
 	});
 
@@ -253,6 +251,12 @@ export default function ProductCategoriesPage() {
 			header: 'Model',
 			size: 220,
 			cell: (info) => brandNameById.get(info.getValue()) ?? info.getValue(),
+			meta: {
+				filterVariant: 'select',
+				filterLoadOptions: loadBrandOptions,
+				filterSelectedLabel: (value) => brandNameById.get(Number(value)),
+				filterPlaceholder: 'Barcha modellar',
+			},
 		}),
 		columnHelper.accessor('name', { header: 'Nomi' }),
 		columnHelper.display({

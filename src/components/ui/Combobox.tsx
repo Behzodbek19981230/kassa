@@ -1,7 +1,7 @@
 import { useDismissableLayerSurface } from '@radix-ui/react-dismissable-layer'
 import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { FaCheck, FaChevronDown, FaSearch, FaSpinner } from 'react-icons/fa'
+import { FaCheck, FaChevronDown, FaSearch, FaSpinner, FaTimes } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
 
 export interface ComboboxOption {
@@ -39,6 +39,8 @@ export interface ComboboxProps {
 	debounceMs?: number
 	className?: string
 	contentClassName?: string
+	/** Shows an "x" button to clear the current value when one is selected. */
+	clearable?: boolean
 }
 
 export function Combobox({
@@ -55,6 +57,7 @@ export function Combobox({
 	debounceMs = 300,
 	className,
 	contentClassName,
+	clearable = false,
 }: ComboboxProps) {
 	const isAsync = typeof loadOptions === 'function'
 
@@ -180,7 +183,18 @@ export function Combobox({
 					<span className={cn('truncate text-left', !currentLabel && 'text-ca-text')}>
 						{currentLabel || placeholder}
 					</span>
-					<FaChevronDown className='shrink-0 text-[10px] text-ca-text' />
+					{clearable && value ? (
+						<FaTimes
+							className='shrink-0 text-[10px] text-ca-text hover:text-ca-heading'
+							onClick={(e) => {
+								e.stopPropagation()
+								e.preventDefault()
+								onChange?.('', null)
+							}}
+						/>
+					) : (
+						<FaChevronDown className='shrink-0 text-[10px] text-ca-text' />
+					)}
 				</button>
 			</PopoverPrimitive.Trigger>
 			<PopoverPrimitive.Portal>

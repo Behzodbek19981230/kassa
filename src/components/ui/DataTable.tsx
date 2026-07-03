@@ -21,6 +21,14 @@ import {
 declare module '@tanstack/react-table' {
 	interface ColumnMeta<TData extends RowData, TValue> {
 		align?: 'left' | 'center' | 'right';
+		filterVariant?: 'text' | 'select';
+		/** Static option list for a `select` filter, filtered client-side as the user types. */
+		filterOptions?: ComboboxOption[];
+		/** Loads options from an API for a `select` filter (searchable, paginated). Takes precedence over `filterOptions`. */
+		filterLoadOptions?: (params: ComboboxLoadParams) => Promise<ComboboxLoadResult>;
+		/** Resolves the label for the current filter value when it isn't among the loaded options yet. */
+		filterSelectedLabel?: (value: string) => string | undefined;
+		filterPlaceholder?: string;
 	}
 }
 
@@ -50,6 +58,12 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
+import {
+	Combobox,
+	type ComboboxLoadParams,
+	type ComboboxLoadResult,
+	type ComboboxOption,
+} from '@/components/ui/Combobox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/DropdownMenu';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
@@ -438,15 +452,34 @@ export function DataTable<TData>({
 											)}
 										>
 											{header.column.getCanFilter() ? (
-												<Input
-													value={(header.column.getFilterValue() as string) ?? ''}
-													onChange={(e) => {
-														header.column.setFilterValue(e.target.value);
-														table.setPageIndex(0);
-													}}
-													placeholder='Filter...'
-													className='h-[26px] text-[11px]'
-												/>
+												header.column.columnDef.meta?.filterVariant === 'select' ? (
+													<Combobox
+														clearable
+														value={(header.column.getFilterValue() as string) ?? ''}
+														onChange={(value) => {
+															header.column.setFilterValue(value || undefined);
+															table.setPageIndex(0);
+														}}
+														options={header.column.columnDef.meta?.filterOptions}
+														loadOptions={header.column.columnDef.meta?.filterLoadOptions}
+														selectedLabel={header.column.columnDef.meta?.filterSelectedLabel?.(
+															(header.column.getFilterValue() as string) ?? '',
+														)}
+														placeholder={header.column.columnDef.meta?.filterPlaceholder ?? 'Barchasi'}
+														searchPlaceholder='Qidirish...'
+														className='h-[26px] text-[11px]'
+													/>
+												) : (
+													<Input
+														value={(header.column.getFilterValue() as string) ?? ''}
+														onChange={(e) => {
+															header.column.setFilterValue(e.target.value);
+															table.setPageIndex(0);
+														}}
+														placeholder='Filter...'
+														className='h-[26px] text-[11px]'
+													/>
+												)
 											) : null}
 										</TableHead>
 									))}
