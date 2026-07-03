@@ -17,6 +17,7 @@ import ModalNotificationPage from '@/pages/ui/ModalNotificationPage';
 import ModelsPage from '@/pages/system/ModelsPage';
 import ProductCategoriesPage from '@/pages/system/ProductCategoriesPage';
 import ProductMeasurementPage from '@/pages/system/ProductMeasurementPage';
+import ConsignorPage from '@/pages/system/ConsignorPage';
 
 export default function App() {
 	return (
@@ -48,6 +49,7 @@ export default function App() {
 					<Route path='system/product-categories' element={<ProductCategoriesPage />} />
 					<Route path='system/models' element={<ModelsPage />} />
 					<Route path='system/product-measurement' element={<ProductMeasurementPage />} />
+						<Route path='system/consignors' element={<ConsignorPage />} />
 				</Route>
 			</Route>
 		</Routes>

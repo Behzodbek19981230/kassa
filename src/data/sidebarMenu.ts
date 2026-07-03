@@ -30,7 +30,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
         label: "Mahsulot o'lchami",
         path: '/system/product-measurement',
       },
-      { id: 'shippers', icon: 'shipping-fast', label: "Yuk jo'natuvchilar", path: '#' },
+      { id: 'shippers', icon: 'shipping-fast', label: "Yuk jo'natuvchilar", path: '/system/consignors' },
       { id: 'import-goods-history', icon: 'history', label: 'Import tovarlar tarixi', path: '#' },
       { id: 'inspections-history', icon: 'check-circle', label: 'Tekshirishlar tarixi', path: '#' },
       { id: 'changes-report', icon: 'exclamation-triangle', label: "O'zgarishlar hisobi", path: '#' },
