@@ -5,6 +5,7 @@ import type { RegionListParams, RegionPayload } from '@/services/region/region.t
 const regionKeys = {
 	all: ['regions'] as const,
 	list: (params?: RegionListParams) => ['regions', 'list', params] as const,
+	detail: (id: number) => ['regions', 'detail', id] as const,
 };
 
 export function useRegionListQuery(params?: RegionListParams) {
@@ -12,6 +13,14 @@ export function useRegionListQuery(params?: RegionListParams) {
 		queryKey: regionKeys.list(params),
 		queryFn: () => regionService.list(params),
 		placeholderData: (prev) => prev,
+	});
+}
+
+export function useRegionQuery(id?: number) {
+	return useQuery({
+		queryKey: regionKeys.detail(id ?? 0),
+		queryFn: () => regionService.get(id as number),
+		enabled: typeof id === 'number',
 	});
 }
 

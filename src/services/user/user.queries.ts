@@ -15,6 +15,7 @@ export function useUserInfoQuery() {
 const userKeys = {
   all: ['users'] as const,
   list: (params?: UserListParams) => ['users', 'list', params] as const,
+  detail: (id: number) => ['users', 'detail', id] as const,
 }
 
 export function useUserListQuery(params?: UserListParams) {
@@ -25,10 +26,19 @@ export function useUserListQuery(params?: UserListParams) {
   })
 }
 
+export function useUserQuery(id?: number) {
+  return useQuery({
+    queryKey: userKeys.detail(id ?? 0),
+    queryFn: () => userService.get(id as number),
+    enabled: typeof id === 'number',
+  })
+}
+
 export function useCreateUserMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: UserPayload) => userService.create(payload),
+    mutationFn: ({ payload, avatar }: { payload: UserPayload; avatar?: File | null }) =>
+      userService.create(payload, avatar),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
   })
 }
@@ -36,7 +46,8 @@ export function useCreateUserMutation() {
 export function useUpdateUserMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: UserPayload }) => userService.update(id, payload),
+    mutationFn: ({ id, payload, avatar }: { id: number; payload: UserPayload; avatar?: File | null }) =>
+      userService.update(id, payload, avatar),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
   })
 }

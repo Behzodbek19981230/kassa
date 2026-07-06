@@ -18,6 +18,7 @@ export interface UserRoleDetail {
 export interface UserCompanyDetail {
   id: number
   name: string
+  logo: string | null
 }
 
 export interface User {
@@ -33,7 +34,7 @@ export interface User {
   is_active: boolean
   date_joined: string
   role: number | null
-  role_detail?: UserRoleDetail | null
+  roles?: UserRoleDetail | null
   region: number | null
   region_detail?: UserRegionDetail | null
   district: number | null

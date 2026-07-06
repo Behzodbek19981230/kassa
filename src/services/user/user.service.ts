@@ -2,6 +2,27 @@ import { apiClient } from '@/services/api/client'
 import type { PaginatedResponse } from '@/services/api/types'
 import type { User, UserListParams, UserPayload } from '@/services/user/user.types'
 
+function buildUserFormData(payload: UserPayload, avatar?: File | null) {
+  const formData = new FormData()
+  formData.append('username', payload.username)
+  formData.append('first_name', payload.first_name)
+  formData.append('last_name', payload.last_name)
+  formData.append('second_name', payload.second_name)
+  formData.append('gender', payload.gender)
+  formData.append('date_of_birthday', payload.date_of_birthday)
+  formData.append('phone_number', payload.phone_number)
+  formData.append('email', payload.email)
+  formData.append('is_active', String(payload.is_active))
+  formData.append('region', String(payload.region))
+  formData.append('district', String(payload.district))
+  formData.append('role', String(payload.role))
+  payload.companies.forEach((companyId) => formData.append('companies', String(companyId)))
+  formData.append('address', payload.address)
+  if (payload.password) formData.append('password', payload.password)
+  if (avatar) formData.append('avatar', avatar)
+  return formData
+}
+
 export const userService = {
   getMe: async () => {
     const { data } = await apiClient.get<User>('/user-info/')
@@ -15,12 +36,16 @@ export const userService = {
     const { data } = await apiClient.get<User>(`/user/${id}/`)
     return data
   },
-  create: async (payload: UserPayload) => {
-    const { data } = await apiClient.post<User>('/user/', payload)
+  create: async (payload: UserPayload, avatar?: File | null) => {
+    const { data } = await apiClient.post<User>('/user/', buildUserFormData(payload, avatar), {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return data
   },
-  update: async (id: number, payload: UserPayload) => {
-    const { data } = await apiClient.put<User>(`/user/${id}/`, payload)
+  update: async (id: number, payload: UserPayload, avatar?: File | null) => {
+    const { data } = await apiClient.put<User>(`/user/${id}/`, buildUserFormData(payload, avatar), {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return data
   },
   remove: async (id: number) => {

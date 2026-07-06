@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, Controller } from 'react-hook-form';
-import { useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { FaCamera, FaUser } from 'react-icons/fa';
 import { z } from 'zod';
 import {
 	Button,
@@ -27,10 +28,12 @@ import {
 } from '@/components/ui';
 import { companyService } from '@/services/company/company.service';
 import { districtService } from '@/services/district/district.service';
+import { useDistrictQuery } from '@/services/district/district.queries';
 import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
 import { regionService } from '@/services/region/region.service';
+import { useRegionQuery } from '@/services/region/region.queries';
 import { roleService } from '@/services/role/role.service';
-import { useCreateUserMutation, useUpdateUserMutation } from '@/services/user/user.queries';
+import { useCreateUserMutation, useUpdateUserMutation, useUserQuery } from '@/services/user/user.queries';
 import type { User, UserPayload } from '@/services/user/user.types';
 
 const GENDER_OPTIONS = [
@@ -63,6 +66,26 @@ function buildUserFormSchema(mode: 'create' | 'edit') {
 
 type UserFormValues = z.infer<ReturnType<typeof buildUserFormSchema>>;
 
+function userToFormValues(user: User): UserFormValues {
+	return {
+		username: user.username,
+		first_name: user.first_name,
+		last_name: user.last_name,
+		second_name: user.second_name ?? '',
+		gender: user.gender ?? '',
+		date_of_birthday: user.date_of_birthday ?? '',
+		phone_number: user.phone_number,
+		email: user.email,
+		region: user.region ? String(user.region) : '',
+		district: user.district ? String(user.district) : '',
+		role: user.role ? String(user.role) : '',
+		companies: user.companies.map(String),
+		address: user.address ?? '',
+		active: user.is_active,
+		password: '',
+	};
+}
+
 interface UserFormModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
@@ -73,6 +96,15 @@ interface UserFormModalProps {
 export default function UserFormModal({ open, setOpen, mode, item }: UserFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
+	const [avatarFile, setAvatarFile] = useState<File | null>(null);
+	const [avatarPreview, setAvatarPreview] = useState<string | null>(item?.avatar ?? null);
+	const avatarInputRef = useRef<HTMLInputElement>(null);
+
+	const userQuery = useUserQuery(mode === 'edit' ? item?.id : undefined);
+	const currentUser = userQuery.data ?? item;
+
+	const regionDetailQuery = useRegionQuery(mode === 'edit' ? (currentUser?.region ?? undefined) : undefined);
+	const districtDetailQuery = useDistrictQuery(mode === 'edit' ? (currentUser?.district ?? undefined) : undefined);
 
 	const {
 		register,
@@ -80,28 +112,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 		handleSubmit,
 		setValue,
 		watch,
+		reset,
 		formState: { errors },
 	} = useForm<UserFormValues>({
 		resolver: zodResolver(buildUserFormSchema(mode)),
 		defaultValues:
 			mode === 'edit' && item
-				? {
-						username: item.username,
-						first_name: item.first_name,
-						last_name: item.last_name,
-						second_name: item.second_name ?? '',
-						gender: item.gender ?? '',
-						date_of_birthday: item.date_of_birthday ?? '',
-						phone_number: item.phone_number,
-						email: item.email,
-						region: item.region ? String(item.region) : '',
-						district: item.district ? String(item.district) : '',
-						role: item.role ? String(item.role) : '',
-						companies: item.companies.map(String),
-						address: item.address ?? '',
-						active: item.is_active,
-						password: '',
-					}
+				? userToFormValues(item)
 				: {
 						username: '',
 						first_name: '',
@@ -121,6 +138,14 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 					},
 	});
 
+	useEffect(() => {
+		if (mode === 'edit' && userQuery.data) {
+			reset(userToFormValues(userQuery.data));
+			setAvatarPreview(userQuery.data.avatar ?? null);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [userQuery.data]);
+
 	const regionValue = watch('region');
 	const companiesValue = watch('companies');
 
@@ -128,7 +153,22 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 	const updateMutation = useUpdateUserMutation();
 	const isSaving = createMutation.isPending || updateMutation.isPending;
 
-	const companyLabels = Object.fromEntries((item?.companies_detail ?? []).map((c) => [String(c.id), c.name]));
+	useEffect(() => {
+		return () => {
+			if (avatarFile && avatarPreview) URL.revokeObjectURL(avatarPreview);
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [avatarFile]);
+
+	const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0] ?? null;
+		setAvatarFile(file);
+		setAvatarPreview(file ? URL.createObjectURL(file) : (currentUser?.avatar ?? null));
+	};
+
+	const companyLabels = Object.fromEntries(
+		(currentUser?.companies_detail ?? []).map((c) => [String(c.id), c.name]),
+	);
 
 	const loadRegionOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await regionService.list({ search: search || undefined, page, limit: 20 });
@@ -195,10 +235,10 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 
 		try {
 			if (mode === 'edit' && item) {
-				await updateMutation.mutateAsync({ id: item.id, payload });
+				await updateMutation.mutateAsync({ id: item.id, payload, avatar: avatarFile });
 				notify({ title: 'Foydalanuvchi yangilandi' });
 			} else {
-				await createMutation.mutateAsync(payload);
+				await createMutation.mutateAsync({ payload, avatar: avatarFile });
 				notify({ title: "Foydalanuvchi qo'shildi" });
 			}
 			setOpen(false);
@@ -209,7 +249,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
-			<ModalContent className='max-w-2xl'>
+			<ModalContent className='max-w-4xl'>
 				<ModalHeader>
 					<ModalTitle>{mode === 'edit' ? 'Foydalanuvchini tahrirlash' : "Foydalanuvchi qo'shish"}</ModalTitle>
 				</ModalHeader>
@@ -220,6 +260,29 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								{formError}
 							</div>
 						)}
+						<FormField label='Avatar' horizontal={false} className='mb-3'>
+							<button
+								type='button'
+								onClick={() => avatarInputRef.current?.click()}
+								className='group relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-ca-border bg-ca-silver'
+							>
+								{avatarPreview ? (
+									<img src={avatarPreview} alt='Avatar' className='h-full w-full rounded-full object-cover' />
+								) : (
+									<FaUser className='text-3xl text-ca-text' />
+								)}
+								<span className='absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100'>
+									<FaCamera className='text-lg text-white' />
+								</span>
+							</button>
+							<input
+								ref={avatarInputRef}
+								type='file'
+								accept='image/*'
+								onChange={handleAvatarChange}
+								className='hidden'
+							/>
+						</FormField>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
 							<FormField label='Login' error={errors.username?.message} required horizontal={false} className='mb-0'>
 								<Input {...register('username')} />
@@ -310,7 +373,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 											value={field.value}
 											onChange={handleRegionChange}
 											loadOptions={loadRegionOptions}
-											selectedLabel={item?.region_detail?.name}
+											selectedLabel={currentUser?.region_detail?.name ?? regionDetailQuery.data?.name}
 											placeholder='Tanlang...'
 											searchPlaceholder='Viloyat qidirish...'
 											clearable
@@ -327,7 +390,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 											value={field.value}
 											onChange={field.onChange}
 											loadOptions={loadDistrictOptions}
-											selectedLabel={item?.district_detail?.name}
+											selectedLabel={currentUser?.district_detail?.name ?? districtDetailQuery.data?.name}
 											placeholder='Tanlang...'
 											searchPlaceholder='Tuman qidirish...'
 											disabled={!regionValue}
@@ -346,7 +409,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 										value={field.value}
 										onChange={field.onChange}
 										loadOptions={loadRoleOptions}
-										selectedLabel={item?.role_detail?.name}
+										selectedLabel={currentUser?.roles?.name}
 										placeholder='Tanlang...'
 										searchPlaceholder='Rol qidirish...'
 										clearable

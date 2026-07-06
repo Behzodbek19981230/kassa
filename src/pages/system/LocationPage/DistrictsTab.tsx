@@ -13,12 +13,11 @@ import {
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
 	DataTable,
-	PageHeader,
 	Panel,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
-import DeleteDistrictModal from '@/pages/system/DistrictPage/components/DeleteDistrictModal';
-import DistrictFormModal from '@/pages/system/DistrictPage/components/DistrictFormModal';
+import DeleteDistrictModal from '@/pages/system/LocationPage/components/DeleteDistrictModal';
+import DistrictFormModal from '@/pages/system/LocationPage/components/DistrictFormModal';
 import { useDistrictListQuery } from '@/services/district/district.queries';
 import type { District } from '@/services/district/district.types';
 import { useRegionListQuery } from '@/services/region/region.queries';
@@ -26,7 +25,7 @@ import { regionService } from '@/services/region/region.service';
 
 const columnHelper = createColumnHelper<District>();
 
-export default function DistrictPage() {
+export default function DistrictsTab() {
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -105,54 +104,44 @@ export default function DistrictPage() {
 	];
 
 	return (
-		<>
-			<PageHeader
-				title='Tumanlar'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Tumanlar', active: true },
-				]}
-			/>
-
-			<Panel
-				title="Ro'yxat"
-				actions={
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
-						dialog={DistrictFormModal}
-						dialogProps={{ mode: 'create' as const }}
-					/>
-				}
-				onReload={() => {
-					refetch();
-				}}
-			>
-				<DataTable
-					columns={columns}
-					data={results}
-					manualPagination
-					manualSorting
-					manualFiltering
-					pageCount={paginationMeta?.lastPage ?? -1}
-					totalRows={paginationMeta?.total}
-					pagination={pagination}
-					onPaginationChange={setPagination}
-					sorting={sorting}
-					onSortingChange={setSorting}
-					columnFilters={columnFilters}
-					onColumnFiltersChange={setColumnFilters}
-					enablePagination
-					enableGlobalFilter={false}
-					enableColumnFilters
-					enableColumnVisibility
-					enableSorting
-					enableStriping
-					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
-					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
+		<Panel
+			title="Ro'yxat"
+			actions={
+				<OpenDialogButton
+					element={(props) => <Button {...props} />}
+					elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+					dialog={DistrictFormModal}
+					dialogProps={{ mode: 'create' as const }}
 				/>
-			</Panel>
-		</>
+			}
+			onReload={() => {
+				refetch();
+			}}
+		>
+			<DataTable
+				columns={columns}
+				data={results}
+				manualPagination
+				manualSorting
+				manualFiltering
+				pageCount={paginationMeta?.lastPage ?? -1}
+				totalRows={paginationMeta?.total}
+				pagination={pagination}
+				onPaginationChange={setPagination}
+				sorting={sorting}
+				onSortingChange={setSorting}
+				columnFilters={columnFilters}
+				onColumnFiltersChange={setColumnFilters}
+				enablePagination
+				enableGlobalFilter={false}
+				enableColumnFilters
+				enableColumnVisibility
+				enableSorting
+				enableStriping
+				isLoading={isLoading || isFetching}
+				emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+				emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
+			/>
+		</Panel>
 	);
 }

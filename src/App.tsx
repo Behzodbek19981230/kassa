@@ -20,8 +20,7 @@ import ProductMeasurementPage from '@/pages/system/ProductMeasurementPage';
 import ConsignorPage from '@/pages/system/ConsignorPage';
 import UserPage from '@/pages/system/UserPage';
 import CompanyPage from '@/pages/system/CompanyPage';
-import RegionPage from '@/pages/system/RegionPage';
-import DistrictPage from '@/pages/system/DistrictPage';
+import LocationPage from '@/pages/system/LocationPage';
 
 export default function App() {
 	return (
@@ -56,8 +55,7 @@ export default function App() {
 						<Route path='system/consignors' element={<ConsignorPage />} />
 						<Route path='system/users' element={<UserPage />} />
 						<Route path='system/companies' element={<CompanyPage />} />
-						<Route path='system/regions' element={<RegionPage />} />
-						<Route path='system/districts' element={<DistrictPage />} />
+						<Route path='system/locations' element={<LocationPage />} />
 				</Route>
 			</Route>
 		</Routes>

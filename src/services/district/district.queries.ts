@@ -5,6 +5,7 @@ import type { DistrictListParams, DistrictPayload } from '@/services/district/di
 const districtKeys = {
 	all: ['districts'] as const,
 	list: (params?: DistrictListParams) => ['districts', 'list', params] as const,
+	detail: (id: number) => ['districts', 'detail', id] as const,
 };
 
 export function useDistrictListQuery(params?: DistrictListParams) {
@@ -12,6 +13,14 @@ export function useDistrictListQuery(params?: DistrictListParams) {
 		queryKey: districtKeys.list(params),
 		queryFn: () => districtService.list(params),
 		placeholderData: (prev) => prev,
+	});
+}
+
+export function useDistrictQuery(id?: number) {
+	return useQuery({
+		queryKey: districtKeys.detail(id ?? 0),
+		queryFn: () => districtService.get(id as number),
+		enabled: typeof id === 'number',
 	});
 }
 

@@ -5,7 +5,7 @@ import {
 	type SortingState,
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaTrash, FaUser } from 'react-icons/fa';
 import { Badge, Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import DeleteUserModal from '@/pages/system/UserPage/components/DeleteUserModal';
@@ -34,6 +34,24 @@ export default function UserPage() {
 	const paginationMeta = data?.pagination;
 
 	const columns = [
+		columnHelper.accessor('avatar', {
+			header: 'Avatar',
+			size: 70,
+			enableSorting: false,
+			enableColumnFilter: false,
+			cell: (info) => {
+				const avatar = info.getValue();
+				return (
+					<div className='flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-ca-border bg-ca-silver'>
+						{avatar ? (
+							<img src={avatar} alt='Avatar' className='h-full w-full object-cover' />
+						) : (
+							<FaUser className='text-sm text-ca-text' />
+						)}
+					</div>
+				);
+			},
+		}),
 		columnHelper.accessor('username', { header: 'Login', meta: { align: 'left' } }),
 		columnHelper.display({
 			id: 'full_name',
