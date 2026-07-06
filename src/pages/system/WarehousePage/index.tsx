@@ -18,6 +18,7 @@ import {
 	Panel,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { formatNumber } from '@/lib/number';
 import DeleteWarehouseModal from '@/pages/system/WarehousePage/components/DeleteWarehouseModal';
 import WarehousePaymentModal from '@/pages/system/WarehousePage/components/WarehousePaymentModal';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
@@ -118,7 +119,12 @@ export default function WarehousePage() {
 				filterPlaceholder: 'Barchasi',
 			},
 		}),
-		columnHelper.accessor('size', { header: "O'lchami", size: 100, enableColumnFilter: false }),
+		columnHelper.accessor('size', {
+			header: "O'lchami",
+			size: 100,
+			enableColumnFilter: false,
+			cell: (info) => formatNumber(info.getValue()),
+		}),
 		columnHelper.accessor('type', {
 			header: 'Tip',
 			cell: (info) => {
@@ -132,18 +138,23 @@ export default function WarehousePage() {
 				filterPlaceholder: 'Barchasi',
 			},
 		}),
-		columnHelper.accessor('count', { header: 'Soni', size: 90, enableColumnFilter: false }),
+		columnHelper.accessor('count', {
+			header: 'Soni',
+			size: 90,
+			enableColumnFilter: false,
+			cell: (info) => formatNumber(info.getValue()),
+		}),
 		columnHelper.accessor('price', {
 			header: 'Haqiqiy Narxi ($)',
 			size: 130,
 			enableColumnFilter: false,
-			cell: (info) => info.getValue().toFixed(2),
+			cell: (info) => formatNumber(info.getValue(), 2),
 		}),
 		columnHelper.accessor('worker_price', {
 			header: 'Ishchi Uchun Narx ($)',
 			size: 150,
 			enableColumnFilter: false,
-			cell: (info) => info.getValue().toFixed(2),
+			cell: (info) => formatNumber(info.getValue(), 2),
 		}),
 		columnHelper.accessor('cr_date', { header: 'Sana', size: 110, enableColumnFilter: false }),
 		columnHelper.accessor('status_count', {

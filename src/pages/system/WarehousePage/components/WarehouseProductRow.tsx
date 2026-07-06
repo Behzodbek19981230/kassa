@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { FaPlus, FaTrash } from 'react-icons/fa';
-import { Button, Combobox, type ComboboxLoadParams, type ComboboxLoadResult, Input } from '@/components/ui';
+import { Button, Combobox, type ComboboxLoadParams, type ComboboxLoadResult, PriceInput } from '@/components/ui';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
 import { brandService } from '@/services/brand/brand.service';
 import { useBrandSizeListQuery } from '@/services/brand-size/brand-size.queries';
@@ -155,12 +155,7 @@ export default function WarehouseProductRow({
 				/>
 			</div>
 			<div className='min-w-37.5 flex-1'>
-				<Input
-					type='number'
-					step='0.01'
-					value={value.price}
-					onChange={(e) => onChange({ ...value, price: e.target.value })}
-				/>
+				<PriceInput value={value.price} onChange={(price) => onChange({ ...value, price })} />
 				{error && <p className='mt-1 text-[11px] text-ca-red'>{error}</p>}
 			</div>
 			<div className='flex shrink-0 gap-1'>

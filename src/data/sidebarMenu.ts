@@ -38,7 +38,8 @@ export const sidebarMenu: SidebarMenuItem[] = [
       { id: 'companies', icon: 'building', label: 'Tashkilotlar', path: '/system/companies' },
       { id: 'locations', icon: 'layer-group', label: 'Hududlar', path: '/system/locations' },
       { id: 'profit-loss', icon: 'chart-bar', label: 'Foyda va zarar', path: '#' },
-      { id: 'expenses', icon: 'receipt', label: 'Xarajatlar', path: '#' },
+      { id: 'expenses', icon: 'receipt', label: 'Xarajatlar', path: '/system/expenses' },
+      { id: 'about', icon: 'info-circle', label: 'Biz haqimizda', path: '/system/about' },
     ],
   },
 ]

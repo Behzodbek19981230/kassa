@@ -21,7 +21,8 @@ export type SidebarIcon =
 	| 'users-cog'
 	| 'chart-bar'
 	| 'receipt'
-	| 'building';
+	| 'building'
+	| 'info-circle';
 
 export interface SidebarMenuItem {
 	id: string;

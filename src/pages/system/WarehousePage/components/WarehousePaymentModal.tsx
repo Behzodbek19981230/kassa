@@ -1,17 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import {
 	Button,
 	FormField,
-	Input,
 	Modal,
 	ModalBody,
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
 	ModalTitle,
+	PriceInput,
 	useNotification,
 } from '@/components/ui';
 import { useUpdateWarehouseMutation } from '@/services/warehouse/warehouse.queries';
@@ -36,7 +36,7 @@ export default function WarehousePaymentModal({ open, setOpen, item }: Warehouse
 	const [formError, setFormError] = useState('');
 
 	const {
-		register,
+		control,
 		handleSubmit,
 		formState: { errors },
 	} = useForm<PaymentFormValues>({
@@ -97,7 +97,11 @@ export default function WarehousePaymentModal({ open, setOpen, item }: Warehouse
 							horizontal={false}
 							className='mb-3'
 						>
-							<Input type='number' step='0.01' {...register('all_sum_dollar')} />
+							<Controller
+								name='all_sum_dollar'
+								control={control}
+								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+							/>
 						</FormField>
 						<FormField
 							label='Chegirma summasi ($)'
@@ -106,7 +110,11 @@ export default function WarehousePaymentModal({ open, setOpen, item }: Warehouse
 							horizontal={false}
 							className='mb-3'
 						>
-							<Input type='number' step='0.01' {...register('all_discount_amount')} />
+							<Controller
+								name='all_discount_amount'
+								control={control}
+								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+							/>
 						</FormField>
 						<FormField
 							label='Qarz summasi ($)'
@@ -115,7 +123,11 @@ export default function WarehousePaymentModal({ open, setOpen, item }: Warehouse
 							horizontal={false}
 							className='mb-3'
 						>
-							<Input type='number' step='0.01' {...register('all_my_total_debt')} />
+							<Controller
+								name='all_my_total_debt'
+								control={control}
+								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+							/>
 						</FormField>
 					</ModalBody>
 					<ModalFooter>

@@ -23,6 +23,8 @@ import CompanyPage from '@/pages/system/CompanyPage';
 import LocationPage from '@/pages/system/LocationPage';
 import WarehousePage from '@/pages/system/WarehousePage';
 import WarehouseFormPage from '@/pages/system/WarehousePage/WarehouseFormPage';
+import ExpensePage from '@/pages/system/ExpensePage';
+import AboutPage from '@/pages/system/AboutPage';
 
 export default function App() {
 	return (
@@ -61,6 +63,8 @@ export default function App() {
 						<Route path='system/warehouse-prices' element={<WarehousePage />} />
 						<Route path='system/warehouse-prices/create' element={<WarehouseFormPage mode='create' />} />
 						<Route path='system/warehouse-prices/:id/edit' element={<WarehouseFormPage mode='edit' />} />
+						<Route path='system/expenses' element={<ExpensePage />} />
+						<Route path='system/about' element={<AboutPage />} />
 				</Route>
 			</Route>
 		</Routes>

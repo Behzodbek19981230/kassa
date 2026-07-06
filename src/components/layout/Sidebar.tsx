@@ -15,6 +15,7 @@ import {
 	FaExclamationTriangle,
 	FaFileInvoice,
 	FaHistory,
+	FaInfoCircle,
 	FaLayerGroup,
 	FaReceipt,
 	FaRulerCombined,
@@ -59,6 +60,7 @@ const iconMap: Record<SidebarIcon, ReactNode> = {
 	'chart-bar': <FaChartBar />,
 	receipt: <FaReceipt />,
 	building: <FaBuilding />,
+	'info-circle': <FaInfoCircle />,
 };
 
 function SubMenuBullet({ active }: { active: boolean }) {

@@ -1,6 +1,8 @@
 export { Button, buttonProps, buttonVariants } from '@/components/ui/Button'
 export { Badge, Label, badgeVariants } from '@/components/ui/Badge'
 export { Input } from '@/components/ui/Input'
+export { PriceInput } from '@/components/ui/PriceInput'
+export type { PriceInputProps } from '@/components/ui/PriceInput'
 export { Textarea } from '@/components/ui/Textarea'
 export { SearchInput } from '@/components/ui/SearchInput'
 export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectItem } from '@/components/ui/Select'
