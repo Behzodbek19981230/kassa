@@ -50,6 +50,8 @@ import {
 	FaColumns,
 	FaCopy,
 	FaFileCsv,
+	FaFileExcel,
+	FaFilePdf,
 	FaPrint,
 	FaSort,
 	FaSortDown,
@@ -93,6 +95,8 @@ interface DataTableProps<TData> {
 	enableColumnResizing?: boolean;
 	enableExpanding?: boolean;
 	enableExport?: boolean;
+	enableExportPdf?: boolean;
+	enableExportExcel?: boolean;
 	renderExpandedRow?: (row: TData) => ReactNode;
 	exportFileName?: string;
 	emptyMessage?: ReactNode;
@@ -136,6 +140,8 @@ export function DataTable<TData>({
 	enableColumnResizing = false,
 	enableExpanding = false,
 	enableExport = false,
+	enableExportPdf = false,
+	enableExportExcel = false,
 	renderExpandedRow,
 	exportFileName = 'table-export.csv',
 	emptyMessage = 'No data available',
@@ -292,6 +298,37 @@ export function DataTable<TData>({
 		win.print();
 	}
 
+	function baseFileName() {
+		return exportFileName.replace(/\.[^./]+$/, '');
+	}
+
+	async function handleExportPdf() {
+		const { headers, rows } = getExportData();
+		const [{ jsPDF }, { default: autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
+		const doc = new jsPDF();
+		autoTable(doc, { head: [headers], body: rows });
+		doc.save(`${baseFileName()}.pdf`);
+	}
+
+	async function handleExportExcel() {
+		const { headers, rows } = getExportData();
+		const { Workbook } = await import('exceljs');
+		const workbook = new Workbook();
+		const worksheet = workbook.addWorksheet('Sheet1');
+		worksheet.addRow(headers);
+		rows.forEach((row) => worksheet.addRow(row));
+		const buffer = await workbook.xlsx.writeBuffer();
+		const blob = new Blob([buffer], {
+			type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		});
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `${baseFileName()}.xlsx`;
+		link.click();
+		URL.revokeObjectURL(url);
+	}
+
 	return (
 		<div className={className}>
 			<div className='mb-2.5 flex flex-wrap items-center justify-between gap-3'>
@@ -334,6 +371,20 @@ export function DataTable<TData>({
 							<Button type='button' variant='white' size='sm' onClick={handlePrint}>
 								<FaPrint className='mr-1.5' /> Print
 							</Button>
+						</div>
+					)}
+					{(enableExportPdf || enableExportExcel) && (
+						<div className='flex gap-1'>
+							{enableExportPdf && (
+								<Button type='button' variant='warning' size='sm' onClick={handleExportPdf}>
+									<FaFilePdf className='mr-1.5' /> Export PDF
+								</Button>
+							)}
+							{enableExportExcel && (
+								<Button type='button' variant='info' size='sm' onClick={handleExportExcel}>
+									<FaFileExcel className='mr-1.5' /> Export Excel
+								</Button>
+							)}
 						</div>
 					)}
 					{enableColumnVisibility && (

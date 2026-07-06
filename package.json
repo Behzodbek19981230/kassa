@@ -26,6 +26,9 @@
     "axios": "^1.18.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "exceljs": "^4.4.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "react": "^19.2.7",
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.7",
@@ -35,6 +38,9 @@
     "react-router-dom": "^7.18.1",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",

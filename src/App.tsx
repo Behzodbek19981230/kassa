@@ -26,6 +26,7 @@ import WarehouseFormPage from '@/pages/system/WarehousePage/WarehouseFormPage';
 import ExpensePage from '@/pages/system/ExpensePage';
 import AboutPage from '@/pages/system/AboutPage';
 import ClientPage from '@/pages/settings/ClientPage';
+import DebtRepaymentPage from '@/pages/settings/DebtRepaymentPage';
 
 export default function App() {
 	return (
@@ -67,6 +68,7 @@ export default function App() {
 					<Route path='system/expenses' element={<ExpensePage />} />
 					<Route path='system/about' element={<AboutPage />} />
 					<Route path='settings/clients' element={<ClientPage />} />
+					<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
 				</Route>
 			</Route>
 		</Routes>

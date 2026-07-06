@@ -9,6 +9,11 @@ export const CLIENT_TYPE_OPTIONS: { value: ClientType; label: string }[] = [
   { value: 'branch', label: 'Filial Mijoz' },
 ]
 
+export const CLIENT_PROFIT_LOSS_OPTIONS = [
+  { value: '1', label: 'Hisoblansin' },
+  { value: '0', label: 'Hisoblanmasin' },
+]
+
 export interface ClientCompanyDetail {
   id: number
   name: string
@@ -41,8 +46,9 @@ export interface Client {
   fio: string
   phone: string
   address: string
-  total_debt: number | null
-  keshbek: number | null
+  /** Decimal fields are serialized as strings by the API. */
+  total_debt: string | null
+  keshbek: string | null
   is_worker: number
   is_partner: number
   is_profit_loss: number
@@ -81,4 +87,7 @@ export interface ClientListParams extends ListParams {
   type?: ClientType
   region?: number
   district?: number
+  worker_user?: number
+  created_by?: number
+  is_profit_loss?: 0 | 1
 }

@@ -46,6 +46,14 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		id: 'settings',
 		icon: 'settings',
 		label: 'Sozlamalar',
-		children: [{ id: 'clients', icon: 'users', label: 'Mijozlar', path: '/settings/clients' }],
+		children: [
+			{ id: 'clients', icon: 'users', label: 'Mijozlar', path: '/settings/clients' },
+			{
+				id: 'debt-repayments',
+				icon: 'balance-scale',
+				label: "To'langan qarzlar",
+				path: '/settings/debt-repayments',
+			},
+		],
 	},
 ];
