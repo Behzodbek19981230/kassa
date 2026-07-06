@@ -25,6 +25,7 @@ import WarehousePage from '@/pages/system/WarehousePage';
 import WarehouseFormPage from '@/pages/system/WarehousePage/WarehouseFormPage';
 import ExpensePage from '@/pages/system/ExpensePage';
 import AboutPage from '@/pages/system/AboutPage';
+import ClientPage from '@/pages/settings/ClientPage';
 
 export default function App() {
 	return (
@@ -56,15 +57,16 @@ export default function App() {
 					<Route path='system/product-categories' element={<ProductCategoriesPage />} />
 					<Route path='system/models' element={<ModelsPage />} />
 					<Route path='system/product-measurement' element={<ProductMeasurementPage />} />
-						<Route path='system/consignors' element={<ConsignorPage />} />
-						<Route path='system/users' element={<UserPage />} />
-						<Route path='system/companies' element={<CompanyPage />} />
-						<Route path='system/locations' element={<LocationPage />} />
-						<Route path='system/warehouse-prices' element={<WarehousePage />} />
-						<Route path='system/warehouse-prices/create' element={<WarehouseFormPage mode='create' />} />
-						<Route path='system/warehouse-prices/:id/edit' element={<WarehouseFormPage mode='edit' />} />
-						<Route path='system/expenses' element={<ExpensePage />} />
-						<Route path='system/about' element={<AboutPage />} />
+					<Route path='system/consignors' element={<ConsignorPage />} />
+					<Route path='system/users' element={<UserPage />} />
+					<Route path='system/companies' element={<CompanyPage />} />
+					<Route path='system/locations' element={<LocationPage />} />
+					<Route path='system/warehouse-prices' element={<WarehousePage />} />
+					<Route path='system/warehouse-prices/create' element={<WarehouseFormPage mode='create' />} />
+					<Route path='system/warehouse-prices/:id/edit' element={<WarehouseFormPage mode='edit' />} />
+					<Route path='system/expenses' element={<ExpensePage />} />
+					<Route path='system/about' element={<AboutPage />} />
+					<Route path='settings/clients' element={<ClientPage />} />
 				</Route>
 			</Route>
 		</Routes>

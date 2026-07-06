@@ -22,7 +22,9 @@ export type SidebarIcon =
 	| 'chart-bar'
 	| 'receipt'
 	| 'building'
-	| 'info-circle';
+	| 'info-circle'
+	| 'users'
+	| 'settings';
 
 export interface SidebarMenuItem {
 	id: string;

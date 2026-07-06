@@ -14,6 +14,7 @@ import {
 	FaCogs,
 	FaExclamationTriangle,
 	FaFileInvoice,
+	FaFolderOpen,
 	FaHistory,
 	FaInfoCircle,
 	FaLayerGroup,
@@ -24,6 +25,7 @@ import {
 	FaTags,
 	FaTruck,
 	FaUndo,
+	FaUsers,
 	FaUsersCog,
 	FaWarehouse,
 } from 'react-icons/fa';
@@ -50,7 +52,7 @@ const iconMap: Record<SidebarIcon, ReactNode> = {
 	truck: <FaTruck />,
 	warehouse: <FaWarehouse />,
 	bookmark: <FaBookmark />,
-	cogs: <FaCogs />,
+	cogs: <FaFolderOpen />,
 	'layer-group': <FaLayerGroup />,
 	'ruler-combined': <FaRulerCombined />,
 	'shipping-fast': <FaShippingFast />,
@@ -61,6 +63,8 @@ const iconMap: Record<SidebarIcon, ReactNode> = {
 	receipt: <FaReceipt />,
 	building: <FaBuilding />,
 	'info-circle': <FaInfoCircle />,
+	users: <FaUsers />,
+	settings: <FaCogs />,
 };
 
 function SubMenuBullet({ active }: { active: boolean }) {
