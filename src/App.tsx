@@ -21,6 +21,8 @@ import ConsignorPage from '@/pages/system/ConsignorPage';
 import UserPage from '@/pages/system/UserPage';
 import CompanyPage from '@/pages/system/CompanyPage';
 import LocationPage from '@/pages/system/LocationPage';
+import WarehousePage from '@/pages/system/WarehousePage';
+import WarehouseFormPage from '@/pages/system/WarehousePage/WarehouseFormPage';
 
 export default function App() {
 	return (
@@ -56,6 +58,9 @@ export default function App() {
 						<Route path='system/users' element={<UserPage />} />
 						<Route path='system/companies' element={<CompanyPage />} />
 						<Route path='system/locations' element={<LocationPage />} />
+						<Route path='system/warehouse-prices' element={<WarehousePage />} />
+						<Route path='system/warehouse-prices/create' element={<WarehouseFormPage mode='create' />} />
+						<Route path='system/warehouse-prices/:id/edit' element={<WarehouseFormPage mode='edit' />} />
 				</Route>
 			</Route>
 		</Routes>

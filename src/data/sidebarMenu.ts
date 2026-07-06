@@ -8,7 +8,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
   { id: 'orders-debts', icon: 'chart-pie', label: 'Buyurtmalar va qarzlar', path: '#' },
   { id: 'return', icon: 'undo', label: 'Vozvrat', path: '#' },
   { id: 'return-history', icon: 'file-invoice', label: 'Vozvrat buyurmalar tarixi', path: '#' },
-  { id: 'goods-prices', icon: 'tags', label: 'Tovarlar va Narxlar', path: '#' },
+  { id: 'goods-prices', icon: 'tags', label: 'Tovarlar va Narxlar', path: '/system/warehouse-prices' },
   { id: 'import', icon: 'truck', label: 'Import qilish', path: '#' },
   { id: 'warehouse-report', icon: 'warehouse', label: 'Omborxona hisobi', path: '#' },
   { id: 'my-debts', icon: 'bookmark', label: 'Mening qarzlarim', path: '#' },

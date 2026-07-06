@@ -164,9 +164,9 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 									className='flex items-center px-[15px] py-[17px] text-ca-nav-text hover:opacity-60'
 								>
 									<img
-										src='/assets/img/user-13.jpg'
+										src={user?.avatar || '/assets/img/user-13.jpg'}
 										alt=''
-										className='-mt-[5px] mr-2.5 h-[30px] w-[30px] rounded-full'
+										className='-mt-[5px] mr-2.5 h-[30px] w-[30px] rounded-full '
 									/>
 									<span className='hidden md:inline'>{user?.username ?? 'Admin'}</span>
 									<span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />

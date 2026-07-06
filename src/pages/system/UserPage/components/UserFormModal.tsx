@@ -9,6 +9,7 @@ import {
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
+	DatePicker,
 	FormField,
 	Input,
 	Modal,
@@ -340,7 +341,11 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								horizontal={false}
 								className='mb-0'
 							>
-								<Input type='date' {...register('date_of_birthday')} />
+								<Controller
+									name='date_of_birthday'
+									control={control}
+									render={({ field }) => <DatePicker value={field.value} onChange={field.onChange} />}
+								/>
 							</FormField>
 						</div>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
