@@ -162,10 +162,10 @@ export default function ClientPage() {
 			},
 		}),
 		columnHelper.accessor('keshbek', {
-			header: 'Keshbek ($)',
+			header: 'Keshbek (%)',
 			size: 110,
 			enableColumnFilter: false,
-			cell: (info) => formatNumber(info.getValue(), 2),
+			cell: (info) => `${formatNumber(info.getValue(), 2)}%`,
 		}),
 		columnHelper.display({
 			id: 'actions',

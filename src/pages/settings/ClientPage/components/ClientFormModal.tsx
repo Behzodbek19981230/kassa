@@ -39,7 +39,13 @@ const clientFormSchema = z.object({
 	phone: z.string().regex(UZ_PHONE_REGEX, "Telefon raqami to'liq kiritilishi shart"),
 	address: z.string().min(1, 'Manzil kiritilishi shart'),
 	total_debt: z.string().min(1, 'Qarz miqdori kiritilishi shart'),
-	keshbek: z.string().min(1, 'Keshbek miqdori kiritilishi shart'),
+	keshbek: z
+		.string()
+		.min(1, 'Keshbek foizi kiritilishi shart')
+		.refine((v) => {
+			const n = Number(v);
+			return !Number.isNaN(n) && n >= 0 && n <= 100;
+		}, 'Keshbek foizi 0 dan 100 gacha bo\'lishi kerak'),
 	type: z.string().min(1, 'Turi tanlanishi shart'),
 	region: z.string().min(1, 'Viloyat tanlanishi shart'),
 	district: z.string().min(1, 'Tuman tanlanishi shart'),
@@ -293,7 +299,7 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 								/>
 							</FormField>
 							<FormField
-								label='Keshbek ($)'
+								label='Keshbek (%)'
 								error={errors.keshbek?.message}
 								required
 								horizontal={false}
@@ -302,7 +308,18 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 								<Controller
 									name='keshbek'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => (
+										<Input
+											type='number'
+											inputMode='decimal'
+											min={0}
+											max={100}
+											step='0.01'
+											value={field.value}
+											onChange={(e) => field.onChange(e.target.value)}
+											onBlur={field.onBlur}
+										/>
+									)}
 								/>
 							</FormField>
 						</div>
