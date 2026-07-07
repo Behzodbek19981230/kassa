@@ -22,13 +22,14 @@ import {
 import { clientService } from '@/services/client/client.service';
 import { useClientQuery } from '@/services/client/client.queries';
 import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
+import { useCurrentCompany } from '@/lib/company';
 import {
 	useCreateDebtRepaymentMutation,
 	useDebtRepaymentQuery,
 	useUpdateDebtRepaymentMutation,
 } from '@/services/debt-repayment/debt-repayment.queries';
 import type { DebtRepayment, DebtRepaymentPayload } from '@/services/debt-repayment/debt-repayment.types';
-import { useUserInfoQuery, useUserQuery } from '@/services/user/user.queries';
+import { useUserQuery } from '@/services/user/user.queries';
 import { userService } from '@/services/user/user.service';
 
 const debtRepaymentFormSchema = z.object({
@@ -80,7 +81,7 @@ function toFormValues(item: DebtRepayment): DebtRepaymentFormValues {
 export default function DebtRepaymentFormModal({ open, setOpen, mode, item }: DebtRepaymentFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
-	const { data: userInfo } = useUserInfoQuery();
+	const { companyId } = useCurrentCompany();
 
 	const repaymentQuery = useDebtRepaymentQuery(mode === 'edit' ? item?.id : undefined);
 	const currentItem = repaymentQuery.data ?? item;
@@ -178,7 +179,7 @@ export default function DebtRepaymentFormModal({ open, setOpen, mode, item }: De
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
-		const company = item?.company ?? userInfo?.companies?.[0];
+		const company = item?.company ?? companyId ?? undefined;
 		if (!company) {
 			setFormError('Tashkilot topilmadi');
 			return;

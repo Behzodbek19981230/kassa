@@ -2,11 +2,11 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, DatePicker, Input, PageHeader, Panel, useNotification } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import WarehouseProductRow, {
 	emptyWarehouseRow,
 	type WarehouseRowValue,
 } from '@/pages/system/WarehousePage/components/WarehouseProductRow';
-import { useUserInfoQuery } from '@/services/user/user.queries';
 import {
 	useCreateWarehouseMutation,
 	useUpdateWarehouseMutation,
@@ -24,7 +24,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 	const warehouseId = id ? Number(id) : undefined;
 
 	const { notify } = useNotification();
-	const { data: userInfo } = useUserInfoQuery();
+	const { companyId } = useCurrentCompany();
 	const warehouseQuery = useWarehouseQuery(mode === 'edit' ? warehouseId : undefined);
 
 	const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -69,7 +69,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 		e.preventDefault();
 		setFormError('');
 
-		const company = (mode === 'edit' ? warehouseQuery.data?.company : undefined) ?? userInfo?.companies?.[0];
+		const company = (mode === 'edit' ? warehouseQuery.data?.company : undefined) ?? companyId ?? undefined;
 		if (!company) {
 			setFormError('Tashkilot topilmadi');
 			return;

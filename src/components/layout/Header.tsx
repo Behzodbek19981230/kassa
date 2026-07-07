@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FaBell, FaBug, FaCalendarAlt, FaClock, FaDollarSign, FaEnvelope, FaPlus } from 'react-icons/fa';
+import { FaBell, FaBug, FaBuilding, FaCalendarAlt, FaCheck, FaClock, FaDollarSign, FaEnvelope, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, getRefreshToken } from '@/lib/auth';
+import { useCurrentCompany } from '@/lib/company';
 // import { useTheme } from '@/lib/theme';
 import { useLogoutMutation } from '@/services/auth/auth.queries';
 import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
@@ -52,6 +53,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 	// const { theme, toggleTheme } = useTheme();
 	const now = useClock();
 	const { data: usdRate } = useCurrencyRateQuery('USD');
+	const { companyId, setCompanyId, companies } = useCurrentCompany();
+	const currentCompany = companies.find((c) => c.id === companyId);
 
 	const handleLogout = async () => {
 		const refresh = getRefreshToken();
@@ -118,7 +121,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 							<DropdownMenuTrigger asChild>
 								<button
 									type='button'
-									className='relative px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60'
+									className='relative px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
 								>
 									<FaBell />
 									<Badge
@@ -156,12 +159,42 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 						</DropdownMenu>
 					</li>
 
+					{companies.length > 1 && (
+						<li>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<button
+										type='button'
+										className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+									>
+										<FaBuilding />
+										<span className='hidden md:inline'>{currentCompany?.name ?? 'Tashkilot'}</span>
+										<span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />
+									</button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent>
+									<DropdownMenuLabel>Tashkilotni tanlash</DropdownMenuLabel>
+									{companies.map((company) => (
+										<DropdownMenuItem
+											key={company.id}
+											onSelect={() => setCompanyId(company.id)}
+											className='flex items-center justify-between gap-2'
+										>
+											{company.name}
+											{company.id === companyId && <FaCheck className='text-ca-green' />}
+										</DropdownMenuItem>
+									))}
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</li>
+					)}
+
 					<li>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<button
 									type='button'
-									className='flex items-center px-[15px] py-[17px] text-ca-nav-text hover:opacity-60'
+									className='flex items-center px-[15px] py-[17px] text-ca-nav-text hover:opacity-60 focus:outline-none'
 								>
 									<img
 										src={user?.avatar || '/assets/img/user-13.jpg'}

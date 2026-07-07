@@ -7,11 +7,12 @@ const companyKeys = {
 	list: (params?: CompanyListParams) => ['companies', 'list', params] as const,
 };
 
-export function useCompanyListQuery(params?: CompanyListParams) {
+export function useCompanyListQuery(params?: CompanyListParams, options?: { enabled?: boolean }) {
 	return useQuery({
 		queryKey: companyKeys.list(params),
 		queryFn: () => companyService.list(params),
 		placeholderData: (prev) => prev,
+		enabled: options?.enabled,
 	});
 }
 

@@ -14,10 +14,10 @@ import {
 	ModalTitle,
 	useNotification,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
 import { useCreateAboutMutation, useUpdateAboutMutation } from '@/services/about/about.queries';
 import type { About, AboutPayload } from '@/services/about/about.types';
-import { useUserInfoQuery } from '@/services/user/user.queries';
 
 const aboutFormSchema = z.object({
 	nomer_nakladnoy: z.string().min(1, 'Nakladnoy raqami kiritilishi shart'),
@@ -39,7 +39,7 @@ interface AboutFormModalProps {
 export default function AboutFormModal({ open, setOpen, mode, item }: AboutFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
-	const { data: userInfo } = useUserInfoQuery();
+	const { companyId } = useCurrentCompany();
 
 	const {
 		register,
@@ -72,7 +72,7 @@ export default function AboutFormModal({ open, setOpen, mode, item }: AboutFormM
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
-		const company = item?.company ?? userInfo?.companies?.[0];
+		const company = item?.company ?? companyId ?? undefined;
 		if (!company) {
 			setFormError('Tashkilot topilmadi');
 			return;

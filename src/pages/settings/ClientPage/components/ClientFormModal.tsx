@@ -29,9 +29,9 @@ import { CLIENT_TYPE_OPTIONS } from '@/services/client/client.types';
 import { useCreateClientMutation, useUpdateClientMutation, useClientQuery } from '@/services/client/client.queries';
 import type { Client, ClientPayload, ClientType } from '@/services/client/client.types';
 import { districtService } from '@/services/district/district.service';
+import { useCurrentCompany } from '@/lib/company';
 import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
 import { regionService } from '@/services/region/region.service';
-import { useUserInfoQuery } from '@/services/user/user.queries';
 import { userService } from '@/services/user/user.service';
 
 const clientFormSchema = z.object({
@@ -78,7 +78,7 @@ function clientToFormValues(client: Client): ClientFormValues {
 export default function ClientFormModal({ open, setOpen, mode, item }: ClientFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
-	const { data: userInfo } = useUserInfoQuery();
+	const { companyId } = useCurrentCompany();
 
 	const clientQuery = useClientQuery(mode === 'edit' ? item?.id : undefined);
 	const currentClient = clientQuery.data ?? item;
@@ -171,7 +171,7 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
-		const company = item?.company ?? userInfo?.companies?.[0];
+		const company = item?.company ?? companyId ?? undefined;
 		if (!company) {
 			setFormError('Tashkilot topilmadi');
 			return;

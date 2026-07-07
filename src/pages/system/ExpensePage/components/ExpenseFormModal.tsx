@@ -19,11 +19,11 @@ import {
 	PriceInput,
 	useNotification,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { useCreateExpenseMutation, useUpdateExpenseMutation } from '@/services/expense/expense.queries';
 import type { Expense, ExpensePayload } from '@/services/expense/expense.types';
 import { useExpenseTypeListQuery } from '@/services/expense-type/expense-type.queries';
 import { expenseTypeService } from '@/services/expense-type/expense-type.service';
-import { useUserInfoQuery } from '@/services/user/user.queries';
 
 const expenseFormSchema = z.object({
 	nomi: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -44,7 +44,7 @@ interface ExpenseFormModalProps {
 export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
-	const { data: userInfo } = useUserInfoQuery();
+	const { companyId } = useCurrentCompany();
 
 	const { data: typeData } = useExpenseTypeListQuery({ limit: 100 });
 	const typeNameById = new Map((typeData?.results ?? []).map((t) => [t.id, t.name]));
@@ -86,7 +86,7 @@ export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseF
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
-		const company = item?.company ?? userInfo?.companies?.[0];
+		const company = item?.company ?? companyId ?? undefined;
 		if (!company) {
 			setFormError('Tashkilot topilmadi');
 			return;
