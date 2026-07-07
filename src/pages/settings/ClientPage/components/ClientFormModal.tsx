@@ -16,6 +16,7 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalTitle,
+	PriceInput,
 	Select,
 	SelectContent,
 	SelectItem,
@@ -37,6 +38,8 @@ const clientFormSchema = z.object({
 	fio: z.string().min(1, 'F.I.Sh kiritilishi shart'),
 	phone: z.string().regex(UZ_PHONE_REGEX, "Telefon raqami to'liq kiritilishi shart"),
 	address: z.string().min(1, 'Manzil kiritilishi shart'),
+	total_debt: z.string().min(1, 'Qarz miqdori kiritilishi shart'),
+	keshbek: z.string().min(1, 'Keshbek miqdori kiritilishi shart'),
 	type: z.string().min(1, 'Turi tanlanishi shart'),
 	region: z.string().min(1, 'Viloyat tanlanishi shart'),
 	district: z.string().min(1, 'Tuman tanlanishi shart'),
@@ -60,6 +63,8 @@ function clientToFormValues(client: Client): ClientFormValues {
 		fio: client.fio,
 		phone: client.phone,
 		address: client.address,
+		total_debt: client.total_debt ?? '0',
+		keshbek: client.keshbek ?? '0',
 		type: client.type,
 		region: client.region ? String(client.region) : '',
 		district: client.district ? String(client.district) : '',
@@ -95,6 +100,8 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 						fio: '',
 						phone: '+998',
 						address: '',
+						total_debt: '0',
+						keshbek: '0',
 						type: '',
 						region: '',
 						district: '',
@@ -174,6 +181,8 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 			fio: values.fio.trim(),
 			phone: values.phone.trim(),
 			address: values.address.trim(),
+			total_debt: Number(values.total_debt) || 0,
+			keshbek: Number(values.keshbek) || 0,
 			type: values.type as ClientType,
 			region: Number(values.region),
 			district: Number(values.district),
@@ -212,10 +221,22 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 							</div>
 						)}
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='F.I.Sh' error={errors.fio?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='F.I.Sh'
+								error={errors.fio?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Input {...register('fio')} />
 							</FormField>
-							<FormField label='Telefon' error={errors.phone?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Telefon'
+								error={errors.phone?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='phone'
 									control={control}
@@ -231,7 +252,13 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 								/>
 							</FormField>
 						</div>
-						<FormField label='Turi' error={errors.type?.message} required horizontal={false} className='mb-3'>
+						<FormField
+							label='Turi'
+							error={errors.type?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
 							<Controller
 								name='type'
 								control={control}
@@ -252,7 +279,41 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 							/>
 						</FormField>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Viloyat' error={errors.region?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Qarz miqdori ($)'
+								error={errors.total_debt?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
+								<Controller
+									name='total_debt'
+									control={control}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+								/>
+							</FormField>
+							<FormField
+								label='Keshbek ($)'
+								error={errors.keshbek?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
+								<Controller
+									name='keshbek'
+									control={control}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+								/>
+							</FormField>
+						</div>
+						<div className='mb-3 grid grid-cols-2 gap-3'>
+							<FormField
+								label='Viloyat'
+								error={errors.region?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='region'
 									control={control}
@@ -269,7 +330,13 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 									)}
 								/>
 							</FormField>
-							<FormField label='Tuman' error={errors.district?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Tuman'
+								error={errors.district?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='district'
 									control={control}
@@ -288,22 +355,39 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 								/>
 							</FormField>
 						</div>
-						<FormField label='Manzil' error={errors.address?.message} required horizontal={false} className='mb-3'>
+						<FormField
+							label='Manzil'
+							error={errors.address?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
 							<Textarea rows={2} {...register('address')} />
 						</FormField>
+
 						<div className='mb-3 flex flex-wrap gap-4'>
 							<Controller
 								name='is_worker'
 								control={control}
 								render={({ field }) => (
-									<Checkbox inline label='Ishchi' checked={field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+									<Checkbox
+										inline
+										label='Ishchi'
+										checked={field.value}
+										onCheckedChange={(v) => field.onChange(!!v)}
+									/>
 								)}
 							/>
 							<Controller
 								name='is_partner'
 								control={control}
 								render={({ field }) => (
-									<Checkbox inline label='Hamkor' checked={field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+									<Checkbox
+										inline
+										label='Hamkor'
+										checked={field.value}
+										onCheckedChange={(v) => field.onChange(!!v)}
+									/>
 								)}
 							/>
 							<Controller

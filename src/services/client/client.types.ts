@@ -73,6 +73,8 @@ export interface ClientPayload {
   fio: string
   phone: string
   address: string
+  total_debt: number
+  keshbek: number
   is_worker: 0 | 1
   is_partner: 0 | 1
   is_profit_loss: 0 | 1
