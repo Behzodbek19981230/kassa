@@ -16,7 +16,13 @@ export function InputGroup({ prepend, append, children, className }: InputGroupP
           {prepend}
         </span>
       )}
-      <div className="min-w-0 flex-1 [&_input]:rounded-none [&_input]:border-x-0 [&_select]:rounded-none">
+      <div
+        className={cn(
+          'min-w-0 flex-1',
+          prepend && '[&_input]:rounded-l-none [&_input]:border-l-0 [&_select]:rounded-l-none',
+          append && '[&_input]:rounded-r-none [&_input]:border-r-0 [&_select]:rounded-r-none',
+        )}
+      >
         {children}
       </div>
       {append && (

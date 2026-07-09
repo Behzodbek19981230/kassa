@@ -135,7 +135,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
-			<ModalContent className='max-w-[480px]'>
+			<ModalContent className='max-w-[500px]'>
 				<ModalHeader>
 					<ModalTitle>Mijoz buyurtmasiga qo'shish</ModalTitle>
 				</ModalHeader>
@@ -179,7 +179,9 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 											{locationOptions.map((option) => (
 												<SelectItem key={option.value} value={option.value}>
 													{option.label}
-													<span className='ml-2 text-ca-text'>({formatNumber(option.row.count)} ta)</span>
+													<span className='ml-2 text-ca-text'>
+														({formatNumber(option.row.count)} ta)
+													</span>
 												</SelectItem>
 											))}
 										</SelectContent>
@@ -188,13 +190,22 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 							/>
 							{availableStock !== undefined && (
 								<p className='mt-1 text-[11px] text-ca-text'>
-									Omborda mavjud: <span className='font-semibold text-ca-heading'>{formatNumber(availableStock)} ta</span>
+									Omborda mavjud:{' '}
+									<span className='font-semibold text-ca-heading'>
+										{formatNumber(availableStock)} ta
+									</span>
 								</p>
 							)}
 						</FormField>
 
-						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Soni' error={errors.count?.message} required horizontal={false} className='mb-0'>
+						<div className='mb-3 grid grid-cols-3 gap-1'>
+							<FormField
+								label='Soni'
+								error={errors.count?.message}
+								required
+								horizontal={false}
+								className='mb-0 grid col-span-2'
+							>
 								<Controller
 									name='count'
 									control={control}
@@ -215,7 +226,13 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 								/>
 							</FormField>
 
-							<FormField label='Narxi ($)' error={errors.price?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Narxi ($)'
+								error={errors.price?.message}
+								required
+								horizontal={false}
+								className='mb-0 grid col-span-1'
+							>
 								<Controller
 									name='price'
 									control={control}
