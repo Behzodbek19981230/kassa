@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-table';
 import { useState } from 'react';
 import { FaDollarSign, FaEdit, FaExclamationTriangle, FaImages, FaTrash } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
 	Button,
 	buttonProps,
@@ -21,6 +21,7 @@ import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import DeleteWarehouseModal from '@/pages/WarehousePage/components/DeleteWarehouseModal';
+import WarehouseEditModal from '@/pages/WarehousePage/components/WarehouseEditModal';
 import WarehouseImagesModal from '@/pages/WarehousePage/components/WarehouseImagesModal';
 import WarehousePaymentModal from '@/pages/WarehousePage/components/WarehousePaymentModal';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
@@ -37,7 +38,6 @@ import type { Warehouse } from '@/services/warehouse/warehouse.types';
 const columnHelper = createColumnHelper<Warehouse>();
 
 export default function WarehousePage() {
-	const navigate = useNavigate();
 	const { companyId } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
@@ -226,10 +226,11 @@ export default function WarehousePage() {
 						dialog={WarehouseImagesModal}
 						dialogProps={{ item: row.original }}
 					/>
-					<Button
-						{...buttonProps(<FaEdit />, 'info', 'icon')}
-						aria-label='Tahrirlash'
-						onClick={() => navigate(`/warehouse-prices/${row.original.id}/edit`)}
+					<OpenDialogButton
+						element={(props) => <Button {...props} />}
+						elementProps={{ ...buttonProps(<FaEdit />, 'info', 'icon'), 'aria-label': 'Tahrirlash' }}
+						dialog={WarehouseEditModal}
+						dialogProps={{ item: row.original }}
 					/>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}

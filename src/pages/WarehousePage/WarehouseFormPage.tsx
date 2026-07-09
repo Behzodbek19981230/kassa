@@ -49,7 +49,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 					brand: String(w.brand),
 					product_category: String(w.product_category),
 					brandSize: '',
-					size: w.size,
+					size: Number(w.size),
 					type: w.type,
 					type_sklad: w.type_sklad ? String(w.type_sklad) : '',
 					price: String(w.price),
