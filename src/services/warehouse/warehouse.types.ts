@@ -15,6 +15,11 @@ export interface WarehouseTypeDetail {
   name: string
 }
 
+export interface WarehouseSkladTypeDetail {
+  id: number
+  name: string
+}
+
 export interface WarehouseCompanyDetail {
   id: number
   name: string
@@ -39,6 +44,8 @@ export interface Warehouse {
   product_category_detail?: WarehouseProductCategoryDetail | null
   type: number | null
   type_detail?: WarehouseTypeDetail | null
+  type_sklad: number | null
+  type_sklad_detail?: WarehouseSkladTypeDetail | null
   comment?: string | null
 }
 
@@ -53,6 +60,7 @@ export interface WarehousePayload {
   brand: number
   product_category: number
   type: number | null
+  type_sklad: number | null
   all_sum_dollar?: number
   all_discount_amount?: number
   all_my_total_debt?: number
@@ -70,5 +78,6 @@ export interface WarehouseListParams extends ListParams {
   brand?: number
   product_category?: number
   type?: number
+  type_sklad?: number
   status_count?: boolean
 }

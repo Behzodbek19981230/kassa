@@ -7,6 +7,8 @@ import { useBrandSizeListQuery } from '@/services/brand-size/brand-size.queries'
 import { useBrandSizeTypeListQuery } from '@/services/brand-size-type/brand-size-type.queries';
 import { useProductCategoryListQuery } from '@/services/product-category/product-category.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
+import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
+import { skladTypeService } from '@/services/sklad-type/sklad-type.service';
 import { generateId } from '@/lib/utils';
 
 export interface WarehouseRowValue {
@@ -16,6 +18,7 @@ export interface WarehouseRowValue {
 	brandSize: string;
 	size: number | null;
 	type: number | null;
+	type_sklad: string;
 	price: string;
 }
 
@@ -26,6 +29,7 @@ export const emptyWarehouseRow = (): WarehouseRowValue => ({
 	brandSize: '',
 	size: null,
 	type: null,
+	type_sklad: '',
 	price: '',
 });
 
@@ -67,6 +71,9 @@ export default function WarehouseProductRow({
 
 	const { data: typeData } = useBrandSizeTypeListQuery({ limit: 100 });
 	const typeNameById = new Map((typeData?.results ?? []).map((t) => [t.id, t.name]));
+
+	const { data: skladTypeData } = useSkladTypeListQuery({ limit: 100 });
+	const skladTypeNameById = new Map((skladTypeData?.results ?? []).map((s) => [s.id, s.name]));
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
@@ -111,9 +118,18 @@ export default function WarehouseProductRow({
 		onChange({ ...value, brandSize, size: bs ? Number(bs.size) : null, type: bs ? bs.type : null });
 	};
 
+	const loadSkladTypeOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+		const result = await skladTypeService.list({ search: search || undefined, page, limit: 20 });
+		return {
+			options: result.results.map((s) => ({ value: String(s.id), label: s.name })),
+			hasMore: result.pagination.currentPage < result.pagination.lastPage,
+		};
+	};
+
 	return (
 		<div className='mb-3 flex flex-wrap items-start gap-3'>
 			<div className='min-w-45 flex-1'>
+				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Model</label>
 				<Combobox
 					value={value.brand}
 					onChange={handleBrandChange}
@@ -124,6 +140,7 @@ export default function WarehouseProductRow({
 				/>
 			</div>
 			<div className='min-w-45 flex-1'>
+				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Nomi</label>
 				<Combobox
 					value={value.product_category}
 					onChange={handleCategoryChange}
@@ -135,6 +152,7 @@ export default function WarehouseProductRow({
 				/>
 			</div>
 			<div className='min-w-37.5 flex-1'>
+				<label className='mb-1 block text-xs font-semibold text-ca-heading'>O'lchami</label>
 				<Combobox
 					value={value.brandSize}
 					onChange={handleBrandSizeChange}
@@ -146,6 +164,7 @@ export default function WarehouseProductRow({
 				/>
 			</div>
 			<div className='min-w-37.5 flex-1'>
+				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Tip</label>
 				<Combobox
 					value={value.type ? String(value.type) : ''}
 					onChange={() => {}}
@@ -156,10 +175,23 @@ export default function WarehouseProductRow({
 				/>
 			</div>
 			<div className='min-w-37.5 flex-1'>
+				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sklad</label>
+				<Combobox
+					value={value.type_sklad}
+					onChange={(type_sklad) => onChange({ ...value, type_sklad })}
+					loadOptions={loadSkladTypeOptions}
+					selectedLabel={skladTypeNameById.get(Number(value.type_sklad))}
+					placeholder='Tanlang...'
+					searchPlaceholder='Qidirish...'
+					clearable
+				/>
+			</div>
+			<div className='min-w-37.5 flex-1'>
+				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Narxi</label>
 				<PriceInput value={value.price} onChange={(price) => onChange({ ...value, price })} />
 				{error && <p className='mt-1 text-[11px] text-ca-red'>{error}</p>}
 			</div>
-			<div className='flex shrink-0 gap-1'>
+			<div className='flex w-16 shrink-0 self-end justify-end gap-1'>
 				{showRemove && (
 					<Button
 						type='button'

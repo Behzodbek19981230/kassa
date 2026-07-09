@@ -63,6 +63,7 @@ export default function WarehousePaymentModal({ open, setOpen, item }: Warehouse
 			brand: item.brand,
 			product_category: item.product_category,
 			type: item.type,
+			type_sklad: item.type_sklad,
 			all_sum_dollar: Number(values.all_sum_dollar) || 0,
 			all_discount_amount: Number(values.all_discount_amount) || 0,
 			all_my_total_debt: Number(values.all_my_total_debt) || 0,

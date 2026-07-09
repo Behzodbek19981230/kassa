@@ -7,7 +7,7 @@ import { generateId } from '@/lib/utils';
 import WarehouseProductRow, {
 	emptyWarehouseRow,
 	type WarehouseRowValue,
-} from '@/pages/system/WarehousePage/components/WarehouseProductRow';
+} from '@/pages/WarehousePage/components/WarehouseProductRow';
 import {
 	useCreateWarehouseMutation,
 	useUpdateWarehouseMutation,
@@ -51,6 +51,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 					brandSize: '',
 					size: w.size,
 					type: w.type,
+					type_sklad: w.type_sklad ? String(w.type_sklad) : '',
 					price: String(w.price),
 				},
 			]);
@@ -64,7 +65,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 	const addRow = () => setRows((prev) => [...prev, emptyWarehouseRow()]);
 	const removeRow = (index: number) => setRows((prev) => prev.filter((_, i) => i !== index));
 
-	const goBack = () => navigate('/system/warehouse-prices');
+	const goBack = () => navigate('/warehouse-prices');
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
@@ -107,6 +108,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 					brand: Number(row.brand),
 					product_category: Number(row.product_category),
 					type: row.type,
+					type_sklad: row.type_sklad ? Number(row.type_sklad) : null,
 					all_sum_dollar: w?.all_sum_dollar ?? 0,
 					all_discount_amount: w?.all_discount_amount ?? 0,
 					all_my_total_debt: w?.all_my_total_debt ?? 0,
@@ -127,6 +129,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 						brand: Number(row.brand),
 						product_category: Number(row.product_category),
 						type: row.type,
+					type_sklad: row.type_sklad ? Number(row.type_sklad) : null,
 						all_sum_dollar: 0,
 						all_discount_amount: 0,
 						all_my_total_debt: 0,
@@ -172,15 +175,6 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 					<div className='mb-4 max-w-xs'>
 						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sana</label>
 						<DatePicker value={date} onChange={setDate} />
-					</div>
-
-					<div className='mb-1 flex flex-wrap gap-3'>
-						<div className='min-w-45 flex-1 text-xs font-semibold text-ca-heading'>Model</div>
-						<div className='min-w-45 flex-1 text-xs font-semibold text-ca-heading'>Nomi</div>
-						<div className='min-w-37.5 flex-1 text-xs font-semibold text-ca-heading'>O'lchami</div>
-						<div className='min-w-37.5 flex-1 text-xs font-semibold text-ca-heading'>Tip</div>
-						<div className='min-w-37.5 flex-1 text-xs font-semibold text-ca-heading'>Narxi</div>
-						<div className='w-16 shrink-0' />
 					</div>
 
 					{rows.map((row, index) => (

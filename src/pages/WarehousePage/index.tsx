@@ -5,7 +5,7 @@ import {
 	type SortingState,
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaDollarSign, FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
+import { FaDollarSign, FaEdit, FaExclamationTriangle, FaImages, FaTrash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import {
 	Button,
@@ -20,14 +20,17 @@ import {
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
-import DeleteWarehouseModal from '@/pages/system/WarehousePage/components/DeleteWarehouseModal';
-import WarehousePaymentModal from '@/pages/system/WarehousePage/components/WarehousePaymentModal';
+import DeleteWarehouseModal from '@/pages/WarehousePage/components/DeleteWarehouseModal';
+import WarehouseImagesModal from '@/pages/WarehousePage/components/WarehouseImagesModal';
+import WarehousePaymentModal from '@/pages/WarehousePage/components/WarehousePaymentModal';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
 import { brandService } from '@/services/brand/brand.service';
 import { useBrandSizeTypeListQuery } from '@/services/brand-size-type/brand-size-type.queries';
 import { brandSizeTypeService } from '@/services/brand-size-type/brand-size-type.service';
 import { useProductCategoryListQuery } from '@/services/product-category/product-category.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
+import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
+import { skladTypeService } from '@/services/sklad-type/sklad-type.service';
 import { useWarehouseListQuery } from '@/services/warehouse/warehouse.queries';
 import type { Warehouse } from '@/services/warehouse/warehouse.types';
 
@@ -45,6 +48,7 @@ export default function WarehousePage() {
 	const brandFilter = columnFilters.find((f) => f.id === 'brand')?.value as string | undefined;
 	const categoryFilter = columnFilters.find((f) => f.id === 'product_category')?.value as string | undefined;
 	const typeFilter = columnFilters.find((f) => f.id === 'type')?.value as string | undefined;
+	const skladTypeFilter = columnFilters.find((f) => f.id === 'type_sklad')?.value as string | undefined;
 
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseListQuery({
 		page: pagination.pageIndex + 1,
@@ -53,6 +57,7 @@ export default function WarehousePage() {
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 		type: typeFilter ? Number(typeFilter) : undefined,
+		type_sklad: skladTypeFilter ? Number(skladTypeFilter) : undefined,
 		status_count: onlyConfirmed ? true : undefined,
 		ordering,
 	});
@@ -68,6 +73,9 @@ export default function WarehousePage() {
 
 	const { data: typeData } = useBrandSizeTypeListQuery({ limit: 100 });
 	const typeNameById = new Map((typeData?.results ?? []).map((t) => [t.id, t.name]));
+
+	const { data: skladTypeData } = useSkladTypeListQuery({ limit: 100 });
+	const skladTypeNameById = new Map((skladTypeData?.results ?? []).map((s) => [s.id, s.name]));
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
@@ -89,6 +97,14 @@ export default function WarehousePage() {
 		const result = await brandSizeTypeService.list({ search: search || undefined, page, limit: 20 });
 		return {
 			options: result.results.filter((t) => t.status).map((t) => ({ value: String(t.id), label: t.name })),
+			hasMore: result.pagination.currentPage < result.pagination.lastPage,
+		};
+	};
+
+	const loadSkladTypeOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+		const result = await skladTypeService.list({ search: search || undefined, page, limit: 20 });
+		return {
+			options: result.results.map((s) => ({ value: String(s.id), label: s.name })),
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
 		};
 	};
@@ -141,6 +157,19 @@ export default function WarehousePage() {
 				filterPlaceholder: 'Barchasi',
 			},
 		}),
+		columnHelper.accessor('type_sklad', {
+			header: 'Sklad',
+			cell: (info) => {
+				const value = info.getValue();
+				return value ? (skladTypeNameById.get(value) ?? value) : '';
+			},
+			meta: {
+				filterVariant: 'select',
+				filterLoadOptions: loadSkladTypeOptions,
+				filterSelectedLabel: (value) => skladTypeNameById.get(Number(value)),
+				filterPlaceholder: 'Barchasi',
+			},
+		}),
 		columnHelper.accessor('count', {
 			header: 'Soni',
 			size: 90,
@@ -176,19 +205,31 @@ export default function WarehousePage() {
 			meta: { align: 'right' },
 			enableSorting: false,
 			enableColumnFilter: false,
-			size: 170,
+			size: 210,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaDollarSign />, 'warning', 'icon'), 'aria-label': 'Hisob-kitob' }}
+						elementProps={{
+							...buttonProps(<FaDollarSign />, 'warning', 'icon'),
+							'aria-label': 'Hisob-kitob',
+						}}
 						dialog={WarehousePaymentModal}
+						dialogProps={{ item: row.original }}
+					/>
+					<OpenDialogButton
+						element={(props) => <Button {...props} />}
+						elementProps={{
+							...buttonProps(<FaImages />, 'theme', 'icon'),
+							'aria-label': 'Rasmlar',
+						}}
+						dialog={WarehouseImagesModal}
 						dialogProps={{ item: row.original }}
 					/>
 					<Button
 						{...buttonProps(<FaEdit />, 'info', 'icon')}
 						aria-label='Tahrirlash'
-						onClick={() => navigate(`/system/warehouse-prices/${row.original.id}/edit`)}
+						onClick={() => navigate(`/warehouse-prices/${row.original.id}/edit`)}
 					/>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
@@ -226,7 +267,10 @@ export default function WarehousePage() {
 						>
 							Tekshirildi {onlyConfirmed && '✓'}
 						</Button>
-						<Link to='/system/warehouse-prices/create' className={buttonVariants({ variant: 'info', size: 'xs' })}>
+						<Link
+							to='/warehouse-prices/create'
+							className={buttonVariants({ variant: 'info', size: 'xs' })}
+						>
 							Qo'shish +
 						</Link>
 					</>

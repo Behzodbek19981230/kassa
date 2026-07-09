@@ -21,8 +21,9 @@ import ConsignorPage from '@/pages/system/ConsignorPage';
 import UserPage from '@/pages/system/UserPage';
 import CompanyPage from '@/pages/system/CompanyPage';
 import LocationPage from '@/pages/system/LocationPage';
-import WarehousePage from '@/pages/system/WarehousePage';
-import WarehouseFormPage from '@/pages/system/WarehousePage/WarehouseFormPage';
+import SkladTypePage from '@/pages/system/SkladTypePage';
+import WarehousePage from '@/pages/WarehousePage';
+import WarehouseFormPage from '@/pages/WarehousePage/WarehouseFormPage';
 import ExpensePage from '@/pages/system/ExpensePage';
 import AboutPage from '@/pages/system/AboutPage';
 import ClientPage from '@/pages/settings/ClientPage';
@@ -62,9 +63,10 @@ export default function App() {
 					<Route path='system/users' element={<UserPage />} />
 					<Route path='system/companies' element={<CompanyPage />} />
 					<Route path='system/locations' element={<LocationPage />} />
-					<Route path='system/warehouse-prices' element={<WarehousePage />} />
-					<Route path='system/warehouse-prices/create' element={<WarehouseFormPage mode='create' />} />
-					<Route path='system/warehouse-prices/:id/edit' element={<WarehouseFormPage mode='edit' />} />
+					<Route path='system/sklad-types' element={<SkladTypePage />} />
+					<Route path='warehouse-prices' element={<WarehousePage />} />
+					<Route path='warehouse-prices/create' element={<WarehouseFormPage mode='create' />} />
+					<Route path='warehouse-prices/:id/edit' element={<WarehouseFormPage mode='edit' />} />
 					<Route path='system/expenses' element={<ExpensePage />} />
 					<Route path='system/about' element={<AboutPage />} />
 					<Route path='settings/clients' element={<ClientPage />} />
