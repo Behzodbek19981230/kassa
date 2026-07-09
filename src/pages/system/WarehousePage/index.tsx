@@ -18,6 +18,7 @@ import {
 	Panel,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import DeleteWarehouseModal from '@/pages/system/WarehousePage/components/DeleteWarehouseModal';
 import WarehousePaymentModal from '@/pages/system/WarehousePage/components/WarehousePaymentModal';
@@ -34,6 +35,7 @@ const columnHelper = createColumnHelper<Warehouse>();
 
 export default function WarehousePage() {
 	const navigate = useNavigate();
+	const { companyId } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -47,6 +49,7 @@ export default function WarehousePage() {
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
+		company: companyId ?? undefined,
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 		type: typeFilter ? Number(typeFilter) : undefined,

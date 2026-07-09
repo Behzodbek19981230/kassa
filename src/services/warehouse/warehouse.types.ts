@@ -66,6 +66,7 @@ export interface WarehouseMoneyPayload {
 }
 
 export interface WarehouseListParams extends ListParams {
+  company?: number
   brand?: number
   product_category?: number
   type?: number
