@@ -1,7 +1,7 @@
 import type { SidebarMenuItem } from '@/types';
 
 export const sidebarMenu: SidebarMenuItem[] = [
-	{ id: 'warehouse-products', icon: 'boxes', label: 'Ombor mahsulotlari', path: '#' },
+	{ id: 'warehouse-products', icon: 'boxes', label: 'Ombor mahsulotlari', path: '/warehouse-products' },
 	{ id: 'place-order', icon: 'cart', label: 'Buyurtma qilish', path: '#' },
 	{ id: 'customer-order-history', icon: 'history', label: 'Mijoz buyurtmalar tarixi', path: '#' },
 	{ id: 'customer-debt', icon: 'balance-scale', label: 'Mijozdan qarzdorlik', path: '#' },

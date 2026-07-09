@@ -81,3 +81,52 @@ export interface WarehouseListParams extends ListParams {
   type_sklad?: number
   status_count?: boolean
 }
+
+export interface WarehouseAllListItem {
+  id: number
+  company_id: number
+  brand_id: number
+  product_category_id: number
+  size: number
+  count: number
+  cr_date: string
+  price: number
+  all_sum_dollar: number
+  all_discount_amount: number
+  all_my_total_debt: number
+  status_count: boolean
+  worker_price: number
+  type_sklad_id: number | null
+  type_sklad_name: string | null
+  brand_name: string
+  product_category_name: string
+  type_id: number | null
+  type_name: string | null
+}
+
+export interface WarehouseAllListCategoryGroup {
+  product_category: {
+    id: number
+    name: string
+    brand: number
+    sorting: number
+    status: number
+    sup_status: number
+  }
+  warehouses: WarehouseAllListItem[]
+}
+
+export interface WarehouseAllListBrandGroup {
+  brand: {
+    id: number
+    name: string
+    sorting: number
+    status: number
+    sup_status: number
+  }
+  product_categories: WarehouseAllListCategoryGroup[]
+}
+
+export interface WarehouseAllListParams {
+  company?: number
+}

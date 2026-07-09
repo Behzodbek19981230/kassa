@@ -3,17 +3,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
 import LoginPage from '@/pages/LoginPage';
-import DropzonePage from '@/pages/forms/DropzonePage';
-import FormElementsPage from '@/pages/forms/FormElementsPage';
-import FormValidationPage from '@/pages/forms/FormValidationPage';
-import TablePage from '@/pages/TablePage';
-import AdvancedTablePage from '@/pages/tables/AdvancedTablePage';
-import BasicTablePage from '@/pages/tables/BasicTablePage';
-import TableButtonsPage from '@/pages/tables/TableButtonsPage';
-import ButtonsPage from '@/pages/ui/ButtonsPage';
-import GeneralPage from '@/pages/ui/GeneralPage';
-import TabsAccordionsPage from '@/pages/ui/TabsAccordionsPage';
-import ModalNotificationPage from '@/pages/ui/ModalNotificationPage';
+
 import ModelsPage from '@/pages/system/ModelsPage';
 import ProductCategoriesPage from '@/pages/system/ProductCategoriesPage';
 import ProductMeasurementPage from '@/pages/system/ProductMeasurementPage';
@@ -24,6 +14,7 @@ import LocationPage from '@/pages/system/LocationPage';
 import SkladTypePage from '@/pages/system/SkladTypePage';
 import WarehousePage from '@/pages/WarehousePage';
 import WarehouseFormPage from '@/pages/WarehousePage/WarehouseFormPage';
+import WarehouseProductsPage from '@/pages/WarehouseProductsPage';
 import ExpensePage from '@/pages/system/ExpensePage';
 import AboutPage from '@/pages/system/AboutPage';
 import ClientPage from '@/pages/settings/ClientPage';
@@ -38,22 +29,7 @@ export default function App() {
 				<Route element={<Layout />}>
 					<Route index element={<Dashboard />} />
 
-					{/* UI Elements */}
-					<Route path='ui/general' element={<GeneralPage />} />
-					<Route path='ui/buttons' element={<ButtonsPage />} />
-					<Route path='ui/tabs-accordions' element={<TabsAccordionsPage />} />
-					<Route path='ui/modal-notification' element={<ModalNotificationPage />} />
-
-					{/* Form Stuff */}
-					<Route path='forms/elements' element={<FormElementsPage />} />
-					<Route path='forms/validation' element={<FormValidationPage />} />
-					<Route path='forms/dropzone' element={<DropzonePage />} />
-
-					{/* Tables */}
-					<Route path='tables' element={<TablePage />} />
-					<Route path='tables/basic' element={<BasicTablePage />} />
-					<Route path='tables/buttons' element={<TableButtonsPage />} />
-					<Route path='tables/advanced' element={<AdvancedTablePage />} />
+					<Route path='warehouse-products' element={<WarehouseProductsPage />} />
 
 					{/* System management */}
 					<Route path='system/product-categories' element={<ProductCategoriesPage />} />
@@ -61,6 +37,7 @@ export default function App() {
 					<Route path='system/product-measurement' element={<ProductMeasurementPage />} />
 					<Route path='system/consignors' element={<ConsignorPage />} />
 					<Route path='system/users' element={<UserPage />} />
+                    
 					<Route path='system/companies' element={<CompanyPage />} />
 					<Route path='system/locations' element={<LocationPage />} />
 					<Route path='system/sklad-types' element={<SkladTypePage />} />

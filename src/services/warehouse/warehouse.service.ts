@@ -1,10 +1,20 @@
 import { apiClient } from '@/services/api/client'
 import type { PaginatedResponse } from '@/services/api/types'
-import type { Warehouse, WarehouseListParams, WarehousePayload } from '@/services/warehouse/warehouse.types'
+import type {
+  Warehouse,
+  WarehouseAllListBrandGroup,
+  WarehouseAllListParams,
+  WarehouseListParams,
+  WarehousePayload,
+} from '@/services/warehouse/warehouse.types'
 
 export const warehouseService = {
   list: async (params?: WarehouseListParams) => {
     const { data } = await apiClient.get<PaginatedResponse<Warehouse>>('/warehouse/', { params })
+    return data
+  },
+  allList: async (params?: WarehouseAllListParams) => {
+    const { data } = await apiClient.get<WarehouseAllListBrandGroup[]>('/warehouse/all-list/', { params })
     return data
   },
   get: async (id: number) => {

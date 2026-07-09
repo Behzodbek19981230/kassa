@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { warehouseService } from '@/services/warehouse/warehouse.service'
-import type { WarehouseListParams, WarehousePayload } from '@/services/warehouse/warehouse.types'
+import type { WarehouseAllListParams, WarehouseListParams, WarehousePayload } from '@/services/warehouse/warehouse.types'
 
 const warehouseKeys = {
   all: ['warehouse'] as const,
   list: (params?: WarehouseListParams) => ['warehouse', 'list', params] as const,
+  allList: (params?: WarehouseAllListParams) => ['warehouse', 'all-list', params] as const,
   detail: (id: number) => ['warehouse', 'detail', id] as const,
 }
 
@@ -12,6 +13,14 @@ export function useWarehouseListQuery(params?: WarehouseListParams) {
   return useQuery({
     queryKey: warehouseKeys.list(params),
     queryFn: () => warehouseService.list(params),
+    placeholderData: (prev) => prev,
+  })
+}
+
+export function useWarehouseAllListQuery(params?: WarehouseAllListParams) {
+  return useQuery({
+    queryKey: warehouseKeys.allList(params),
+    queryFn: () => warehouseService.allList(params),
     placeholderData: (prev) => prev,
   })
 }
