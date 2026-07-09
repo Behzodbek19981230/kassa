@@ -15,6 +15,7 @@ import SkladTypePage from '@/pages/system/SkladTypePage';
 import WarehousePage from '@/pages/WarehousePage';
 import WarehouseFormPage from '@/pages/WarehousePage/WarehouseFormPage';
 import WarehouseProductsPage from '@/pages/WarehouseProductsPage';
+import PlaceOrderPage from '@/pages/PlaceOrderPage';
 import ExpensePage from '@/pages/system/ExpensePage';
 import AboutPage from '@/pages/system/AboutPage';
 import ClientPage from '@/pages/settings/ClientPage';
@@ -30,6 +31,7 @@ export default function App() {
 					<Route index element={<Dashboard />} />
 
 					<Route path='warehouse-products' element={<WarehouseProductsPage />} />
+					<Route path='place-order' element={<PlaceOrderPage />} />
 
 					{/* System management */}
 					<Route path='system/product-categories' element={<ProductCategoriesPage />} />

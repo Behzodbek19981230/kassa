@@ -129,4 +129,6 @@ export interface WarehouseAllListBrandGroup {
 
 export interface WarehouseAllListParams {
   company?: number
+  brand?: number
+  product_category?: number
 }

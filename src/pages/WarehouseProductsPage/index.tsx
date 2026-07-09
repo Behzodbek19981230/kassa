@@ -27,20 +27,19 @@ export default function WarehouseProductsPage() {
 
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseAllListQuery({
 		company: companyId ?? undefined,
+		brand: brandFilter ? Number(brandFilter) : undefined,
+		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
 	const groups = data ?? [];
 
 	const brandGroups = useMemo(() => {
 		return groups
-			.filter((g) => !brandFilter || String(g.brand.id) === brandFilter)
 			.map((g) => ({
 				brand: g.brand,
-				items: g.product_categories
-					.filter((pc) => !categoryFilter || String(pc.product_category.id) === categoryFilter)
-					.flatMap((pc) => pc.warehouses),
+				items: g.product_categories.flatMap((pc) => pc.warehouses),
 			}))
 			.filter((g) => g.items.length > 0);
-	}, [groups, brandFilter, categoryFilter]);
+	}, [groups]);
 
 	const totalCount = brandGroups.reduce((sum, g) => sum + g.items.reduce((s, w) => s + w.count, 0), 0);
 	const totalSum = brandGroups.reduce((sum, g) => sum + g.items.reduce((s, w) => s + w.price * w.count, 0), 0);
