@@ -7,6 +7,7 @@ import { useBrandSizeListQuery } from '@/services/brand-size/brand-size.queries'
 import { useBrandSizeTypeListQuery } from '@/services/brand-size-type/brand-size-type.queries';
 import { useProductCategoryListQuery } from '@/services/product-category/product-category.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
+import { generateId } from '@/lib/utils';
 
 export interface WarehouseRowValue {
 	key: number | string;
@@ -19,7 +20,7 @@ export interface WarehouseRowValue {
 }
 
 export const emptyWarehouseRow = (): WarehouseRowValue => ({
-	key: crypto.randomUUID(),
+	key: generateId(),
 	brand: '',
 	product_category: '',
 	brandSize: '',

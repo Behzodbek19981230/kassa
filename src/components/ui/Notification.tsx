@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { FaTimes } from 'react-icons/fa'
-import { cn } from '@/lib/utils'
+import { cn, generateId } from '@/lib/utils'
 
 export type NotificationPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
 
@@ -168,7 +168,7 @@ export function NotificationProvider({
       let createdId: string | null = null
       setItems((prev) => {
         if (prev.length >= maxVisible) return prev
-        const id = crypto.randomUUID()
+        const id = generateId()
         createdId = id
         return [...prev, { ...options, id }]
       })

@@ -3,6 +3,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, DatePicker, Input, PageHeader, Panel, useNotification } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { generateId } from '@/lib/utils';
 import WarehouseProductRow, {
 	emptyWarehouseRow,
 	type WarehouseRowValue,
@@ -44,7 +45,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 			setComment(w.comment ?? '');
 			setRows([
 				{
-					key: crypto.randomUUID(),
+					key: generateId(),
 					brand: String(w.brand),
 					product_category: String(w.product_category),
 					brandSize: '',
