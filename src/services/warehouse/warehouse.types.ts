@@ -102,6 +102,7 @@ export interface WarehouseAllListItem {
   product_category_name: string
   type_id: number | null
   type_name: string | null
+  image: string | null
 }
 
 export interface WarehouseAllListCategoryGroup {

@@ -19,11 +19,15 @@ import { formatNumber } from '@/lib/number';
 import { brandService } from '@/services/brand/brand.service';
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useWarehouseAllListQuery } from '@/services/warehouse/warehouse.queries';
+import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
+import WarehouseProductImagesModal from '@/pages/WarehouseProductsPage/components/WarehouseProductImagesModal';
+import WarehouseProductThumbnail from '@/pages/WarehouseProductsPage/components/WarehouseProductThumbnail';
 
 export default function WarehouseProductsPage() {
 	const { companyId } = useCurrentCompany();
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
+	const [imagesItem, setImagesItem] = useState<WarehouseAllListItem | null>(null);
 
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseAllListQuery({
 		company: companyId ?? undefined,
@@ -75,7 +79,7 @@ export default function WarehouseProductsPage() {
 		const { Workbook } = await import('exceljs');
 		const workbook = new Workbook();
 		const worksheet = workbook.addWorksheet('Ombor mahsulotlari');
-		worksheet.addRow(['#', 'Model', 'Nomi', "O'lchami", 'Tip', 'Soni', 'Narxi ($)', 'Jami narxi ($)']);
+		worksheet.addRow(['#', 'Model', 'Nomi', "O'lchami", 'Tip', 'Sklad', 'Soni', 'Narxi ($)', 'Jami narxi ($)']);
 
 		let index = 0;
 		brandGroups.forEach((group) => {
@@ -88,6 +92,7 @@ export default function WarehouseProductsPage() {
 					item.product_category_name,
 					item.size,
 					item.type_name ?? '',
+					item.type_sklad_name ?? '',
 					item.count,
 					item.price,
 					item.price * item.count,
@@ -95,9 +100,9 @@ export default function WarehouseProductsPage() {
 			});
 			const groupCount = group.items.reduce((s, w) => s + w.count, 0);
 			const groupSum = group.items.reduce((s, w) => s + w.price * w.count, 0);
-			worksheet.addRow(['', '', '', '', 'Jami:', groupCount, '', groupSum]);
+			worksheet.addRow(['', '', '', '', '', 'Jami:', groupCount, '', groupSum]);
 		});
-		worksheet.addRow(['', '', '', '', 'Jami:', totalCount, '', totalSum]);
+		worksheet.addRow(['', '', '', '', '', 'Jami:', totalCount, '', totalSum]);
 
 		const buffer = await workbook.xlsx.writeBuffer();
 		const blob = new Blob([buffer], {
@@ -179,7 +184,9 @@ export default function WarehouseProductsPage() {
 					<Table>
 						<TableHeader>
 							<TableRow>
+								<TableHead className='bg-ca-theme text-white'>Rasm</TableHead>
 								<TableHead className='bg-ca-theme text-white'>#</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Sklad</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Model</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
 								<TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>
@@ -192,21 +199,21 @@ export default function WarehouseProductsPage() {
 						<TableBody>
 							{(isLoading || isFetching) && (
 								<TableRow>
-									<TableCell colSpan={8} className='text-center'>
+									<TableCell colSpan={10} className='text-center'>
 										Yuklanmoqda...
 									</TableCell>
 								</TableRow>
 							)}
 							{!isLoading && isError && (
 								<TableRow>
-									<TableCell colSpan={8} className='text-center text-ca-red'>
+									<TableCell colSpan={10} className='text-center text-ca-red'>
 										<FaExclamationTriangle className='mr-1.5 inline' /> Xatolik yuz berdi
 									</TableCell>
 								</TableRow>
 							)}
 							{!isLoading && !isFetching && !isError && brandGroups.length === 0 && (
 								<TableRow>
-									<TableCell colSpan={8} className='text-center'>
+									<TableCell colSpan={10} className='text-center'>
 										Ma'lumot topilmadi
 									</TableCell>
 								</TableRow>
@@ -219,7 +226,7 @@ export default function WarehouseProductsPage() {
 									return (
 										<Fragment key={group.brand.id}>
 											<TableRow>
-												<TableCell colSpan={8} className='bg-cyan-100 font-bold text-ca-red'>
+												<TableCell colSpan={10} className='bg-cyan-100 font-bold text-ca-red'>
 													{group.brand.name}
 												</TableCell>
 											</TableRow>
@@ -227,11 +234,19 @@ export default function WarehouseProductsPage() {
 												rowIndex += 1;
 												return (
 													<TableRow key={item.id} className='bg-red-50'>
+														<TableCell>
+															<WarehouseProductThumbnail
+																item={item}
+																onClick={() => setImagesItem(item)}
+															/>
+														</TableCell>
 														<TableCell>{rowIndex}</TableCell>
+														<TableCell>{item.type_sklad_name ?? ''}</TableCell>
 														<TableCell>{group.brand.name}</TableCell>
 														<TableCell>{item.product_category_name}</TableCell>
 														<TableCell>{formatNumber(item.size)}</TableCell>
 														<TableCell>{item.type_name ?? ''}</TableCell>
+
 														<TableCell>{formatNumber(item.count)}</TableCell>
 														<TableCell className='font-semibold text-ca-green'>
 															{formatNumber(item.price, 2)} $
@@ -247,7 +262,9 @@ export default function WarehouseProductsPage() {
 												<TableCell />
 												<TableCell />
 												<TableCell />
+												<TableCell />
 												<TableCell className='font-semibold'>Jami:</TableCell>
+												<TableCell />
 												<TableCell className='font-semibold'>
 													{formatNumber(groupCount)}
 												</TableCell>
@@ -265,7 +282,9 @@ export default function WarehouseProductsPage() {
 									<TableCell className='bg-ca-heading text-white' />
 									<TableCell className='bg-ca-heading text-white' />
 									<TableCell className='bg-ca-heading text-white' />
+									<TableCell className='bg-ca-heading text-white' />
 									<TableCell className='bg-ca-heading font-semibold text-white'>Jami:</TableCell>
+									<TableCell className='bg-ca-heading text-white' />
 									<TableCell className='bg-ca-heading font-semibold text-white'>
 										{formatNumber(totalCount)}
 									</TableCell>
@@ -279,6 +298,14 @@ export default function WarehouseProductsPage() {
 					</Table>
 				</div>
 			</Panel>
+
+			{imagesItem && (
+				<WarehouseProductImagesModal
+					open={Boolean(imagesItem)}
+					setOpen={(open) => !open && setImagesItem(null)}
+					item={imagesItem}
+				/>
+			)}
 		</>
 	);
 }
