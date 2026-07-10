@@ -1,6 +1,10 @@
 import { apiClient } from '@/services/api/client';
 import type { PaginatedResponse } from '@/services/api/types';
 import type {
+	ClearImportCartPayload,
+	ClearImportCartResponse,
+	ConfirmImportPayload,
+	ConfirmImportResponse,
 	ImportCartDraftItem,
 	ImportCartDraftListParams,
 	ImportCartDraftPayload,
@@ -23,5 +27,18 @@ export const importCartDraftService = {
 	},
 	remove: async (id: number) => {
 		await apiClient.delete(`/import-cart-draft/${id}/`);
+	},
+	clear: async (payload: ClearImportCartPayload) => {
+		const { data } = await apiClient.delete<ClearImportCartResponse>('/import-cart-draft/clear/', {
+			data: payload,
+		});
+		return data;
+	},
+	confirmImport: async (payload: ConfirmImportPayload) => {
+		const { data } = await apiClient.post<ConfirmImportResponse>(
+			'/import-cart-draft/confirm-import/',
+			payload,
+		);
+		return data;
 	},
 };

@@ -22,7 +22,9 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useCreateImportCartDraftMutation } from '@/services/import-cart-draft/import-cart-draft.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
@@ -40,12 +42,22 @@ interface AddToImportCartModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	variant: ImportProductVariant;
+	companyId: number;
 	consignorId: number;
 }
 
-export default function AddToImportCartModal({ open, setOpen, variant, consignorId }: AddToImportCartModalProps) {
+export default function AddToImportCartModal({
+	open,
+	setOpen,
+	variant,
+	companyId,
+	consignorId,
+}: AddToImportCartModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
+
+	const { data: usdRate } = useCurrencyRateQuery('USD');
+	const rate = usdRate?.rate ?? 0;
 
 	const locationOptions = useMemo(() => {
 		const seen = new Map<string, { value: string; label: string; row: WarehouseAllListItem }>();
@@ -72,19 +84,19 @@ export default function AddToImportCartModal({ open, setOpen, variant, consignor
 						.string()
 						.min(1, 'Sonini kiriting')
 						.refine((v) => Number(v) > 0, "Soni 0 dan katta bo'lishi kerak"),
-					price: z.string().min(1, 'Mahsulot narxini kiriting.'),
+					priceSom: z.string().optional(),
+					priceDollar: z.string().optional(),
 				})
 				.superRefine((values, ctx) => {
-					const available = stockByLocation.get(values.joy);
-					if (available !== undefined && Number(values.count) > available) {
+					if (!values.priceDollar || Number(values.priceDollar) <= 0) {
 						ctx.addIssue({
 							code: z.ZodIssueCode.custom,
-							path: ['count'],
-							message: `Omborda faqat ${formatNumber(available)} ta mavjud`,
+							path: ['priceDollar'],
+							message: 'Narxni kiriting',
 						});
 					}
 				}),
-		[stockByLocation],
+		[],
 	);
 
 	type AddToCartFormValues = z.infer<typeof addToCartSchema>;
@@ -93,21 +105,35 @@ export default function AddToImportCartModal({ open, setOpen, variant, consignor
 		control,
 		handleSubmit,
 		watch,
+		setValue,
 		formState: { errors },
 	} = useForm<AddToCartFormValues>({
 		resolver: zodResolver(addToCartSchema),
 		defaultValues: {
 			joy: locationOptions[0]?.value ?? '',
 			count: '0',
-			price: '',
+			priceSom: '',
+			priceDollar: '',
 		},
 	});
 
 	const joyValue = watch('joy');
 	const countValue = watch('count');
-	const priceValue = watch('price');
+	const priceDollarValue = watch('priceDollar');
 	const availableStock = stockByLocation.get(joyValue);
-	const lineTotal = (Number(countValue) || 0) * (Number(priceValue) || 0);
+	const lineTotal = (Number(countValue) || 0) * (Number(priceDollarValue) || 0);
+
+	function handlePriceSomChange(value: string) {
+		setValue('priceSom', value);
+		setValue('priceDollar', rate > 0 && value ? (Number(value) / rate).toFixed(2) : '', {
+			shouldValidate: true,
+		});
+	}
+
+	function handlePriceDollarChange(value: string) {
+		setValue('priceDollar', value, { shouldValidate: true });
+		setValue('priceSom', rate > 0 && value ? (Number(value) * rate).toFixed(0) : '');
+	}
 
 	const createMutation = useCreateImportCartDraftMutation();
 
@@ -121,15 +147,17 @@ export default function AddToImportCartModal({ open, setOpen, variant, consignor
 
 		try {
 			await createMutation.mutateAsync({
+				company: companyId,
 				consignor: consignorId,
 				warehouse: location.row.id,
 				count: Number(values.count),
-				price: values.price,
+				price_dollar: Number(values.priceDollar).toFixed(2),
+				price_som: values.priceSom || '0',
 			});
 			notify({ title: "Mahsulot import savatiga qo'shildi" });
 			setOpen(false);
-		} catch {
-			setFormError("Qo'shishda xatolik yuz berdi");
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, "Qo'shishda xatolik yuz berdi"));
 		}
 	});
 
@@ -147,22 +175,26 @@ export default function AddToImportCartModal({ open, setOpen, variant, consignor
 							</div>
 						)}
 
-						<div className='mb-4 grid grid-cols-2 gap-x-4 gap-y-3 rounded-[3px] bg-ca-silver p-3'>
-							<div>
-								<div className='text-[11px] text-ca-text'>Model</div>
-								<div className='truncate font-bold text-ca-red'>{variant.brandName}</div>
+						<div className='mb-4 flex flex-col gap-2 rounded-[3px] bg-ca-silver p-3 text-xs'>
+							<div className='flex items-center justify-between'>
+								<span className='font-semibold text-ca-heading'>Dollar kursi:</span>
+								<span className='font-bold text-ca-heading'>{formatNumber(rate)}</span>
 							</div>
-							<div>
-								<div className='text-[11px] text-ca-text'>Nomi</div>
-								<div className='truncate font-bold text-ca-red'>{variant.categoryName}</div>
+							<div className='flex items-center justify-between'>
+								<span className='font-semibold text-ca-heading'>Model:</span>
+								<span className='truncate font-bold text-ca-red'>{variant.brandName}</span>
 							</div>
-							<div>
-								<div className='text-[11px] text-ca-text'>O'lchami</div>
-								<div className='font-bold text-ca-red'>{formatNumber(variant.size)}</div>
+							<div className='flex items-center justify-between'>
+								<span className='font-semibold text-ca-heading'>Nomi:</span>
+								<span className='truncate font-bold text-ca-red'>{variant.categoryName}</span>
 							</div>
-							<div>
-								<div className='text-[11px] text-ca-text'>Tip</div>
-								<div className='font-bold text-ca-red'>{variant.typeName ?? '-'}</div>
+							<div className='flex items-center justify-between'>
+								<span className='font-semibold text-ca-heading'>O'lchami:</span>
+								<span className='font-bold text-ca-red'>{formatNumber(variant.size)}</span>
+							</div>
+							<div className='flex items-center justify-between'>
+								<span className='font-semibold text-ca-heading'>Tip:</span>
+								<span className='font-bold text-ca-red'>{variant.typeName ?? '-'}</span>
 							</div>
 						</div>
 
@@ -198,52 +230,57 @@ export default function AddToImportCartModal({ open, setOpen, variant, consignor
 							)}
 						</FormField>
 
-						<div className='mb-3 grid grid-cols-3 gap-1'>
-							<FormField
-								label='Soni'
-								error={errors.count?.message}
-								required
-								horizontal={false}
-								className='mb-0 grid col-span-2'
-							>
-								<Controller
-									name='count'
-									control={control}
-									render={({ field }) => (
-										<InputGroup append={variant.typeName ?? undefined}>
-											<Input
-												type='number'
-												inputMode='numeric'
-												min={0}
-												max={availableStock}
-												step='1'
-												value={field.value}
-												onChange={(e) => field.onChange(e.target.value)}
-												onBlur={field.onBlur}
-											/>
-										</InputGroup>
-									)}
-								/>
-							</FormField>
+						<FormField label='Soni' error={errors.count?.message} required horizontal={false} className='mb-3'>
+							<Controller
+								name='count'
+								control={control}
+								render={({ field }) => (
+									<InputGroup append={variant.typeName ?? undefined}>
+										<Input
+											type='number'
+											inputMode='numeric'
+											min={0}
+											step='1'
+											value={field.value}
+											onChange={(e) => field.onChange(e.target.value)}
+											onBlur={field.onBlur}
+										/>
+									</InputGroup>
+								)}
+							/>
+						</FormField>
 
-							<FormField
-								label='Narxi ($)'
-								error={errors.price?.message}
-								required
-								horizontal={false}
-								className='mb-0 grid col-span-1'
-							>
-								<Controller
-									name='price'
-									control={control}
-									render={({ field }) => (
-										<InputGroup prepend='$'>
-											<PriceInput value={field.value} onChange={field.onChange} />
-										</InputGroup>
-									)}
-								/>
-							</FormField>
-						</div>
+						<FormField label="Narxi so'm" horizontal={false} className='mb-3'>
+							<Controller
+								name='priceSom'
+								control={control}
+								render={({ field }) => (
+									<PriceInput value={field.value} onChange={handlePriceSomChange} onBlur={field.onBlur} />
+								)}
+							/>
+						</FormField>
+
+						<FormField
+							label='Narxi ($)'
+							error={errors.priceDollar?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
+							<Controller
+								name='priceDollar'
+								control={control}
+								render={({ field }) => (
+									<InputGroup prepend='$'>
+										<PriceInput
+											value={field.value}
+											onChange={handlePriceDollarChange}
+											onBlur={field.onBlur}
+										/>
+									</InputGroup>
+								)}
+							/>
+						</FormField>
 
 						{lineTotal > 0 && (
 							<div className='flex items-center justify-between rounded-[3px] border border-ca-border bg-[#f8fafc] px-3 py-2 text-xs'>

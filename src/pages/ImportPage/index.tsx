@@ -14,7 +14,6 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-	useNotification,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
@@ -34,6 +33,8 @@ import ConsignorFormModal from '@/pages/system/ConsignorPage/components/Consigno
 import AddToImportCartModal, {
 	type ImportProductVariant,
 } from '@/pages/ImportPage/components/AddToImportCartModal';
+import ClearImportCartConfirmModal from '@/pages/ImportPage/components/ClearImportCartConfirmModal';
+import ConfirmImportModal from '@/pages/ImportPage/components/ConfirmImportModal';
 
 const DEFAULT_LOCATION_LABEL = 'Dokon';
 
@@ -80,12 +81,13 @@ function buildBrandVariants(groups: WarehouseAllListBrandGroup[]): BrandVariants
 
 export default function ImportPage() {
 	const { companyId } = useCurrentCompany();
-	const { notify } = useNotification();
 
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
 	const [consignorId, setConsignorId] = useState('');
 	const [selectedVariant, setSelectedVariant] = useState<ImportProductVariant | null>(null);
+	const [confirmImportOpen, setConfirmImportOpen] = useState(false);
+	const [clearCartOpen, setClearCartOpen] = useState(false);
 
 	// Unfiltered catalog, kept separate so cart rows added before a filter change can
 	// still resolve their product info even once they fall outside the active filter.
@@ -157,7 +159,7 @@ export default function ImportPage() {
 
 	const cartTotalCount = cartItems.reduce((sum, item) => sum + item.count, 0);
 	const cartTotalSum = cartItems.reduce(
-		(sum, item) => sum + (Number(item.total_price) || item.count * Number(item.price)),
+		(sum, item) => sum + (Number(item.total_price_dollar) || item.count * Number(item.price_dollar)),
 		0,
 	);
 
@@ -165,8 +167,8 @@ export default function ImportPage() {
 		deleteCartMutation.mutate(id);
 	}
 
-	function handleImport() {
-		notify({ title: 'Tez orada', text: 'Import qilish funksiyasi hali ulanmagan.' });
+	function handleImportConfirmed() {
+		setConsignorId('');
 	}
 
 	return (
@@ -377,7 +379,7 @@ export default function ImportPage() {
 										cartItems.map((item, index) => {
 											const warehouse = warehouseById.get(item.warehouse);
 											const totalPrice =
-												Number(item.total_price) || item.count * Number(item.price);
+												Number(item.total_price_dollar) || item.count * Number(item.price_dollar);
 											return (
 												<TableRow key={item.id} className='bg-red-50'>
 													<TableCell>{index + 1}</TableCell>
@@ -405,7 +407,7 @@ export default function ImportPage() {
 														{warehouse?.type_name ?? item.warehouse_detail?.type_name ?? ''}
 													</TableCell>
 													<TableCell className='font-semibold text-ca-green'>
-														{formatNumber(item.price, 2)} $
+														{formatNumber(item.price_dollar, 2)} $
 													</TableCell>
 													<TableCell>{formatNumber(item.count)}</TableCell>
 													<TableCell className='font-semibold'>
@@ -440,25 +442,59 @@ export default function ImportPage() {
 							</Table>
 						</div>
 
-						<Button
-							type='button'
-							variant='danger'
-							className='mt-4 w-full'
-							size='lg'
-							disabled={!consignorId || cartItems.length === 0}
-							onClick={handleImport}
-						>
-							Import qilish
-						</Button>
+						<div className='mt-4 flex gap-2'>
+							<Button
+								type='button'
+								variant='white'
+								className='flex-1'
+								size='lg'
+								disabled={!consignorId || cartItems.length === 0}
+								onClick={() => setClearCartOpen(true)}
+							>
+								Bekor qilish
+							</Button>
+							<Button
+								type='button'
+								variant='danger'
+								className='flex-1'
+								size='lg'
+								disabled={!consignorId || cartItems.length === 0}
+								onClick={() => setConfirmImportOpen(true)}
+							>
+								Import qilish
+							</Button>
+						</div>
 					</Panel>
 				</div>
 			</div>
 
-			{selectedVariant && (
+			{selectedVariant && companyId && (
 				<AddToImportCartModal
 					open={Boolean(selectedVariant)}
 					setOpen={(open) => !open && setSelectedVariant(null)}
 					variant={selectedVariant}
+					companyId={companyId}
+					consignorId={Number(consignorId)}
+				/>
+			)}
+
+			{confirmImportOpen && companyId && consignorId && (
+				<ConfirmImportModal
+					open={confirmImportOpen}
+					setOpen={setConfirmImportOpen}
+					companyId={companyId}
+					consignorId={Number(consignorId)}
+					cartCount={cartTotalCount}
+					allImportDollar={cartTotalSum}
+					onConfirmed={handleImportConfirmed}
+				/>
+			)}
+
+			{clearCartOpen && companyId && consignorId && (
+				<ClearImportCartConfirmModal
+					open={clearCartOpen}
+					setOpen={setClearCartOpen}
+					companyId={companyId}
 					consignorId={Number(consignorId)}
 				/>
 			)}

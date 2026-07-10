@@ -15,20 +15,25 @@ export interface ImportCartDraftWarehouseDetail {
 
 export interface ImportCartDraftItem {
 	id: number;
+	company: number;
 	consignor: number;
 	warehouse: number;
 	count: number;
-	price: string;
-	total_price: string;
+	price_dollar: string;
+	price_som: string;
+	total_price_dollar: string;
+	total_price_som: string;
 	is_active: boolean;
 	warehouse_detail?: ImportCartDraftWarehouseDetail | null;
 }
 
 export interface ImportCartDraftPayload {
+	company: number;
 	consignor: number;
 	warehouse: number;
 	count: number;
-	price: string | number;
+	price_dollar: string | number;
+	price_som: string | number;
 	is_active?: boolean;
 }
 
@@ -36,3 +41,27 @@ export interface ImportCartDraftListParams extends ListParams {
 	consignor?: number;
 	is_active?: boolean;
 }
+
+export interface ClearImportCartPayload {
+	company: number;
+	consignor: number;
+}
+
+export interface ClearImportCartResponse {
+	deleted_count: number;
+}
+
+export interface ConfirmImportPayload {
+	company: number;
+	consignor: number;
+	date: string;
+	exchange_rate: string | number;
+	given_sum_dollar: string | number;
+	sum_dollar: string | number;
+	sum_som: string | number;
+	discount_amount: string | number;
+	car_number?: string;
+	comment?: string;
+}
+
+export type ConfirmImportResponse = Record<string, unknown>;

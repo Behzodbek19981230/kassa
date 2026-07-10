@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { importCartDraftService } from '@/services/import-cart-draft/import-cart-draft.service';
 import type {
+	ClearImportCartPayload,
+	ConfirmImportPayload,
 	ImportCartDraftListParams,
 	ImportCartDraftPayload,
 } from '@/services/import-cart-draft/import-cart-draft.types';
@@ -40,5 +42,24 @@ export function useDeleteImportCartDraftMutation() {
 	return useMutation({
 		mutationFn: (id: number) => importCartDraftService.remove(id),
 		onSuccess: () => queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all }),
+	});
+}
+
+export function useClearImportCartMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (payload: ClearImportCartPayload) => importCartDraftService.clear(payload),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all }),
+	});
+}
+
+export function useConfirmImportMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (payload: ConfirmImportPayload) => importCartDraftService.confirmImport(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all });
+			queryClient.invalidateQueries({ queryKey: ['consignors'] });
+		},
 	});
 }

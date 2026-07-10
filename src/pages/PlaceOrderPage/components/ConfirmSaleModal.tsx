@@ -102,7 +102,8 @@ export default function ConfirmSaleModal({
 		(rate > 0 ? (Number(sumSom) || 0) / rate : 0) +
 		(Number(sumCart) || 0) +
 		(Number(sumTransfers) || 0);
-	const remaining = allSummDollar - (Number(discountAmount) || 0) - paidDollar;
+	const coveredDollar = paidDollar + (Number(discountAmount) || 0);
+	const remaining = allSummDollar - coveredDollar;
 
 	const confirmSaleMutation = useConfirmSaleMutation();
 
@@ -198,7 +199,7 @@ export default function ConfirmSaleModal({
 
 						<div className='mb-3 grid grid-cols-2 gap-3'>
 							<FormField label='Jami summa ($)' horizontal={false} className='mb-0'>
-								<PriceInput value={paidDollar.toFixed(2)} disabled />
+								<PriceInput value={coveredDollar.toFixed(2)} disabled />
 							</FormField>
 							<FormField label='Chegirma ($)' horizontal={false} className='mb-0'>
 								<Controller
