@@ -35,7 +35,7 @@ export const orderCartService = {
 		return data;
 	},
 	confirmSale: async (payload: ConfirmSalePayload) => {
-		const { data } = await apiClient.post<ConfirmSaleResponse>('/order-account-history/confirm-sale/', payload);
+		const { data } = await apiClient.post<ConfirmSaleResponse>('/order-account-cart-draft/confirm-sale/', payload);
 		return data;
 	},
 };
