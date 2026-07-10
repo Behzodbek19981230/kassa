@@ -18,6 +18,7 @@ import WarehouseProductsPage from '@/pages/WarehouseProductsPage';
 import PlaceOrderPage from '@/pages/PlaceOrderPage';
 import ImportPage from '@/pages/ImportPage';
 import CustomerOrderHistoryPage from '@/pages/CustomerOrderHistoryPage';
+import WarehouseAccountPage from '@/pages/WarehouseAccountPage';
 import ExpensePage from '@/pages/system/ExpensePage';
 import AboutPage from '@/pages/system/AboutPage';
 import ClientPage from '@/pages/settings/ClientPage';
@@ -36,6 +37,7 @@ export default function App() {
 					<Route path='place-order' element={<PlaceOrderPage />} />
 					<Route path='import' element={<ImportPage />} />
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
+					<Route path='warehouse-report' element={<WarehouseAccountPage />} />
 
 					{/* System management */}
 					<Route path='system/product-categories' element={<ProductCategoriesPage />} />
