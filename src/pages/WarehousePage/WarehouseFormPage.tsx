@@ -83,7 +83,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 
 		const errors: Record<number, string> = {};
 		rows.forEach((row, i) => {
-			if (!row.brand || !row.product_category || !row.brandSize || !row.price) {
+			if (!row.brand || !row.product_category || !row.brandSize || !row.price || !row.type_sklad) {
 				errors[i] = "Barcha maydonlar to'ldirilishi shart";
 			}
 		});
@@ -129,7 +129,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 						brand: Number(row.brand),
 						product_category: Number(row.product_category),
 						type: row.type,
-					type_sklad: row.type_sklad ? Number(row.type_sklad) : null,
+						type_sklad: row.type_sklad ? Number(row.type_sklad) : null,
 						all_sum_dollar: 0,
 						all_discount_amount: 0,
 						all_my_total_debt: 0,

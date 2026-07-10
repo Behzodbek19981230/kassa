@@ -128,6 +128,18 @@ export default function WarehouseProductRow({
 
 	return (
 		<div className='mb-3 flex flex-wrap items-start gap-3'>
+			<div className='min-w-37.5 flex-1'>
+				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sklad</label>
+				<Combobox
+					value={value.type_sklad}
+					onChange={(type_sklad) => onChange({ ...value, type_sklad })}
+					loadOptions={loadSkladTypeOptions}
+					selectedLabel={skladTypeNameById.get(Number(value.type_sklad))}
+					placeholder='Tanlang...'
+					searchPlaceholder='Qidirish...'
+					clearable
+				/>
+			</div>
 			<div className='min-w-45 flex-1'>
 				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Model</label>
 				<Combobox
@@ -174,18 +186,7 @@ export default function WarehouseProductRow({
 					disabled
 				/>
 			</div>
-			<div className='min-w-37.5 flex-1'>
-				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sklad</label>
-				<Combobox
-					value={value.type_sklad}
-					onChange={(type_sklad) => onChange({ ...value, type_sklad })}
-					loadOptions={loadSkladTypeOptions}
-					selectedLabel={skladTypeNameById.get(Number(value.type_sklad))}
-					placeholder='Tanlang...'
-					searchPlaceholder='Qidirish...'
-					clearable
-				/>
-			</div>
+
 			<div className='min-w-37.5 flex-1'>
 				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Narxi</label>
 				<PriceInput value={value.price} onChange={(price) => onChange({ ...value, price })} />

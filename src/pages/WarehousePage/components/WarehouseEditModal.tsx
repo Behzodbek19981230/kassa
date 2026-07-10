@@ -48,6 +48,7 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 	const [comment, setComment] = useState(item.comment ?? '');
 	const [statusCount, setStatusCount] = useState(item.status_count);
 	const [commentError, setCommentError] = useState('');
+	const [skladError, setSkladError] = useState('');
 	const [formError, setFormError] = useState('');
 
 	const { data: brandData } = useBrandListQuery({ limit: 100 });
@@ -105,7 +106,12 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 
 	const loadCategoryOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		if (!brandId) return { options: [], hasMore: false };
-		const result = await productCategoryService.list({ brand: brandId, search: search || undefined, page, limit: 20 });
+		const result = await productCategoryService.list({
+			brand: brandId,
+			search: search || undefined,
+			page,
+			limit: 20,
+		});
 		return {
 			options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
@@ -145,6 +151,12 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 	const handleSubmit = async () => {
 		setFormError('');
 		setCommentError('');
+		setSkladError('');
+
+		if (!typeSklad) {
+			setSkladError('Sklad tanlanishi shart');
+			return;
+		}
 
 		if (!comment.trim()) {
 			setCommentError('Izoh kiritilishi shart');
@@ -194,6 +206,20 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 							{formError}
 						</div>
 					)}
+					<FormField label='Sklad' error={skladError} required horizontal={false}>
+						<Combobox
+							value={typeSklad}
+							onChange={(value) => {
+								setTypeSklad(value);
+								if (value) setSkladError('');
+							}}
+							loadOptions={loadSkladTypeOptions}
+							selectedLabel={skladTypeNameById.get(Number(typeSklad))}
+							placeholder='Tanlang...'
+							searchPlaceholder='Qidirish...'
+							clearable
+						/>
+					</FormField>
 					<div className='grid grid-cols-1 gap-x-4 sm:grid-cols-2'>
 						<FormField label='Model' horizontal={false}>
 							<Combobox
@@ -238,17 +264,7 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 								disabled
 							/>
 						</FormField>
-						<FormField label='Sklad' horizontal={false}>
-							<Combobox
-								value={typeSklad}
-								onChange={setTypeSklad}
-								loadOptions={loadSkladTypeOptions}
-								selectedLabel={skladTypeNameById.get(Number(typeSklad))}
-								placeholder='Tanlang...'
-								searchPlaceholder='Qidirish...'
-								clearable
-							/>
-						</FormField>
+
 						<FormField label='Soni' horizontal={false}>
 							<Input
 								type='number'

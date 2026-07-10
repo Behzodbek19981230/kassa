@@ -76,10 +76,8 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 						.string()
 						.min(1, 'Sonini kiriting')
 						.refine((v) => Number(v) > 0, "Soni 0 dan katta bo'lishi kerak"),
-					priceSom: z
-						.string()
-						.min(1, "Narxni so'mda kiriting.")
-						.refine((v) => Number(v) > 0, "Narxi 0 dan katta bo'lishi kerak"),
+					priceSom: z.string().optional(),
+					priceDollar: z.string().optional(),
 				})
 				.superRefine((values, ctx) => {
 					const available = stockByLocation.get(values.joy);
@@ -88,6 +86,13 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 							code: z.ZodIssueCode.custom,
 							path: ['count'],
 							message: `Omborda faqat ${formatNumber(available)} ta mavjud`,
+						});
+					}
+					if (!values.priceDollar || Number(values.priceDollar) <= 0) {
+						ctx.addIssue({
+							code: z.ZodIssueCode.custom,
+							path: ['priceDollar'],
+							message: 'Narxni kiriting',
 						});
 					}
 				}),
@@ -100,6 +105,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 		control,
 		handleSubmit,
 		watch,
+		setValue,
 		formState: { errors },
 	} = useForm<AddToCartFormValues>({
 		resolver: zodResolver(addToCartSchema),
@@ -107,15 +113,27 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 			joy: locationOptions[0]?.value ?? '',
 			count: '0',
 			priceSom: '',
+			priceDollar: '',
 		},
 	});
 
 	const joyValue = watch('joy');
 	const countValue = watch('count');
-	const priceSomValue = watch('priceSom');
+	const priceDollarValue = watch('priceDollar');
 	const availableStock = stockByLocation.get(joyValue);
-	const priceDollar = rate > 0 ? (Number(priceSomValue) || 0) / rate : 0;
-	const lineTotal = (Number(countValue) || 0) * priceDollar;
+	const lineTotal = (Number(countValue) || 0) * (Number(priceDollarValue) || 0);
+
+	function handlePriceSomChange(value: string) {
+		setValue('priceSom', value);
+		setValue('priceDollar', rate > 0 && value ? (Number(value) / rate).toFixed(2) : '', {
+			shouldValidate: true,
+		});
+	}
+
+	function handlePriceDollarChange(value: string) {
+		setValue('priceDollar', value, { shouldValidate: true });
+		setValue('priceSom', rate > 0 && value ? (Number(value) * rate).toFixed(0) : '');
+	}
 
 	const createMutation = useCreateOrderCartMutation();
 
@@ -126,17 +144,13 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 			setFormError('Joy topilmadi');
 			return;
 		}
-		if (!rate) {
-			setFormError("Dollar kursi yuklanmoqda, birozdan so'ng qayta urinib ko'ring.");
-			return;
-		}
 
 		try {
 			await createMutation.mutateAsync({
 				client: clientId,
 				warehouse: location.row.id,
 				count: Number(values.count),
-				price: (Number(values.priceSom) / rate).toFixed(2),
+				price: Number(values.priceDollar).toFixed(2),
 			});
 			notify({ title: "Mahsulot buyurtmaga qo'shildi" });
 			setOpen(false);
@@ -235,24 +249,36 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 							/>
 						</FormField>
 
+						<FormField label="Narxi so'm" horizontal={false} className='mb-3'>
+							<Controller
+								name='priceSom'
+								control={control}
+								render={({ field }) => (
+									<PriceInput value={field.value} onChange={handlePriceSomChange} onBlur={field.onBlur} />
+								)}
+							/>
+						</FormField>
+
 						<FormField
-							label="Narxi so'm"
-							error={errors.priceSom?.message}
+							label='Narxi ($)'
+							error={errors.priceDollar?.message}
 							required
 							horizontal={false}
 							className='mb-3'
 						>
 							<Controller
-								name='priceSom'
+								name='priceDollar'
 								control={control}
-								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+								render={({ field }) => (
+									<InputGroup prepend='$'>
+										<PriceInput
+											value={field.value}
+											onChange={handlePriceDollarChange}
+											onBlur={field.onBlur}
+										/>
+									</InputGroup>
+								)}
 							/>
-						</FormField>
-
-						<FormField label='Narxi ($)' horizontal={false} className='mb-3'>
-							<InputGroup prepend='$'>
-								<PriceInput value={priceDollar ? priceDollar.toFixed(2) : ''} disabled />
-							</InputGroup>
 						</FormField>
 
 						{lineTotal > 0 && (
