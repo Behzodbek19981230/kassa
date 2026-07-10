@@ -118,6 +118,19 @@ export default function WarehousePage() {
 			enableColumnFilter: false,
 			cell: ({ row }) => pagination.pageIndex * pagination.pageSize + row.index + 1,
 		}),
+		columnHelper.accessor('type_sklad', {
+			header: 'Sklad',
+			cell: (info) => {
+				const value = info.getValue();
+				return value ? (skladTypeNameById.get(value) ?? value) : '';
+			},
+			meta: {
+				filterVariant: 'select',
+				filterLoadOptions: loadSkladTypeOptions,
+				filterSelectedLabel: (value) => skladTypeNameById.get(Number(value)),
+				filterPlaceholder: 'Barchasi',
+			},
+		}),
 		columnHelper.accessor('brand', {
 			header: 'Model',
 			cell: (info) => brandNameById.get(info.getValue()) ?? info.getValue(),
@@ -157,19 +170,7 @@ export default function WarehousePage() {
 				filterPlaceholder: 'Barchasi',
 			},
 		}),
-		columnHelper.accessor('type_sklad', {
-			header: 'Sklad',
-			cell: (info) => {
-				const value = info.getValue();
-				return value ? (skladTypeNameById.get(value) ?? value) : '';
-			},
-			meta: {
-				filterVariant: 'select',
-				filterLoadOptions: loadSkladTypeOptions,
-				filterSelectedLabel: (value) => skladTypeNameById.get(Number(value)),
-				filterPlaceholder: 'Barchasi',
-			},
-		}),
+
 		columnHelper.accessor('count', {
 			header: 'Soni',
 			size: 90,
@@ -268,10 +269,7 @@ export default function WarehousePage() {
 						>
 							Tekshirildi {onlyConfirmed && '✓'}
 						</Button>
-						<Link
-							to='/warehouse-prices/create'
-							className={buttonVariants({ variant: 'info', size: 'xs' })}
-						>
+						<Link to='/warehouse-prices/create' className={buttonVariants({ variant: 'info', size: 'xs' })}>
 							Qo'shish +
 						</Link>
 					</>
