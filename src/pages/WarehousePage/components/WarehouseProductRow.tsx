@@ -9,6 +9,7 @@ import { useProductCategoryListQuery } from '@/services/product-category/product
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import { skladTypeService } from '@/services/sklad-type/sklad-type.service';
+import { useWarehouseListQuery } from '@/services/warehouse/warehouse.queries';
 import { generateId } from '@/lib/utils';
 
 export interface WarehouseRowValue {
@@ -41,6 +42,9 @@ interface WarehouseProductRowProps {
 	onAdd?: () => void;
 	showRemove?: boolean;
 	onRemove?: () => void;
+	companyId?: number;
+	excludeId?: number;
+	onDuplicateChange?: (key: string | number, isDuplicate: boolean) => void;
 }
 
 export default function WarehouseProductRow({
@@ -51,6 +55,9 @@ export default function WarehouseProductRow({
 	onAdd,
 	showRemove,
 	onRemove,
+	companyId,
+	excludeId,
+	onDuplicateChange,
 }: WarehouseProductRowProps) {
 	const { data: brandData } = useBrandListQuery({ limit: 100 });
 	const brandNameById = new Map((brandData?.results ?? []).map((b) => [b.id, b.name]));
@@ -74,6 +81,28 @@ export default function WarehouseProductRow({
 
 	const { data: skladTypeData } = useSkladTypeListQuery({ limit: 100 });
 	const skladTypeNameById = new Map((skladTypeData?.results ?? []).map((s) => [s.id, s.name]));
+
+	const typeSkladId = value.type_sklad ? Number(value.type_sklad) : undefined;
+	const isVariantComplete = Boolean(companyId && brandId && categoryId && typeSkladId && value.brandSize);
+	const { data: duplicateData } = useWarehouseListQuery(
+		{
+			company: companyId,
+			brand: brandId,
+			product_category: categoryId,
+			type_sklad: typeSkladId,
+			type: value.type ?? undefined,
+			limit: 100,
+		},
+		isVariantComplete,
+	);
+	const duplicateItem = isVariantComplete
+		? duplicateData?.results.find((w) => Number(w.size) === value.size && w.id !== excludeId)
+		: undefined;
+
+	useEffect(() => {
+		onDuplicateChange?.(value.key, Boolean(duplicateItem));
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [duplicateItem, value.key]);
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
@@ -127,89 +156,92 @@ export default function WarehouseProductRow({
 	};
 
 	return (
-		<div className='mb-3 flex flex-wrap items-start gap-3'>
-			<div className='min-w-37.5 flex-1'>
-				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sklad</label>
-				<Combobox
-					value={value.type_sklad}
-					onChange={(type_sklad) => onChange({ ...value, type_sklad })}
-					loadOptions={loadSkladTypeOptions}
-					selectedLabel={skladTypeNameById.get(Number(value.type_sklad))}
-					placeholder='Tanlang...'
-					searchPlaceholder='Qidirish...'
-					clearable
-				/>
-			</div>
-			<div className='min-w-45 flex-1'>
-				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Model</label>
-				<Combobox
-					value={value.brand}
-					onChange={handleBrandChange}
-					loadOptions={loadBrandOptions}
-					selectedLabel={brandNameById.get(Number(value.brand))}
-					placeholder='Tanlang...'
-					searchPlaceholder='Model qidirish...'
-				/>
-			</div>
-			<div className='min-w-45 flex-1'>
-				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Nomi</label>
-				<Combobox
-					value={value.product_category}
-					onChange={handleCategoryChange}
-					loadOptions={loadCategoryOptions}
-					selectedLabel={categoryNameById.get(Number(value.product_category))}
-					placeholder='Tanlang...'
-					searchPlaceholder='Nomi qidirish...'
-					disabled={!value.brand}
-				/>
-			</div>
-			<div className='min-w-37.5 flex-1'>
-				<label className='mb-1 block text-xs font-semibold text-ca-heading'>O'lchami</label>
-				<Combobox
-					value={value.brandSize}
-					onChange={handleBrandSizeChange}
-					options={brandSizeOptions}
-					selectedLabel={selectedBrandSize?.size}
-					placeholder='Tanlang...'
-					searchPlaceholder='Qidirish...'
-					disabled={!value.product_category}
-				/>
-			</div>
-			<div className='min-w-37.5 flex-1'>
-				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Tip</label>
-				<Combobox
-					value={value.type ? String(value.type) : ''}
-					onChange={() => {}}
-					options={[]}
-					selectedLabel={value.type ? typeNameById.get(value.type) : undefined}
-					placeholder='Tanlang...'
-					disabled
-				/>
-			</div>
+		<div className='mb-3'>
+			<div className='flex flex-wrap items-start gap-3'>
+				<div className='min-w-37.5 flex-1'>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sklad</label>
+					<Combobox
+						value={value.type_sklad}
+						onChange={(type_sklad) => onChange({ ...value, type_sklad })}
+						loadOptions={loadSkladTypeOptions}
+						selectedLabel={skladTypeNameById.get(Number(value.type_sklad))}
+						placeholder='Tanlang...'
+						searchPlaceholder='Qidirish...'
+						clearable
+					/>
+				</div>
+				<div className='min-w-45 flex-1'>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>Model</label>
+					<Combobox
+						value={value.brand}
+						onChange={handleBrandChange}
+						loadOptions={loadBrandOptions}
+						selectedLabel={brandNameById.get(Number(value.brand))}
+						placeholder='Tanlang...'
+						searchPlaceholder='Model qidirish...'
+					/>
+				</div>
+				<div className='min-w-45 flex-1'>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>Nomi</label>
+					<Combobox
+						value={value.product_category}
+						onChange={handleCategoryChange}
+						loadOptions={loadCategoryOptions}
+						selectedLabel={categoryNameById.get(Number(value.product_category))}
+						placeholder='Tanlang...'
+						searchPlaceholder='Nomi qidirish...'
+						disabled={!value.brand}
+					/>
+				</div>
+				<div className='min-w-37.5 flex-1'>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>O'lchami</label>
+					<Combobox
+						value={value.brandSize}
+						onChange={handleBrandSizeChange}
+						options={brandSizeOptions}
+						selectedLabel={selectedBrandSize?.size}
+						placeholder='Tanlang...'
+						searchPlaceholder='Qidirish...'
+						disabled={!value.product_category}
+					/>
+				</div>
+				<div className='min-w-37.5 flex-1'>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>Tip</label>
+					<Combobox
+						value={value.type ? String(value.type) : ''}
+						onChange={() => {}}
+						options={[]}
+						selectedLabel={value.type ? typeNameById.get(value.type) : undefined}
+						placeholder='Tanlang...'
+						disabled
+					/>
+				</div>
 
-			<div className='min-w-37.5 flex-1'>
-				<label className='mb-1 block text-xs font-semibold text-ca-heading'>Narxi</label>
-				<PriceInput value={value.price} onChange={(price) => onChange({ ...value, price })} />
-				{error && <p className='mt-1 text-[11px] text-ca-red'>{error}</p>}
+				<div className='min-w-37.5 flex-1'>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>Narxi</label>
+					<PriceInput value={value.price} onChange={(price) => onChange({ ...value, price })} />
+					{error && <p className='mt-1 text-[11px] text-ca-red'>{error}</p>}
+				</div>
+				<div className='flex w-16 shrink-0 self-end justify-end gap-1'>
+					{showRemove && (
+						<Button
+							type='button'
+							variant='danger'
+							size='icon'
+							aria-label="Qatorni o'chirish"
+							onClick={onRemove}
+						>
+							<FaTrash />
+						</Button>
+					)}
+					{showAdd && (
+						<Button type='button' variant='success' size='icon' aria-label='Qator qo’shish' onClick={onAdd}>
+							<FaPlus />
+						</Button>
+					)}
+				</div>
 			</div>
-			<div className='flex w-16 shrink-0 self-end justify-end gap-1'>
-				{showRemove && (
-					<Button
-						type='button'
-						variant='danger'
-						size='icon'
-						aria-label="Qatorni o'chirish"
-						onClick={onRemove}
-					>
-						<FaTrash />
-					</Button>
-				)}
-				{showAdd && (
-					<Button type='button' variant='success' size='icon' aria-label='Qator qo’shish' onClick={onAdd}>
-						<FaPlus />
-					</Button>
-				)}
-			</div>
+			{duplicateItem && <p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar bazada mavjud</p>}
 		</div>
 	);
 }

@@ -9,11 +9,12 @@ const warehouseKeys = {
   detail: (id: number) => ['warehouse', 'detail', id] as const,
 }
 
-export function useWarehouseListQuery(params?: WarehouseListParams) {
+export function useWarehouseListQuery(params?: WarehouseListParams, enabled = true) {
   return useQuery({
     queryKey: warehouseKeys.list(params),
     queryFn: () => warehouseService.list(params),
     placeholderData: (prev) => prev,
+    enabled,
   })
 }
 

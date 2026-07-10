@@ -33,10 +33,21 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 	const [rows, setRows] = useState<WarehouseRowValue[]>([emptyWarehouseRow()]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
 	const [formError, setFormError] = useState('');
+	const [duplicateRowKeys, setDuplicateRowKeys] = useState<Record<string | number, boolean>>({});
 
 	const createMutation = useCreateWarehouseMutation();
 	const updateMutation = useUpdateWarehouseMutation();
 	const isSaving = createMutation.isPending || updateMutation.isPending;
+
+	const company = (mode === 'edit' ? warehouseQuery.data?.company : undefined) ?? companyId ?? undefined;
+	const hasDuplicate = Object.values(duplicateRowKeys).some(Boolean);
+
+	const handleDuplicateChange = (key: string | number, isDuplicate: boolean) => {
+		setDuplicateRowKeys((prev) => {
+			if (isDuplicate === Boolean(prev[key])) return prev;
+			return { ...prev, [key]: isDuplicate };
+		});
+	};
 
 	useEffect(() => {
 		const w = warehouseQuery.data;
@@ -63,7 +74,16 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 		setRows((prev) => prev.map((row, i) => (i === index ? next : row)));
 	};
 	const addRow = () => setRows((prev) => [...prev, emptyWarehouseRow()]);
-	const removeRow = (index: number) => setRows((prev) => prev.filter((_, i) => i !== index));
+	const removeRow = (index: number) => {
+		const removedKey = rows[index]?.key;
+		if (removedKey !== undefined) {
+			setDuplicateRowKeys((keys) => {
+				const { [removedKey]: _removed, ...rest } = keys;
+				return rest;
+			});
+		}
+		setRows((prev) => prev.filter((_, i) => i !== index));
+	};
 
 	const goBack = () => navigate('/warehouse-prices');
 
@@ -71,13 +91,16 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 		e.preventDefault();
 		setFormError('');
 
-		const company = (mode === 'edit' ? warehouseQuery.data?.company : undefined) ?? companyId ?? undefined;
 		if (!company) {
 			setFormError('Tashkilot topilmadi');
 			return;
 		}
 		if (!date) {
 			setFormError('Sana kiritilishi shart');
+			return;
+		}
+		if (hasDuplicate) {
+			setFormError('Bu tovar bazada mavjud');
 			return;
 		}
 
@@ -187,6 +210,9 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 							onAdd={addRow}
 							showRemove={mode === 'create' && rows.length > 1}
 							onRemove={() => removeRow(index)}
+							companyId={company}
+							excludeId={mode === 'edit' ? warehouseId : undefined}
+							onDuplicateChange={handleDuplicateChange}
 						/>
 					))}
 
@@ -195,7 +221,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 						<Input value={comment} onChange={(e) => setComment(e.target.value)} />
 					</div>
 
-					<Button type='submit' variant='theme' className='h-11 w-full text-sm' disabled={isSaving}>
+					<Button type='submit' variant='theme' className='h-11 w-full text-sm' disabled={isSaving || hasDuplicate}>
 						{mode === 'edit' ? 'Saqlash' : "Qo'shish"}
 					</Button>
 				</form>
