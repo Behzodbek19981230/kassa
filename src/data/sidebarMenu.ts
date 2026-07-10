@@ -9,7 +9,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 	{ id: 'return', icon: 'undo', label: 'Vozvrat', path: '#' },
 	{ id: 'return-history', icon: 'file-invoice', label: 'Vozvrat buyurmalar tarixi', path: '#' },
 	{ id: 'goods-prices', icon: 'tags', label: 'Tovarlar va Narxlar', path: '/warehouse-prices' },
-	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '#' },
+	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '/import' },
 	{ id: 'warehouse-report', icon: 'warehouse', label: 'Omborxona hisobi', path: '#' },
 	{ id: 'my-debts', icon: 'bookmark', label: 'Mening qarzlarim', path: '#' },
 	{

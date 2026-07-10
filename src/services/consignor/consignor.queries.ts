@@ -5,6 +5,7 @@ import type { ConsignorListParams, ConsignorPayload } from '@/services/consignor
 const consignorKeys = {
 	all: ['consignors'] as const,
 	list: (params?: ConsignorListParams) => ['consignors', 'list', params] as const,
+	detail: (id: number) => ['consignors', 'detail', id] as const,
 };
 
 export function useConsignorListQuery(params?: ConsignorListParams) {
@@ -12,6 +13,14 @@ export function useConsignorListQuery(params?: ConsignorListParams) {
 		queryKey: consignorKeys.list(params),
 		queryFn: () => consignorService.list(params),
 		placeholderData: (prev) => prev,
+	});
+}
+
+export function useConsignorQuery(id?: number) {
+	return useQuery({
+		queryKey: consignorKeys.detail(id ?? 0),
+		queryFn: () => consignorService.get(id as number),
+		enabled: typeof id === 'number',
 	});
 }
 
