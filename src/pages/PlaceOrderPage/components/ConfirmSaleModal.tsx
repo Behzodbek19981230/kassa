@@ -19,6 +19,7 @@ import {
 	Textarea,
 	useNotification,
 } from '@/components/ui';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useConfirmSaleMutation } from '@/services/order-cart/order-cart.queries';
 import type { ConfirmSaleSummary } from '@/services/order-cart/order-cart.types';
@@ -134,8 +135,8 @@ export default function ConfirmSaleModal({
 			notify({ title: 'Buyurtma tasdiqlandi' });
 			setOpen(false);
 			onConfirmed(result.summary);
-		} catch {
-			setFormError('Tasdiqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Tasdiqlashda xatolik yuz berdi'));
 		}
 	});
 
@@ -197,7 +198,7 @@ export default function ConfirmSaleModal({
 
 						<div className='mb-3 grid grid-cols-2 gap-3'>
 							<FormField label='Jami summa ($)' horizontal={false} className='mb-0'>
-								<PriceInput value={allSummDollar.toFixed(2)} disabled />
+								<PriceInput value={paidDollar.toFixed(2)} disabled />
 							</FormField>
 							<FormField label='Chegirma ($)' horizontal={false} className='mb-0'>
 								<Controller

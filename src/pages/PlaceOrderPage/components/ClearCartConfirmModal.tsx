@@ -8,6 +8,7 @@ import {
 	ModalTitle,
 	useNotification,
 } from '@/components/ui';
+import { getApiErrorMessage } from '@/lib/errors';
 import { useClearOrderCartMutation } from '@/services/order-cart/order-cart.queries';
 
 interface ClearCartConfirmModalProps {
@@ -26,8 +27,8 @@ export default function ClearCartConfirmModal({ open, setOpen, companyId, client
 			await clearCartMutation.mutateAsync({ company: companyId, client: clientId });
 			notify({ title: 'Savatcha tozalandi' });
 			setOpen(false);
-		} catch {
-			notify({ title: 'Tozalashda xatolik yuz berdi' });
+		} catch (err) {
+			notify({ title: getApiErrorMessage(err, 'Tozalashda xatolik yuz berdi') });
 		}
 	};
 

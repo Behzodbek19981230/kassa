@@ -22,6 +22,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useCreateOrderCartMutation } from '@/services/order-cart/order-cart.queries';
@@ -154,8 +155,8 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 			});
 			notify({ title: "Mahsulot buyurtmaga qo'shildi" });
 			setOpen(false);
-		} catch {
-			setFormError("Qo'shishda xatolik yuz berdi");
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, "Qo'shishda xatolik yuz berdi"));
 		}
 	});
 
