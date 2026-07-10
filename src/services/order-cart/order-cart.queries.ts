@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { orderCartService } from '@/services/order-cart/order-cart.service';
-import type { OrderCartListParams, OrderCartPayload } from '@/services/order-cart/order-cart.types';
+import type {
+	ClearOrderCartPayload,
+	ConfirmSalePayload,
+	OrderCartListParams,
+	OrderCartPayload,
+} from '@/services/order-cart/order-cart.types';
 
 const orderCartKeys = {
 	all: ['order-cart'] as const,
@@ -37,5 +42,24 @@ export function useDeleteOrderCartMutation() {
 	return useMutation({
 		mutationFn: (id: number) => orderCartService.remove(id),
 		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderCartKeys.all }),
+	});
+}
+
+export function useClearOrderCartMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (payload: ClearOrderCartPayload) => orderCartService.clear(payload),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderCartKeys.all }),
+	});
+}
+
+export function useConfirmSaleMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (payload: ConfirmSalePayload) => orderCartService.confirmSale(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
+			queryClient.invalidateQueries({ queryKey: ['clients'] });
+		},
 	});
 }

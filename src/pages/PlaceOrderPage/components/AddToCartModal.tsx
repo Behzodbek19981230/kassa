@@ -23,6 +23,7 @@ import {
 } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
 import { formatNumber } from '@/lib/number';
+import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useCreateOrderCartMutation } from '@/services/order-cart/order-cart.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
@@ -46,6 +47,9 @@ interface AddToCartModalProps {
 export default function AddToCartModal({ open, setOpen, variant, clientId }: AddToCartModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
+
+	const { data: usdRate } = useCurrencyRateQuery('USD');
+	const rate = usdRate?.rate ?? 0;
 
 	const locationOptions = useMemo(() => {
 		const seen = new Map<string, { value: string; label: string; row: WarehouseAllListItem }>();
@@ -72,7 +76,10 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 						.string()
 						.min(1, 'Sonini kiriting')
 						.refine((v) => Number(v) > 0, "Soni 0 dan katta bo'lishi kerak"),
-					price: z.string().min(1, 'Mahsulot narxini kiriting.'),
+					priceSom: z
+						.string()
+						.min(1, "Narxni so'mda kiriting.")
+						.refine((v) => Number(v) > 0, "Narxi 0 dan katta bo'lishi kerak"),
 				})
 				.superRefine((values, ctx) => {
 					const available = stockByLocation.get(values.joy);
@@ -99,15 +106,16 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 		defaultValues: {
 			joy: locationOptions[0]?.value ?? '',
 			count: '0',
-			price: '',
+			priceSom: '',
 		},
 	});
 
 	const joyValue = watch('joy');
 	const countValue = watch('count');
-	const priceValue = watch('price');
+	const priceSomValue = watch('priceSom');
 	const availableStock = stockByLocation.get(joyValue);
-	const lineTotal = (Number(countValue) || 0) * (Number(priceValue) || 0);
+	const priceDollar = rate > 0 ? (Number(priceSomValue) || 0) / rate : 0;
+	const lineTotal = (Number(countValue) || 0) * priceDollar;
 
 	const createMutation = useCreateOrderCartMutation();
 
@@ -118,13 +126,17 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 			setFormError('Joy topilmadi');
 			return;
 		}
+		if (!rate) {
+			setFormError("Dollar kursi yuklanmoqda, birozdan so'ng qayta urinib ko'ring.");
+			return;
+		}
 
 		try {
 			await createMutation.mutateAsync({
 				client: clientId,
 				warehouse: location.row.id,
 				count: Number(values.count),
-				price: values.price,
+				price: (Number(values.priceSom) / rate).toFixed(2),
 			});
 			notify({ title: "Mahsulot buyurtmaga qo'shildi" });
 			setOpen(false);
@@ -147,22 +159,26 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 							</div>
 						)}
 
-						<div className='mb-4 grid grid-cols-2 gap-x-4 gap-y-3 rounded-[3px] bg-ca-silver p-3'>
-							<div>
-								<div className='text-[11px] text-ca-text'>Model</div>
-								<div className='truncate font-bold text-ca-red'>{variant.brandName}</div>
+						<div className='mb-4 flex flex-col gap-2 rounded-[3px] bg-ca-silver p-3 text-xs'>
+							<div className='flex items-center justify-between'>
+								<span className='font-semibold text-ca-heading'>Dollar kursi:</span>
+								<span className='font-bold text-ca-heading'>{formatNumber(rate)}</span>
 							</div>
-							<div>
-								<div className='text-[11px] text-ca-text'>Nomi</div>
-								<div className='truncate font-bold text-ca-red'>{variant.categoryName}</div>
+							<div className='flex items-center justify-between'>
+								<span className='font-semibold text-ca-heading'>Model:</span>
+								<span className='truncate font-bold text-ca-red'>{variant.brandName}</span>
 							</div>
-							<div>
-								<div className='text-[11px] text-ca-text'>O'lchami</div>
-								<div className='font-bold text-ca-red'>{formatNumber(variant.size)}</div>
+							<div className='flex items-center justify-between'>
+								<span className='font-semibold text-ca-heading'>Nomi:</span>
+								<span className='truncate font-bold text-ca-red'>{variant.categoryName}</span>
 							</div>
-							<div>
-								<div className='text-[11px] text-ca-text'>Tip</div>
-								<div className='font-bold text-ca-red'>{variant.typeName ?? '-'}</div>
+							<div className='flex items-center justify-between'>
+								<span className='font-semibold text-ca-heading'>O'lchami:</span>
+								<span className='font-bold text-ca-red'>{formatNumber(variant.size)}</span>
+							</div>
+							<div className='flex items-center justify-between'>
+								<span className='font-semibold text-ca-heading'>Tip:</span>
+								<span className='font-bold text-ca-red'>{variant.typeName ?? '-'}</span>
 							</div>
 						</div>
 
@@ -198,52 +214,46 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 							)}
 						</FormField>
 
-						<div className='mb-3 grid grid-cols-3 gap-1'>
-							<FormField
-								label='Soni'
-								error={errors.count?.message}
-								required
-								horizontal={false}
-								className='mb-0 grid col-span-2'
-							>
-								<Controller
-									name='count'
-									control={control}
-									render={({ field }) => (
-										<InputGroup append={variant.typeName ?? undefined}>
-											<Input
-												type='number'
-												inputMode='numeric'
-												min={0}
-												max={availableStock}
-												step='1'
-												value={field.value}
-												onChange={(e) => field.onChange(e.target.value)}
-												onBlur={field.onBlur}
-											/>
-										</InputGroup>
-									)}
-								/>
-							</FormField>
+						<FormField label='Soni' error={errors.count?.message} required horizontal={false} className='mb-3'>
+							<Controller
+								name='count'
+								control={control}
+								render={({ field }) => (
+									<InputGroup append={variant.typeName ?? undefined}>
+										<Input
+											type='number'
+											inputMode='numeric'
+											min={0}
+											max={availableStock}
+											step='1'
+											value={field.value}
+											onChange={(e) => field.onChange(e.target.value)}
+											onBlur={field.onBlur}
+										/>
+									</InputGroup>
+								)}
+							/>
+						</FormField>
 
-							<FormField
-								label='Narxi ($)'
-								error={errors.price?.message}
-								required
-								horizontal={false}
-								className='mb-0 grid col-span-1'
-							>
-								<Controller
-									name='price'
-									control={control}
-									render={({ field }) => (
-										<InputGroup prepend='$'>
-											<PriceInput value={field.value} onChange={field.onChange} />
-										</InputGroup>
-									)}
-								/>
-							</FormField>
-						</div>
+						<FormField
+							label="Narxi so'm"
+							error={errors.priceSom?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
+							<Controller
+								name='priceSom'
+								control={control}
+								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+							/>
+						</FormField>
+
+						<FormField label='Narxi ($)' horizontal={false} className='mb-3'>
+							<InputGroup prepend='$'>
+								<PriceInput value={priceDollar ? priceDollar.toFixed(2) : ''} disabled />
+							</InputGroup>
+						</FormField>
 
 						{lineTotal > 0 && (
 							<div className='flex items-center justify-between rounded-[3px] border border-ca-border bg-[#f8fafc] px-3 py-2 text-xs'>

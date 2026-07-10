@@ -24,11 +24,14 @@ import { brandService } from '@/services/brand/brand.service';
 import { useClientQuery } from '@/services/client/client.queries';
 import { clientService } from '@/services/client/client.service';
 import { useDeleteOrderCartMutation, useOrderCartListQuery } from '@/services/order-cart/order-cart.queries';
+import type { ConfirmSaleSummary } from '@/services/order-cart/order-cart.types';
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useWarehouseAllListQuery } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListBrandGroup, WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import ClientFormModal from '@/pages/settings/ClientPage/components/ClientFormModal';
 import AddToCartModal, { type ProductVariant } from '@/pages/PlaceOrderPage/components/AddToCartModal';
+import ClearCartConfirmModal from '@/pages/PlaceOrderPage/components/ClearCartConfirmModal';
+import ConfirmSaleModal from '@/pages/PlaceOrderPage/components/ConfirmSaleModal';
 
 const DEFAULT_LOCATION_LABEL = 'Dokon';
 
@@ -81,6 +84,8 @@ export default function PlaceOrderPage() {
 	const [categoryFilter, setCategoryFilter] = useState('');
 	const [clientId, setClientId] = useState('');
 	const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+	const [confirmSaleOpen, setConfirmSaleOpen] = useState(false);
+	const [clearCartOpen, setClearCartOpen] = useState(false);
 
 	// Unfiltered catalog, kept separate so cart rows added before a filter change can
 	// still resolve their product info even once they fall outside the active filter.
@@ -160,8 +165,12 @@ export default function PlaceOrderPage() {
 		deleteCartMutation.mutate(id);
 	}
 
-	function handleSell() {
-		notify({ title: 'Tez orada', text: 'Sotish funksiyasi hali ulanmagan.' });
+	function handleSaleConfirmed(summary: ConfirmSaleSummary) {
+		notify({
+			title: 'Buyurtma tasdiqlandi',
+			text: `Umumiy qarz: ${formatNumber(summary.total_debt, 2)} $`,
+		});
+		setClientId('');
 	}
 
 	return (
@@ -443,16 +452,28 @@ export default function PlaceOrderPage() {
 							</Table>
 						</div>
 
-						<Button
-							type='button'
-							variant='danger'
-							className='mt-4 w-full'
-							size='lg'
-							disabled={!clientId || cartItems.length === 0}
-							onClick={handleSell}
-						>
-							Sotish
-						</Button>
+						<div className='mt-4 flex gap-2'>
+							<Button
+								type='button'
+								variant='white'
+								className='flex-1'
+								size='lg'
+								disabled={!clientId || cartItems.length === 0}
+								onClick={() => setClearCartOpen(true)}
+							>
+								Bekor qilish
+							</Button>
+							<Button
+								type='button'
+								variant='danger'
+								className='flex-1'
+								size='lg'
+								disabled={!clientId || cartItems.length === 0}
+								onClick={() => setConfirmSaleOpen(true)}
+							>
+								Sotish
+							</Button>
+						</div>
 					</Panel>
 				</div>
 			</div>
@@ -462,6 +483,27 @@ export default function PlaceOrderPage() {
 					open={Boolean(selectedVariant)}
 					setOpen={(open) => !open && setSelectedVariant(null)}
 					variant={selectedVariant}
+					clientId={Number(clientId)}
+				/>
+			)}
+
+			{confirmSaleOpen && companyId && clientId && (
+				<ConfirmSaleModal
+					open={confirmSaleOpen}
+					setOpen={setConfirmSaleOpen}
+					companyId={companyId}
+					clientId={Number(clientId)}
+					cartCount={cartTotalCount}
+					allSummDollar={cartTotalSum}
+					onConfirmed={handleSaleConfirmed}
+				/>
+			)}
+
+			{clearCartOpen && companyId && clientId && (
+				<ClearCartConfirmModal
+					open={clearCartOpen}
+					setOpen={setClearCartOpen}
+					companyId={companyId}
 					clientId={Number(clientId)}
 				/>
 			)}

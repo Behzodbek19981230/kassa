@@ -36,3 +36,47 @@ export interface OrderCartListParams extends ListParams {
 	client?: number;
 	is_active?: boolean;
 }
+
+export interface ClearOrderCartPayload {
+	company: number;
+	client: number;
+}
+
+export interface ClearOrderCartResponse {
+	deleted_count: number;
+}
+
+export interface ConfirmSalePayload {
+	company: number;
+	client: number;
+	date: string;
+	exchange_rate: string | number;
+	discount_amount: string | number;
+	all_summ_dollar: string | number;
+	sum_dollar: string | number;
+	sum_som: string | number;
+	sum_cart: string | number;
+	sum_transfers: string | number;
+	zdacha_dollar: string | number;
+	zdacha_sum: string | number;
+	driver_info?: string;
+	comment?: string;
+	order_account_status: boolean;
+	fast_order: boolean;
+}
+
+export interface ConfirmSaleSummary {
+	old_debt: string;
+	all_product_sum: string;
+	all_profit_dollar: string;
+	total_debt_today: string;
+	total_debt: string;
+	product_count: number;
+	line_count: number;
+	large_price: number;
+}
+
+export interface ConfirmSaleResponse {
+	order_account_history: { id: number };
+	summary: ConfirmSaleSummary;
+}
