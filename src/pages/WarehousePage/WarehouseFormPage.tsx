@@ -123,7 +123,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 				const payload: WarehousePayload = {
 					cr_date: date,
 					size: row.size ?? 0,
-					count: w?.count ?? 1,
+					count: 0,
 					price: Number(row.price) || 0,
 					worker_price: w?.worker_price ?? 0,
 					status_count: w?.status_count ?? false,
@@ -144,7 +144,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 					const payload: WarehousePayload = {
 						cr_date: date,
 						size: row.size ?? 0,
-						count: 1,
+						count: 0,
 						price: Number(row.price) || 0,
 						worker_price: 0,
 						status_count: false,
@@ -221,7 +221,12 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 						<Input value={comment} onChange={(e) => setComment(e.target.value)} />
 					</div>
 
-					<Button type='submit' variant='theme' className='h-11 w-full text-sm' disabled={isSaving || hasDuplicate}>
+					<Button
+						type='submit'
+						variant='theme'
+						className='h-11 w-full text-sm'
+						disabled={isSaving || hasDuplicate}
+					>
 						{mode === 'edit' ? 'Saqlash' : "Qo'shish"}
 					</Button>
 				</form>
