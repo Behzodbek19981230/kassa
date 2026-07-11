@@ -12,4 +12,16 @@ export const orderAccountHistoryService = {
 		});
 		return data;
 	},
+	get: async (id: number) => {
+		const { data } = await apiClient.get<OrderAccountHistoryItem>(`/order-account-history/${id}/`);
+		return data;
+	},
+	printForClient: async (id: number) => {
+		const { data } = await apiClient.get(`/order-account-history/${id}/print/`, { responseType: 'blob' });
+		return data as Blob;
+	},
+	printForWorker: async (id: number) => {
+		const { data } = await apiClient.get(`/order-account-history/${id}/print-worker/`, { responseType: 'blob' });
+		return data as Blob;
+	},
 };

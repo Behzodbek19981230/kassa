@@ -5,6 +5,7 @@ import type { OrderAccountHistoryListParams } from '@/services/order-account-his
 const orderAccountHistoryKeys = {
 	all: ['order-account-history'] as const,
 	list: (params?: OrderAccountHistoryListParams) => ['order-account-history', 'list', params] as const,
+	detail: (id?: number) => ['order-account-history', 'detail', id] as const,
 };
 
 export function useOrderAccountHistoryListQuery(params?: OrderAccountHistoryListParams) {
@@ -12,5 +13,13 @@ export function useOrderAccountHistoryListQuery(params?: OrderAccountHistoryList
 		queryKey: orderAccountHistoryKeys.list(params),
 		queryFn: () => orderAccountHistoryService.list(params),
 		placeholderData: (prev) => prev,
+	});
+}
+
+export function useOrderAccountHistoryQuery(id?: number) {
+	return useQuery({
+		queryKey: orderAccountHistoryKeys.detail(id),
+		queryFn: () => orderAccountHistoryService.get(id!),
+		enabled: id !== undefined,
 	});
 }

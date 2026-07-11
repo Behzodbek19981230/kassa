@@ -211,7 +211,7 @@ export default function CustomerOrderHistoryPage() {
 			enableSorting: false,
 			enableColumnFilter: false,
 			size: 140,
-			cell: () => (
+			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
 					<Button
 						type='button'
@@ -227,7 +227,7 @@ export default function CustomerOrderHistoryPage() {
 						variant='default'
 						size='icon'
 						aria-label='Batafsil'
-						onClick={stub}
+						onClick={() => navigate(`/customer-order-history/${row.original.id}`)}
 					>
 						<FaExpand />
 					</Button>
