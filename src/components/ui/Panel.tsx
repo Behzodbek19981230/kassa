@@ -12,6 +12,7 @@ export function Panel({
 	footer,
 	className = '',
 	bodyClassName = '',
+	headerClassName = '',
 	onReload,
 }: PanelProps) {
 	const [collapsed, setCollapsed] = useState(false);
@@ -34,7 +35,7 @@ export function Panel({
 			)}
 			ref={itemRef}
 		>
-			<div className='flex items-center bg-ca-panel-inverse px-[15px] py-[10px] text-white'>
+			<div className={cn('flex items-center bg-ca-panel-inverse px-[15px] py-[10px] text-white', headerClassName)}>
 				<div className='order-2 ml-auto flex items-center gap-2'>
 					{actions}
 					<Button

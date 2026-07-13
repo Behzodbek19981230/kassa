@@ -78,6 +78,7 @@ export interface PanelProps {
 	footer?: ReactNode;
 	className?: string;
 	bodyClassName?: string;
+	headerClassName?: string;
 	onExpand?: () => void;
 	onReload?: () => void;
 	onCollapse?: () => void;
