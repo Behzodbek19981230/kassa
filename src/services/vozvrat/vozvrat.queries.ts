@@ -3,8 +3,25 @@ import { vozvratService } from '@/services/vozvrat/vozvrat.service';
 import type {
 	VozvratCalculatePayload,
 	VozvratConfirmPayload,
+	VozvratOrderListParams,
 	VozvratProductsParams,
 } from '@/services/vozvrat/vozvrat.types';
+
+export function useVozvratOrderListQuery(params?: VozvratOrderListParams) {
+	return useQuery({
+		queryKey: ['vozvrat', 'list', params],
+		queryFn: () => vozvratService.list(params),
+		placeholderData: (prev) => prev,
+	});
+}
+
+export function useVozvratOrderQuery(id?: number) {
+	return useQuery({
+		queryKey: ['vozvrat', 'detail', id],
+		queryFn: () => vozvratService.get(id!),
+		enabled: id !== undefined,
+	});
+}
 
 export function useVozvratProductsQuery(params: VozvratProductsParams | undefined) {
 	return useQuery({

@@ -22,6 +22,8 @@ import OrderAccountHistoryDetailPage from '@/pages/OrderAccountHistoryDetailPage
 import OrderAccountHistoryEditPage from '@/pages/OrderAccountHistoryEditPage';
 import OrderAndDebtPage from '@/pages/OrderAndDebtPage';
 import VozvratPage from '@/pages/VozvratPage';
+import VozvratOrderHistoryPage from '@/pages/VozvratOrderHistoryPage';
+import VozvratOrderHistoryDetailPage from '@/pages/VozvratOrderHistoryDetailPage';
 import WarehouseAccountPage from '@/pages/WarehouseAccountPage';
 import WarehouseAccountDetailPage from '@/pages/WarehouseAccountDetailPage';
 import ExpensePage from '@/pages/system/ExpensePage';
@@ -46,6 +48,8 @@ export default function App() {
 						<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
 					<Route path='order-and-debt' element={<OrderAndDebtPage />} />
 						<Route path='vozvrat' element={<VozvratPage />} />
+						<Route path='vozvrat-order-history' element={<VozvratOrderHistoryPage />} />
+						<Route path='vozvrat-order-history/:id' element={<VozvratOrderHistoryDetailPage />} />
 					<Route path='warehouse-report' element={<WarehouseAccountPage />} />
 					<Route path='warehouse-report/:id' element={<WarehouseAccountDetailPage />} />
 

@@ -1,3 +1,5 @@
+import type { ListParams } from '@/services/api/types';
+
 export interface VozvratClientSummary {
 	id: number;
 	fio: string;
@@ -134,4 +136,75 @@ export interface VozvratConfirmResponse {
 	message: string;
 	vozvrat_order: VozvratOrderSummary;
 	summary: VozvratConfirmSummary;
+}
+
+export interface VozvratOrderCompanyDetail {
+	id: number;
+	name: string;
+	logo: string | null;
+}
+
+export interface VozvratOrderClientDetail {
+	id: number;
+	created_time: string;
+	updated_time: string;
+	fio: string;
+	phone: string;
+	address: string;
+	total_debt: string;
+	keshbek: string;
+	is_worker: number;
+	is_partner: number;
+	is_profit_loss: number;
+	type: string;
+	created_by: number;
+	updated_by: number;
+	company: number;
+	region: number;
+	district: number;
+	worker_user: number | null;
+}
+
+export interface VozvratOrderUserDetail {
+	id: number;
+	username: string;
+	first_name: string;
+	last_name: string;
+}
+
+export interface VozvratOrderListItem {
+	id: number;
+	company_detail: VozvratOrderCompanyDetail;
+	client_detail: VozvratOrderClientDetail;
+	created_by_detail: VozvratOrderUserDetail | null;
+	updated_by_detail: VozvratOrderUserDetail | null;
+	created_time: string;
+	updated_time: string;
+	date: string;
+	exchange_rate: string;
+	discount_amount: string | null;
+	sum_som: string;
+	sum_dollar: string;
+	sum_cart: string;
+	product_summ_dollar: string;
+	all_summ_dollar: string;
+	old_total_debt: string;
+	total_debt: string;
+	confirmation: boolean;
+	cr_date_time: string;
+	large_price: number;
+	is_delete: number;
+	comment: string;
+	update_status: number | null;
+	created_by: number;
+	updated_by: number | null;
+	company: number;
+	client: number;
+}
+
+export interface VozvratOrderListParams extends ListParams {
+	company?: number;
+	client?: number;
+	created_by?: number;
+	date?: string;
 }
