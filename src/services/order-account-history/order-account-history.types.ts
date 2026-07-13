@@ -38,6 +38,7 @@ export interface OrderAccountHistoryItem {
 	id: number;
 	company_detail: OrderAccountHistoryCompanyDetail;
 	client_detail: OrderAccountHistoryClientDetail;
+	client_name?: string;
 	created_by_detail: OrderAccountHistoryUserDetail | null;
 	updated_by_detail: OrderAccountHistoryUserDetail | null;
 	created_time: string;

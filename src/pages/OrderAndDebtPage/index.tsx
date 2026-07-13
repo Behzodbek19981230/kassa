@@ -10,13 +10,14 @@ import {
 	Tabs,
 	useNotification,
 } from '@/components/ui';
-import { openBlobInNewTab } from '@/lib/blob';
+import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAndDebtListQuery } from '@/services/order-account-history/order-account-history.queries';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
 import type { OrderAndDebtItem } from '@/services/order-account-history/order-account-history.types';
 import { roleService } from '@/services/role/role.service';
 import MainTab from '@/pages/OrderAndDebtPage/components/MainTab';
+import type { OrderAndDebtPrintRole } from '@/pages/OrderAndDebtPage/components/OrderAndDebtRow';
 import WorkerTypeTab from '@/pages/OrderAndDebtPage/components/WorkerTypeTab';
 
 interface FilterState {
@@ -73,13 +74,16 @@ export default function OrderAndDebtPage() {
 		setAppliedFilters(emptyFilters);
 	}
 
-	async function handlePrintItem(item: OrderAndDebtItem) {
-		const url = item.actions.print_client_url;
+	async function handlePrintItem(item: OrderAndDebtItem, role: OrderAndDebtPrintRole) {
+		const url = role === 'mijoz' ? item.actions.print_client_url : item.actions.print_worker_url;
 		if (!url) return;
+
+		const tab = openPendingTab();
 		try {
 			const blob = await orderAccountHistoryService.printByUrl(url);
-			openBlobInNewTab(blob);
+			loadBlobIntoTab(blob, tab);
 		} catch {
+			tab?.close();
 			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
 		}
 	}
@@ -91,13 +95,18 @@ export default function OrderAndDebtPage() {
 				: kind === 'pdf2'
 					? data?.pdf_actions.pdf2_account_url
 					: data?.pdf_actions.pdf3_worker_type_url;
-		if (!url) return;
+		if (!url) {
+			notify({ title: 'Kuting', text: "Ma'lumotlar hali yuklanmoqda, birozdan so'ng qayta urinib ko'ring." });
+			return;
+		}
 
+		const tab = openPendingTab();
 		setDownloadingPdf(kind);
 		try {
 			const blob = await orderAccountHistoryService.printByUrl(url);
-			openBlobInNewTab(blob);
+			loadBlobIntoTab(blob, tab);
 		} catch {
+			tab?.close();
 			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
 		} finally {
 			setDownloadingPdf(null);

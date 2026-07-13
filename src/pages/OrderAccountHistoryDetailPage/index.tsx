@@ -2,7 +2,7 @@ import { Fragment, useState } from 'react';
 import { FaArrowLeft, FaCoins, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useNotification } from '@/components/ui';
-import { openBlobInNewTab } from '@/lib/blob';
+import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { formatNumber } from '@/lib/number';
 import { useOrderAccountHistoryProductsQuery } from '@/services/order-account-history/order-account-history.queries';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
@@ -36,11 +36,13 @@ export default function OrderAccountHistoryDetailPage() {
 			return;
 		}
 
+		const tab = openPendingTab();
 		setPrintingRole(role);
 		try {
 			const blob = await orderAccountHistoryService.printByUrl(url);
-			openBlobInNewTab(blob);
+			loadBlobIntoTab(blob, tab);
 		} catch {
+			tab?.close();
 			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
 		} finally {
 			setPrintingRole(null);

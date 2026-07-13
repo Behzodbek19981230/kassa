@@ -5,9 +5,11 @@ import { cn } from '@/lib/utils';
 import { formatNumber } from '@/lib/number';
 import type { OrderAndDebtItem } from '@/services/order-account-history/order-account-history.types';
 
+export type OrderAndDebtPrintRole = 'mijoz' | 'xodim';
+
 interface OrderAndDebtRowProps {
 	item: OrderAndDebtItem;
-	onPrint: (item: OrderAndDebtItem) => void;
+	onPrint: (item: OrderAndDebtItem, role: OrderAndDebtPrintRole) => void;
 }
 
 export default function OrderAndDebtRow({ item, onPrint }: OrderAndDebtRowProps) {
@@ -15,7 +17,8 @@ export default function OrderAndDebtRow({ item, onPrint }: OrderAndDebtRowProps)
 	const isRed = item.row_style.color === 'red';
 	const textClass = isRed ? 'text-ca-red' : 'text-ca-heading';
 	const canOpen = Boolean(item.actions.products_url);
-	const canPrint = Boolean(item.actions.print_client_url);
+	const canPrintClient = Boolean(item.actions.print_client_url);
+	const canPrintWorker = Boolean(item.actions.print_worker_url);
 
 	return (
 		<TableRow className='group'>
@@ -42,7 +45,7 @@ export default function OrderAndDebtRow({ item, onPrint }: OrderAndDebtRowProps)
 				{item.row_style.title ? <Badge variant={isRed ? 'danger' : 'default'}>{item.row_style.title}</Badge> : null}
 			</TableCell>
 			<TableCell className='text-right'>
-				{(canOpen || canPrint) && (
+				{(canOpen || canPrintClient || canPrintWorker) && (
 					<div className='flex justify-end gap-1'>
 						{canOpen && (
 							<Button
@@ -55,13 +58,24 @@ export default function OrderAndDebtRow({ item, onPrint }: OrderAndDebtRowProps)
 								<FaPlus />
 							</Button>
 						)}
-						{canPrint && (
+						{canPrintClient && (
 							<Button
 								type='button'
 								variant='warning'
 								size='icon'
-								aria-label='Chop qilish'
-								onClick={() => onPrint(item)}
+								aria-label='Chop qilish (Mijoz)'
+								onClick={() => onPrint(item, 'mijoz')}
+							>
+								<FaPrint />
+							</Button>
+						)}
+						{canPrintWorker && (
+							<Button
+								type='button'
+								variant='primary'
+								size='icon'
+								aria-label='Chop qilish (Xodim)'
+								onClick={() => onPrint(item, 'xodim')}
 							>
 								<FaPrint />
 							</Button>

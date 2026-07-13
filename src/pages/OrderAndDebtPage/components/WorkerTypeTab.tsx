@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import { Skeleton, Table, TableBody, TableCell, TableRow } from '@/components/ui';
-import OrderAndDebtRow from '@/pages/OrderAndDebtPage/components/OrderAndDebtRow';
+import OrderAndDebtRow, { type OrderAndDebtPrintRole } from '@/pages/OrderAndDebtPage/components/OrderAndDebtRow';
 import OrderAndDebtTableHeader, {
 	ORDER_AND_DEBT_COLUMN_COUNT,
 } from '@/pages/OrderAndDebtPage/components/OrderAndDebtTableHeader';
@@ -15,7 +15,7 @@ interface WorkerTypeTabProps {
 	groups: OrderAndDebtWorkerTypeGroup[];
 	isLoading: boolean;
 	isError: boolean;
-	onPrint: (item: OrderAndDebtItem) => void;
+	onPrint: (item: OrderAndDebtItem, role: OrderAndDebtPrintRole) => void;
 }
 
 function sumDebt(items: OrderAndDebtItem[]) {
