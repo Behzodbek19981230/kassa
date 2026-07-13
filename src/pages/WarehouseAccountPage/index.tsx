@@ -1,6 +1,7 @@
 import { createColumnHelper, type PaginationState, type SortingState, type ColumnFiltersState } from '@tanstack/react-table';
 import { useState } from 'react';
 import { FaCheckSquare, FaEdit, FaExclamationTriangle, FaExpand, FaTrash } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import {
 	Button,
 	type ComboboxLoadParams,
@@ -28,6 +29,7 @@ function formatTime(value: string) {
 }
 
 export default function WarehouseAccountPage() {
+	const navigate = useNavigate();
 	const { notify } = useNotification();
 
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -199,7 +201,13 @@ export default function WarehouseAccountPage() {
 					<Button type='button' variant='warning' size='icon' aria-label='Tahrirlash' onClick={stub}>
 						<FaEdit />
 					</Button>
-					<Button type='button' variant='info' size='icon' aria-label='Batafsil' onClick={stub}>
+					<Button
+						type='button'
+						variant='info'
+						size='icon'
+						aria-label='Batafsil'
+						onClick={() => navigate(`/warehouse-report/${row.original.id}`)}
+					>
 						<FaExpand />
 					</Button>
 					<Button type='button' variant='danger' size='icon' aria-label="O'chirish" onClick={stub}>

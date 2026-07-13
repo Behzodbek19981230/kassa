@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { skladService } from '@/services/sklad/sklad.service';
-import type { SkladListParams } from '@/services/sklad/sklad.types';
+import type { SkladListParams, SkladViewParams } from '@/services/sklad/sklad.types';
 
 const skladKeys = {
 	all: ['sklad'] as const,
 	list: (params?: SkladListParams) => ['sklad', 'list', params] as const,
+	view: (id?: number, params?: SkladViewParams) => ['sklad', 'view', id, params] as const,
 };
 
 export function useSkladListQuery(params?: SkladListParams) {
@@ -12,5 +13,13 @@ export function useSkladListQuery(params?: SkladListParams) {
 		queryKey: skladKeys.list(params),
 		queryFn: () => skladService.list(params),
 		placeholderData: (prev) => prev,
+	});
+}
+
+export function useSkladViewQuery(id?: number, params?: SkladViewParams) {
+	return useQuery({
+		queryKey: skladKeys.view(id, params),
+		queryFn: () => skladService.getView(id!, params),
+		enabled: id !== undefined,
 	});
 }

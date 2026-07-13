@@ -21,6 +21,7 @@ import CustomerOrderHistoryPage from '@/pages/CustomerOrderHistoryPage';
 import OrderAccountHistoryDetailPage from '@/pages/OrderAccountHistoryDetailPage';
 import OrderAndDebtPage from '@/pages/OrderAndDebtPage';
 import WarehouseAccountPage from '@/pages/WarehouseAccountPage';
+import WarehouseAccountDetailPage from '@/pages/WarehouseAccountDetailPage';
 import ExpensePage from '@/pages/system/ExpensePage';
 import AboutPage from '@/pages/system/AboutPage';
 import ClientPage from '@/pages/settings/ClientPage';
@@ -42,6 +43,7 @@ export default function App() {
 						<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
 					<Route path='order-and-debt' element={<OrderAndDebtPage />} />
 					<Route path='warehouse-report' element={<WarehouseAccountPage />} />
+					<Route path='warehouse-report/:id' element={<WarehouseAccountDetailPage />} />
 
 					{/* System management */}
 					<Route path='system/product-categories' element={<ProductCategoriesPage />} />
