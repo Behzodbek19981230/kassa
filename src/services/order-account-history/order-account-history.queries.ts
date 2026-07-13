@@ -1,8 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
 import type {
 	OrderAccountHistoryGroupedListParams,
 	OrderAccountHistoryListParams,
+	OrderAccountHistoryUpdatePayload,
 	OrderAndDebtListParams,
 } from '@/services/order-account-history/order-account-history.types';
 
@@ -53,5 +54,14 @@ export function useOrderAndDebtListQuery(params?: OrderAndDebtListParams) {
 		queryKey: orderAccountHistoryKeys.orderAndDebt(params),
 		queryFn: () => orderAccountHistoryService.listOrderAndDebt(params),
 		placeholderData: (prev) => prev,
+	});
+}
+
+export function useUpdateOrderAccountHistoryMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }: { id: number; payload: OrderAccountHistoryUpdatePayload }) =>
+			orderAccountHistoryService.update(id, payload),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all }),
 	});
 }

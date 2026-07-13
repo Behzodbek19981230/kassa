@@ -19,6 +19,7 @@ import PlaceOrderPage from '@/pages/PlaceOrderPage';
 import ImportPage from '@/pages/ImportPage';
 import CustomerOrderHistoryPage from '@/pages/CustomerOrderHistoryPage';
 import OrderAccountHistoryDetailPage from '@/pages/OrderAccountHistoryDetailPage';
+import OrderAccountHistoryEditPage from '@/pages/OrderAccountHistoryEditPage';
 import OrderAndDebtPage from '@/pages/OrderAndDebtPage';
 import WarehouseAccountPage from '@/pages/WarehouseAccountPage';
 import WarehouseAccountDetailPage from '@/pages/WarehouseAccountDetailPage';
@@ -41,6 +42,7 @@ export default function App() {
 					<Route path='import' element={<ImportPage />} />
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
 						<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
+						<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
 					<Route path='order-and-debt' element={<OrderAndDebtPage />} />
 					<Route path='warehouse-report' element={<WarehouseAccountPage />} />
 					<Route path='warehouse-report/:id' element={<WarehouseAccountDetailPage />} />

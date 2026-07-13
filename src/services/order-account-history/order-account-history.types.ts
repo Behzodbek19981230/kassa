@@ -84,6 +84,25 @@ export interface OrderAccountHistoryItem {
 	client: number;
 }
 
+export interface OrderAccountHistoryUpdatePayload {
+	company: number;
+	client: number;
+	date: string;
+	exchange_rate: string | number;
+	discount_amount: string | number;
+	all_summ_dollar: string | number;
+	sum_dollar: string | number;
+	sum_som: string | number;
+	sum_cart: string | number;
+	sum_transfers: string | number;
+	zdacha_dollar: string | number;
+	zdacha_sum: string | number;
+	driver_info?: string;
+	order_commit?: string;
+	order_account_status: boolean;
+	fast_order: boolean;
+}
+
 export interface OrderAccountHistoryListParams extends ListParams {
 	company?: number;
 	client?: number;

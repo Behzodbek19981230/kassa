@@ -11,26 +11,43 @@ import {
 	ModalTitle,
 	useNotification,
 } from '@/components/ui';
+import { getApiErrorMessage } from '@/lib/errors';
+import { useUpdateProductCountMutation } from '@/services/product-account-history/product-account-history.queries';
 import type { OrderAccountHistoryProductItem } from '@/services/order-account-history/order-account-history.types';
 
 interface EditGivenCountModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	item: OrderAccountHistoryProductItem | null;
+	orderId?: number;
 }
 
-export default function EditGivenCountModal({ open, setOpen, item }: EditGivenCountModalProps) {
+export default function EditGivenCountModal({ open, setOpen, item, orderId }: EditGivenCountModalProps) {
 	const { notify } = useNotification();
 	const [value, setValue] = useState('');
+	const [formError, setFormError] = useState('');
+	const updateMutation = useUpdateProductCountMutation();
 
 	function handleOpenChange(next: boolean) {
 		if (next && item) setValue(String(item.given_count));
+		setFormError('');
 		setOpen(next);
 	}
 
-	function handleSubmit() {
-		notify({ title: 'Tez orada', text: 'Bu funksiya hali ulanmagan.' });
-		setOpen(false);
+	async function handleSubmit() {
+		if (!item) return;
+		setFormError('');
+		try {
+			await updateMutation.mutateAsync({
+				id: item.id,
+				payload: { given_count: Number(value) },
+				orderId,
+			});
+			notify({ title: "Berilgan tavar soni o'zgartirildi" });
+			setOpen(false);
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, "O'zgartirishda xatolik yuz berdi"));
+		}
 	}
 
 	return (
@@ -40,6 +57,11 @@ export default function EditGivenCountModal({ open, setOpen, item }: EditGivenCo
 					<ModalTitle>Mijozga berilgan mahsulot sonini o'zgartirish</ModalTitle>
 				</ModalHeader>
 				<ModalBody>
+					{formError && (
+						<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+							{formError}
+						</div>
+					)}
 					<FormField label='Mijozga berilgan mahsulot soni' horizontal={false}>
 						<Input
 							type='number'
@@ -52,7 +74,7 @@ export default function EditGivenCountModal({ open, setOpen, item }: EditGivenCo
 					<Button type='button' variant='default' onClick={() => setOpen(false)}>
 						Yopish
 					</Button>
-					<Button type='button' variant='theme' onClick={handleSubmit}>
+					<Button type='button' variant='theme' onClick={handleSubmit} disabled={updateMutation.isPending}>
 						O'zgartirish
 					</Button>
 				</ModalFooter>

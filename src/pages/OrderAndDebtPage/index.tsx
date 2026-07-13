@@ -15,7 +15,6 @@ import { clientService } from '@/services/client/client.service';
 import { useOrderAndDebtListQuery } from '@/services/order-account-history/order-account-history.queries';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
 import type { OrderAndDebtItem } from '@/services/order-account-history/order-account-history.types';
-import { roleService } from '@/services/role/role.service';
 import MainTab from '@/pages/OrderAndDebtPage/components/MainTab';
 import type { OrderAndDebtPrintRole } from '@/pages/OrderAndDebtPage/components/OrderAndDebtRow';
 import WorkerTypeTab from '@/pages/OrderAndDebtPage/components/WorkerTypeTab';
@@ -28,6 +27,13 @@ interface FilterState {
 }
 
 const emptyFilters: FilterState = { client: '', userType: '', startDate: '', endDate: '' };
+
+// Hodim turi users_user.type bo'yicha ishlaydi, role bo'yicha emas.
+const USER_TYPE_OPTIONS: ComboboxLoadResult['options'] = [
+	{ value: '1', label: "Do'kon sotuvchisi" },
+	{ value: '2', label: 'Sklad sotuvchisi' },
+	{ value: '3', label: 'Dastavka sotuvchisi' },
+];
 
 export default function OrderAndDebtPage() {
 	const { notify } = useNotification();
@@ -57,12 +63,10 @@ export default function OrderAndDebtPage() {
 		};
 	};
 
-	const loadUserTypeOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await roleService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.map((r) => ({ value: String(r.id), label: r.name })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
+	const loadUserTypeOptions = async ({ search }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+		const term = search?.trim().toLowerCase();
+		const options = term ? USER_TYPE_OPTIONS.filter((o) => o.label.toLowerCase().includes(term)) : USER_TYPE_OPTIONS;
+		return { options, hasMore: false };
 	};
 
 	function handleSearch() {

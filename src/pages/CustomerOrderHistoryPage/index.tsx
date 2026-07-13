@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaExpand, FaPrint, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaExpand, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
 	Badge,
@@ -13,16 +13,12 @@ import {
 	RadioGroup,
 	useNotification,
 } from '@/components/ui';
-import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAccountHistoryGroupedListQuery } from '@/services/order-account-history/order-account-history.queries';
-import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
 import type { OrderAccountHistoryItem } from '@/services/order-account-history/order-account-history.types';
 import { useUserListQuery } from '@/services/user/user.queries';
 import { userService } from '@/services/user/user.service';
-
-type PrintRole = 'mijoz' | 'xodim';
 
 type GroupedOrderAccountHistoryItem = OrderAccountHistoryItem & {
 	_no: number;
@@ -50,7 +46,6 @@ export default function CustomerOrderHistoryPage() {
 	const [showFilters, setShowFilters] = useState(false);
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-	const [printingKey, setPrintingKey] = useState<string | null>(null);
 
 	const clientFilter = columnFilters.find((f) => f.id === 'client')?.value as string | undefined;
 	const createdByFilter = columnFilters.find((f) => f.id === 'created_by')?.value as string | undefined;
@@ -100,26 +95,6 @@ export default function CustomerOrderHistoryPage() {
 
 	function stub() {
 		notify({ title: 'Tez orada', text: 'Bu funksiya hali ulanmagan.' });
-	}
-
-	async function handlePrint(item: GroupedOrderAccountHistoryItem, role: PrintRole) {
-		const key = `${item.id}-${role}`;
-		const path =
-			role === 'mijoz'
-				? `/order-account-history/${item.id}/print/`
-				: `/order-account-history/${item.id}/print-worker/`;
-
-		const tab = openPendingTab();
-		setPrintingKey(key);
-		try {
-			const blob = await orderAccountHistoryService.printByUrl(path);
-			loadBlobIntoTab(blob, tab);
-		} catch {
-			tab?.close();
-			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
-		} finally {
-			setPrintingKey(null);
-		}
 	}
 
 	const columns = [
@@ -270,25 +245,11 @@ export default function CustomerOrderHistoryPage() {
 					<div className='flex justify-end gap-1'>
 						<Button
 							type='button'
-							variant='warning'
+							variant='info'
 							size='icon'
-							aria-label='Chop qilish (Mijoz)'
-							disabled={printingKey === `${item.id}-mijoz`}
-							onClick={() => handlePrint(item, 'mijoz')}
+							aria-label='Tahrirlash'
+							onClick={() => navigate(`/customer-order-history/${item.id}/edit`)}
 						>
-							<FaPrint />
-						</Button>
-						<Button
-							type='button'
-							variant='primary'
-							size='icon'
-							aria-label='Chop qilish (Xodim)'
-							disabled={printingKey === `${item.id}-xodim`}
-							onClick={() => handlePrint(item, 'xodim')}
-						>
-							<FaPrint />
-						</Button>
-						<Button type='button' variant='info' size='icon' aria-label='Tahrirlash' onClick={stub}>
 							<FaEdit />
 						</Button>
 						<Button

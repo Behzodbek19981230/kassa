@@ -263,6 +263,7 @@ export default function OrderAccountHistoryDetailPage() {
 					if (!open) setEditingItem(null);
 				}}
 				item={editingItem}
+				orderId={orderId}
 			/>
 		</>
 	);
