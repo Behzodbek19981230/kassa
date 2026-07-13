@@ -6,6 +6,8 @@ import type {
 	OrderAccountHistoryItem,
 	OrderAccountHistoryListParams,
 	OrderAccountHistoryProductsResponse,
+	OrderAndDebtListParams,
+	OrderAndDebtResponse,
 } from '@/services/order-account-history/order-account-history.types';
 
 const API_PATH_PREFIX = new URL(API_BASE_URL).pathname.replace(/\/$/, '');
@@ -33,6 +35,12 @@ export const orderAccountHistoryService = {
 	},
 	getProducts: async (id: number) => {
 		const { data } = await apiClient.get<OrderAccountHistoryProductsResponse>(`/order-account-history/${id}/products/`);
+		return data;
+	},
+	listOrderAndDebt: async (params?: OrderAndDebtListParams) => {
+		const { data } = await apiClient.get<OrderAndDebtResponse>('/order-account-history/order-and-debt/', {
+			params,
+		});
 		return data;
 	},
 	printByUrl: async (url: string) => {

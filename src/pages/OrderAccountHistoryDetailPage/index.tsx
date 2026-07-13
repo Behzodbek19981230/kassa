@@ -2,6 +2,7 @@ import { Fragment, useState } from 'react';
 import { FaArrowLeft, FaCoins, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useNotification } from '@/components/ui';
+import { openBlobInNewTab } from '@/lib/blob';
 import { formatNumber } from '@/lib/number';
 import { useOrderAccountHistoryProductsQuery } from '@/services/order-account-history/order-account-history.queries';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
@@ -9,12 +10,6 @@ import type { OrderAccountHistoryProductItem } from '@/services/order-account-hi
 import EditGivenCountModal from '@/pages/OrderAccountHistoryDetailPage/components/EditGivenCountModal';
 
 type PrintRole = 'xodim' | 'sklad' | 'mijoz' | 'admin';
-
-function openPdfBlob(blob: Blob) {
-	const url = URL.createObjectURL(blob);
-	window.open(url, '_blank');
-	setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
 
 export default function OrderAccountHistoryDetailPage() {
 	const navigate = useNavigate();
@@ -44,7 +39,7 @@ export default function OrderAccountHistoryDetailPage() {
 		setPrintingRole(role);
 		try {
 			const blob = await orderAccountHistoryService.printByUrl(url);
-			openPdfBlob(blob);
+			openBlobInNewTab(blob);
 		} catch {
 			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
 		} finally {

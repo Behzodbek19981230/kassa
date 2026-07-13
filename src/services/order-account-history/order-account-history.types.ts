@@ -227,3 +227,139 @@ export interface OrderAccountHistoryProductsResponse {
 	products: OrderAccountHistoryProducts;
 	actions: OrderAccountHistoryProductsActions;
 }
+
+export type OrderAndDebtRowType = 'order' | 'debt_repayment';
+
+export interface OrderAndDebtRowStyle {
+	type: string;
+	color: string;
+	background: string;
+	title: string;
+}
+
+export interface OrderAndDebtItemActions {
+	products_url?: string;
+	print_worker_url?: string;
+	print_sklad_url?: string;
+	print_client_url?: string;
+}
+
+export interface OrderAndDebtItem {
+	id: number;
+	day_seq: number;
+	row_type: OrderAndDebtRowType;
+	action: string;
+	sign: '+' | '-';
+	datetime: string;
+	datetime_label: string;
+	date: string;
+	date_label: string;
+	client: number;
+	client_name: string;
+	created_by: number;
+	created_by_name: string;
+	created_by_type: number;
+	created_by_type_name: string;
+	all_product_sum: number;
+	all_summ_dollar: number;
+	sum_dollar: number;
+	sum_cart: number;
+	sum_som: number;
+	paid_debt: number;
+	debt_sum_transfers: number;
+	debt_sum_som: number;
+	debt_summ_cart: number;
+	zdacha_sum: number;
+	zdacha_dollar: number;
+	total_debt: number;
+	all_profit_dollar: number;
+	order_account_status: boolean | null;
+	update_status: number | null;
+	status_order_dukon: number | null;
+	status_order_sklad: number | null;
+	is_sent: number;
+	is_debt: number;
+	is_debtor: number;
+	fast_order: number;
+	large_price: number;
+	order_commit: string;
+	row_style: OrderAndDebtRowStyle;
+	actions: OrderAndDebtItemActions;
+}
+
+export interface OrderAndDebtTotals {
+	all_product_sum: number;
+	all_summ_dollar: number;
+	sum_dollar: number;
+	sum_cart: number;
+	sum_som: number;
+	paid_zdacha_sum: number;
+	paid_zdacha_dollar: number;
+	paid_debt: number;
+	debt_sum_transfers: number;
+	debt_sum_som: number;
+	debt_summ_cart: number;
+	debt_zdacha_sum: number;
+	debt_zdacha_dollar: number;
+	all_profit_dollar: number;
+}
+
+export interface OrderAndDebtGroup {
+	date: string;
+	date_label: string;
+	items: OrderAndDebtItem[];
+	totals: OrderAndDebtTotals;
+}
+
+export interface OrderAndDebtWorkerTypeEntry {
+	created_by_type: number;
+	created_by_type_name: string;
+	items: OrderAndDebtItem[];
+	totals: OrderAndDebtTotals;
+}
+
+export interface OrderAndDebtWorkerTypeGroup {
+	date: string;
+	date_label: string;
+	types: OrderAndDebtWorkerTypeEntry[];
+	totals: OrderAndDebtTotals;
+}
+
+export interface OrderAndDebtFilters {
+	client: string | null;
+	created_by: string | null;
+	customer_name: string | null;
+	user_type: string | null;
+	start_date: string | null;
+	end_date: string | null;
+	active_tab: string | null;
+}
+
+export interface OrderAndDebtPdfActions {
+	pdf1_url: string;
+	pdf2_account_url: string;
+	pdf3_worker_type_url: string;
+}
+
+export interface OrderAndDebtResults {
+	items: OrderAndDebtItem[];
+	groups: OrderAndDebtGroup[];
+	worker_type_groups: OrderAndDebtWorkerTypeGroup[];
+	totals: OrderAndDebtTotals;
+}
+
+export interface OrderAndDebtResponse {
+	pagination: PaginationMeta;
+	filters: OrderAndDebtFilters;
+	pdf_actions: OrderAndDebtPdfActions;
+	results: OrderAndDebtResults;
+}
+
+export interface OrderAndDebtListParams extends ListParams {
+	client?: number;
+	created_by?: number;
+	user_type?: string;
+	start_date?: string;
+	end_date?: string;
+	active_tab?: 'main' | 'worker';
+}

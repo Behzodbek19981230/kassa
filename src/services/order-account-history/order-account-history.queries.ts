@@ -3,6 +3,7 @@ import { orderAccountHistoryService } from '@/services/order-account-history/ord
 import type {
 	OrderAccountHistoryGroupedListParams,
 	OrderAccountHistoryListParams,
+	OrderAndDebtListParams,
 } from '@/services/order-account-history/order-account-history.types';
 
 const orderAccountHistoryKeys = {
@@ -12,6 +13,7 @@ const orderAccountHistoryKeys = {
 		['order-account-history', 'grouped-list', params] as const,
 	detail: (id?: number) => ['order-account-history', 'detail', id] as const,
 	detailProducts: (id?: number) => ['order-account-history', 'detail-products', id] as const,
+	orderAndDebt: (params?: OrderAndDebtListParams) => ['order-account-history', 'order-and-debt', params] as const,
 };
 
 export function useOrderAccountHistoryListQuery(params?: OrderAccountHistoryListParams) {
@@ -43,5 +45,13 @@ export function useOrderAccountHistoryProductsQuery(id?: number) {
 		queryKey: orderAccountHistoryKeys.detailProducts(id),
 		queryFn: () => orderAccountHistoryService.getProducts(id!),
 		enabled: id !== undefined,
+	});
+}
+
+export function useOrderAndDebtListQuery(params?: OrderAndDebtListParams) {
+	return useQuery({
+		queryKey: orderAccountHistoryKeys.orderAndDebt(params),
+		queryFn: () => orderAccountHistoryService.listOrderAndDebt(params),
+		placeholderData: (prev) => prev,
 	});
 }

@@ -516,7 +516,10 @@ export function DataTable<TData>({
 														selectedLabel={header.column.columnDef.meta?.filterSelectedLabel?.(
 															(header.column.getFilterValue() as string) ?? '',
 														)}
-														placeholder={header.column.columnDef.meta?.filterPlaceholder ?? 'Barchasi'}
+														placeholder={
+															header.column.columnDef.meta?.filterPlaceholder ??
+															'Barchasi'
+														}
 														searchPlaceholder='Qidirish...'
 														className='h-[26px] text-[11px]'
 													/>
