@@ -12,6 +12,7 @@ export interface VozvratVariant {
 	categoryName: string;
 	size: number;
 	typeName: string;
+	orderDateLabel: string;
 	rows: VozvratProductItem[];
 }
 
@@ -23,6 +24,7 @@ export function buildVariant(items: VozvratProductItem[]): VozvratVariant {
 		categoryName: first.product_category_name,
 		size: first.size,
 		typeName: first.type_name,
+		orderDateLabel: first.order_date_label,
 		rows: items,
 	};
 }

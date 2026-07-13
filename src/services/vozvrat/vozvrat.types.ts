@@ -17,6 +17,8 @@ export interface VozvratProductItem {
 	type_name: string;
 	type_sklad: number;
 	type_sklad_name: string;
+	order_date: string;
+	order_date_label: string;
 	remaining_count: number;
 	price_dollar: number;
 	price_som: number;
@@ -207,4 +209,106 @@ export interface VozvratOrderListParams extends ListParams {
 	client?: number;
 	created_by?: number;
 	date?: string;
+}
+
+export interface VozvratOrderProductsOrder {
+	id: number;
+	company: number;
+	client: number;
+	client_name: string;
+	client_phone: string;
+	client_total_debt: string;
+	created_by: number;
+	created_by_name: string;
+	date: string;
+	date_label: string;
+	cr_date_time: string;
+	created_time_label: string;
+	title: string;
+	confirmation: boolean;
+	large_price: number;
+	comment: string;
+}
+
+export interface VozvratOrderProductsReport {
+	exchange_rate: string;
+	product_summ_dollar: string;
+	product_summ_som: string;
+	all_summ_dollar: string;
+	all_summ_som: string;
+	sum_dollar: string;
+	sum_dollar_som: string;
+	sum_som: string;
+	sum_cart: string;
+	discount_amount: string;
+	old_total_debt: string;
+	total_debt: string;
+}
+
+export interface VozvratOrderProductItem {
+	number: number;
+	id: number;
+	warehouse: number;
+	type_sklad: number;
+	type_sklad_name: string;
+	brand: number;
+	brand_name: string;
+	product_category: number;
+	product_category_name: string;
+	size: string;
+	type: number;
+	type_name: string;
+	count: number;
+	given_count: number;
+	price: string;
+	price_som: string;
+	price_total: string;
+	price_total_som: string;
+	real_price: string;
+	real_price_som: string;
+	real_price_total: string;
+	real_price_total_som: string;
+	profit: string;
+	profit_som: string;
+	is_debtor: number;
+	old_count: number | null;
+	vozvrat_summa: string;
+	cr_date: string;
+}
+
+export interface VozvratOrderProductGroupTotals {
+	count: number;
+	given_count: number;
+	price_total: string;
+	price_total_som: string;
+	real_price_total: string;
+	real_price_total_som: string;
+	profit_total: string;
+	profit_total_som: string;
+}
+
+export interface VozvratOrderProductGroup {
+	brand: number;
+	brand_name: string;
+	items: VozvratOrderProductItem[];
+	totals: VozvratOrderProductGroupTotals;
+}
+
+export interface VozvratOrderProducts {
+	group_count: number;
+	item_count: number;
+	groups: VozvratOrderProductGroup[];
+	items: VozvratOrderProductItem[];
+	totals: VozvratOrderProductGroupTotals;
+}
+
+export interface VozvratOrderProductsActions {
+	products_url: string;
+}
+
+export interface VozvratOrderProductsResponse {
+	vozvrat_order: VozvratOrderProductsOrder;
+	report: VozvratOrderProductsReport;
+	products: VozvratOrderProducts;
+	actions: VozvratOrderProductsActions;
 }

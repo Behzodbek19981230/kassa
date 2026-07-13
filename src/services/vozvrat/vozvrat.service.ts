@@ -7,6 +7,7 @@ import type {
 	VozvratConfirmResponse,
 	VozvratOrderListItem,
 	VozvratOrderListParams,
+	VozvratOrderProductsResponse,
 	VozvratProductsParams,
 	VozvratProductsResponse,
 } from '@/services/vozvrat/vozvrat.types';
@@ -18,6 +19,10 @@ export const vozvratService = {
 	},
 	get: async (id: number) => {
 		const { data } = await apiClient.get<VozvratOrderListItem>(`/vozvrat-order/${id}/`);
+		return data;
+	},
+	getOrderProducts: async (id: number) => {
+		const { data } = await apiClient.get<VozvratOrderProductsResponse>(`/vozvrat-order/${id}/products/`);
 		return data;
 	},
 	getProducts: async (params: VozvratProductsParams) => {

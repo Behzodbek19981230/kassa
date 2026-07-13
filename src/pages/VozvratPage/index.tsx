@@ -313,7 +313,12 @@ export default function VozvratPage() {
 																}
 															>
 																<TableCell>{vIndex + 1}</TableCell>
-																<TableCell>{variant.brandName}</TableCell>
+																<TableCell>
+																	{variant.brandName}
+																	{variant.orderDateLabel && (
+																		<div className='text-[10px] font-semibold text-ca-orange'>{variant.orderDateLabel}</div>
+																	)}
+																</TableCell>
 																<TableCell>{variant.categoryName}</TableCell>
 																<TableCell>{formatNumber(variant.size)}</TableCell>
 																<TableCell className='font-semibold'>{formatNumber(available)}</TableCell>

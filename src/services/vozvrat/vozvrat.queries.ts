@@ -23,6 +23,14 @@ export function useVozvratOrderQuery(id?: number) {
 	});
 }
 
+export function useVozvratOrderProductsQuery(id?: number) {
+	return useQuery({
+		queryKey: ['vozvrat', 'order-products', id],
+		queryFn: () => vozvratService.getOrderProducts(id!),
+		enabled: id !== undefined,
+	});
+}
+
 export function useVozvratProductsQuery(params: VozvratProductsParams | undefined) {
 	return useQuery({
 		queryKey: ['vozvrat', 'products', params],
