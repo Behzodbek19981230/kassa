@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { brandService } from '@/services/brand/brand.service';
 import { useClientQuery } from '@/services/client/client.queries';
 import { clientService } from '@/services/client/client.service';
+import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useDeleteOrderCartMutation, useOrderCartListQuery } from '@/services/order-cart/order-cart.queries';
 import type { ConfirmSaleSummary } from '@/services/order-cart/order-cart.types';
 import { productCategoryService } from '@/services/product-category/product-category.service';
@@ -144,6 +145,9 @@ export default function PlaceOrderPage() {
 		setBrandFilter('');
 		setCategoryFilter('');
 	}
+
+	const { data: usdRate } = useCurrencyRateQuery('USD');
+	const rate = usdRate?.rate ?? 0;
 
 	const { data: selectedClient } = useClientQuery(clientId ? Number(clientId) : undefined);
 
@@ -356,9 +360,9 @@ export default function PlaceOrderPage() {
 										<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
 										<TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
 										<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
+										<TableHead className='bg-ca-theme text-white'>Narxi ($ / so'm)</TableHead>
 										<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Umum.narxi ($)</TableHead>
+										<TableHead className='bg-ca-theme text-white'>Umum.narxi ($ / so'm)</TableHead>
 										<TableHead className='bg-ca-theme text-white' />
 									</TableRow>
 								</TableHeader>
@@ -418,10 +422,20 @@ export default function PlaceOrderPage() {
 													</TableCell>
 													<TableCell className='font-semibold text-ca-green'>
 														{formatNumber(item.price, 2)} $
+														{rate > 0 && (
+															<span className='ml-1 font-normal text-ca-text'>
+																({formatNumber(Number(item.price) * rate, 0)})
+															</span>
+														)}
 													</TableCell>
 													<TableCell>{formatNumber(item.count)}</TableCell>
 													<TableCell className='font-semibold'>
 														{formatNumber(totalPrice, 2)} $
+														{rate > 0 && (
+															<span className='ml-1 font-normal text-ca-text'>
+																({formatNumber(totalPrice * rate, 0)})
+															</span>
+														)}
 													</TableCell>
 													<TableCell>
 														<Button
@@ -444,6 +458,11 @@ export default function PlaceOrderPage() {
 											</TableCell>
 											<TableCell className='bg-ca-heading font-semibold text-white'>
 												{formatNumber(cartTotalSum, 2)} $
+												{rate > 0 && (
+													<span className='ml-1 font-normal text-white/70'>
+														({formatNumber(cartTotalSum * rate, 0)})
+													</span>
+												)}
 											</TableCell>
 											<TableCell className='bg-ca-heading text-white' />
 										</TableRow>
