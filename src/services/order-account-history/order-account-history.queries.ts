@@ -11,6 +11,7 @@ const orderAccountHistoryKeys = {
 	groupedList: (params?: OrderAccountHistoryGroupedListParams) =>
 		['order-account-history', 'grouped-list', params] as const,
 	detail: (id?: number) => ['order-account-history', 'detail', id] as const,
+	detailProducts: (id?: number) => ['order-account-history', 'detail-products', id] as const,
 };
 
 export function useOrderAccountHistoryListQuery(params?: OrderAccountHistoryListParams) {
@@ -33,6 +34,14 @@ export function useOrderAccountHistoryQuery(id?: number) {
 	return useQuery({
 		queryKey: orderAccountHistoryKeys.detail(id),
 		queryFn: () => orderAccountHistoryService.get(id!),
+		enabled: id !== undefined,
+	});
+}
+
+export function useOrderAccountHistoryProductsQuery(id?: number) {
+	return useQuery({
+		queryKey: orderAccountHistoryKeys.detailProducts(id),
+		queryFn: () => orderAccountHistoryService.getProducts(id!),
 		enabled: id !== undefined,
 	});
 }

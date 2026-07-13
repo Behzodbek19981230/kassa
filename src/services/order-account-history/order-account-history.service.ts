@@ -1,11 +1,18 @@
-import { apiClient } from '@/services/api/client';
+import { apiClient, API_BASE_URL } from '@/services/api/client';
 import type { PaginatedResponse } from '@/services/api/types';
 import type {
 	OrderAccountHistoryGroupedListParams,
 	OrderAccountHistoryGroupedResponse,
 	OrderAccountHistoryItem,
 	OrderAccountHistoryListParams,
+	OrderAccountHistoryProductsResponse,
 } from '@/services/order-account-history/order-account-history.types';
+
+const API_PATH_PREFIX = new URL(API_BASE_URL).pathname.replace(/\/$/, '');
+
+function toApiPath(url: string) {
+	return url.startsWith(API_PATH_PREFIX) ? url.slice(API_PATH_PREFIX.length) : url;
+}
 
 export const orderAccountHistoryService = {
 	list: async (params?: OrderAccountHistoryListParams) => {
@@ -24,12 +31,12 @@ export const orderAccountHistoryService = {
 		const { data } = await apiClient.get<OrderAccountHistoryItem>(`/order-account-history/${id}/`);
 		return data;
 	},
-	printForClient: async (id: number) => {
-		const { data } = await apiClient.get(`/order-account-history/${id}/print/`, { responseType: 'blob' });
-		return data as Blob;
+	getProducts: async (id: number) => {
+		const { data } = await apiClient.get<OrderAccountHistoryProductsResponse>(`/order-account-history/${id}/products/`);
+		return data;
 	},
-	printForWorker: async (id: number) => {
-		const { data } = await apiClient.get(`/order-account-history/${id}/print-worker/`, { responseType: 'blob' });
+	printByUrl: async (url: string) => {
+		const { data } = await apiClient.get(toApiPath(url), { responseType: 'blob' });
 		return data as Blob;
 	},
 };

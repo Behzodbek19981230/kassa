@@ -132,3 +132,98 @@ export interface OrderAccountHistoryGroupedListParams extends ListParams {
 	end_date?: string;
 	order_account_status?: boolean;
 }
+
+export interface OrderAccountHistoryProductsOrder {
+	id: number;
+	company: number;
+	client: number;
+	client_name: string;
+	client_phone: string;
+	created_by: number;
+	created_by_name: string;
+	date: string;
+	date_label: string;
+	cr_date_time: string;
+	created_time_label: string;
+	title: string;
+}
+
+export interface OrderAccountHistoryProductsReport {
+	exchange_rate: number;
+	all_product_sum: number;
+	payable_amount: number;
+	paid_amount: number;
+	all_summ_dollar: number;
+	sum_dollar: number;
+	sum_som: number;
+	sum_cart: number;
+	sum_transfers: number;
+	discount_amount: number;
+	total_debt_old: number;
+	total_debt_today: number;
+	remaining_debt: number;
+	total_debt: number;
+	zdacha_sum: number;
+	zdacha_dollar: number;
+	all_profit_dollar: number;
+}
+
+export interface OrderAccountHistoryProductItem {
+	number: number;
+	id: number;
+	warehouse: number;
+	type_sklad: number;
+	type_sklad_name: string;
+	brand: number;
+	brand_name: string;
+	product_category: number;
+	product_category_name: string;
+	size: number;
+	type: number;
+	type_name: string;
+	count: number;
+	given_count: number;
+	price: number;
+	price_total: number;
+	real_price: number;
+	real_price_total: number;
+	profit: number;
+	profit_total: number;
+	is_debtor: boolean;
+	vozvrat_order: number | null;
+	old_count: number | null;
+	vozvrat_summa: number;
+}
+
+export interface OrderAccountHistoryProductGroupTotals {
+	count: number;
+	given_count: number;
+	price_total: number;
+	real_price_total: number;
+	profit_total: number;
+}
+
+export interface OrderAccountHistoryProductGroup {
+	brand_name: string;
+	items: OrderAccountHistoryProductItem[];
+	totals: OrderAccountHistoryProductGroupTotals;
+}
+
+export interface OrderAccountHistoryProducts {
+	group_count: number;
+	groups: OrderAccountHistoryProductGroup[];
+	totals: OrderAccountHistoryProductGroupTotals;
+}
+
+export interface OrderAccountHistoryProductsActions {
+	print_worker_url: string;
+	print_sklad_url: string;
+	print_client_url: string;
+}
+
+export interface OrderAccountHistoryProductsResponse {
+	order: OrderAccountHistoryProductsOrder;
+	report: OrderAccountHistoryProductsReport;
+	products: OrderAccountHistoryProducts;
+	actions: OrderAccountHistoryProductsActions;
+}

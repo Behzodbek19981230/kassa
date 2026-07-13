@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { FaArrowLeft, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
+import { Fragment, useState } from 'react';
+import { FaArrowLeft, FaCoins, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useNotification } from '@/components/ui';
 import { formatNumber } from '@/lib/number';
-import { useOrderAccountHistoryQuery } from '@/services/order-account-history/order-account-history.queries';
+import { useOrderAccountHistoryProductsQuery } from '@/services/order-account-history/order-account-history.queries';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
+import type { OrderAccountHistoryProductItem } from '@/services/order-account-history/order-account-history.types';
+import EditGivenCountModal from '@/pages/OrderAccountHistoryDetailPage/components/EditGivenCountModal';
 
 type PrintRole = 'xodim' | 'sklad' | 'mijoz' | 'admin';
 
@@ -14,40 +16,37 @@ function openPdfBlob(blob: Blob) {
 	setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-function formatDateTime(value: string) {
-	const d = new Date(value);
-	if (Number.isNaN(d.getTime())) return value;
-	const date = d.toLocaleDateString('ru-RU');
-	const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-	return `${date} ${time}`;
-}
-
 export default function OrderAccountHistoryDetailPage() {
 	const navigate = useNavigate();
 	const { id } = useParams();
 	const orderId = id ? Number(id) : undefined;
 
-	const { data: order, isLoading, isError } = useOrderAccountHistoryQuery(orderId);
+	const { data, isLoading, isError } = useOrderAccountHistoryProductsQuery(orderId);
 	const { notify } = useNotification();
 	const [printingRole, setPrintingRole] = useState<PrintRole | null>(null);
+	const [editingItem, setEditingItem] = useState<OrderAccountHistoryProductItem | null>(null);
 
 	async function printFor(role: PrintRole) {
-		if (!orderId) return;
+		const url =
+			role === 'xodim'
+				? data?.actions.print_worker_url
+				: role === 'sklad'
+					? data?.actions.print_sklad_url
+					: role === 'mijoz'
+						? data?.actions.print_client_url
+						: undefined;
 
-		if (role !== 'mijoz' && role !== 'xodim') {
+		if (!url) {
 			notify({ title: 'Tez orada', text: 'Bu chop qilish turi hali ulanmagan.' });
 			return;
 		}
 
 		setPrintingRole(role);
 		try {
-			const blob =
-				role === 'mijoz'
-					? await orderAccountHistoryService.printForClient(orderId)
-					: await orderAccountHistoryService.printForWorker(orderId);
+			const blob = await orderAccountHistoryService.printByUrl(url);
 			openPdfBlob(blob);
 		} catch {
-			notify({ title: 'Xatolik', text: 'PDF yuklab bo\'lmadi' });
+			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
 		} finally {
 			setPrintingRole(null);
 		}
@@ -57,7 +56,7 @@ export default function OrderAccountHistoryDetailPage() {
 		return <div className='p-5 text-center text-ca-text'>Yuklanmoqda...</div>;
 	}
 
-	if (isError || !order) {
+	if (isError || !data) {
 		return (
 			<div className='flex items-center justify-center gap-2 p-5 text-ca-red'>
 				<FaExclamationTriangle /> Buyurtma topilmadi
@@ -65,20 +64,12 @@ export default function OrderAccountHistoryDetailPage() {
 		);
 	}
 
-	const exchangeRate = Number(order.exchange_rate) || 0;
-	const paidTotal =
-		(Number(order.sum_dollar) || 0) +
-		(exchangeRate > 0 ? (Number(order.sum_som) || 0) / exchangeRate : 0) +
-		(Number(order.sum_cart) || 0) +
-		(Number(order.sum_transfers) || 0);
+	const { order, report, products } = data;
 
 	return (
 		<>
 			<div className='mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[3px] bg-ca-theme px-4 py-3 text-white'>
-				<h4 className='text-sm font-normal'>
-					{order.client_detail?.fio} <span className='font-semibold'>{formatDateTime(order.created_time)}</span>{' '}
-					sanadagi buyurmalar ro'yxati
-				</h4>
+				<h4 className='text-sm font-normal'>{order.title}</h4>
 				<div className='flex flex-wrap items-center gap-2'>
 					<Button type='button' variant='info' size='xs' onClick={() => navigate(-1)}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
@@ -93,8 +84,15 @@ export default function OrderAccountHistoryDetailPage() {
 						<FaDownload className='mr-1.5' />{' '}
 						{printingRole === 'xodim' ? 'Yuklanmoqda...' : 'Chop qilish Xodim uchun'}
 					</Button>
-					<Button type='button' variant='primary' size='xs' onClick={() => printFor('sklad')}>
-						<FaDownload className='mr-1.5' /> Chop qilish Sklad uchun
+					<Button
+						type='button'
+						variant='primary'
+						size='xs'
+						disabled={printingRole === 'sklad'}
+						onClick={() => printFor('sklad')}
+					>
+						<FaDownload className='mr-1.5' />{' '}
+						{printingRole === 'sklad' ? 'Yuklanmoqda...' : 'Chop qilish Sklad uchun'}
 					</Button>
 					<Button
 						type='button'
@@ -118,45 +116,45 @@ export default function OrderAccountHistoryDetailPage() {
 				<div className='-mx-2.5 flex flex-wrap gap-y-3 text-xs'>
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-orange'>Dollar kursi:</span>{' '}
-						<span className='font-bold text-ca-orange'>{formatNumber(order.exchange_rate)}</span>
+						<span className='font-bold text-ca-orange'>{formatNumber(report.exchange_rate)}</span>
 					</div>
 					<div className='w-full px-2.5 sm:w-1/2' />
 
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-orange'>Jami to'lanadigan summa ($):</span>{' '}
-						<span className='font-bold text-ca-orange'>{formatNumber(order.all_summ_dollar, 2)} $</span>
+						<span className='font-bold text-ca-orange'>{formatNumber(report.payable_amount, 2)} $</span>
 					</div>
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-heading'>To'langan summa dollarda ($):</span>{' '}
-						<span className='font-bold text-ca-heading'>{formatNumber(order.sum_dollar, 2)} $</span>
+						<span className='font-bold text-ca-heading'>{formatNumber(report.sum_dollar, 2)} $</span>
 					</div>
 
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-orange'>To'langan summa ($):</span>{' '}
-						<span className='font-bold text-ca-orange'>{formatNumber(paidTotal, 2)} $</span>
+						<span className='font-bold text-ca-orange'>{formatNumber(report.paid_amount, 2)} $</span>
 					</div>
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-heading'>To'langan summa so'mda:</span>{' '}
-						<span className='font-bold text-ca-heading'>{formatNumber(order.sum_som)}</span>
+						<span className='font-bold text-ca-heading'>{formatNumber(report.sum_som)}</span>
 					</div>
 
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-orange'>Chegirma ($):</span>{' '}
-						<span className='font-bold text-ca-orange'>{formatNumber(order.discount_amount, 2)} $</span>
+						<span className='font-bold text-ca-orange'>{formatNumber(report.discount_amount, 2)} $</span>
 					</div>
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-heading'>To'langan summa kartada:</span>{' '}
-						<span className='font-bold text-ca-heading'>{formatNumber(order.sum_cart, 2)}</span>
+						<span className='font-bold text-ca-heading'>{formatNumber(report.sum_cart, 2)}</span>
 					</div>
 
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-orange'>Qolgan qarz ($):</span>{' '}
-						<span className='font-bold text-ca-orange'>{formatNumber(order.total_debt, 2)} $</span>
+						<span className='font-bold text-ca-orange'>{formatNumber(report.total_debt, 2)} $</span>
 					</div>
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-heading'>Qaytim:</span>{' '}
 						<span className='font-bold text-ca-heading'>
-							{formatNumber(order.zdacha_sum)} ({formatNumber(order.zdacha_dollar, 2)} $)
+							{formatNumber(report.zdacha_sum)} ({formatNumber(report.zdacha_dollar, 2)} $)
 						</span>
 					</div>
 				</div>
@@ -170,7 +168,6 @@ export default function OrderAccountHistoryDetailPage() {
 							<TableHead className='bg-ca-theme text-white'>Joyi</TableHead>
 							<TableHead className='bg-ca-theme text-white'>Model</TableHead>
 							<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Holati</TableHead>
 							<TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>
 							<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
 							<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
@@ -181,28 +178,95 @@ export default function OrderAccountHistoryDetailPage() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						<TableRow>
-							<TableCell colSpan={12} className='text-center text-ca-text'>
-								Mahsulotlar ro'yxati hali ulanmagan
-							</TableCell>
-						</TableRow>
+						{products.groups.length === 0 ? (
+							<TableRow>
+								<TableCell colSpan={11} className='text-center text-ca-text'>
+									Mahsulotlar topilmadi
+								</TableCell>
+							</TableRow>
+						) : (
+							products.groups.map((group) => (
+								<Fragment key={group.brand_name}>
+									<TableRow>
+										<TableCell colSpan={11} className='bg-ca-aqua/15 font-semibold text-ca-aqua'>
+											{group.brand_name}
+										</TableCell>
+									</TableRow>
+									{group.items.map((item, index) => (
+										<TableRow key={item.id}>
+											<TableCell>{index + 1}.</TableCell>
+											<TableCell>{item.type_sklad_name}</TableCell>
+											<TableCell>{item.brand_name}</TableCell>
+											<TableCell>{item.product_category_name}</TableCell>
+											<TableCell>{item.size}</TableCell>
+											<TableCell>{item.type_name}</TableCell>
+											<TableCell>{item.count}</TableCell>
+											<TableCell>
+												<button
+													type='button'
+													className='inline-flex items-center gap-1.5 font-semibold text-ca-green hover:underline'
+													onClick={() => setEditingItem(item)}
+												>
+													{item.given_count} <FaCoins className='text-ca-orange' />
+												</button>
+											</TableCell>
+											<TableCell>{formatNumber(item.price)}</TableCell>
+											<TableCell>{formatNumber(item.real_price)}</TableCell>
+											<TableCell
+												className={`font-semibold ${item.profit < 0 ? 'text-ca-red' : 'text-ca-green'}`}
+											>
+												{formatNumber(item.profit)}
+											</TableCell>
+										</TableRow>
+									))}
+									<TableRow className='bg-ca-silver'>
+										<TableCell colSpan={6} className='font-semibold text-ca-heading'>
+											Jami:
+										</TableCell>
+										<TableCell className='font-semibold text-ca-heading'>{group.totals.count}</TableCell>
+										<TableCell className='font-semibold text-ca-heading'>{group.totals.given_count}</TableCell>
+										<TableCell className='font-semibold text-ca-heading'>
+											{formatNumber(group.totals.price_total)}
+										</TableCell>
+										<TableCell className='font-semibold text-ca-heading'>
+											{formatNumber(group.totals.real_price_total)}
+										</TableCell>
+										<TableCell className='font-semibold text-ca-heading'>
+											{formatNumber(group.totals.profit_total)}
+										</TableCell>
+									</TableRow>
+								</Fragment>
+							))
+						)}
 						<TableRow className='bg-ca-heading'>
-							<TableCell className='bg-ca-heading text-white' colSpan={9}>
-								Jami
+							<TableCell className='bg-ca-heading text-white' colSpan={6}>
+								Jami:
+							</TableCell>
+							<TableCell className='bg-ca-heading font-semibold text-white'>{products.totals.count}</TableCell>
+							<TableCell className='bg-ca-heading font-semibold text-white'>
+								{products.totals.given_count}
 							</TableCell>
 							<TableCell className='bg-ca-heading font-semibold text-white'>
-								{formatNumber(order.all_summ_dollar, 2)}
+								{formatNumber(products.totals.price_total)}
 							</TableCell>
 							<TableCell className='bg-ca-heading font-semibold text-white'>
-								{formatNumber(order.all_product_sum, 2)}
+								{formatNumber(products.totals.real_price_total)}
 							</TableCell>
 							<TableCell className='bg-ca-heading font-semibold text-white'>
-								{formatNumber(order.all_profit_dollar, 2)}
+								{formatNumber(products.totals.profit_total)}
 							</TableCell>
 						</TableRow>
 					</TableBody>
 				</Table>
 			</div>
+
+			<EditGivenCountModal
+				open={editingItem !== null}
+				setOpen={(open) => {
+					if (!open) setEditingItem(null);
+				}}
+				item={editingItem}
+			/>
 		</>
 	);
 }
