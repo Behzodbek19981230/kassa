@@ -1,6 +1,8 @@
 import { apiClient } from '@/services/api/client';
 import type { PaginatedResponse } from '@/services/api/types';
 import type {
+	OrderAccountHistoryGroupedListParams,
+	OrderAccountHistoryGroupedResponse,
 	OrderAccountHistoryItem,
 	OrderAccountHistoryListParams,
 } from '@/services/order-account-history/order-account-history.types';
@@ -8,6 +10,12 @@ import type {
 export const orderAccountHistoryService = {
 	list: async (params?: OrderAccountHistoryListParams) => {
 		const { data } = await apiClient.get<PaginatedResponse<OrderAccountHistoryItem>>('/order-account-history/', {
+			params,
+		});
+		return data;
+	},
+	listGrouped: async (params?: OrderAccountHistoryGroupedListParams) => {
+		const { data } = await apiClient.get<OrderAccountHistoryGroupedResponse>('/order-account-history/grouped/', {
 			params,
 		});
 		return data;

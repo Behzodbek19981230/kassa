@@ -1,4 +1,4 @@
-import type { ListParams } from '@/services/api/types';
+import type { ListParams, PaginationMeta } from '@/services/api/types';
 
 export interface OrderAccountHistoryCompanyDetail {
 	id: number;
@@ -89,4 +89,46 @@ export interface OrderAccountHistoryListParams extends ListParams {
 	created_by?: number;
 	is_vozvrat?: boolean;
 	date?: string;
+}
+
+export interface OrderAccountHistoryGroup {
+	date: string;
+	date_label: string;
+	count: number;
+	totals: Record<string, unknown>;
+	items: OrderAccountHistoryItem[];
+}
+
+export interface OrderAccountHistoryGroupedResults {
+	group_count: number;
+	groups: OrderAccountHistoryGroup[];
+}
+
+export interface OrderAccountHistoryGroupedFilters {
+	date: string | null;
+	start_date: string | null;
+	end_date: string | null;
+	client: number | null;
+	created_by: number | null;
+	is_vozvrat: boolean | null;
+	company: number | null;
+	search: string | null;
+	order_account_status: boolean | null;
+}
+
+export interface OrderAccountHistoryGroupedResponse {
+	pagination: PaginationMeta;
+	results: OrderAccountHistoryGroupedResults;
+	filters: OrderAccountHistoryGroupedFilters;
+}
+
+export interface OrderAccountHistoryGroupedListParams extends ListParams {
+	company?: number;
+	client?: number;
+	created_by?: number;
+	is_vozvrat?: boolean;
+	date?: string;
+	start_date?: string;
+	end_date?: string;
+	order_account_status?: boolean;
 }
