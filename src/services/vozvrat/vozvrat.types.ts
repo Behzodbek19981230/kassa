@@ -211,6 +211,20 @@ export interface VozvratOrderListParams extends ListParams {
 	date?: string;
 }
 
+export interface VozvratOrderUpdatePayload {
+	company: number;
+	client: number;
+	date: string;
+	exchange_rate: string | number;
+	discount_amount: string | number;
+	sum_dollar: string | number;
+	sum_som: string | number;
+	sum_cart: string | number;
+	all_summ_dollar: string | number;
+	comment?: string;
+	confirmation: boolean;
+}
+
 export interface VozvratOrderProductsOrder {
 	id: number;
 	company: number;

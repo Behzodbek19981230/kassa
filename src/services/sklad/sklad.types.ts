@@ -60,6 +60,19 @@ export interface SkladListParams extends ListParams {
 	import_product_status?: boolean;
 }
 
+export interface SkladUpdatePayload {
+	cr_date: string;
+	exchange_rate: number;
+	sum_dollar: number;
+	sum_som: number;
+	discount_amount: number;
+	given_sum_dollar: number;
+	car_number?: string;
+	comment?: string;
+	company: number;
+	consignor_ref: number;
+}
+
 export interface SkladViewSklad {
 	id: number;
 	company: number;

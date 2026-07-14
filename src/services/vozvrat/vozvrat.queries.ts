@@ -4,6 +4,7 @@ import type {
 	VozvratCalculatePayload,
 	VozvratConfirmPayload,
 	VozvratOrderListParams,
+	VozvratOrderUpdatePayload,
 	VozvratProductsParams,
 } from '@/services/vozvrat/vozvrat.types';
 
@@ -55,5 +56,22 @@ export function useVozvratConfirmMutation() {
 			queryClient.invalidateQueries({ queryKey: ['clients'] });
 			queryClient.invalidateQueries({ queryKey: ['order-account-history'] });
 		},
+	});
+}
+
+export function useUpdateVozvratOrderMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }: { id: number; payload: VozvratOrderUpdatePayload }) =>
+			vozvratService.update(id, payload),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vozvrat'] }),
+	});
+}
+
+export function useDeleteVozvratOrderMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: number) => vozvratService.remove(id),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vozvrat'] }),
 	});
 }

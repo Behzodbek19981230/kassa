@@ -8,6 +8,7 @@ import type {
 	VozvratOrderListItem,
 	VozvratOrderListParams,
 	VozvratOrderProductsResponse,
+	VozvratOrderUpdatePayload,
 	VozvratProductsParams,
 	VozvratProductsResponse,
 } from '@/services/vozvrat/vozvrat.types';
@@ -44,5 +45,12 @@ export const vozvratService = {
 	printForAdmin: async (id: number) => {
 		const { data } = await apiClient.get(`/vozvrat-order/${id}/print/`, { responseType: 'blob' });
 		return data as Blob;
+	},
+	update: async (id: number, payload: VozvratOrderUpdatePayload) => {
+		const { data } = await apiClient.put<VozvratOrderListItem>(`/vozvrat-order/${id}/`, payload);
+		return data;
+	},
+	remove: async (id: number) => {
+		await apiClient.delete(`/vozvrat-order/${id}/`);
 	},
 };

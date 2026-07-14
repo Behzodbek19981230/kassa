@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaExclamationTriangle, FaExpand } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaExpand, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
 	Button,
@@ -15,6 +15,7 @@ import { clientService } from '@/services/client/client.service';
 import { useVozvratOrderListQuery } from '@/services/vozvrat/vozvrat.queries';
 import type { VozvratOrderListItem } from '@/services/vozvrat/vozvrat.types';
 import { userService } from '@/services/user/user.service';
+import DeleteVozvratOrderModal from '@/pages/VozvratOrderHistoryPage/components/DeleteVozvratOrderModal';
 
 const columnHelper = createColumnHelper<VozvratOrderListItem>();
 
@@ -25,6 +26,7 @@ export default function VozvratOrderHistoryPage() {
 	const navigate = useNavigate();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+	const [deletingItem, setDeletingItem] = useState<VozvratOrderListItem | null>(null);
 
 	const clientFilter = columnFilters.find((f) => f.id === 'client')?.value as string | undefined;
 	const createdByFilter = columnFilters.find((f) => f.id === 'created_by')?.value as string | undefined;
@@ -113,7 +115,16 @@ export default function VozvratOrderHistoryPage() {
 			meta: { align: 'right' },
 			enableColumnFilter: false,
 			cell: ({ row }) => (
-				<div className='flex justify-end'>
+				<div className='flex justify-end gap-1'>
+					<Button
+						type='button'
+						variant='warning'
+						size='icon'
+						aria-label='Tahrirlash'
+						onClick={() => navigate(`/vozvrat-order-history/${row.original.id}/edit`)}
+					>
+						<FaEdit />
+					</Button>
 					<Button
 						type='button'
 						variant='info'
@@ -122,6 +133,15 @@ export default function VozvratOrderHistoryPage() {
 						onClick={() => navigate(`/vozvrat-order-history/${row.original.id}`)}
 					>
 						<FaExpand />
+					</Button>
+					<Button
+						type='button'
+						variant='danger'
+						size='icon'
+						aria-label="O'chirish"
+						onClick={() => setDeletingItem(row.original)}
+					>
+						<FaTrash />
 					</Button>
 				</div>
 			),
@@ -164,6 +184,14 @@ export default function VozvratOrderHistoryPage() {
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>
+
+			{deletingItem && (
+				<DeleteVozvratOrderModal
+					open={Boolean(deletingItem)}
+					setOpen={(open) => !open && setDeletingItem(null)}
+					item={deletingItem}
+				/>
+			)}
 		</>
 	);
 }

@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { skladService } from '@/services/sklad/sklad.service';
-import type { SkladListParams, SkladViewParams } from '@/services/sklad/sklad.types';
+import type { SkladListParams, SkladUpdatePayload, SkladViewParams } from '@/services/sklad/sklad.types';
 
 const skladKeys = {
 	all: ['sklad'] as const,
@@ -21,5 +21,13 @@ export function useSkladViewQuery(id?: number, params?: SkladViewParams) {
 		queryKey: skladKeys.view(id, params),
 		queryFn: () => skladService.getView(id!, params),
 		enabled: id !== undefined,
+	});
+}
+
+export function useUpdateSkladMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }: { id: number; payload: SkladUpdatePayload }) => skladService.update(id, payload),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: skladKeys.all }),
 	});
 }

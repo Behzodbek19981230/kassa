@@ -198,7 +198,13 @@ export default function WarehouseAccountPage() {
 							<FaCheckSquare />
 						</Button>
 					)}
-					<Button type='button' variant='warning' size='icon' aria-label='Tahrirlash' onClick={stub}>
+					<Button
+						type='button'
+						variant='warning'
+						size='icon'
+						aria-label='Tahrirlash'
+						onClick={() => navigate(`/warehouse-report/${row.original.id}/edit`)}
+					>
 						<FaEdit />
 					</Button>
 					<Button

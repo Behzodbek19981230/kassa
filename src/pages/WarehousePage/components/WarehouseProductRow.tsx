@@ -21,6 +21,7 @@ export interface WarehouseRowValue {
 	type: number | null;
 	type_sklad: string;
 	price: string;
+	count?: number | null;
 }
 
 export const emptyWarehouseRow = (): WarehouseRowValue => ({
@@ -32,6 +33,7 @@ export const emptyWarehouseRow = (): WarehouseRowValue => ({
 	type: null,
 	type_sklad: '',
 	price: '',
+	count: null,
 });
 
 interface WarehouseProductRowProps {
@@ -45,6 +47,8 @@ interface WarehouseProductRowProps {
 	companyId?: number;
 	excludeId?: number;
 	onDuplicateChange?: (key: string | number, isDuplicate: boolean) => void;
+	/** Shows an editable "Soni" (count) field — used by the sklad batch edit form, not the price catalog form. */
+	showCount?: boolean;
 }
 
 export default function WarehouseProductRow({
@@ -58,6 +62,7 @@ export default function WarehouseProductRow({
 	companyId,
 	excludeId,
 	onDuplicateChange,
+	showCount,
 }: WarehouseProductRowProps) {
 	const { data: brandData } = useBrandListQuery({ limit: 100 });
 	const brandNameById = new Map((brandData?.results ?? []).map((b) => [b.id, b.name]));
@@ -159,7 +164,9 @@ export default function WarehouseProductRow({
 		<div className='mb-3'>
 			<div className='flex flex-wrap items-start gap-3'>
 				<div className='min-w-37.5 flex-1'>
-					<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sklad</label>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+						Sklad <span className='text-ca-red'>*</span>
+					</label>
 					<Combobox
 						value={value.type_sklad}
 						onChange={(type_sklad) => onChange({ ...value, type_sklad })}
@@ -171,7 +178,9 @@ export default function WarehouseProductRow({
 					/>
 				</div>
 				<div className='min-w-45 flex-1'>
-					<label className='mb-1 block text-xs font-semibold text-ca-heading'>Model</label>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+						Model <span className='text-ca-red'>*</span>
+					</label>
 					<Combobox
 						value={value.brand}
 						onChange={handleBrandChange}
@@ -182,7 +191,9 @@ export default function WarehouseProductRow({
 					/>
 				</div>
 				<div className='min-w-45 flex-1'>
-					<label className='mb-1 block text-xs font-semibold text-ca-heading'>Nomi</label>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+						Nomi <span className='text-ca-red'>*</span>
+					</label>
 					<Combobox
 						value={value.product_category}
 						onChange={handleCategoryChange}
@@ -194,7 +205,9 @@ export default function WarehouseProductRow({
 					/>
 				</div>
 				<div className='min-w-37.5 flex-1'>
-					<label className='mb-1 block text-xs font-semibold text-ca-heading'>O'lchami</label>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+						O'lchami <span className='text-ca-red'>*</span>
+					</label>
 					<Combobox
 						value={value.brandSize}
 						onChange={handleBrandSizeChange}
@@ -217,8 +230,21 @@ export default function WarehouseProductRow({
 					/>
 				</div>
 
+				{showCount && (
+					<div className='min-w-25 flex-1'>
+						<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+							Soni <span className='text-ca-red'>*</span>
+						</label>
+						<PriceInput
+							value={value.count ?? ''}
+							onChange={(count) => onChange({ ...value, count: count ? Number(count) : null })}
+						/>
+					</div>
+				)}
 				<div className='min-w-37.5 flex-1'>
-					<label className='mb-1 block text-xs font-semibold text-ca-heading'>Narxi</label>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+						Narxi <span className='text-ca-red'>*</span>
+					</label>
 					<PriceInput value={value.price} onChange={(price) => onChange({ ...value, price })} />
 					{error && <p className='mt-1 text-[11px] text-ca-red'>{error}</p>}
 				</div>
