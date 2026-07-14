@@ -3,11 +3,13 @@ import { FaPlus, FaTrash } from 'react-icons/fa';
 import { Button, Combobox, type ComboboxLoadParams, type ComboboxLoadResult, PriceInput } from '@/components/ui';
 import { formatNumber } from '@/lib/number';
 import { generateId } from '@/lib/utils';
+import { useBrandListQuery } from '@/services/brand/brand.queries';
 import { brandService } from '@/services/brand/brand.service';
+import { useProductCategoryListQuery } from '@/services/product-category/product-category.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useVozvratProductsQuery } from '@/services/vozvrat/vozvrat.queries';
 import type { VozvratProductItem } from '@/services/vozvrat/vozvrat.types';
-import { groupIntoVariants, type VozvratVariant } from '@/pages/VozvratPage/utils';
+import { buildVariant, groupIntoVariants, type VozvratVariant } from '@/pages/VozvratPage/utils';
 
 export interface VozvratRowValue {
 	key: number | string;
@@ -39,6 +41,12 @@ interface VozvratProductRowProps {
 	onRemove?: () => void;
 	clientId: number;
 	onResolve?: (key: string | number, row: VozvratProductItem | undefined) => void;
+	/**
+	 * The order's own current product data for this row. The "available to return" list only
+	 * contains stock the client hasn't returned yet, so a product this same order already fully
+	 * returned won't appear there — this fills the gap so the row still shows its own variant/location.
+	 */
+	fallback?: VozvratProductItem;
 }
 
 export default function VozvratProductRow({
@@ -51,9 +59,16 @@ export default function VozvratProductRow({
 	onRemove,
 	clientId,
 	onResolve,
+	fallback,
 }: VozvratProductRowProps) {
 	const brandId = value.brand ? Number(value.brand) : undefined;
 	const categoryId = value.product_category ? Number(value.product_category) : undefined;
+
+	const { data: brandData } = useBrandListQuery({ limit: 100 });
+	const brandNameById = new Map((brandData?.results ?? []).map((b) => [b.id, b.name]));
+
+	const { data: categoryData } = useProductCategoryListQuery({ brand: brandId, limit: 100 });
+	const categoryNameById = new Map((categoryData?.results ?? []).map((c) => [c.id, c.name]));
 
 	const { data: productsData } = useVozvratProductsQuery(
 		brandId && categoryId
@@ -61,10 +76,15 @@ export default function VozvratProductRow({
 			: undefined,
 	);
 
-	const variants: VozvratVariant[] = useMemo(
-		() => groupIntoVariants((productsData?.groups ?? []).flatMap((g) => g.items)),
-		[productsData],
-	);
+	const variants: VozvratVariant[] = useMemo(() => {
+		const live = groupIntoVariants((productsData?.groups ?? []).flatMap((g) => g.items));
+		if (!fallback || String(fallback.brand) !== value.brand || String(fallback.product_category) !== value.product_category) {
+			return live;
+		}
+		const fallbackKey = `${fallback.brand}-${fallback.product_category}-${fallback.size}-${fallback.type}`;
+		if (live.some((v) => v.key === fallbackKey)) return live;
+		return [...live, buildVariant([fallback])];
+	}, [productsData, fallback, value.brand, value.product_category]);
 	const selectedVariant = variants.find((v) => v.key === value.variantKey);
 
 	const locationOptions = useMemo(() => {
@@ -129,6 +149,7 @@ export default function VozvratProductRow({
 						value={value.brand}
 						onChange={handleBrandChange}
 						loadOptions={loadBrandOptions}
+						selectedLabel={brandNameById.get(Number(value.brand))}
 						placeholder='Tanlang...'
 						searchPlaceholder='Model qidirish...'
 					/>
@@ -141,6 +162,7 @@ export default function VozvratProductRow({
 						value={value.product_category}
 						onChange={handleCategoryChange}
 						loadOptions={loadCategoryOptions}
+						selectedLabel={categoryNameById.get(Number(value.product_category))}
 						placeholder='Tanlang...'
 						searchPlaceholder='Nomi qidirish...'
 						disabled={!value.brand}

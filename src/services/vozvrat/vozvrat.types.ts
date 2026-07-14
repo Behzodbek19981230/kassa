@@ -225,6 +225,60 @@ export interface VozvratOrderUpdatePayload {
 	confirmation: boolean;
 }
 
+export interface VozvratUpdateVozvratItemPayload {
+	warehouse: number;
+	brand: number;
+	product_category: number;
+	size: number | string;
+	type: number;
+	type_sklad: number;
+	count: number;
+	price: string | number;
+}
+
+export interface VozvratUpdateVozvratPayload {
+	date: string;
+	all_summ_dollar: string | number;
+	sum_dollar: string | number;
+	sum_som: string | number;
+	sum_cart: string | number;
+	confirmation: boolean;
+	comment?: string;
+	items: VozvratUpdateVozvratItemPayload[];
+}
+
+export interface VozvratUpdateVozvratOrder {
+	id: number;
+	client: number;
+	date: string;
+	product_summ_dollar: string;
+	all_summ_dollar: string;
+	sum_dollar: string;
+	sum_som: string;
+	sum_cart: string;
+	total_debt: string;
+	confirmation: boolean;
+	large_price: number;
+	update_status: number;
+	comment: string;
+}
+
+export interface VozvratUpdateVozvratSummary {
+	total_product_sum: string;
+	returned_amount: string;
+	client_total_debt: string;
+	count: number;
+	line_count: number;
+	large_price: number;
+}
+
+export interface VozvratUpdateVozvratResponse {
+	success: boolean;
+	message: string;
+	vozvrat_order: VozvratUpdateVozvratOrder;
+	summary: VozvratUpdateVozvratSummary;
+}
+
 export interface VozvratOrderProductsOrder {
 	id: number;
 	company: number;

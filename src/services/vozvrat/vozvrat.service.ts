@@ -11,6 +11,8 @@ import type {
 	VozvratOrderUpdatePayload,
 	VozvratProductsParams,
 	VozvratProductsResponse,
+	VozvratUpdateVozvratPayload,
+	VozvratUpdateVozvratResponse,
 } from '@/services/vozvrat/vozvrat.types';
 
 export const vozvratService = {
@@ -48,6 +50,13 @@ export const vozvratService = {
 	},
 	update: async (id: number, payload: VozvratOrderUpdatePayload) => {
 		const { data } = await apiClient.put<VozvratOrderListItem>(`/vozvrat-order/${id}/`, payload);
+		return data;
+	},
+	updateVozvrat: async (id: number, payload: VozvratUpdateVozvratPayload) => {
+		const { data } = await apiClient.patch<VozvratUpdateVozvratResponse>(
+			`/vozvrat-order/${id}/update-vozvrat/`,
+			payload,
+		);
 		return data;
 	},
 	remove: async (id: number) => {

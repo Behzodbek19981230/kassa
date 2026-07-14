@@ -21,22 +21,14 @@ import VozvratProductRow, {
 	type VozvratRowValue,
 } from '@/pages/VozvratOrderHistoryEditPage/components/VozvratProductRow';
 import {
-	useUpdateVozvratOrderMutation,
+	useUpdateVozvratSaleMutation,
 	useVozvratOrderProductsQuery,
 	useVozvratOrderQuery,
 } from '@/services/vozvrat/vozvrat.queries';
-import {
-	useCreateVozvratOrderProductMutation,
-	useDeleteVozvratOrderProductMutation,
-	useUpdateVozvratOrderProductMutation,
-} from '@/services/vozvrat-order-product/vozvrat-order-product.queries';
-import type { VozvratOrderProductCreatePayload } from '@/services/vozvrat-order-product/vozvrat-order-product.types';
-import type { VozvratProductItem } from '@/services/vozvrat/vozvrat.types';
+import type { VozvratProductItem, VozvratUpdateVozvratItemPayload } from '@/services/vozvrat/vozvrat.types';
 
 const editVozvratFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
-	exchange_rate: z.string().min(1, 'Dollar kursini kiriting'),
-	discount_amount: z.string().optional(),
 	sum_dollar: z.string().optional(),
 	sum_som: z.string().optional(),
 	sum_cart: z.string().optional(),
@@ -46,9 +38,7 @@ const editVozvratFormSchema = z.object({
 
 type EditVozvratFormValues = z.infer<typeof editVozvratFormSchema>;
 
-interface EditableVozvratRow extends VozvratRowValue {
-	productId?: number;
-}
+type EditableVozvratRow = VozvratRowValue;
 
 export default function VozvratOrderHistoryEditPage() {
 	const navigate = useNavigate();
@@ -61,26 +51,46 @@ export default function VozvratOrderHistoryEditPage() {
 	const { data: productsData } = useVozvratOrderProductsQuery(vozvratId);
 
 	const [rows, setRows] = useState<EditableVozvratRow[]>([]);
-	const [removedProductIds, setRemovedProductIds] = useState<number[]>([]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
 	const [resolvedByKey, setResolvedByKey] = useState<Record<string | number, VozvratProductItem | undefined>>({});
+	const [fallbackByKey, setFallbackByKey] = useState<Record<string | number, VozvratProductItem>>({});
 
 	useEffect(() => {
 		if (!productsData) return;
 		const items = productsData.products.groups.flatMap((g) => g.items);
+		const fallbacks: Record<string | number, VozvratProductItem> = {};
 		setRows(
-			items.map((productItem) => ({
-				key: generateId(),
-				productId: productItem.id,
-				brand: String(productItem.brand),
-				product_category: String(productItem.product_category),
-				variantKey: `${productItem.brand}-${productItem.product_category}-${productItem.size}-${productItem.type}`,
-				locationKey: String(productItem.type_sklad),
-				count: productItem.count,
-				price: String(productItem.price),
-			})),
+			items.map((productItem) => {
+				const key = generateId();
+				fallbacks[key] = {
+					warehouse: productItem.warehouse,
+					brand: productItem.brand,
+					brand_name: productItem.brand_name,
+					product_category: productItem.product_category,
+					product_category_name: productItem.product_category_name,
+					size: Number(productItem.size),
+					type: productItem.type,
+					type_name: productItem.type_name,
+					type_sklad: productItem.type_sklad,
+					type_sklad_name: productItem.type_sklad_name,
+					order_date: '',
+					order_date_label: '',
+					remaining_count: productItem.count,
+					price_dollar: Number(productItem.price),
+					price_som: Number(productItem.price_som),
+				};
+				return {
+					key,
+					brand: String(productItem.brand),
+					product_category: String(productItem.product_category),
+					variantKey: `${productItem.brand}-${productItem.product_category}-${productItem.size}-${productItem.type}`,
+					locationKey: String(productItem.type_sklad),
+					count: productItem.count,
+					price: String(productItem.price),
+				};
+			}),
 		);
-		setRemovedProductIds([]);
+		setFallbackByKey(fallbacks);
 	}, [productsData]);
 
 	const updateRow = (index: number, next: EditableVozvratRow) => {
@@ -88,10 +98,6 @@ export default function VozvratOrderHistoryEditPage() {
 	};
 	const addRow = () => setRows((prev) => [...prev, emptyVozvratRow()]);
 	const removeRow = (index: number) => {
-		const row = rows[index];
-		if (row?.productId) {
-			setRemovedProductIds((prev) => [...prev, row.productId!]);
-		}
 		setRows((prev) => prev.filter((_, i) => i !== index));
 	};
 
@@ -112,8 +118,6 @@ export default function VozvratOrderHistoryEditPage() {
 		values: item
 			? {
 					date: item.date,
-					exchange_rate: String(item.exchange_rate),
-					discount_amount: String(item.discount_amount ?? 0),
 					sum_dollar: String(item.sum_dollar),
 					sum_som: String(item.sum_som),
 					sum_cart: String(item.sum_cart),
@@ -123,15 +127,8 @@ export default function VozvratOrderHistoryEditPage() {
 			: undefined,
 	});
 
-	const updateMutation = useUpdateVozvratOrderMutation();
-	const createProductMutation = useCreateVozvratOrderProductMutation();
-	const updateProductMutation = useUpdateVozvratOrderProductMutation();
-	const deleteProductMutation = useDeleteVozvratOrderProductMutation();
-	const isSaving =
-		updateMutation.isPending ||
-		createProductMutation.isPending ||
-		updateProductMutation.isPending ||
-		deleteProductMutation.isPending;
+	const updateVozvratMutation = useUpdateVozvratSaleMutation();
+	const isSaving = updateVozvratMutation.isPending;
 
 	const onSubmit = handleSubmit(async (values) => {
 		if (!item) return;
@@ -152,42 +149,34 @@ export default function VozvratOrderHistoryEditPage() {
 		}
 		setRowErrors({});
 
+		const items: VozvratUpdateVozvratItemPayload[] = rows.map((row) => {
+			const resolved = resolvedByKey[row.key]!;
+			return {
+				warehouse: resolved.warehouse,
+				brand: resolved.brand,
+				product_category: resolved.product_category,
+				size: resolved.size,
+				type: resolved.type,
+				type_sklad: resolved.type_sklad,
+				count: row.count ?? 0,
+				price: row.price,
+			};
+		});
+
 		try {
-			await updateMutation.mutateAsync({
+			await updateVozvratMutation.mutateAsync({
 				id: item.id,
 				payload: {
-					company: item.company,
-					client: item.client,
 					date: values.date,
-					exchange_rate: values.exchange_rate,
-					discount_amount: values.discount_amount || '0',
 					all_summ_dollar: item.all_summ_dollar,
 					sum_dollar: values.sum_dollar || '0',
 					sum_som: values.sum_som || '0',
 					sum_cart: values.sum_cart || '0',
 					comment: values.comment?.trim(),
 					confirmation: values.confirmation,
+					items,
 				},
 			});
-
-			for (const row of rows) {
-				const resolved = resolvedByKey[row.key]!;
-				const payload: VozvratOrderProductCreatePayload = {
-					vozvrat_order: item.id,
-					warehouse: resolved.warehouse,
-					count: row.count ?? 0,
-					price: row.price,
-				};
-				if (row.productId) {
-					await updateProductMutation.mutateAsync({ id: row.productId, payload });
-				} else {
-					await createProductMutation.mutateAsync(payload);
-				}
-			}
-
-			for (const productId of removedProductIds) {
-				await deleteProductMutation.mutateAsync(productId);
-			}
 
 			notify({ title: 'Vozvrat buyurtma yangilandi' });
 			navigate(-1);
@@ -242,18 +231,8 @@ export default function VozvratOrderHistoryEditPage() {
 								render={({ field }) => <DatePicker value={field.value} onChange={field.onChange} />}
 							/>
 						</FormField>
-						<FormField
-							label='Dollar kursi'
-							error={errors.exchange_rate?.message}
-							required
-							horizontal={false}
-							className='mb-0'
-						>
-							<Controller
-								name='exchange_rate'
-								control={control}
-								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
-							/>
+						<FormField label='Dollar kursi' horizontal={false} className='mb-0'>
+							<PriceInput value={formatNumber(item.exchange_rate)} disabled />
 						</FormField>
 					</div>
 				</div>
@@ -271,6 +250,7 @@ export default function VozvratOrderHistoryEditPage() {
 							onRemove={() => removeRow(index)}
 							clientId={item.client}
 							onResolve={handleResolve}
+							fallback={fallbackByKey[row.key]}
 						/>
 					))}
 					{rows.length === 0 && (
@@ -289,11 +269,7 @@ export default function VozvratOrderHistoryEditPage() {
 							<PriceInput value={formatNumber(item.all_summ_dollar, 2)} disabled />
 						</FormField>
 						<FormField label='Jami chegirma ($)' horizontal={false} className='mb-0'>
-							<Controller
-								name='discount_amount'
-								control={control}
-								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
-							/>
+							<PriceInput value={formatNumber(item.discount_amount ?? 0)} disabled />
 						</FormField>
 						<FormField label='Summa dollarda ($)' horizontal={false} className='mb-0'>
 							<Controller
