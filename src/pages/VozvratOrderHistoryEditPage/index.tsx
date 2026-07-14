@@ -101,6 +101,8 @@ export default function VozvratOrderHistoryEditPage() {
 		setRows((prev) => prev.filter((_, i) => i !== index));
 	};
 
+	const rowsTotal = rows.reduce((sum, row) => sum + (Number(row.count) || 0) * (Number(row.price) || 0), 0);
+
 	function handleResolve(key: string | number, row: VozvratProductItem | undefined) {
 		setResolvedByKey((prev) => {
 			if (prev[key] === row) return prev;
@@ -257,6 +259,16 @@ export default function VozvratOrderHistoryEditPage() {
 						<Button type='button' variant='success' size='sm' onClick={addRow}>
 							Mahsulot qo'shish
 						</Button>
+					)}
+					{rows.length > 0 && (
+						<div className='mt-4 flex justify-end border-t border-ca-border pt-3'>
+							<p className='text-sm text-ca-text'>
+								Mahsulotlar summasi:{' '}
+								<span className='text-base font-semibold text-ca-heading'>
+									{formatNumber(rowsTotal, 2)} $
+								</span>
+							</p>
+						</div>
 					)}
 				</div>
 
