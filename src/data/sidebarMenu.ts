@@ -11,7 +11,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 	{ id: 'goods-prices', icon: 'tags', label: 'Tovarlar va Narxlar', path: '/warehouse-prices' },
 	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '/import' },
 	{ id: 'warehouse-report', icon: 'warehouse', label: 'Omborxona hisobi', path: '/warehouse-report' },
-	{ id: 'my-debts', icon: 'bookmark', label: 'Mening qarzlarim', path: '#' },
+	{ id: 'my-debts', icon: 'bookmark', label: 'Mening qarzlarim', path: '/my-debts' },
 	{
 		id: 'system-management',
 		icon: 'cogs',

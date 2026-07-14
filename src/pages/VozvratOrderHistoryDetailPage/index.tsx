@@ -1,9 +1,13 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { FaArrowLeft, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useNotification } from '@/components/ui';
+import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { formatNumber } from '@/lib/number';
 import { useVozvratOrderProductsQuery } from '@/services/vozvrat/vozvrat.queries';
+import { vozvratService } from '@/services/vozvrat/vozvrat.service';
+
+type PrintRole = 'mijoz' | 'admin';
 
 export default function VozvratOrderHistoryDetailPage() {
 	const navigate = useNavigate();
@@ -12,9 +16,23 @@ export default function VozvratOrderHistoryDetailPage() {
 
 	const { data, isLoading, isError } = useVozvratOrderProductsQuery(orderId);
 	const { notify } = useNotification();
+	const [printingRole, setPrintingRole] = useState<PrintRole | null>(null);
 
-	function printForClient() {
-		notify({ title: 'Tez orada', text: 'Bu funksiya hali ulanmagan.' });
+	async function printFor(role: PrintRole) {
+		if (!orderId) return;
+
+		const tab = openPendingTab();
+		setPrintingRole(role);
+		try {
+			const blob =
+				role === 'mijoz' ? await vozvratService.printForClient(orderId) : await vozvratService.printForAdmin(orderId);
+			loadBlobIntoTab(blob, tab);
+		} catch {
+			tab?.close();
+			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+		} finally {
+			setPrintingRole(null);
+		}
 	}
 
 	if (isLoading) {
@@ -39,8 +57,23 @@ export default function VozvratOrderHistoryDetailPage() {
 					<Button type='button' variant='info' size='xs' onClick={() => navigate(-1)}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 					</Button>
-					<Button type='button' variant='warning' size='xs' onClick={printForClient}>
-						<FaDownload className='mr-1.5' /> Chop qilish Mijoz uchun
+					<Button
+						type='button'
+						variant='warning'
+						size='xs'
+						disabled={printingRole === 'mijoz'}
+						onClick={() => printFor('mijoz')}
+					>
+						<FaDownload className='mr-1.5' /> {printingRole === 'mijoz' ? 'Yuklanmoqda...' : 'Chop qilish Mijoz uchun'}
+					</Button>
+					<Button
+						type='button'
+						variant='danger'
+						size='xs'
+						disabled={printingRole === 'admin'}
+						onClick={() => printFor('admin')}
+					>
+						<FaDownload className='mr-1.5' /> {printingRole === 'admin' ? 'Yuklanmoqda...' : 'Chop qilish Admin uchun'}
 					</Button>
 				</div>
 			</div>

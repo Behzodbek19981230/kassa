@@ -26,6 +26,8 @@ import VozvratOrderHistoryPage from '@/pages/VozvratOrderHistoryPage';
 import VozvratOrderHistoryDetailPage from '@/pages/VozvratOrderHistoryDetailPage';
 import WarehouseAccountPage from '@/pages/WarehouseAccountPage';
 import WarehouseAccountDetailPage from '@/pages/WarehouseAccountDetailPage';
+import MyDebtPage from '@/pages/MyDebtPage';
+import MyDebtDetailPage from '@/pages/MyDebtDetailPage';
 import ExpensePage from '@/pages/system/ExpensePage';
 import AboutPage from '@/pages/system/AboutPage';
 import ClientPage from '@/pages/settings/ClientPage';
@@ -52,6 +54,8 @@ export default function App() {
 						<Route path='vozvrat-order-history/:id' element={<VozvratOrderHistoryDetailPage />} />
 					<Route path='warehouse-report' element={<WarehouseAccountPage />} />
 					<Route path='warehouse-report/:id' element={<WarehouseAccountDetailPage />} />
+					<Route path='my-debts' element={<MyDebtPage />} />
+					<Route path='my-debts/:id' element={<MyDebtDetailPage />} />
 
 					{/* System management */}
 					<Route path='system/product-categories' element={<ProductCategoriesPage />} />

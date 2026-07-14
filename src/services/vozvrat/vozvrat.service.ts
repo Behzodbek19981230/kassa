@@ -37,4 +37,12 @@ export const vozvratService = {
 		const { data } = await apiClient.post<VozvratConfirmResponse>('/vozvrat-order/vozvrat/confirm/', payload);
 		return data;
 	},
+	printForClient: async (id: number) => {
+		const { data } = await apiClient.get(`/vozvrat-order/${id}/print-for-client/`, { responseType: 'blob' });
+		return data as Blob;
+	},
+	printForAdmin: async (id: number) => {
+		const { data } = await apiClient.get(`/vozvrat-order/${id}/print/`, { responseType: 'blob' });
+		return data as Blob;
+	},
 };

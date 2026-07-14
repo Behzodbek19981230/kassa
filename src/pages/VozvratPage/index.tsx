@@ -21,7 +21,11 @@ import { brandService } from '@/services/brand/brand.service';
 import { clientService } from '@/services/client/client.service';
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useVozvratCalculateMutation, useVozvratProductsQuery } from '@/services/vozvrat/vozvrat.queries';
-import type { VozvratCalculateResponse, VozvratCartItemInput, VozvratProductItem } from '@/services/vozvrat/vozvrat.types';
+import type {
+	VozvratCalculateResponse,
+	VozvratCartItemInput,
+	VozvratProductItem,
+} from '@/services/vozvrat/vozvrat.types';
 import AddToVozvratCartModal from '@/pages/VozvratPage/components/AddToVozvratCartModal';
 import ConfirmVozvratModal from '@/pages/VozvratPage/components/ConfirmVozvratModal';
 import { groupIntoVariants, rowKey, type VozvratVariant } from '@/pages/VozvratPage/utils';
@@ -203,7 +207,9 @@ export default function VozvratPage() {
 					>
 						<div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
 							<div className='w-full px-2.5 sm:w-1/2'>
-								<label className='mb-1 block text-xs font-semibold text-ca-heading'>Modelni tanlang:</label>
+								<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+									Modelni tanlang:
+								</label>
 								<Combobox
 									value={brandFilter}
 									onChange={(value) => {
@@ -248,7 +254,7 @@ export default function VozvratPage() {
 										<TableHead className='bg-ca-theme text-white'>Model</TableHead>
 										<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
 										<TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Qolgan soni</TableHead>
+										<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
 										<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
 									</TableRow>
 								</TableHeader>
@@ -274,16 +280,13 @@ export default function VozvratPage() {
 											</TableCell>
 										</TableRow>
 									)}
-									{clientId &&
-										!isLoading &&
-										!isError &&
-										(data?.groups.length ?? 0) === 0 && (
-											<TableRow>
-												<TableCell colSpan={6} className='text-center'>
-													Mahsulot topilmadi
-												</TableCell>
-											</TableRow>
-										)}
+									{clientId && !isLoading && !isError && (data?.groups.length ?? 0) === 0 && (
+										<TableRow>
+											<TableCell colSpan={6} className='text-center'>
+												Mahsulot topilmadi
+											</TableCell>
+										</TableRow>
+									)}
 									{clientId &&
 										!isLoading &&
 										!isError &&
@@ -292,13 +295,17 @@ export default function VozvratPage() {
 											return (
 												<Fragment key={group.brand.id}>
 													<TableRow>
-														<TableCell colSpan={6} className='bg-cyan-100 font-bold text-ca-red'>
+														<TableCell
+															colSpan={6}
+															className='bg-cyan-100 font-bold text-ca-red'
+														>
 															{group.brand.name}
 														</TableCell>
 													</TableRow>
 													{variants.map((variant, vIndex) => {
 														const available = variant.rows.reduce((sum, row) => {
-															const inCart = cartRows.find((r) => r.key === rowKey(row))?.count ?? 0;
+															const inCart =
+																cartRows.find((r) => r.key === rowKey(row))?.count ?? 0;
 															return sum + (row.remaining_count - inCart);
 														}, 0);
 														const disabled = available <= 0;
@@ -316,12 +323,16 @@ export default function VozvratPage() {
 																<TableCell>
 																	{variant.brandName}
 																	{variant.orderDateLabel && (
-																		<div className='text-[10px] font-semibold text-ca-orange'>{variant.orderDateLabel}</div>
+																		<div className='text-[10px] font-semibold text-ca-orange'>
+																			Buyurtma sana:{variant.orderDateLabel}
+																		</div>
 																	)}
 																</TableCell>
 																<TableCell>{variant.categoryName}</TableCell>
 																<TableCell>{formatNumber(variant.size)}</TableCell>
-																<TableCell className='font-semibold'>{formatNumber(available)}</TableCell>
+																<TableCell className='font-semibold'>
+																	{formatNumber(available)}
+																</TableCell>
 																<TableCell>{variant.typeName}</TableCell>
 															</TableRow>
 														);
@@ -350,7 +361,10 @@ export default function VozvratPage() {
 							</div>
 							{clientId && (
 								<div className='text-xs whitespace-nowrap text-ca-heading'>
-									Qarzi ($): <span className='font-bold text-ca-red'>{formatNumber(data?.client.total_debt ?? 0)}</span>
+									Qarzi ($):{' '}
+									<span className='font-bold text-ca-red'>
+										{formatNumber(data?.client.total_debt ?? 0)}
+									</span>
 								</div>
 							)}
 						</div>
@@ -395,12 +409,16 @@ export default function VozvratPage() {
 												<TableCell>{row.type_name}</TableCell>
 												<TableCell className='font-semibold text-ca-green'>
 													{formatNumber(priceDollar, 2)} $
-													<span className='ml-1 font-normal text-ca-text'>({formatNumber(priceSom, 0)})</span>
+													<span className='ml-1 font-normal text-ca-text'>
+														({formatNumber(priceSom, 0)})
+													</span>
 												</TableCell>
 												<TableCell>{formatNumber(row.count)}</TableCell>
 												<TableCell className='font-semibold'>
 													{formatNumber(totalDollar, 2)} $
-													<span className='ml-1 font-normal text-ca-text'>({formatNumber(totalSom, 0)})</span>
+													<span className='ml-1 font-normal text-ca-text'>
+														({formatNumber(totalSom, 0)})
+													</span>
 												</TableCell>
 												<TableCell>
 													<Button
