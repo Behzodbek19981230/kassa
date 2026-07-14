@@ -10,6 +10,15 @@ export function useCreateVozvratOrderProductMutation() {
 	});
 }
 
+export function useUpdateVozvratOrderProductMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }: { id: number; payload: VozvratOrderProductCreatePayload }) =>
+			vozvratOrderProductService.update(id, payload),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vozvrat'] }),
+	});
+}
+
 export function useDeleteVozvratOrderProductMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({

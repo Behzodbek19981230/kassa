@@ -32,3 +32,24 @@ export function useCreateProductAccountHistoryMutation() {
 		},
 	});
 }
+
+export function useUpdateProductAccountHistoryMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }: { id: number; payload: ProductAccountHistoryCreatePayload }) =>
+			productAccountHistoryService.update(id, payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['order-account-history'] });
+		},
+	});
+}
+
+export function useDeleteProductAccountHistoryMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: number) => productAccountHistoryService.remove(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['order-account-history'] });
+		},
+	});
+}

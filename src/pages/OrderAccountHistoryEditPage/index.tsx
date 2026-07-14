@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Fragment, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { FaArrowLeft, FaExclamationTriangle, FaPlus, FaSave } from 'react-icons/fa';
+import { FaArrowLeft, FaExclamationTriangle, FaSave } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import {
@@ -11,23 +11,28 @@ import {
 	FormField,
 	Input,
 	PriceInput,
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
 	Textarea,
 	useNotification,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { generateId } from '@/lib/utils';
+import WarehouseProductRow, {
+	emptyWarehouseRow,
+	type WarehouseRowValue,
+} from '@/pages/WarehousePage/components/WarehouseProductRow';
 import {
 	useOrderAccountHistoryProductsQuery,
 	useOrderAccountHistoryQuery,
 	useUpdateOrderAccountHistoryMutation,
 } from '@/services/order-account-history/order-account-history.queries';
-import AddOrderProductModal from '@/pages/OrderAccountHistoryEditPage/components/AddOrderProductModal';
+import {
+	useCreateProductAccountHistoryMutation,
+	useDeleteProductAccountHistoryMutation,
+	useUpdateProductAccountHistoryMutation,
+} from '@/services/product-account-history/product-account-history.queries';
+import type { ProductAccountHistoryCreatePayload } from '@/services/product-account-history/product-account-history.types';
+import type { Warehouse } from '@/services/warehouse/warehouse.types';
 
 const editOrderFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
@@ -47,16 +52,65 @@ const editOrderFormSchema = z.object({
 
 type EditOrderFormValues = z.infer<typeof editOrderFormSchema>;
 
+interface EditableProductRow extends WarehouseRowValue {
+	productId?: number;
+}
+
 export default function OrderAccountHistoryEditPage() {
 	const navigate = useNavigate();
 	const { id } = useParams();
 	const orderId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
-	const [addProductOpen, setAddProductOpen] = useState(false);
 
 	const { data: item, isLoading, isError } = useOrderAccountHistoryQuery(orderId);
 	const { data: productsData } = useOrderAccountHistoryProductsQuery(orderId);
+
+	const [rows, setRows] = useState<EditableProductRow[]>([]);
+	const [removedProductIds, setRemovedProductIds] = useState<number[]>([]);
+	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
+	const [resolvedWarehouseByKey, setResolvedWarehouseByKey] = useState<Record<string | number, number | undefined>>(
+		{},
+	);
+
+	useEffect(() => {
+		if (!productsData) return;
+		const items = productsData.products.groups.flatMap((g) => g.items);
+		setRows(
+			items.map((productItem) => ({
+				key: generateId(),
+				productId: productItem.id,
+				brand: String(productItem.brand),
+				product_category: String(productItem.product_category),
+				brandSize: '',
+				size: productItem.size,
+				type: productItem.type,
+				type_sklad: String(productItem.type_sklad),
+				price: String(productItem.price),
+				count: productItem.count,
+			})),
+		);
+		setRemovedProductIds([]);
+	}, [productsData]);
+
+	const updateRow = (index: number, next: EditableProductRow) => {
+		setRows((prev) => prev.map((row, i) => (i === index ? next : row)));
+	};
+	const addRow = () => setRows((prev) => [...prev, { ...emptyWarehouseRow(), count: null }]);
+	const removeRow = (index: number) => {
+		const row = rows[index];
+		if (row?.productId) {
+			setRemovedProductIds((prev) => [...prev, row.productId!]);
+		}
+		setRows((prev) => prev.filter((_, i) => i !== index));
+	};
+
+	function handleResolveStock(key: string | number, warehouse: Warehouse | undefined) {
+		setResolvedWarehouseByKey((prev) => {
+			if (prev[key] === warehouse?.id) return prev;
+			return { ...prev, [key]: warehouse?.id };
+		});
+	}
 
 	const {
 		control,
@@ -85,10 +139,34 @@ export default function OrderAccountHistoryEditPage() {
 	});
 
 	const updateMutation = useUpdateOrderAccountHistoryMutation();
+	const createProductMutation = useCreateProductAccountHistoryMutation();
+	const updateProductMutation = useUpdateProductAccountHistoryMutation();
+	const deleteProductMutation = useDeleteProductAccountHistoryMutation();
+	const isSaving =
+		updateMutation.isPending ||
+		createProductMutation.isPending ||
+		updateProductMutation.isPending ||
+		deleteProductMutation.isPending;
 
 	const onSubmit = handleSubmit(async (values) => {
 		if (!item) return;
 		setFormError('');
+
+		const rowErrs: Record<number, string> = {};
+		rows.forEach((row, i) => {
+			if (!row.brand || !row.product_category || !row.brandSize || !row.price || !row.type_sklad || !row.count) {
+				rowErrs[i] = "Barcha maydonlar to'ldirilishi shart";
+			} else if (!resolvedWarehouseByKey[row.key]) {
+				rowErrs[i] = 'Bu tovar omborda topilmadi';
+			}
+		});
+		if (Object.keys(rowErrs).length) {
+			setRowErrors(rowErrs);
+			setFormError("Mahsulotlar bo'limida xatolik bor");
+			return;
+		}
+		setRowErrors({});
+
 		try {
 			await updateMutation.mutateAsync({
 				id: item.id,
@@ -111,6 +189,26 @@ export default function OrderAccountHistoryEditPage() {
 					fast_order: values.fast_order,
 				},
 			});
+
+			for (const row of rows) {
+				const warehouseId = resolvedWarehouseByKey[row.key]!;
+				const payload: ProductAccountHistoryCreatePayload = {
+					order_account_history: item.id,
+					warehouse: warehouseId,
+					count: row.count ?? 0,
+					price: row.price,
+				};
+				if (row.productId) {
+					await updateProductMutation.mutateAsync({ id: row.productId, payload });
+				} else {
+					await createProductMutation.mutateAsync(payload);
+				}
+			}
+
+			for (const productId of removedProductIds) {
+				await deleteProductMutation.mutateAsync(productId);
+			}
+
 			notify({ title: 'Buyurtma yangilandi' });
 			navigate(-1);
 		} catch (err) {
@@ -129,8 +227,6 @@ export default function OrderAccountHistoryEditPage() {
 			</div>
 		);
 	}
-
-	const products = productsData?.products;
 
 	return (
 		<>
@@ -182,56 +278,28 @@ export default function OrderAccountHistoryEditPage() {
 					</div>
 				</div>
 
-				<div className='mb-5 overflow-x-auto rounded-[3px] bg-white shadow-sm'>
-					<div className='flex items-center justify-between px-4 py-3'>
-						<h4 className='text-sm font-semibold text-ca-heading'>Mahsulotlar</h4>
-						<Button type='button' variant='danger' size='xs' onClick={() => setAddProductOpen(true)}>
-							<FaPlus className='mr-1.5' /> Mahsulot qo'shish
+				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
+					{rows.map((row, index) => (
+						<WarehouseProductRow
+							key={row.key}
+							value={row}
+							onChange={(next) => updateRow(index, next as EditableProductRow)}
+							error={rowErrors[index]}
+							showAdd={index === rows.length - 1}
+							onAdd={addRow}
+							showRemove
+							onRemove={() => removeRow(index)}
+							companyId={item.company}
+							showCount
+							resolveStock
+							onResolveStock={handleResolveStock}
+						/>
+					))}
+					{rows.length === 0 && (
+						<Button type='button' variant='success' size='sm' onClick={addRow}>
+							Mahsulot qo'shish
 						</Button>
-					</div>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead className='bg-ca-theme text-white'>#</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Joy</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Model</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-								<TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{!products || products.groups.length === 0 ? (
-								<TableRow>
-									<TableCell colSpan={8} className='text-center text-ca-text'>
-										Mahsulotlar topilmadi
-									</TableCell>
-								</TableRow>
-							) : (
-								products.groups.map((group) => (
-									<Fragment key={group.brand_name}>
-										{group.items.map((productItem, index) => (
-											<TableRow key={productItem.id}>
-												<TableCell>{index + 1}</TableCell>
-												<TableCell>{productItem.type_sklad_name}</TableCell>
-												<TableCell>{productItem.brand_name}</TableCell>
-												<TableCell>{productItem.product_category_name}</TableCell>
-												<TableCell>{productItem.size}</TableCell>
-												<TableCell>{productItem.type_name}</TableCell>
-												<TableCell>{productItem.count}</TableCell>
-												<TableCell>{formatNumber(productItem.price)}</TableCell>
-											</TableRow>
-										))}
-									</Fragment>
-								))
-							)}
-						</TableBody>
-					</Table>
-					<p className='px-4 py-2 text-[11px] text-ca-text'>
-						Mavjud mahsulotlarni o'zgartirib yoki o'chirib bo'lmaydi, faqat yangi mahsulot qo'shish mumkin.
-					</p>
+					)}
 				</div>
 
 				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
@@ -316,18 +384,11 @@ export default function OrderAccountHistoryEditPage() {
 						/>
 					</div>
 
-					<Button type='submit' variant='info' className='w-full' disabled={updateMutation.isPending}>
+					<Button type='submit' variant='info' className='w-full' disabled={isSaving}>
 						<FaSave className='mr-1.5' /> O'zgartirish
 					</Button>
 				</div>
 			</form>
-
-			<AddOrderProductModal
-				open={addProductOpen}
-				setOpen={setAddProductOpen}
-				orderId={item.id}
-				companyId={item.company}
-			/>
 		</>
 	);
 }

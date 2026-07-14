@@ -10,6 +10,8 @@ import { productCategoryService } from '@/services/product-category/product-cate
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import { skladTypeService } from '@/services/sklad-type/sklad-type.service';
 import { useWarehouseListQuery } from '@/services/warehouse/warehouse.queries';
+import type { Warehouse } from '@/services/warehouse/warehouse.types';
+import { formatNumber } from '@/lib/number';
 import { generateId } from '@/lib/utils';
 
 export interface WarehouseRowValue {
@@ -49,6 +51,13 @@ interface WarehouseProductRowProps {
 	onDuplicateChange?: (key: string | number, isDuplicate: boolean) => void;
 	/** Shows an editable "Soni" (count) field — used by the sklad batch edit form, not the price catalog form. */
 	showCount?: boolean;
+	/**
+	 * Order/sale context: a matching existing warehouse row is the expected outcome (the
+	 * exact stock line to sell from), not a "duplicate" error like in the price catalog form.
+	 */
+	resolveStock?: boolean;
+	/** Reports the resolved existing warehouse row for this variant — only fires when `resolveStock` is set. */
+	onResolveStock?: (key: string | number, warehouse: Warehouse | undefined) => void;
 }
 
 export default function WarehouseProductRow({
@@ -63,6 +72,8 @@ export default function WarehouseProductRow({
 	excludeId,
 	onDuplicateChange,
 	showCount,
+	resolveStock,
+	onResolveStock,
 }: WarehouseProductRowProps) {
 	const { data: brandData } = useBrandListQuery({ limit: 100 });
 	const brandNameById = new Map((brandData?.results ?? []).map((b) => [b.id, b.name]));
@@ -101,13 +112,17 @@ export default function WarehouseProductRow({
 		isVariantComplete,
 	);
 	const duplicateItem = isVariantComplete
-		? duplicateData?.results.find((w) => Number(w.size) === value.size && w.id !== excludeId)
+		? duplicateData?.results.find((w) => Number(w.size) === value.size && (resolveStock || w.id !== excludeId))
 		: undefined;
 
 	useEffect(() => {
-		onDuplicateChange?.(value.key, Boolean(duplicateItem));
+		if (resolveStock) {
+			onResolveStock?.(value.key, duplicateItem);
+		} else {
+			onDuplicateChange?.(value.key, Boolean(duplicateItem));
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [duplicateItem, value.key]);
+	}, [duplicateItem, value.key, resolveStock]);
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
@@ -267,7 +282,18 @@ export default function WarehouseProductRow({
 					)}
 				</div>
 			</div>
-			{duplicateItem && <p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar bazada mavjud</p>}
+			{!resolveStock && duplicateItem && (
+				<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar bazada mavjud</p>
+			)}
+			{resolveStock &&
+				isVariantComplete &&
+				(duplicateItem ? (
+					<p className='mt-1 text-[11px] text-ca-text'>
+						Qoldiq: <span className='font-semibold text-ca-heading'>{formatNumber(duplicateItem.count)} ta</span>
+					</p>
+				) : (
+					<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar omborda topilmadi</p>
+				))}
 		</div>
 	);
 }

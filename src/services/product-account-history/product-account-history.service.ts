@@ -19,4 +19,11 @@ export const productAccountHistoryService = {
 		const { data } = await apiClient.post<ProductAccountHistoryItem>('/product-account-history/', payload);
 		return data;
 	},
+	update: async (id: number, payload: ProductAccountHistoryCreatePayload) => {
+		const { data } = await apiClient.put<ProductAccountHistoryItem>(`/product-account-history/${id}/`, payload);
+		return data;
+	},
+	remove: async (id: number) => {
+		await apiClient.delete(`/product-account-history/${id}/`);
+	},
 };

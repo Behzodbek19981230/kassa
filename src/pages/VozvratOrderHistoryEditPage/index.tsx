@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Fragment, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { FaArrowLeft, FaExclamationTriangle, FaPlus, FaSave, FaTrash } from 'react-icons/fa';
+import { FaArrowLeft, FaExclamationTriangle, FaSave } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import {
@@ -11,23 +11,27 @@ import {
 	FormField,
 	Input,
 	PriceInput,
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
 	useNotification,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { generateId } from '@/lib/utils';
+import VozvratProductRow, {
+	emptyVozvratRow,
+	type VozvratRowValue,
+} from '@/pages/VozvratOrderHistoryEditPage/components/VozvratProductRow';
 import {
 	useUpdateVozvratOrderMutation,
 	useVozvratOrderProductsQuery,
 	useVozvratOrderQuery,
 } from '@/services/vozvrat/vozvrat.queries';
-import { useDeleteVozvratOrderProductMutation } from '@/services/vozvrat-order-product/vozvrat-order-product.queries';
-import AddVozvratOrderProductModal from '@/pages/VozvratOrderHistoryEditPage/components/AddVozvratOrderProductModal';
+import {
+	useCreateVozvratOrderProductMutation,
+	useDeleteVozvratOrderProductMutation,
+	useUpdateVozvratOrderProductMutation,
+} from '@/services/vozvrat-order-product/vozvrat-order-product.queries';
+import type { VozvratOrderProductCreatePayload } from '@/services/vozvrat-order-product/vozvrat-order-product.types';
+import type { VozvratProductItem } from '@/services/vozvrat/vozvrat.types';
 
 const editVozvratFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
@@ -42,24 +46,60 @@ const editVozvratFormSchema = z.object({
 
 type EditVozvratFormValues = z.infer<typeof editVozvratFormSchema>;
 
+interface EditableVozvratRow extends VozvratRowValue {
+	productId?: number;
+}
+
 export default function VozvratOrderHistoryEditPage() {
 	const navigate = useNavigate();
 	const { id } = useParams();
 	const vozvratId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
+	const [formError, setFormError] = useState('');
 
 	const { data: item, isLoading, isError } = useVozvratOrderQuery(vozvratId);
 	const { data: productsData } = useVozvratOrderProductsQuery(vozvratId);
-	const [addProductOpen, setAddProductOpen] = useState(false);
-	const deleteProductMutation = useDeleteVozvratOrderProductMutation();
 
-	async function handleRemoveProduct(productId: number) {
-		try {
-			await deleteProductMutation.mutateAsync(productId);
-			notify({ title: "Mahsulot o'chirildi" });
-		} catch (err) {
-			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
+	const [rows, setRows] = useState<EditableVozvratRow[]>([]);
+	const [removedProductIds, setRemovedProductIds] = useState<number[]>([]);
+	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
+	const [resolvedByKey, setResolvedByKey] = useState<Record<string | number, VozvratProductItem | undefined>>({});
+
+	useEffect(() => {
+		if (!productsData) return;
+		const items = productsData.products.groups.flatMap((g) => g.items);
+		setRows(
+			items.map((productItem) => ({
+				key: generateId(),
+				productId: productItem.id,
+				brand: String(productItem.brand),
+				product_category: String(productItem.product_category),
+				variantKey: `${productItem.brand}-${productItem.product_category}-${productItem.size}-${productItem.type}`,
+				locationKey: String(productItem.type_sklad),
+				count: productItem.count,
+				price: String(productItem.price),
+			})),
+		);
+		setRemovedProductIds([]);
+	}, [productsData]);
+
+	const updateRow = (index: number, next: EditableVozvratRow) => {
+		setRows((prev) => prev.map((row, i) => (i === index ? next : row)));
+	};
+	const addRow = () => setRows((prev) => [...prev, emptyVozvratRow()]);
+	const removeRow = (index: number) => {
+		const row = rows[index];
+		if (row?.productId) {
+			setRemovedProductIds((prev) => [...prev, row.productId!]);
 		}
+		setRows((prev) => prev.filter((_, i) => i !== index));
+	};
+
+	function handleResolve(key: string | number, row: VozvratProductItem | undefined) {
+		setResolvedByKey((prev) => {
+			if (prev[key] === row) return prev;
+			return { ...prev, [key]: row };
+		});
 	}
 
 	const {
@@ -84,9 +124,34 @@ export default function VozvratOrderHistoryEditPage() {
 	});
 
 	const updateMutation = useUpdateVozvratOrderMutation();
+	const createProductMutation = useCreateVozvratOrderProductMutation();
+	const updateProductMutation = useUpdateVozvratOrderProductMutation();
+	const deleteProductMutation = useDeleteVozvratOrderProductMutation();
+	const isSaving =
+		updateMutation.isPending ||
+		createProductMutation.isPending ||
+		updateProductMutation.isPending ||
+		deleteProductMutation.isPending;
 
 	const onSubmit = handleSubmit(async (values) => {
 		if (!item) return;
+		setFormError('');
+
+		const rowErrs: Record<number, string> = {};
+		rows.forEach((row, i) => {
+			if (!row.brand || !row.product_category || !row.variantKey || !row.locationKey || !row.price || !row.count) {
+				rowErrs[i] = "Barcha maydonlar to'ldirilishi shart";
+			} else if (!resolvedByKey[row.key]) {
+				rowErrs[i] = 'Bu tovar mijozda topilmadi';
+			}
+		});
+		if (Object.keys(rowErrs).length) {
+			setRowErrors(rowErrs);
+			setFormError("Mahsulotlar bo'limida xatolik bor");
+			return;
+		}
+		setRowErrors({});
+
 		try {
 			await updateMutation.mutateAsync({
 				id: item.id,
@@ -104,10 +169,30 @@ export default function VozvratOrderHistoryEditPage() {
 					confirmation: values.confirmation,
 				},
 			});
+
+			for (const row of rows) {
+				const resolved = resolvedByKey[row.key]!;
+				const payload: VozvratOrderProductCreatePayload = {
+					vozvrat_order: item.id,
+					warehouse: resolved.warehouse,
+					count: row.count ?? 0,
+					price: row.price,
+				};
+				if (row.productId) {
+					await updateProductMutation.mutateAsync({ id: row.productId, payload });
+				} else {
+					await createProductMutation.mutateAsync(payload);
+				}
+			}
+
+			for (const productId of removedProductIds) {
+				await deleteProductMutation.mutateAsync(productId);
+			}
+
 			notify({ title: 'Vozvrat buyurtma yangilandi' });
 			navigate(-1);
 		} catch (err) {
-			notify({ title: getApiErrorMessage(err, 'Yangilashda xatolik yuz berdi') });
+			setFormError(getApiErrorMessage(err, 'Yangilashda xatolik yuz berdi'));
 		}
 	});
 
@@ -123,8 +208,6 @@ export default function VozvratOrderHistoryEditPage() {
 		);
 	}
 
-	const products = productsData?.products;
-
 	return (
 		<>
 			<div className='mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[3px] bg-ca-theme px-4 py-3 text-white'>
@@ -139,6 +222,12 @@ export default function VozvratOrderHistoryEditPage() {
 
 			<form onSubmit={onSubmit} noValidate>
 				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
+					{formError && (
+						<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+							{formError}
+						</div>
+					)}
+
 					<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-4'>
 						<FormField label='Mijoz' horizontal={false} className='mb-0'>
 							<Input value={item.client_detail?.fio ?? ''} disabled />
@@ -169,69 +258,26 @@ export default function VozvratOrderHistoryEditPage() {
 					</div>
 				</div>
 
-				<div className='mb-5 overflow-x-auto rounded-[3px] bg-white shadow-sm'>
-					<div className='flex items-center justify-between px-4 py-3'>
-						<h4 className='text-sm font-semibold text-ca-heading'>Mahsulotlar</h4>
-						<Button type='button' variant='danger' size='xs' onClick={() => setAddProductOpen(true)}>
-							<FaPlus className='mr-1.5' /> Mahsulot qo'shish
+				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
+					{rows.map((row, index) => (
+						<VozvratProductRow
+							key={row.key}
+							value={row}
+							onChange={(next) => updateRow(index, next as EditableVozvratRow)}
+							error={rowErrors[index]}
+							showAdd={index === rows.length - 1}
+							onAdd={addRow}
+							showRemove
+							onRemove={() => removeRow(index)}
+							clientId={item.client}
+							onResolve={handleResolve}
+						/>
+					))}
+					{rows.length === 0 && (
+						<Button type='button' variant='success' size='sm' onClick={addRow}>
+							Mahsulot qo'shish
 						</Button>
-					</div>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead className='bg-ca-theme text-white'>#</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Joyi</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Model</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-								<TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
-								<TableHead className='bg-ca-theme text-white' />
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{!products || products.groups.length === 0 ? (
-								<TableRow>
-									<TableCell colSpan={9} className='text-center text-ca-text'>
-										Mahsulotlar topilmadi
-									</TableCell>
-								</TableRow>
-							) : (
-								products.groups.map((group) => (
-									<Fragment key={group.brand}>
-										{group.items.map((productItem, index) => (
-											<TableRow key={productItem.id}>
-												<TableCell>{index + 1}</TableCell>
-												<TableCell>{productItem.type_sklad_name}</TableCell>
-												<TableCell>{productItem.brand_name}</TableCell>
-												<TableCell>{productItem.product_category_name}</TableCell>
-												<TableCell>{productItem.size}</TableCell>
-												<TableCell>{productItem.type_name}</TableCell>
-												<TableCell>{productItem.count}</TableCell>
-												<TableCell>{formatNumber(productItem.price, 2)}</TableCell>
-												<TableCell>
-													<Button
-														type='button'
-														variant='danger'
-														size='icon'
-														aria-label="O'chirish"
-														disabled={deleteProductMutation.isPending}
-														onClick={() => handleRemoveProduct(productItem.id)}
-													>
-														<FaTrash />
-													</Button>
-												</TableCell>
-											</TableRow>
-										))}
-									</Fragment>
-								))
-							)}
-						</TableBody>
-					</Table>
-					<p className='px-4 py-2 text-[11px] text-ca-text'>
-						Mahsulotlarni qo'shish yoki o'chirish mumkin, lekin mavjud qatorni tahrirlab bo'lmaydi.
-					</p>
+					)}
 				</div>
 
 				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
@@ -288,18 +334,11 @@ export default function VozvratOrderHistoryEditPage() {
 						/>
 					</div>
 
-					<Button type='submit' variant='info' className='w-full' disabled={updateMutation.isPending}>
+					<Button type='submit' variant='info' className='w-full' disabled={isSaving}>
 						<FaSave className='mr-1.5' /> O'zgartirish
 					</Button>
 				</div>
 			</form>
-
-			<AddVozvratOrderProductModal
-				open={addProductOpen}
-				setOpen={setAddProductOpen}
-				vozvratOrderId={item.id}
-				clientId={item.client}
-			/>
 		</>
 	);
 }
