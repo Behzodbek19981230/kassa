@@ -24,14 +24,9 @@ import WarehouseProductRow, {
 import {
 	useOrderAccountHistoryProductsQuery,
 	useOrderAccountHistoryQuery,
-	useUpdateOrderAccountHistoryMutation,
+	useUpdateSaleOrderAccountHistoryMutation,
 } from '@/services/order-account-history/order-account-history.queries';
-import {
-	useCreateProductAccountHistoryMutation,
-	useDeleteProductAccountHistoryMutation,
-	useUpdateProductAccountHistoryMutation,
-} from '@/services/product-account-history/product-account-history.queries';
-import type { ProductAccountHistoryCreatePayload } from '@/services/product-account-history/product-account-history.types';
+import type { OrderAccountHistoryUpdateSaleItemPayload } from '@/services/order-account-history/order-account-history.types';
 import type { Warehouse } from '@/services/warehouse/warehouse.types';
 
 const editOrderFormSchema = z.object({
@@ -42,8 +37,6 @@ const editOrderFormSchema = z.object({
 	sum_som: z.string().optional(),
 	sum_cart: z.string().optional(),
 	sum_transfers: z.string().optional(),
-	zdacha_dollar: z.string().optional(),
-	zdacha_sum: z.string().optional(),
 	driver_info: z.string().optional(),
 	order_commit: z.string().optional(),
 	order_account_status: z.boolean(),
@@ -52,9 +45,7 @@ const editOrderFormSchema = z.object({
 
 type EditOrderFormValues = z.infer<typeof editOrderFormSchema>;
 
-interface EditableProductRow extends WarehouseRowValue {
-	productId?: number;
-}
+type EditableProductRow = WarehouseRowValue;
 
 export default function OrderAccountHistoryEditPage() {
 	const navigate = useNavigate();
@@ -67,7 +58,6 @@ export default function OrderAccountHistoryEditPage() {
 	const { data: productsData } = useOrderAccountHistoryProductsQuery(orderId);
 
 	const [rows, setRows] = useState<EditableProductRow[]>([]);
-	const [removedProductIds, setRemovedProductIds] = useState<number[]>([]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
 	const [resolvedWarehouseByKey, setResolvedWarehouseByKey] = useState<Record<string | number, number | undefined>>(
 		{},
@@ -79,7 +69,6 @@ export default function OrderAccountHistoryEditPage() {
 		setRows(
 			items.map((productItem) => ({
 				key: generateId(),
-				productId: productItem.id,
 				brand: String(productItem.brand),
 				product_category: String(productItem.product_category),
 				brandSize: '',
@@ -90,7 +79,6 @@ export default function OrderAccountHistoryEditPage() {
 				count: productItem.count,
 			})),
 		);
-		setRemovedProductIds([]);
 	}, [productsData]);
 
 	const updateRow = (index: number, next: EditableProductRow) => {
@@ -98,10 +86,6 @@ export default function OrderAccountHistoryEditPage() {
 	};
 	const addRow = () => setRows((prev) => [...prev, { ...emptyWarehouseRow(), count: null }]);
 	const removeRow = (index: number) => {
-		const row = rows[index];
-		if (row?.productId) {
-			setRemovedProductIds((prev) => [...prev, row.productId!]);
-		}
 		setRows((prev) => prev.filter((_, i) => i !== index));
 	};
 
@@ -128,8 +112,6 @@ export default function OrderAccountHistoryEditPage() {
 					sum_som: item.sum_som,
 					sum_cart: item.sum_cart,
 					sum_transfers: item.sum_transfers,
-					zdacha_dollar: item.zdacha_dollar,
-					zdacha_sum: item.zdacha_sum,
 					driver_info: item.driver_info ?? '',
 					order_commit: item.order_commit ?? '',
 					order_account_status: Boolean(item.order_account_status),
@@ -138,15 +120,8 @@ export default function OrderAccountHistoryEditPage() {
 			: undefined,
 	});
 
-	const updateMutation = useUpdateOrderAccountHistoryMutation();
-	const createProductMutation = useCreateProductAccountHistoryMutation();
-	const updateProductMutation = useUpdateProductAccountHistoryMutation();
-	const deleteProductMutation = useDeleteProductAccountHistoryMutation();
-	const isSaving =
-		updateMutation.isPending ||
-		createProductMutation.isPending ||
-		updateProductMutation.isPending ||
-		deleteProductMutation.isPending;
+	const updateSaleMutation = useUpdateSaleOrderAccountHistoryMutation();
+	const isSaving = updateSaleMutation.isPending;
 
 	const onSubmit = handleSubmit(async (values) => {
 		if (!item) return;
@@ -167,12 +142,16 @@ export default function OrderAccountHistoryEditPage() {
 		}
 		setRowErrors({});
 
+		const items: OrderAccountHistoryUpdateSaleItemPayload[] = rows.map((row) => ({
+			warehouse: resolvedWarehouseByKey[row.key]!,
+			count: row.count ?? 0,
+			price: row.price,
+		}));
+
 		try {
-			await updateMutation.mutateAsync({
+			await updateSaleMutation.mutateAsync({
 				id: item.id,
 				payload: {
-					company: item.company,
-					client: item.client,
 					date: values.date,
 					exchange_rate: values.exchange_rate,
 					discount_amount: values.discount_amount || '0',
@@ -181,33 +160,13 @@ export default function OrderAccountHistoryEditPage() {
 					sum_som: values.sum_som || '0',
 					sum_cart: values.sum_cart || '0',
 					sum_transfers: values.sum_transfers || '0',
-					zdacha_dollar: values.zdacha_dollar || '0',
-					zdacha_sum: values.zdacha_sum || '0',
 					driver_info: values.driver_info?.trim(),
-					order_commit: values.order_commit?.trim(),
+					comment: values.order_commit?.trim(),
 					order_account_status: values.order_account_status,
 					fast_order: values.fast_order,
+					items,
 				},
 			});
-
-			for (const row of rows) {
-				const warehouseId = resolvedWarehouseByKey[row.key]!;
-				const payload: ProductAccountHistoryCreatePayload = {
-					order_account_history: item.id,
-					warehouse: warehouseId,
-					count: row.count ?? 0,
-					price: row.price,
-				};
-				if (row.productId) {
-					await updateProductMutation.mutateAsync({ id: row.productId, payload });
-				} else {
-					await createProductMutation.mutateAsync(payload);
-				}
-			}
-
-			for (const productId of removedProductIds) {
-				await deleteProductMutation.mutateAsync(productId);
-			}
 
 			notify({ title: 'Buyurtma yangilandi' });
 			navigate(-1);
@@ -337,21 +296,7 @@ export default function OrderAccountHistoryEditPage() {
 						</FormField>
 					</div>
 
-					<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-5'>
-						<FormField label='Qaytim ($)' horizontal={false} className='mb-0'>
-							<Controller
-								name='zdacha_dollar'
-								control={control}
-								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
-							/>
-						</FormField>
-						<FormField label="Qaytim so'mda" horizontal={false} className='mb-0'>
-							<Controller
-								name='zdacha_sum'
-								control={control}
-								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
-							/>
-						</FormField>
+					<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3'>
 						<FormField label='Izoh' horizontal={false} className='mb-0'>
 							<Textarea rows={1} {...register('order_commit')} />
 						</FormField>

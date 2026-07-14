@@ -4,6 +4,7 @@ import type {
 	OrderAccountHistoryGroupedListParams,
 	OrderAccountHistoryListParams,
 	OrderAccountHistoryUpdatePayload,
+	OrderAccountHistoryUpdateSalePayload,
 	OrderAndDebtListParams,
 } from '@/services/order-account-history/order-account-history.types';
 
@@ -62,6 +63,15 @@ export function useUpdateOrderAccountHistoryMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: OrderAccountHistoryUpdatePayload }) =>
 			orderAccountHistoryService.update(id, payload),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all }),
+	});
+}
+
+export function useUpdateSaleOrderAccountHistoryMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }: { id: number; payload: OrderAccountHistoryUpdateSalePayload }) =>
+			orderAccountHistoryService.updateSale(id, payload),
 		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all }),
 	});
 }

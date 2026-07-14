@@ -7,6 +7,8 @@ import type {
 	OrderAccountHistoryListParams,
 	OrderAccountHistoryProductsResponse,
 	OrderAccountHistoryUpdatePayload,
+	OrderAccountHistoryUpdateSalePayload,
+	OrderAccountHistoryUpdateSaleResponse,
 	OrderAndDebtListParams,
 	OrderAndDebtResponse,
 } from '@/services/order-account-history/order-account-history.types';
@@ -36,6 +38,13 @@ export const orderAccountHistoryService = {
 	},
 	update: async (id: number, payload: OrderAccountHistoryUpdatePayload) => {
 		const { data } = await apiClient.put<OrderAccountHistoryItem>(`/order-account-history/${id}/`, payload);
+		return data;
+	},
+	updateSale: async (id: number, payload: OrderAccountHistoryUpdateSalePayload) => {
+		const { data } = await apiClient.patch<OrderAccountHistoryUpdateSaleResponse>(
+			`/order-account-history/${id}/update-sale/`,
+			payload,
+		);
 		return data;
 	},
 	getProducts: async (id: number) => {

@@ -103,6 +103,58 @@ export interface OrderAccountHistoryUpdatePayload {
 	fast_order: boolean;
 }
 
+export interface OrderAccountHistoryUpdateSaleItemPayload {
+	warehouse: number;
+	count: number;
+	price: string | number;
+}
+
+export interface OrderAccountHistoryUpdateSalePayload {
+	date: string;
+	exchange_rate: string | number;
+	discount_amount: string | number;
+	all_summ_dollar: string | number;
+	sum_dollar: string | number;
+	sum_som: string | number;
+	sum_cart: string | number;
+	sum_transfers: string | number;
+	driver_info?: string;
+	fast_order: boolean;
+	order_account_status: boolean;
+	comment?: string;
+	items: OrderAccountHistoryUpdateSaleItemPayload[];
+}
+
+export interface OrderAccountHistoryUpdateSaleOrder {
+	id: number;
+	client: number;
+	date: string;
+	exchange_rate: string;
+	all_product_sum: string;
+	all_summ_dollar: string;
+	discount_amount: string;
+	total_debt_today: string;
+	total_debt: string;
+	update_status: number;
+}
+
+export interface OrderAccountHistoryUpdateSaleSummary {
+	all_product_sum: string;
+	total_debt_today: string;
+	order_total_debt: string;
+	client_total_debt: string;
+	product_count: number;
+	line_count: number;
+	large_price: number;
+}
+
+export interface OrderAccountHistoryUpdateSaleResponse {
+	success: boolean;
+	message: string;
+	order_account_history: OrderAccountHistoryUpdateSaleOrder;
+	summary: OrderAccountHistoryUpdateSaleSummary;
+}
+
 export interface OrderAccountHistoryListParams extends ListParams {
 	company?: number;
 	client?: number;
