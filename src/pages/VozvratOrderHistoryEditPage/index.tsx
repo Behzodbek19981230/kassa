@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { FaArrowLeft, FaExclamationTriangle, FaSave } from 'react-icons/fa';
+import { FaArrowLeft, FaExclamationTriangle, FaPlus, FaSave, FaTrash } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import {
@@ -26,6 +26,8 @@ import {
 	useVozvratOrderProductsQuery,
 	useVozvratOrderQuery,
 } from '@/services/vozvrat/vozvrat.queries';
+import { useDeleteVozvratOrderProductMutation } from '@/services/vozvrat-order-product/vozvrat-order-product.queries';
+import AddVozvratOrderProductModal from '@/pages/VozvratOrderHistoryEditPage/components/AddVozvratOrderProductModal';
 
 const editVozvratFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
@@ -48,6 +50,17 @@ export default function VozvratOrderHistoryEditPage() {
 
 	const { data: item, isLoading, isError } = useVozvratOrderQuery(vozvratId);
 	const { data: productsData } = useVozvratOrderProductsQuery(vozvratId);
+	const [addProductOpen, setAddProductOpen] = useState(false);
+	const deleteProductMutation = useDeleteVozvratOrderProductMutation();
+
+	async function handleRemoveProduct(productId: number) {
+		try {
+			await deleteProductMutation.mutateAsync(productId);
+			notify({ title: "Mahsulot o'chirildi" });
+		} catch (err) {
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
+		}
+	}
 
 	const {
 		control,
@@ -157,6 +170,12 @@ export default function VozvratOrderHistoryEditPage() {
 				</div>
 
 				<div className='mb-5 overflow-x-auto rounded-[3px] bg-white shadow-sm'>
+					<div className='flex items-center justify-between px-4 py-3'>
+						<h4 className='text-sm font-semibold text-ca-heading'>Mahsulotlar</h4>
+						<Button type='button' variant='danger' size='xs' onClick={() => setAddProductOpen(true)}>
+							<FaPlus className='mr-1.5' /> Mahsulot qo'shish
+						</Button>
+					</div>
 					<Table>
 						<TableHeader>
 							<TableRow>
@@ -168,12 +187,13 @@ export default function VozvratOrderHistoryEditPage() {
 								<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
+								<TableHead className='bg-ca-theme text-white' />
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{!products || products.groups.length === 0 ? (
 								<TableRow>
-									<TableCell colSpan={8} className='text-center text-ca-text'>
+									<TableCell colSpan={9} className='text-center text-ca-text'>
 										Mahsulotlar topilmadi
 									</TableCell>
 								</TableRow>
@@ -190,6 +210,18 @@ export default function VozvratOrderHistoryEditPage() {
 												<TableCell>{productItem.type_name}</TableCell>
 												<TableCell>{productItem.count}</TableCell>
 												<TableCell>{formatNumber(productItem.price, 2)}</TableCell>
+												<TableCell>
+													<Button
+														type='button'
+														variant='danger'
+														size='icon'
+														aria-label="O'chirish"
+														disabled={deleteProductMutation.isPending}
+														onClick={() => handleRemoveProduct(productItem.id)}
+													>
+														<FaTrash />
+													</Button>
+												</TableCell>
 											</TableRow>
 										))}
 									</Fragment>
@@ -198,7 +230,7 @@ export default function VozvratOrderHistoryEditPage() {
 						</TableBody>
 					</Table>
 					<p className='px-4 py-2 text-[11px] text-ca-text'>
-						Mahsulotlar ro'yxati o'zgartirib bo'lmaydi, faqat hisob-kitob ma'lumotlari tahrirlanadi.
+						Mahsulotlarni qo'shish yoki o'chirish mumkin, lekin mavjud qatorni tahrirlab bo'lmaydi.
 					</p>
 				</div>
 
@@ -261,6 +293,13 @@ export default function VozvratOrderHistoryEditPage() {
 					</Button>
 				</div>
 			</form>
+
+			<AddVozvratOrderProductModal
+				open={addProductOpen}
+				setOpen={setAddProductOpen}
+				vozvratOrderId={item.id}
+				clientId={item.client}
+			/>
 		</>
 	);
 }
