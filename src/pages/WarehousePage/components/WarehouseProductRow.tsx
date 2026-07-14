@@ -98,6 +98,8 @@ export default function WarehouseProductRow({
 	const { data: skladTypeData } = useSkladTypeListQuery({ limit: 100 });
 	const skladTypeNameById = new Map((skladTypeData?.results ?? []).map((s) => [s.id, s.name]));
 
+	const lineTotal = (Number(value.count) || 0) * (Number(value.price) || 0);
+
 	const typeSkladId = value.type_sklad ? Number(value.type_sklad) : undefined;
 	const isVariantComplete = Boolean(companyId && brandId && categoryId && typeSkladId && value.brandSize);
 	const { data: duplicateData } = useWarehouseListQuery(
@@ -261,6 +263,11 @@ export default function WarehouseProductRow({
 						Narxi <span className='text-ca-red'>*</span>
 					</label>
 					<PriceInput value={value.price} onChange={(price) => onChange({ ...value, price })} />
+					{showCount && (
+						<p className='mt-1 text-[11px] text-ca-text'>
+							Summa: <span className='font-semibold text-ca-heading'>{formatNumber(lineTotal, 2)} $</span>
+						</p>
+					)}
 					{error && <p className='mt-1 text-[11px] text-ca-red'>{error}</p>}
 				</div>
 				<div className='flex w-16 shrink-0 self-end justify-end gap-1'>

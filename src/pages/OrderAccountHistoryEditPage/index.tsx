@@ -4,16 +4,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { FaArrowLeft, FaExclamationTriangle, FaSave } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
-import {
-	Button,
-	Checkbox,
-	DatePicker,
-	FormField,
-	Input,
-	PriceInput,
-	Textarea,
-	useNotification,
-} from '@/components/ui';
+import { Button, Checkbox, DatePicker, FormField, Input, PriceInput, Textarea, useNotification } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { generateId } from '@/lib/utils';
@@ -33,10 +24,10 @@ const editOrderFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
 	exchange_rate: z.string().min(1, 'Dollar kursini kiriting'),
 	discount_amount: z.string().optional(),
-	sum_dollar: z.string().optional(),
-	sum_som: z.string().optional(),
-	sum_cart: z.string().optional(),
-	sum_transfers: z.string().optional(),
+	sum_dollar: z.string().min(1, 'Qiymat kiritilishi shart'),
+	sum_som: z.string().min(1, 'Qiymat kiritilishi shart'),
+	sum_cart: z.string().min(1, 'Qiymat kiritilishi shart'),
+	sum_transfers: z.string().min(1, 'Qiymat kiritilishi shart'),
 	driver_info: z.string().optional(),
 	order_commit: z.string().optional(),
 	order_account_status: z.boolean(),
@@ -108,10 +99,10 @@ export default function OrderAccountHistoryEditPage() {
 					date: item.date,
 					exchange_rate: item.exchange_rate,
 					discount_amount: item.discount_amount,
-					sum_dollar: item.sum_dollar,
-					sum_som: item.sum_som,
-					sum_cart: item.sum_cart,
-					sum_transfers: item.sum_transfers,
+					sum_dollar: '',
+					sum_som: '',
+					sum_cart: '',
+					sum_transfers: '',
 					driver_info: item.driver_info ?? '',
 					order_commit: item.order_commit ?? '',
 					order_account_status: Boolean(item.order_account_status),
@@ -214,7 +205,13 @@ export default function OrderAccountHistoryEditPage() {
 						<FormField label='Eski Qarz ($)' horizontal={false} className='mb-0'>
 							<Input value={formatNumber(item.total_debt_old, 2)} disabled />
 						</FormField>
-						<FormField label='Sana' error={errors.date?.message} required horizontal={false} className='mb-0'>
+						<FormField
+							label='Sana'
+							error={errors.date?.message}
+							required
+							horizontal={false}
+							className='mb-0'
+						>
 							<Controller
 								name='date'
 								control={control}
@@ -262,7 +259,7 @@ export default function OrderAccountHistoryEditPage() {
 				</div>
 
 				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
-					<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-5'>
+					<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-6'>
 						<FormField label='Jami summa dollarda ($)' horizontal={false} className='mb-0'>
 							<PriceInput value={formatNumber(item.all_summ_dollar, 2)} disabled />
 						</FormField>
@@ -273,37 +270,52 @@ export default function OrderAccountHistoryEditPage() {
 								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 							/>
 						</FormField>
-						<FormField label='Summa dollarda ($)' horizontal={false} className='mb-0'>
+						<FormField
+							label='Summa dollarda ($)'
+							error={errors.sum_dollar?.message}
+							required
+							horizontal={false}
+							className='mb-0'
+						>
 							<Controller
 								name='sum_dollar'
 								control={control}
 								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 							/>
 						</FormField>
-						<FormField label="Summa so'mda" horizontal={false} className='mb-0'>
+						<FormField
+							label="Summa so'mda"
+							error={errors.sum_som?.message}
+							required
+							horizontal={false}
+							className='mb-0'
+						>
 							<Controller
 								name='sum_som'
 								control={control}
 								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 							/>
 						</FormField>
-						<FormField label='Summa kartada' horizontal={false} className='mb-0'>
+						<FormField
+							label='Summa kartada'
+							error={errors.sum_cart?.message}
+							required
+							horizontal={false}
+							className='mb-0'
+						>
 							<Controller
 								name='sum_cart'
 								control={control}
 								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 							/>
 						</FormField>
-					</div>
-
-					<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3'>
-						<FormField label='Izoh' horizontal={false} className='mb-0'>
-							<Textarea rows={1} {...register('order_commit')} />
-						</FormField>
-						<FormField label="Haydovchi ma'lumotlari" horizontal={false} className='mb-0'>
-							<Input {...register('driver_info')} />
-						</FormField>
-						<FormField label='Summa transferda' horizontal={false} className='mb-0'>
+						<FormField
+							label='Summa transferda'
+							error={errors.sum_transfers?.message}
+							required
+							horizontal={false}
+							className='mb-0'
+						>
 							<Controller
 								name='sum_transfers'
 								control={control}
@@ -312,19 +324,38 @@ export default function OrderAccountHistoryEditPage() {
 						</FormField>
 					</div>
 
+					<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2'>
+						<FormField label='Izoh' horizontal={false} className='mb-0'>
+							<Textarea rows={1} {...register('order_commit')} />
+						</FormField>
+						<FormField label="Haydovchi ma'lumotlari" horizontal={false} className='mb-0'>
+							<Input {...register('driver_info')} />
+						</FormField>
+					</div>
+
 					<div className='mb-4 flex items-center gap-6'>
 						<Controller
 							name='order_account_status'
 							control={control}
 							render={({ field }) => (
-								<Checkbox label='Tasdiqlash:' checked={field.value} onCheckedChange={field.onChange} inline />
+								<Checkbox
+									label='Tasdiqlash:'
+									checked={field.value}
+									onCheckedChange={field.onChange}
+									inline
+								/>
 							)}
 						/>
 						<Controller
 							name='fast_order'
 							control={control}
 							render={({ field }) => (
-								<Checkbox label='Tezda tayyorlash:' checked={field.value} onCheckedChange={field.onChange} inline />
+								<Checkbox
+									label='Tezda tayyorlash:'
+									checked={field.value}
+									onCheckedChange={field.onChange}
+									inline
+								/>
 							)}
 						/>
 					</div>
