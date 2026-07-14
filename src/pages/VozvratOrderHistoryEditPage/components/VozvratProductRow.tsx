@@ -71,14 +71,16 @@ export default function VozvratProductRow({
 	const categoryNameById = new Map((categoryData?.results ?? []).map((c) => [c.id, c.name]));
 
 	const { data: productsData } = useVozvratProductsQuery(
-		brandId && categoryId
-			? { client_id: clientId, brand_id: brandId, product_category_id: categoryId }
-			: undefined,
+		brandId && categoryId ? { client_id: clientId, brand_id: brandId, product_category_id: categoryId } : undefined,
 	);
 
 	const variants: VozvratVariant[] = useMemo(() => {
 		const live = groupIntoVariants((productsData?.groups ?? []).flatMap((g) => g.items));
-		if (!fallback || String(fallback.brand) !== value.brand || String(fallback.product_category) !== value.product_category) {
+		if (
+			!fallback ||
+			String(fallback.brand) !== value.brand ||
+			String(fallback.product_category) !== value.product_category
+		) {
 			return live;
 		}
 		const fallbackKey = `${fallback.brand}-${fallback.product_category}-${fallback.size}-${fallback.type}`;
@@ -141,6 +143,19 @@ export default function VozvratProductRow({
 	return (
 		<div className='mb-3'>
 			<div className='flex flex-wrap items-start gap-3'>
+				<div className='min-w-37.5 flex-1'>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+						Joy <span className='text-ca-red'>*</span>
+					</label>
+					<Combobox
+						value={value.locationKey}
+						onChange={handleLocationChange}
+						options={locationOptions.map((o) => ({ value: o.value, label: o.label }))}
+						placeholder='Tanlang...'
+						searchPlaceholder='Qidirish...'
+						disabled={!value.variantKey}
+					/>
+				</div>
 				<div className='min-w-45 flex-1'>
 					<label className='mb-1 block text-xs font-semibold text-ca-heading'>
 						Model <span className='text-ca-red'>*</span>
@@ -192,19 +207,7 @@ export default function VozvratProductRow({
 						disabled
 					/>
 				</div>
-				<div className='min-w-37.5 flex-1'>
-					<label className='mb-1 block text-xs font-semibold text-ca-heading'>
-						Joy <span className='text-ca-red'>*</span>
-					</label>
-					<Combobox
-						value={value.locationKey}
-						onChange={handleLocationChange}
-						options={locationOptions.map((o) => ({ value: o.value, label: o.label }))}
-						placeholder='Tanlang...'
-						searchPlaceholder='Qidirish...'
-						disabled={!value.variantKey}
-					/>
-				</div>
+
 				<div className='min-w-25 flex-1'>
 					<label className='mb-1 block text-xs font-semibold text-ca-heading'>
 						Soni <span className='text-ca-red'>*</span>
@@ -243,7 +246,10 @@ export default function VozvratProductRow({
 			{value.variantKey &&
 				(selectedRow ? (
 					<p className='mt-1 text-[11px] text-ca-text'>
-						Qoldiq: <span className='font-semibold text-ca-heading'>{formatNumber(selectedRow.remaining_count)} ta</span>
+						Qoldiq:{' '}
+						<span className='font-semibold text-ca-heading'>
+							{formatNumber(selectedRow.remaining_count)} ta
+						</span>
 					</p>
 				) : value.locationKey ? (
 					<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar mijozda topilmadi</p>
