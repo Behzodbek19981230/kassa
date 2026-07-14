@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
 	Button,
 	FormField,
@@ -28,9 +28,14 @@ export default function EditGivenCountModal({ open, setOpen, item, orderId }: Ed
 	const [formError, setFormError] = useState('');
 	const updateMutation = useUpdateProductCountMutation();
 
+	useEffect(() => {
+		if (open && item) {
+			setValue(String(item.given_count));
+			setFormError('');
+		}
+	}, [open, item]);
+
 	function handleOpenChange(next: boolean) {
-		if (next && item) setValue(String(item.given_count));
-		setFormError('');
 		setOpen(next);
 	}
 
