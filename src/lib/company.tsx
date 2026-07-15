@@ -1,9 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useCompanyListQuery } from '@/services/company/company.queries';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useUpdateUserMutation, useUserInfoQuery } from '@/services/user/user.queries';
 import type { UserPayload } from '@/services/user/user.types';
 
-const STORAGE_KEY = 'ca-selected-company';
 const SUPER_ADMIN_ROLE_NAME = 'Super Admin';
 const MANAGER_ROLE_NAME = 'Manager';
 
@@ -33,45 +31,28 @@ interface CompanyContextValue {
 
 const CompanyContext = createContext<CompanyContextValue | null>(null);
 
-function readStoredCompanyId(): number | null {
-	const stored = localStorage.getItem(STORAGE_KEY);
-	const parsed = stored ? Number(stored) : NaN;
-	return Number.isFinite(parsed) ? parsed : null;
-}
-
 export function CompanyProvider({ children }: { children: ReactNode }) {
 	const { data: userInfo } = useUserInfoQuery();
 	const isSuperAdmin = userInfo?.roles?.name === SUPER_ADMIN_ROLE_NAME;
 	const isManager = userInfo?.roles?.name === MANAGER_ROLE_NAME;
 	const isAdminOrManager = isSuperAdmin || isManager;
 
-	const { data: allCompaniesData } = useCompanyListQuery({ limit: 100 }, { enabled: isAdminOrManager });
-
 	const companies: CompanyOption[] = useMemo(() => {
-		if (isAdminOrManager) {
-			return (allCompaniesData?.results ?? []).map((c) => ({ id: c.id, name: c.name, logo: c.logo }));
-		}
 		return (userInfo?.companies_detail ?? []).map((c) => ({ id: c.id, name: c.name, logo: c.logo }));
-	}, [isAdminOrManager, allCompaniesData, userInfo]);
+	}, [userInfo]);
 
-	const ownCompanyId = userInfo?.trade_company ?? userInfo?.companies_detail?.[0]?.id ?? userInfo?.companies?.[0] ?? null;
+	const ownCompanyId =
+		userInfo?.trade_company ?? userInfo?.companies_detail?.[0]?.id ?? userInfo?.companies?.[0] ?? null;
 	const tradeCompanyDetail = userInfo?.trade_company_detail;
 	const ownCompany: CompanyOption | null = useMemo(() => {
 		if (!tradeCompanyDetail) return null;
 		return { id: tradeCompanyDetail.id, name: tradeCompanyDetail.name, logo: tradeCompanyDetail.logo };
 	}, [tradeCompanyDetail]);
 
-	const [companyId, setCompanyIdState] = useState<number | null>(readStoredCompanyId);
-
-	useEffect(() => {
-		if (companies.length === 0) return;
-		if (companyId != null && companies.some((c) => c.id === companyId)) return;
-		setCompanyIdState(companies[0].id);
-	}, [companies, companyId]);
-
-	useEffect(() => {
-		if (companyId != null) localStorage.setItem(STORAGE_KEY, String(companyId));
-	}, [companyId]);
+	// The selected company always mirrors the user's own trade_company: selecting a
+	// different one in the header dropdown persists it as the new trade_company (see
+	// setCompanyId below), so there is no separate "temporarily browsing" selection to track.
+	const companyId = ownCompanyId ?? companies[0]?.id ?? null;
 
 	const updateUserMutation = useUpdateUserMutation();
 
@@ -103,7 +84,6 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 			await updateUserMutation.mutateAsync({ id: userInfo.id, payload });
 		}
 
-		localStorage.setItem(STORAGE_KEY, String(id));
 		window.location.reload();
 	};
 

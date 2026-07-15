@@ -68,6 +68,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 	const { companyId, setCompanyId, companies, showCompanySelect, ownCompany } = useCurrentCompany();
 	const currentCompany = companies.find((c) => c.id === companyId);
 	const { notify } = useNotification();
+
 	const [switchingCompanyId, setSwitchingCompanyId] = useState<number | null>(null);
 
 	const handleSelectCompany = async (id: number) => {
