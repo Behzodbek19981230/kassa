@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { useCurrentCompany } from '@/lib/company';
 import AboutFormModal from '@/pages/system/AboutPage/components/AboutFormModal';
 import DeleteAboutModal from '@/pages/system/AboutPage/components/DeleteAboutModal';
 import { useAboutListQuery } from '@/services/about/about.queries';
@@ -16,6 +17,7 @@ import type { About } from '@/services/about/about.types';
 const columnHelper = createColumnHelper<About>();
 
 export default function AboutPage() {
+	const { companyId, canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -26,6 +28,7 @@ export default function AboutPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useAboutListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
+		company_id: companyId ?? undefined,
 		search: nomerFilter || undefined,
 		ordering,
 	});
@@ -58,13 +61,21 @@ export default function AboutPage() {
 				<div className='flex justify-end gap-1'>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}
+						elementProps={{
+							...buttonProps(<FaEdit />, 'warning', 'icon'),
+							'aria-label': 'Tahrirlash',
+							disabled: !canWrite,
+						}}
 						dialog={AboutFormModal}
 						dialogProps={{ mode: 'edit' as const, item: row.original }}
 					/>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+						elementProps={{
+							...buttonProps(<FaTrash />, 'danger', 'icon'),
+							'aria-label': "O'chirish",
+							disabled: !canWrite,
+						}}
 						dialog={DeleteAboutModal}
 						dialogProps={{ item: row.original }}
 					/>
@@ -86,12 +97,14 @@ export default function AboutPage() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
-						dialog={AboutFormModal}
-						dialogProps={{ mode: 'create' as const }}
-					/>
+					canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							dialog={AboutFormModal}
+							dialogProps={{ mode: 'create' as const }}
+						/>
+					)
 				}
 				onReload={() => {
 					refetch();

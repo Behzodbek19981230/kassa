@@ -39,6 +39,8 @@ export interface User {
   region_detail?: UserRegionDetail | null
   district: number | null
   district_detail?: UserDistrictDetail | null
+  trade_company?: number | null
+  trade_company_detail?: UserCompanyDetail | null
   companies: number[]
   companies_detail?: UserCompanyDetail[]
   address: string | null
@@ -58,6 +60,7 @@ export interface UserPayload {
   region: number
   district: number
   role: number
+  trade_company?: number
   companies: number[]
   address: string
   password?: string

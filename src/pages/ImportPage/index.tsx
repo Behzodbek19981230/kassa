@@ -80,7 +80,7 @@ function buildBrandVariants(groups: WarehouseAllListBrandGroup[]): BrandVariants
 }
 
 export default function ImportPage() {
-	const { companyId } = useCurrentCompany();
+	const { companyId, canWrite } = useCurrentCompany();
 
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
@@ -91,11 +91,11 @@ export default function ImportPage() {
 
 	// Unfiltered catalog, kept separate so cart rows added before a filter change can
 	// still resolve their product info even once they fall outside the active filter.
-	const { data: catalogData } = useWarehouseAllListQuery({ company: companyId ?? undefined });
+	const { data: catalogData } = useWarehouseAllListQuery({ company_id: companyId ?? undefined });
 	const catalogGroups = catalogData ?? [];
 
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseAllListQuery({
-		company: companyId ?? undefined,
+		company_id: companyId ?? undefined,
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
@@ -279,7 +279,7 @@ export default function ImportPage() {
 															(s, r) => s + r.count,
 															0,
 														);
-														const disabled = !consignorId;
+														const disabled = !consignorId || !canWrite;
 														return (
 															<TableRow
 																key={`${brand.brandId}-${vIndex}`}
@@ -418,6 +418,7 @@ export default function ImportPage() {
 															type='button'
 															{...buttonProps(<FaTrash />, 'danger', 'icon')}
 															aria-label="O'chirish"
+															disabled={!canWrite}
 															onClick={() => handleRemoveCartItem(item.id)}
 														/>
 													</TableCell>
@@ -448,7 +449,7 @@ export default function ImportPage() {
 								variant='white'
 								className='flex-1'
 								size='lg'
-								disabled={!consignorId || cartItems.length === 0}
+								disabled={!consignorId || cartItems.length === 0 || !canWrite}
 								onClick={() => setClearCartOpen(true)}
 							>
 								Bekor qilish
@@ -458,7 +459,7 @@ export default function ImportPage() {
 								variant='danger'
 								className='flex-1'
 								size='lg'
-								disabled={!consignorId || cartItems.length === 0}
+								disabled={!consignorId || cartItems.length === 0 || !canWrite}
 								onClick={() => setConfirmImportOpen(true)}
 							>
 								Import qilish

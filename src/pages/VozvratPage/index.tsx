@@ -62,7 +62,7 @@ function toCartItemInput(row: VozvratCartRow): VozvratCartItemInput {
 }
 
 export default function VozvratPage() {
-	const { companyId } = useCurrentCompany();
+	const { companyId, canWrite } = useCurrentCompany();
 	const { notify } = useNotification();
 
 	const [brandFilter, setBrandFilter] = useState('');
@@ -308,7 +308,7 @@ export default function VozvratPage() {
 																cartRows.find((r) => r.key === rowKey(row))?.count ?? 0;
 															return sum + (row.remaining_count - inCart);
 														}, 0);
-														const disabled = available <= 0;
+														const disabled = available <= 0 || !canWrite;
 														return (
 															<TableRow
 																key={variant.key}
@@ -426,6 +426,7 @@ export default function VozvratPage() {
 														variant='danger'
 														size='icon'
 														aria-label="O'chirish"
+														disabled={!canWrite}
 														onClick={() => handleRemoveRow(row.key)}
 													>
 														<FaTrash />
@@ -461,7 +462,7 @@ export default function VozvratPage() {
 								variant='danger'
 								className='w-full'
 								size='lg'
-								disabled={!clientId || cartRows.length === 0}
+								disabled={!clientId || cartRows.length === 0 || !canWrite}
 								onClick={() => setConfirmOpen(true)}
 							>
 								<FaUndo className='mr-1.5' /> Vozvrat qilish

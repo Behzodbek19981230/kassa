@@ -13,6 +13,7 @@ import {
 	RadioGroup,
 	useNotification,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAccountHistoryGroupedListQuery } from '@/services/order-account-history/order-account-history.queries';
@@ -42,6 +43,7 @@ function formatDateTime(value: string) {
 export default function CustomerOrderHistoryPage() {
 	const navigate = useNavigate();
 	const { notify } = useNotification();
+	const { companyId, canWrite } = useCurrentCompany();
 
 	const [showFilters, setShowFilters] = useState(false);
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -54,6 +56,7 @@ export default function CustomerOrderHistoryPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useOrderAccountHistoryGroupedListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
+		company_id: companyId ?? undefined,
 		client: clientFilter ? Number(clientFilter) : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 		is_vozvrat: vozvratFilter ? vozvratFilter === 'true' : undefined,
@@ -248,6 +251,7 @@ export default function CustomerOrderHistoryPage() {
 							variant='info'
 							size='icon'
 							aria-label='Tahrirlash'
+							disabled={!canWrite}
 							onClick={() => navigate(`/customer-order-history/${item.id}/edit`)}
 						>
 							<FaEdit />
@@ -261,7 +265,14 @@ export default function CustomerOrderHistoryPage() {
 						>
 							<FaExpand />
 						</Button>
-						<Button type='button' variant='danger' size='icon' aria-label="O'chirish" onClick={stub}>
+						<Button
+							type='button'
+							variant='danger'
+							size='icon'
+							aria-label="O'chirish"
+							disabled={!canWrite}
+							onClick={stub}
+						>
 							<FaTrash />
 						</Button>
 					</div>

@@ -10,6 +10,7 @@ import {
 	PageHeader,
 	Panel,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { useVozvratOrderListQuery } from '@/services/vozvrat/vozvrat.queries';
@@ -24,6 +25,7 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 
 export default function VozvratOrderHistoryPage() {
 	const navigate = useNavigate();
+	const { companyId, canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [deletingItem, setDeletingItem] = useState<VozvratOrderListItem | null>(null);
@@ -34,6 +36,7 @@ export default function VozvratOrderHistoryPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useVozvratOrderListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
+		company_id: companyId ?? undefined,
 		client: clientFilter ? Number(clientFilter) : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 	});
@@ -121,6 +124,7 @@ export default function VozvratOrderHistoryPage() {
 						variant='warning'
 						size='icon'
 						aria-label='Tahrirlash'
+						disabled={!canWrite}
 						onClick={() => navigate(`/vozvrat-order-history/${row.original.id}/edit`)}
 					>
 						<FaEdit />
@@ -139,6 +143,7 @@ export default function VozvratOrderHistoryPage() {
 						variant='danger'
 						size='icon'
 						aria-label="O'chirish"
+						disabled={!canWrite}
 						onClick={() => setDeletingItem(row.original)}
 					>
 						<FaTrash />

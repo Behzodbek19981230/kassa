@@ -41,6 +41,7 @@ export interface MyDebtItem {
 }
 
 export interface MyDebtListParams extends ListParams {
+	company_id?: number;
 	consignor?: number;
 	created_by?: number;
 }

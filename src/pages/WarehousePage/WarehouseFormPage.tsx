@@ -25,8 +25,12 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 	const warehouseId = id ? Number(id) : undefined;
 
 	const { notify } = useNotification();
-	const { companyId } = useCurrentCompany();
+	const { companyId, canWrite } = useCurrentCompany();
 	const warehouseQuery = useWarehouseQuery(mode === 'edit' ? warehouseId : undefined);
+
+	useEffect(() => {
+		if (!canWrite) navigate('/warehouse-prices', { replace: true });
+	}, [canWrite, navigate]);
 
 	const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 	const [comment, setComment] = useState('');

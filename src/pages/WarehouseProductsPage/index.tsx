@@ -30,7 +30,7 @@ export default function WarehouseProductsPage() {
 	const [imagesItem, setImagesItem] = useState<WarehouseAllListItem | null>(null);
 
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseAllListQuery({
-		company: companyId ?? undefined,
+		company_id: companyId ?? undefined,
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});

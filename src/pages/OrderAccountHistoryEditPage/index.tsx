@@ -5,6 +5,7 @@ import { FaArrowLeft, FaExclamationTriangle, FaSave } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { Button, Checkbox, DatePicker, FormField, Input, PriceInput, Textarea, useNotification } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { generateId } from '@/lib/utils';
@@ -43,7 +44,12 @@ export default function OrderAccountHistoryEditPage() {
 	const { id } = useParams();
 	const orderId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
+	const { canWrite } = useCurrentCompany();
 	const [formError, setFormError] = useState('');
+
+	useEffect(() => {
+		if (!canWrite) navigate('/customer-order-history', { replace: true });
+	}, [canWrite, navigate]);
 
 	const { data: item, isLoading, isError } = useOrderAccountHistoryQuery(orderId);
 	const { data: productsData } = useOrderAccountHistoryProductsQuery(orderId);

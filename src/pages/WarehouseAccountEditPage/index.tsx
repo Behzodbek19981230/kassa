@@ -11,6 +11,7 @@ import {
 	PriceInput,
 	useNotification,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { generateId } from '@/lib/utils';
 import WarehouseProductRow, {
@@ -35,6 +36,11 @@ export default function WarehouseAccountEditPage() {
 	const { id } = useParams();
 	const skladId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
+	const { canWrite } = useCurrentCompany();
+
+	useEffect(() => {
+		if (!canWrite) navigate('/warehouse-report', { replace: true });
+	}, [canWrite, navigate]);
 
 	const { data, isLoading, isError } = useSkladViewQuery(skladId);
 

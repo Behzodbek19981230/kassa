@@ -156,7 +156,7 @@ export interface OrderAccountHistoryUpdateSaleResponse {
 }
 
 export interface OrderAccountHistoryListParams extends ListParams {
-	company?: number;
+	company_id?: number;
 	client?: number;
 	created_by?: number;
 	is_vozvrat?: boolean;
@@ -195,7 +195,7 @@ export interface OrderAccountHistoryGroupedResponse {
 }
 
 export interface OrderAccountHistoryGroupedListParams extends ListParams {
-	company?: number;
+	company_id?: number;
 	client?: number;
 	created_by?: number;
 	is_vozvrat?: boolean;

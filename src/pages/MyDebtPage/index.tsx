@@ -11,6 +11,7 @@ import {
 	Panel,
 	useNotification,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { consignorService } from '@/services/consignor/consignor.service';
 import { useMyDebtListQuery } from '@/services/my-debt/my-debt.queries';
@@ -32,6 +33,7 @@ function formatDate(value: string) {
 export default function MyDebtPage() {
 	const navigate = useNavigate();
 	const { notify } = useNotification();
+	const { companyId, canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 200 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [addModalOpen, setAddModalOpen] = useState(false);
@@ -42,6 +44,7 @@ export default function MyDebtPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useMyDebtListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
+		company_id: companyId ?? undefined,
 		consignor: consignorFilter ? Number(consignorFilter) : undefined,
 		created_by: updatedByFilter ? Number(updatedByFilter) : undefined,
 	});
@@ -116,7 +119,14 @@ export default function MyDebtPage() {
 			enableColumnFilter: false,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
-					<Button type='button' variant='warning' size='icon' aria-label="To'lash" onClick={stub}>
+					<Button
+						type='button'
+						variant='warning'
+						size='icon'
+						aria-label="To'lash"
+						disabled={!canWrite}
+						onClick={stub}
+					>
 						<FaDollarSign />
 					</Button>
 					<Button
@@ -128,7 +138,14 @@ export default function MyDebtPage() {
 					>
 						<FaExpand />
 					</Button>
-					<Button type='button' variant='danger' size='icon' aria-label="O'chirish" onClick={stub}>
+					<Button
+						type='button'
+						variant='danger'
+						size='icon'
+						aria-label="O'chirish"
+						disabled={!canWrite}
+						onClick={stub}
+					>
 						<FaTrash />
 					</Button>
 				</div>
@@ -150,9 +167,11 @@ export default function MyDebtPage() {
 				title={`Mening barcha qarzim: ${formatNumber(totalDebt, 2)} $`}
 				onReload={() => refetch()}
 				actions={
-					<Button type='button' variant='info' size='xs' onClick={() => setAddModalOpen(true)}>
-						<FaPlus className='mr-1.5' /> Qarz qo'shish
-					</Button>
+					canWrite && (
+						<Button type='button' variant='info' size='xs' onClick={() => setAddModalOpen(true)}>
+							<FaPlus className='mr-1.5' /> Qarz qo'shish
+						</Button>
+					)
 				}
 			>
 				<DataTable

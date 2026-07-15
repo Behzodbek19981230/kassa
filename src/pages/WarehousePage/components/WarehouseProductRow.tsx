@@ -104,7 +104,7 @@ export default function WarehouseProductRow({
 	const isVariantComplete = Boolean(companyId && brandId && categoryId && typeSkladId && value.brandSize);
 	const { data: duplicateData } = useWarehouseListQuery(
 		{
-			company: companyId,
+			company_id: companyId,
 			brand: brandId,
 			product_category: categoryId,
 			type_sklad: typeSkladId,

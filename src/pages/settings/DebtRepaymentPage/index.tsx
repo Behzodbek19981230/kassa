@@ -16,6 +16,7 @@ import {
 	Panel,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { useDebtRepaymentListQuery } from '@/services/debt-repayment/debt-repayment.queries';
@@ -31,6 +32,7 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 	`${u.last_name} ${u.first_name}`.trim() || u.username;
 
 export default function DebtRepaymentPage() {
+	const { companyId, canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -42,6 +44,7 @@ export default function DebtRepaymentPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useDebtRepaymentListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
+		company_id: companyId ?? undefined,
 		client: clientFilter ? Number(clientFilter) : undefined,
 		is_worker: workerFilter ? Number(workerFilter) : undefined,
 		ordering,
@@ -136,13 +139,21 @@ export default function DebtRepaymentPage() {
 				<div className='flex justify-end gap-1'>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}
+						elementProps={{
+							...buttonProps(<FaEdit />, 'warning', 'icon'),
+							'aria-label': 'Tahrirlash',
+							disabled: !canWrite,
+						}}
 						dialog={DebtRepaymentFormModal}
 						dialogProps={{ mode: 'edit' as const, item: row.original }}
 					/>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+						elementProps={{
+							...buttonProps(<FaTrash />, 'danger', 'icon'),
+							'aria-label': "O'chirish",
+							disabled: !canWrite,
+						}}
 						dialog={DeleteDebtRepaymentModal}
 						dialogProps={{ item: row.original }}
 					/>
@@ -164,12 +175,14 @@ export default function DebtRepaymentPage() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
-						dialog={DebtRepaymentFormModal}
-						dialogProps={{ mode: 'create' as const }}
-					/>
+					canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							dialog={DebtRepaymentFormModal}
+							dialogProps={{ mode: 'create' as const }}
+						/>
+					)
 				}
 				onReload={() => {
 					refetch();

@@ -3,6 +3,7 @@ import { FaArrowLeft, FaCoins, FaDownload, FaExclamationTriangle } from 'react-i
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useNotification } from '@/components/ui';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
+import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { useOrderAccountHistoryProductsQuery } from '@/services/order-account-history/order-account-history.queries';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
@@ -18,6 +19,7 @@ export default function OrderAccountHistoryDetailPage() {
 
 	const { data, isLoading, isError } = useOrderAccountHistoryProductsQuery(orderId);
 	const { notify } = useNotification();
+	const { canWrite } = useCurrentCompany();
 	const [printingRole, setPrintingRole] = useState<PrintRole | null>(null);
 	const [editingItem, setEditingItem] = useState<OrderAccountHistoryProductItem | null>(null);
 
@@ -201,7 +203,8 @@ export default function OrderAccountHistoryDetailPage() {
 											<TableCell>
 												<button
 													type='button'
-													className='inline-flex items-center gap-1.5 font-semibold text-ca-green hover:underline'
+													className='inline-flex items-center gap-1.5 font-semibold text-ca-green hover:underline disabled:cursor-not-allowed disabled:opacity-60 disabled:no-underline'
+													disabled={!canWrite}
 													onClick={() => setEditingItem(item)}
 												>
 													{item.given_count} <FaCoins className='text-ca-orange' />

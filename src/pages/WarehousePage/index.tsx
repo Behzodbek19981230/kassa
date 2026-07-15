@@ -38,7 +38,7 @@ import type { Warehouse } from '@/services/warehouse/warehouse.types';
 const columnHelper = createColumnHelper<Warehouse>();
 
 export default function WarehousePage() {
-	const { companyId } = useCurrentCompany();
+	const { companyId, canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -53,7 +53,7 @@ export default function WarehousePage() {
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		company: companyId ?? undefined,
+		company_id: companyId ?? undefined,
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 		type: typeFilter ? Number(typeFilter) : undefined,
@@ -214,6 +214,7 @@ export default function WarehousePage() {
 						elementProps={{
 							...buttonProps(<FaDollarSign />, 'warning', 'icon'),
 							'aria-label': 'Hisob-kitob',
+							disabled: !canWrite,
 						}}
 						dialog={WarehousePaymentModal}
 						dialogProps={{ item: row.original }}
@@ -223,19 +224,28 @@ export default function WarehousePage() {
 						elementProps={{
 							...buttonProps(<FaImages />, 'theme', 'icon'),
 							'aria-label': 'Rasmlar',
+							disabled: !canWrite,
 						}}
 						dialog={WarehouseImagesModal}
 						dialogProps={{ item: row.original }}
 					/>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaEdit />, 'info', 'icon'), 'aria-label': 'Tahrirlash' }}
+						elementProps={{
+							...buttonProps(<FaEdit />, 'info', 'icon'),
+							'aria-label': 'Tahrirlash',
+							disabled: !canWrite,
+						}}
 						dialog={WarehouseEditModal}
 						dialogProps={{ item: row.original }}
 					/>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+						elementProps={{
+							...buttonProps(<FaTrash />, 'danger', 'icon'),
+							'aria-label': "O'chirish",
+							disabled: !canWrite,
+						}}
 						dialog={DeleteWarehouseModal}
 						dialogProps={{ item: row.original }}
 					/>
@@ -269,9 +279,11 @@ export default function WarehousePage() {
 						>
 							Tekshirildi {onlyConfirmed && '✓'}
 						</Button>
-						<Link to='/warehouse-prices/create' className={buttonVariants({ variant: 'info', size: 'xs' })}>
-							Qo'shish +
-						</Link>
+						{canWrite && (
+							<Link to='/warehouse-prices/create' className={buttonVariants({ variant: 'info', size: 'xs' })}>
+								Qo'shish +
+							</Link>
+						)}
 					</>
 				}
 				onReload={() => {

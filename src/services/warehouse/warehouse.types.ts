@@ -74,7 +74,7 @@ export interface WarehouseMoneyPayload {
 }
 
 export interface WarehouseListParams extends ListParams {
-  company?: number
+  company_id?: number
   brand?: number
   product_category?: number
   type?: number
@@ -129,7 +129,7 @@ export interface WarehouseAllListBrandGroup {
 }
 
 export interface WarehouseAllListParams {
-  company?: number
+  company_id?: number
   brand?: number
   product_category?: number
 }

@@ -78,7 +78,7 @@ function buildBrandVariants(groups: WarehouseAllListBrandGroup[]): BrandVariants
 }
 
 export default function PlaceOrderPage() {
-	const { companyId } = useCurrentCompany();
+	const { companyId, canWrite } = useCurrentCompany();
 	const { notify } = useNotification();
 
 	const [brandFilter, setBrandFilter] = useState('');
@@ -90,11 +90,11 @@ export default function PlaceOrderPage() {
 
 	// Unfiltered catalog, kept separate so cart rows added before a filter change can
 	// still resolve their product info even once they fall outside the active filter.
-	const { data: catalogData } = useWarehouseAllListQuery({ company: companyId ?? undefined });
+	const { data: catalogData } = useWarehouseAllListQuery({ company_id: companyId ?? undefined });
 	const catalogGroups = catalogData ?? [];
 
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseAllListQuery({
-		company: companyId ?? undefined,
+		company_id: companyId ?? undefined,
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
@@ -285,7 +285,7 @@ export default function PlaceOrderPage() {
 															(s, r) => s + r.count,
 															0,
 														);
-														const disabled = !clientId;
+														const disabled = !clientId || !canWrite;
 														return (
 															<TableRow
 																key={`${brand.brandId}-${vIndex}`}
@@ -321,12 +321,14 @@ export default function PlaceOrderPage() {
 					<Panel
 						title='Mijoz buyurtmasi'
 						actions={
-							<OpenDialogButton
-								element={(props) => <Button {...props} />}
-								elementProps={buttonProps("+ Mijoz qo'shish", 'warning', 'xs')}
-								dialog={ClientFormModal}
-								dialogProps={{ mode: 'create' as const }}
-							/>
+							canWrite && (
+								<OpenDialogButton
+									element={(props) => <Button {...props} />}
+									elementProps={buttonProps("+ Mijoz qo'shish", 'warning', 'xs')}
+									dialog={ClientFormModal}
+									dialogProps={{ mode: 'create' as const }}
+								/>
+							)
 						}
 					>
 						<div className='mb-4 flex flex-wrap items-center gap-3'>
@@ -442,6 +444,7 @@ export default function PlaceOrderPage() {
 															type='button'
 															{...buttonProps(<FaTrash />, 'danger', 'icon')}
 															aria-label="O'chirish"
+															disabled={!canWrite}
 															onClick={() => handleRemoveCartItem(item.id)}
 														/>
 													</TableCell>
@@ -477,7 +480,7 @@ export default function PlaceOrderPage() {
 								variant='white'
 								className='flex-1'
 								size='lg'
-								disabled={!clientId || cartItems.length === 0}
+								disabled={!clientId || cartItems.length === 0 || !canWrite}
 								onClick={() => setClearCartOpen(true)}
 							>
 								Bekor qilish
@@ -487,7 +490,7 @@ export default function PlaceOrderPage() {
 								variant='danger'
 								className='flex-1'
 								size='lg'
-								disabled={!clientId || cartItems.length === 0}
+								disabled={!clientId || cartItems.length === 0 || !canWrite}
 								onClick={() => setConfirmSaleOpen(true)}
 							>
 								Sotish

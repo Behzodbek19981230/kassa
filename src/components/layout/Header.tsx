@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react';
-import { FaBell, FaBug, FaBuilding, FaCalendarAlt, FaCheck, FaClock, FaDollarSign, FaEnvelope, FaPlus } from 'react-icons/fa';
+import { getApiErrorMessage } from '@/lib/errors';
+import {
+	FaBell,
+	FaBug,
+	FaBuilding,
+	FaCalendarAlt,
+	FaCheck,
+	FaClock,
+	FaDollarSign,
+	FaEnvelope,
+	FaPlus,
+} from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, getRefreshToken } from '@/lib/auth';
 import { useCurrentCompany } from '@/lib/company';
@@ -18,6 +29,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 	DropdownMediaItem,
+	useNotification,
 } from '@/components/ui';
 
 interface HeaderProps {
@@ -53,8 +65,21 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 	// const { theme, toggleTheme } = useTheme();
 	const now = useClock();
 	const { data: usdRate } = useCurrencyRateQuery('USD');
-	const { companyId, setCompanyId, companies } = useCurrentCompany();
+	const { companyId, setCompanyId, companies, showCompanySelect, ownCompany } = useCurrentCompany();
 	const currentCompany = companies.find((c) => c.id === companyId);
+	const { notify } = useNotification();
+	const [switchingCompanyId, setSwitchingCompanyId] = useState<number | null>(null);
+
+	const handleSelectCompany = async (id: number) => {
+		setSwitchingCompanyId(id);
+		try {
+			await setCompanyId(id);
+		} catch (err) {
+			notify({ title: "Tashkilotni almashtirib bo'lmadi", text: getApiErrorMessage(err, 'Xatolik yuz berdi') });
+		} finally {
+			setSwitchingCompanyId(null);
+		}
+	};
 
 	const handleLogout = async () => {
 		const refresh = getRefreshToken();
@@ -159,7 +184,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 						</DropdownMenu>
 					</li>
 
-					{companies.length > 1 && (
+					{showCompanySelect && companies.length > 1 && (
 						<li>
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
@@ -177,11 +202,16 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 									{companies.map((company) => (
 										<DropdownMenuItem
 											key={company.id}
-											onSelect={() => setCompanyId(company.id)}
+											disabled={switchingCompanyId != null}
+											onSelect={() => handleSelectCompany(company.id)}
 											className='flex items-center justify-between gap-2'
 										>
 											{company.name}
-											{company.id === companyId && <FaCheck className='text-ca-green' />}
+											{switchingCompanyId === company.id ? (
+												<span className='text-[10px] text-ca-text'>...</span>
+											) : (
+												company.id === companyId && <FaCheck className='text-ca-green' />
+											)}
 										</DropdownMenuItem>
 									))}
 								</DropdownMenuContent>
@@ -206,29 +236,25 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 								</button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent>
-								<DropdownMenuItem asChild>
-									<a href='#' className='block no-underline'>
-										Edit Profile
-									</a>
-								</DropdownMenuItem>
-								<DropdownMenuItem asChild>
-									<a href='#' className='flex items-center justify-between no-underline'>
-										Inbox
-										<Badge variant='danger'>2</Badge>
-									</a>
-								</DropdownMenuItem>
-								<DropdownMenuItem asChild>
-									<a href='#' className='block no-underline'>
-										Calendar
-									</a>
-								</DropdownMenuItem>
-								<DropdownMenuItem asChild>
-									<a href='#' className='block no-underline'>
-										Setting
-									</a>
-								</DropdownMenuItem>
+								{ownCompany && (
+									<DropdownMenuLabel className='flex items-center gap-2'>
+										{ownCompany.logo ? (
+											<img
+												src={ownCompany.logo}
+												alt=''
+												className='h-6 w-6 shrink-0 rounded-full object-cover'
+											/>
+										) : (
+											<FaBuilding className='shrink-0 text-ca-text' />
+										)}
+										<span className='truncate font-semibold text-ca-heading'>
+											{ownCompany.name}
+										</span>
+									</DropdownMenuLabel>
+								)}
+
 								<DropdownMenuSeparator />
-								<DropdownMenuItem onSelect={handleLogout}>Log Out</DropdownMenuItem>
+								<DropdownMenuItem onSelect={handleLogout}>Chiqish</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</li>

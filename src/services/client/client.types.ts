@@ -86,6 +86,7 @@ export interface ClientPayload {
 }
 
 export interface ClientListParams extends ListParams {
+  company_id?: number
   type?: ClientType
   region?: number
   district?: number

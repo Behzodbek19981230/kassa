@@ -13,6 +13,7 @@ import {
 	PriceInput,
 	useNotification,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { generateId } from '@/lib/utils';
@@ -45,7 +46,12 @@ export default function VozvratOrderHistoryEditPage() {
 	const { id } = useParams();
 	const vozvratId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
+	const { canWrite } = useCurrentCompany();
 	const [formError, setFormError] = useState('');
+
+	useEffect(() => {
+		if (!canWrite) navigate('/vozvrat-order-history', { replace: true });
+	}, [canWrite, navigate]);
 
 	const { data: item, isLoading, isError } = useVozvratOrderQuery(vozvratId);
 	const { data: productsData } = useVozvratOrderProductsQuery(vozvratId);

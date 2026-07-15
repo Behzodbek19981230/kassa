@@ -11,6 +11,7 @@ import {
 	Panel,
 	useNotification,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { consignorService } from '@/services/consignor/consignor.service';
 import { useSkladListQuery } from '@/services/sklad/sklad.queries';
@@ -31,6 +32,7 @@ function formatTime(value: string) {
 export default function WarehouseAccountPage() {
 	const navigate = useNavigate();
 	const { notify } = useNotification();
+	const { companyId, canWrite } = useCurrentCompany();
 
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
@@ -44,6 +46,7 @@ export default function WarehouseAccountPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useSkladListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
+		company_id: companyId ?? undefined,
 		consignor_ref: consignorFilter ? Number(consignorFilter) : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 		import_product_status: statusFilter ? statusFilter === 'true' : undefined,
@@ -194,7 +197,14 @@ export default function WarehouseAccountPage() {
 			cell: ({ row }) => (
 				<div className='flex flex-wrap justify-end gap-1'>
 					{!row.original.import_product_status && (
-						<Button type='button' variant='danger' size='icon' aria-label='Tasdiqlash' onClick={stub}>
+						<Button
+							type='button'
+							variant='danger'
+							size='icon'
+							aria-label='Tasdiqlash'
+							disabled={!canWrite}
+							onClick={stub}
+						>
 							<FaCheckSquare />
 						</Button>
 					)}
@@ -203,6 +213,7 @@ export default function WarehouseAccountPage() {
 						variant='warning'
 						size='icon'
 						aria-label='Tahrirlash'
+						disabled={!canWrite}
 						onClick={() => navigate(`/warehouse-report/${row.original.id}/edit`)}
 					>
 						<FaEdit />
@@ -216,7 +227,14 @@ export default function WarehouseAccountPage() {
 					>
 						<FaExpand />
 					</Button>
-					<Button type='button' variant='danger' size='icon' aria-label="O'chirish" onClick={stub}>
+					<Button
+						type='button'
+						variant='danger'
+						size='icon'
+						aria-label="O'chirish"
+						disabled={!canWrite}
+						onClick={stub}
+					>
 						<FaTrash />
 					</Button>
 				</div>

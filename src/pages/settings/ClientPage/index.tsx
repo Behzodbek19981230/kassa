@@ -16,6 +16,7 @@ import {
 	Panel,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import ClientFormModal from '@/pages/settings/ClientPage/components/ClientFormModal';
 import DeleteClientModal from '@/pages/settings/ClientPage/components/DeleteClientModal';
@@ -35,6 +36,7 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 	`${u.last_name} ${u.first_name}`.trim() || u.username;
 
 export default function ClientPage() {
+	const { companyId, canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -51,6 +53,7 @@ export default function ClientPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useClientListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
+		company_id: companyId ?? undefined,
 		search: nameFilter || undefined,
 		worker_user: workerUserFilter ? Number(workerUserFilter) : undefined,
 		region: regionFilter ? Number(regionFilter) : undefined,
@@ -178,13 +181,21 @@ export default function ClientPage() {
 				<div className='flex justify-end gap-1'>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}
+						elementProps={{
+							...buttonProps(<FaEdit />, 'warning', 'icon'),
+							'aria-label': 'Tahrirlash',
+							disabled: !canWrite,
+						}}
 						dialog={ClientFormModal}
 						dialogProps={{ mode: 'edit' as const, item: row.original }}
 					/>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+						elementProps={{
+							...buttonProps(<FaTrash />, 'danger', 'icon'),
+							'aria-label': "O'chirish",
+							disabled: !canWrite,
+						}}
 						dialog={DeleteClientModal}
 						dialogProps={{ item: row.original }}
 					/>
@@ -206,12 +217,14 @@ export default function ClientPage() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
-						dialog={ClientFormModal}
-						dialogProps={{ mode: 'create' as const }}
-					/>
+					canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							dialog={ClientFormModal}
+							dialogProps={{ mode: 'create' as const }}
+						/>
+					)
 				}
 				onReload={() => {
 					refetch();
