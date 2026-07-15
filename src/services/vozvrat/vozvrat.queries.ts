@@ -14,6 +14,7 @@ export function useVozvratOrderListQuery(params?: VozvratOrderListParams) {
 		queryKey: ['vozvrat', 'list', params],
 		queryFn: () => vozvratService.list(params),
 		placeholderData: (prev) => prev,
+		enabled: params?.company_id != null,
 	});
 }
 

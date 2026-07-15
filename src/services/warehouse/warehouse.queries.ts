@@ -14,15 +14,16 @@ export function useWarehouseListQuery(params?: WarehouseListParams, enabled = tr
     queryKey: warehouseKeys.list(params),
     queryFn: () => warehouseService.list(params),
     placeholderData: (prev) => prev,
-    enabled,
+    enabled: enabled && params?.company_id != null,
   })
 }
 
-export function useWarehouseAllListQuery(params?: WarehouseAllListParams) {
+export function useWarehouseAllListQuery(params?: WarehouseAllListParams, enabled = true) {
   return useQuery({
     queryKey: warehouseKeys.allList(params),
     queryFn: () => warehouseService.allList(params),
     placeholderData: (prev) => prev,
+    enabled: enabled && params?.company_id != null,
   })
 }
 

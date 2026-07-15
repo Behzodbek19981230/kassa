@@ -13,6 +13,7 @@ export function useSkladListQuery(params?: SkladListParams) {
 		queryKey: skladKeys.list(params),
 		queryFn: () => skladService.list(params),
 		placeholderData: (prev) => prev,
+		enabled: params?.company_id != null,
 	});
 }
 
