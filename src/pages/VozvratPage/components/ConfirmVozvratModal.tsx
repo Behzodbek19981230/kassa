@@ -18,6 +18,7 @@ import {
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useVozvratConfirmMutation } from '@/services/vozvrat/vozvrat.queries';
 import type { VozvratCartItemInput } from '@/services/vozvrat/vozvrat.types';
 
@@ -58,12 +59,15 @@ export default function ConfirmVozvratModal({
 }: ConfirmVozvratModalProps) {
 	const [formError, setFormError] = useState('');
 
+	const { data: usdRate } = useCurrencyRateQuery('USD');
+	const rate = usdRate?.rate || exchangeRate;
+
 	const { control, register, handleSubmit, watch } = useForm<ConfirmVozvratFormValues>({
 		resolver: zodResolver(confirmVozvratFormSchema),
 		defaultValues: {
-			sum_dollar: totalProductSum.toFixed(2),
-			sum_som: '0',
-			sum_cart: '0',
+			sum_dollar: '',
+			sum_som: '',
+			sum_cart: '',
 			comment: '',
 			confirmation: true,
 		},
@@ -74,7 +78,7 @@ export default function ConfirmVozvratModal({
 	const sumCart = watch('sum_cart');
 
 	const somTotal = (Number(sumSom) || 0) + (Number(sumCart) || 0);
-	const allSummDollar = (Number(sumDollar) || 0) + (exchangeRate > 0 ? somTotal / exchangeRate : 0);
+	const allSummDollar = (Number(sumDollar) || 0) + (rate > 0 ? somTotal / rate : 0);
 	const newDebt = oldDebt - (totalProductSum - allSummDollar);
 
 	const confirmMutation = useVozvratConfirmMutation();
@@ -131,6 +135,10 @@ export default function ConfirmVozvratModal({
 								</div>
 							</div>
 						</div>
+
+						<FormField label='Jami qaytarilgan summa ($)' horizontal={false} className='mb-3'>
+							<PriceInput value={formatNumber(allSummDollar, 2)} disabled />
+						</FormField>
 
 						<div className='mb-3 grid grid-cols-3 gap-3'>
 							<FormField label='Summa dollarda ($)' horizontal={false} className='mb-0'>

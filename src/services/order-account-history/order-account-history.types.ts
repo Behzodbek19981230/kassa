@@ -241,9 +241,13 @@ export interface OrderAccountHistoryProductsReport {
 	all_profit_dollar: number;
 }
 
-export interface OrderAccountHistoryProductItem {
-	number: number;
+export interface OrderAccountHistoryVozvratProductItem {
 	id: number;
+	vozvrat_order: number;
+	vozvrat_order_date: string;
+	vozvrat_order_date_label: string;
+	source_order_account_history: number;
+	source_product_account_history: number;
 	warehouse: number;
 	type_sklad: number;
 	type_sklad_name: string;
@@ -263,15 +267,49 @@ export interface OrderAccountHistoryProductItem {
 	profit: number;
 	profit_total: number;
 	is_debtor: boolean;
-	vozvrat_order: number | null;
+	is_price_diff: boolean;
 	old_count: number | null;
 	vozvrat_summa: number;
+	cr_date: string;
+}
+
+export interface OrderAccountHistoryProductItem {
+	number: number;
+	id: number;
+	warehouse: number;
+	type_sklad: number;
+	type_sklad_name: string;
+	brand: number;
+	brand_name: string;
+	product_category: number;
+	product_category_name: string;
+	size: number;
+	type: number;
+	type_name: string;
+	count: number;
+	given_count: number;
+	vozvrat_count: number;
+	remaining_after_vozvrat: number;
+	price: number;
+	price_total: number;
+	real_price: number;
+	real_price_total: number;
+	profit: number;
+	profit_total: number;
+	is_debtor: boolean;
 	is_price_diff: boolean;
+	vozvrat_order: number | null;
+	has_vozvrat: boolean;
+	vozvrat_products: OrderAccountHistoryVozvratProductItem[];
+	old_count: number | null;
+	vozvrat_summa: number;
 }
 
 export interface OrderAccountHistoryProductGroupTotals {
 	count: number;
 	given_count: number;
+	vozvrat_count: number;
+	remaining_after_vozvrat: number;
 	price_total: number;
 	real_price_total: number;
 	profit_total: number;

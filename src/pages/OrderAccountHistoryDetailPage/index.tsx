@@ -1,6 +1,6 @@
-import { Fragment, useState } from 'react';
-import { FaArrowLeft, FaCoins, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Fragment, useMemo, useState } from 'react';
+import { FaArrowLeft, FaCoins, FaDownload, FaExclamationTriangle, FaUndo } from 'react-icons/fa';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
 	Button,
 	Table,
@@ -14,11 +14,15 @@ import {
 } from '@/components/ui';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useOrderAccountHistoryProductsQuery } from '@/services/order-account-history/order-account-history.queries';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
 import type { OrderAccountHistoryProductItem } from '@/services/order-account-history/order-account-history.types';
+import { useVozvratCalculateMutation } from '@/services/vozvrat/vozvrat.queries';
+import type { VozvratCalculateResponse, VozvratCartItemInput } from '@/services/vozvrat/vozvrat.types';
 import EditGivenCountModal from '@/pages/OrderAccountHistoryDetailPage/components/EditGivenCountModal';
+import ConfirmVozvratModal from '@/pages/VozvratPage/components/ConfirmVozvratModal';
 
 type PrintRole = 'xodim' | 'sklad' | 'mijoz' | 'admin';
 
@@ -32,6 +36,49 @@ export default function OrderAccountHistoryDetailPage() {
 	const { canWrite } = useCurrentCompany();
 	const [printingRole, setPrintingRole] = useState<PrintRole | null>(null);
 	const [editingItem, setEditingItem] = useState<OrderAccountHistoryProductItem | null>(null);
+
+	const today = new Date().toISOString().slice(0, 10);
+	const [vozvratOpen, setVozvratOpen] = useState(false);
+	const [calcResult, setCalcResult] = useState<VozvratCalculateResponse | null>(null);
+	const calculateMutation = useVozvratCalculateMutation();
+
+	const vozvratItems: VozvratCartItemInput[] = useMemo(() => {
+		if (!data) return [];
+		return data.products.groups.flatMap((g) =>
+			g.items
+				.filter((item) => item.remaining_after_vozvrat > 0)
+				.map((item) => ({
+					warehouse: item.warehouse,
+					brand: item.brand,
+					product_category: item.product_category,
+					size: item.size,
+					type: item.type,
+					type_sklad: item.type_sklad,
+					count: item.remaining_after_vozvrat,
+					price: item.price,
+				})),
+		);
+	}, [data]);
+
+	function handleOpenVozvrat() {
+		if (!data) return;
+		if (vozvratItems.length === 0) {
+			notify({ title: "Vozvrat qilib bo'lmaydi", text: 'Bu buyurtmada qaytariladigan mahsulot topilmadi.' });
+			return;
+		}
+		calculateMutation.mutate(
+			{ client: data.order.client, date: today, items: vozvratItems },
+			{
+				onSuccess: (result) => {
+					setCalcResult(result);
+					setVozvratOpen(true);
+				},
+				onError: (err) => {
+					notify({ title: 'Xatolik', text: getApiErrorMessage(err, 'Hisoblashda xatolik yuz berdi') });
+				},
+			},
+		);
+	}
 
 	async function printFor(role: PrintRole) {
 		const url =
@@ -115,6 +162,16 @@ export default function OrderAccountHistoryDetailPage() {
 					</Button>
 					<Button type='button' variant='danger' size='xs' onClick={() => printFor('admin')}>
 						<FaDownload className='mr-1.5' /> Chop qilish Admin uchun
+					</Button>
+					<Button
+						type='button'
+						variant='danger'
+						size='xs'
+						disabled={!canWrite || calculateMutation.isPending}
+						onClick={handleOpenVozvrat}
+					>
+						<FaUndo className='mr-1.5' />{' '}
+						{calculateMutation.isPending ? 'Hisoblanmoqda...' : 'Vozvrat qilish'}
 					</Button>
 				</div>
 			</div>
@@ -202,41 +259,73 @@ export default function OrderAccountHistoryDetailPage() {
 										</TableCell>
 									</TableRow>
 									{group.items.map((item, index) => (
-										<TableRow key={item.id}>
-											<TableCell>{index + 1}.</TableCell>
-											<TableCell>{item.type_sklad_name}</TableCell>
-											<TableCell>{item.brand_name}</TableCell>
-											<TableCell>{item.product_category_name}</TableCell>
-											<TableCell>{item.size}</TableCell>
-											<TableCell>{item.type_name}</TableCell>
-											<TableCell>{item.count}</TableCell>
-											<TableCell>
-												<button
-													type='button'
-													className='inline-flex items-center gap-1.5 font-semibold text-ca-green hover:underline disabled:cursor-not-allowed disabled:opacity-60 disabled:no-underline'
-													disabled={!canWrite}
-													onClick={() => setEditingItem(item)}
+										<Fragment key={item.id}>
+											<TableRow>
+												<TableCell>{index + 1}.</TableCell>
+												<TableCell>{item.type_sklad_name}</TableCell>
+												<TableCell>{item.brand_name}</TableCell>
+												<TableCell>{item.product_category_name}</TableCell>
+												<TableCell>{item.size}</TableCell>
+												<TableCell>{item.type_name}</TableCell>
+												<TableCell>
+													<span className='inline-flex items-center gap-1.5'>
+														{item.count}
+														{item.has_vozvrat && (
+															<Tooltip content={`Qaytarilgan: ${item.vozvrat_count} ta`}>
+																<FaUndo className='text-ca-orange' />
+															</Tooltip>
+														)}
+													</span>
+												</TableCell>
+												<TableCell>
+													<button
+														type='button'
+														className='inline-flex items-center gap-1.5 font-semibold text-ca-green hover:underline disabled:cursor-not-allowed disabled:opacity-60 disabled:no-underline'
+														disabled={!canWrite}
+														onClick={() => setEditingItem(item)}
+													>
+														{item.given_count} <FaCoins className='text-ca-orange' />
+													</button>
+												</TableCell>
+												<TableCell>
+													<span className='inline-flex items-center gap-1.5'>
+														{formatNumber(item.price)}
+														{item.is_price_diff && (
+															<Tooltip content="Narxlarda tafovut">
+																<FaExclamationTriangle className='text-ca-orange' />
+															</Tooltip>
+														)}
+													</span>
+												</TableCell>
+												<TableCell>{formatNumber(item.real_price)}</TableCell>
+												<TableCell
+													className={`font-semibold ${item.profit < 0 ? 'text-ca-red' : 'text-ca-green'}`}
 												>
-													{item.given_count} <FaCoins className='text-ca-orange' />
-												</button>
-											</TableCell>
-											<TableCell>
-												<span className='inline-flex items-center gap-1.5'>
-													{formatNumber(item.price)}
-													{item.is_price_diff && (
-														<Tooltip content="Narxlarda tafovut">
-															<FaExclamationTriangle className='text-ca-orange' />
-														</Tooltip>
-													)}
-												</span>
-											</TableCell>
-											<TableCell>{formatNumber(item.real_price)}</TableCell>
-											<TableCell
-												className={`font-semibold ${item.profit < 0 ? 'text-ca-red' : 'text-ca-green'}`}
-											>
-												{formatNumber(item.profit)}
-											</TableCell>
-										</TableRow>
+													{formatNumber(item.profit)}
+												</TableCell>
+											</TableRow>
+											{item.has_vozvrat &&
+												item.vozvrat_products.map((vp) => (
+													<TableRow key={vp.id} className='bg-ca-orange/10'>
+														<TableCell colSpan={11} className='py-1.5 text-[11px] text-ca-orange'>
+															<span className='inline-flex flex-wrap items-center gap-1.5'>
+																<FaUndo />
+																<span className='font-semibold'>
+																	{vp.vozvrat_order_date_label} sanada {formatNumber(vp.count)} ta
+																	qaytarilgan
+																</span>
+																<span>({formatNumber(vp.price_total, 2)} $)</span>
+																<Link
+																	to={`/vozvrat-order-history/${vp.vozvrat_order}`}
+																	className='font-semibold underline hover:no-underline'
+																>
+																	Vozvratni ko'rish
+																</Link>
+															</span>
+														</TableCell>
+													</TableRow>
+												))}
+										</Fragment>
 									))}
 									<TableRow className='bg-ca-silver'>
 										<TableCell colSpan={6} className='font-semibold text-ca-heading'>
@@ -287,6 +376,25 @@ export default function OrderAccountHistoryDetailPage() {
 				item={editingItem}
 				orderId={orderId}
 			/>
+
+			{vozvratOpen && calcResult && (
+				<ConfirmVozvratModal
+					open={vozvratOpen}
+					setOpen={setVozvratOpen}
+					companyId={order.company}
+					clientId={order.client}
+					date={today}
+					items={vozvratItems}
+					totalProductSum={calcResult.totals.total_product_sum}
+					exchangeRate={report.exchange_rate || calcResult.exchange_rate}
+					oldDebt={report.total_debt}
+					onConfirmed={(message) => {
+						notify({ title: message });
+						setVozvratOpen(false);
+						setCalcResult(null);
+					}}
+				/>
+			)}
 		</>
 	);
 }
