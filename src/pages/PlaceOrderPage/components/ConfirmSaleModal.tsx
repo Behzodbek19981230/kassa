@@ -97,11 +97,8 @@ export default function ConfirmSaleModal({
 	const sumCart = watch('sum_cart');
 	const sumTransfers = watch('sum_transfers');
 
-	const paidDollar =
-		(Number(sumDollar) || 0) +
-		(rate > 0 ? (Number(sumSom) || 0) / rate : 0) +
-		(Number(sumCart) || 0) +
-		(Number(sumTransfers) || 0);
+	const somTotal = (Number(sumSom) || 0) + (Number(sumCart) || 0) + (Number(sumTransfers) || 0);
+	const paidDollar = (Number(sumDollar) || 0) + (rate > 0 ? somTotal / rate : 0);
 	const coveredDollar = paidDollar + (Number(discountAmount) || 0);
 	const remaining = allSummDollar - coveredDollar;
 

@@ -73,10 +73,8 @@ export default function ConfirmVozvratModal({
 	const sumSom = watch('sum_som');
 	const sumCart = watch('sum_cart');
 
-	const allSummDollar =
-		(Number(sumDollar) || 0) +
-		(exchangeRate > 0 ? (Number(sumSom) || 0) / exchangeRate : 0) +
-		(Number(sumCart) || 0);
+	const somTotal = (Number(sumSom) || 0) + (Number(sumCart) || 0);
+	const allSummDollar = (Number(sumDollar) || 0) + (exchangeRate > 0 ? somTotal / exchangeRate : 0);
 	const newDebt = oldDebt - (totalProductSum - allSummDollar);
 
 	const confirmMutation = useVozvratConfirmMutation();

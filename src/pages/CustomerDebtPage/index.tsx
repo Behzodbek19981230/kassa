@@ -10,7 +10,6 @@ import {
 	DataTable,
 	PageHeader,
 	Panel,
-	RadioGroup,
 	useNotification,
 } from '@/components/ui';
 import { formatNumber } from '@/lib/number';
@@ -43,7 +42,6 @@ export default function CustomerDebtPage() {
 	const navigate = useNavigate();
 	const { notify } = useNotification();
 
-	const [showFilters, setShowFilters] = useState(false);
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -165,11 +163,9 @@ export default function CustomerDebtPage() {
 			cell: ({ row }) => {
 				const item = row.original;
 				const rate = Number(item.exchange_rate) || 0;
-				const paid =
-					(Number(item.sum_dollar) || 0) +
-					(rate > 0 ? (Number(item.sum_som) || 0) / rate : 0) +
-					(Number(item.sum_cart) || 0) +
-					(Number(item.sum_transfers) || 0);
+				const somTotal =
+					(Number(item.sum_som) || 0) + (Number(item.sum_cart) || 0) + (Number(item.sum_transfers) || 0);
+				const paid = (Number(item.sum_dollar) || 0) + (rate > 0 ? somTotal / rate : 0);
 				return `${formatNumber(paid, 2)} $`;
 			},
 		}),
@@ -217,11 +213,7 @@ export default function CustomerDebtPage() {
 			header: 'Buyurtma holati',
 			size: 130,
 			enableColumnFilter: false,
-			cell: ({ row }) => (
-				<span className='text-ca-orange'>
-					Do'kon: {row.original.status_order_dukon ? 'Tayyor' : 'Jarayonda'}
-				</span>
-			),
+			cell: ({ row }) => <span className='text-ca-orange'>{row.original.status_order_label}</span>,
 		}),
 		columnHelper.display({
 			id: 'keshbek',
@@ -294,20 +286,6 @@ export default function CustomerDebtPage() {
 				}
 				onReload={() => refetch()}
 			>
-				<div className='mb-4 flex items-center gap-3 rounded-[3px] border border-ca-border bg-white px-4 py-3'>
-					<span className='text-xs font-semibold text-ca-heading'>Filter ko'rinsinmi?</span>
-					<RadioGroup
-						name='show-filters'
-						inline
-						value={String(showFilters)}
-						onChange={(v) => setShowFilters(v === 'true')}
-						options={[
-							{ value: 'true', label: 'Ha' },
-							{ value: 'false', label: "Yo'q" },
-						]}
-					/>
-				</div>
-
 				<DataTable
 					columns={columns}
 					data={results}
@@ -325,7 +303,7 @@ export default function CustomerDebtPage() {
 					enablePagination
 					enableSorting={false}
 					enableGlobalFilter={false}
-					enableColumnFilters={showFilters}
+					enableColumnFilters={true}
 					enableColumnVisibility
 					enableStriping
 					isLoading={isLoading || isFetching}

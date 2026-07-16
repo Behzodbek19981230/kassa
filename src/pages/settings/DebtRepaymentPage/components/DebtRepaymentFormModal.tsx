@@ -148,12 +148,8 @@ export default function DebtRepaymentFormModal({ open, setOpen, mode, item }: De
 
 	useEffect(() => {
 		const rate = Number(exchangeRate) || 0;
-		const total =
-			(rate > 0 ? (Number(sumSom) || 0) / rate : 0) +
-			(Number(summDollar) || 0) +
-			(Number(summCart) || 0) +
-			(Number(sumTransfers) || 0) +
-			(Number(discountAmount) || 0);
+		const somTotal = (Number(sumSom) || 0) + (Number(summCart) || 0) + (Number(sumTransfers) || 0);
+		const total = (rate > 0 ? somTotal / rate : 0) + (Number(summDollar) || 0) + (Number(discountAmount) || 0);
 		setValue('all_summ_dollar', total.toFixed(2));
 	}, [sumSom, summDollar, summCart, sumTransfers, discountAmount, exchangeRate, setValue]);
 
@@ -319,14 +315,14 @@ export default function DebtRepaymentFormModal({ open, setOpen, mode, item }: De
 							</FormField>
 						</div>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Karta orqali ($)' horizontal={false} className='mb-0'>
+							<FormField label='Karta orqali' horizontal={false} className='mb-0'>
 								<Controller
 									name='summ_cart'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
-							<FormField label="O'tkazma orqali ($)" horizontal={false} className='mb-0'>
+							<FormField label="O'tkazma orqali" horizontal={false} className='mb-0'>
 								<Controller
 									name='sum_transfers'
 									control={control}

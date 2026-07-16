@@ -269,23 +269,26 @@ export default function WarehouseProductRow({
 					)}
 					{error && <p className='mt-1 text-[11px] text-ca-red'>{error}</p>}
 				</div>
-				<div className='flex w-16 shrink-0 self-end justify-end gap-1'>
-					{showRemove && (
-						<Button
-							type='button'
-							variant='danger'
-							size='icon'
-							aria-label="Qatorni o'chirish"
-							onClick={onRemove}
-						>
-							<FaTrash />
-						</Button>
-					)}
-					{showAdd && (
-						<Button type='button' variant='success' size='icon' aria-label='Qator qo’shish' onClick={onAdd}>
-							<FaPlus />
-						</Button>
-					)}
+				<div className='w-16 shrink-0'>
+					<label className='mb-1 block text-xs font-semibold text-transparent select-none'>_</label>
+					<div className='flex justify-end gap-1'>
+						{showRemove && (
+							<Button
+								type='button'
+								variant='danger'
+								size='icon'
+								aria-label="Qatorni o'chirish"
+								onClick={onRemove}
+							>
+								<FaTrash />
+							</Button>
+						)}
+						{showAdd && (
+							<Button type='button' variant='success' size='icon' aria-label='Qator qo’shish' onClick={onAdd}>
+								<FaPlus />
+							</Button>
+						)}
+					</div>
 				</div>
 			</div>
 			{!resolveStock && duplicateItem && (

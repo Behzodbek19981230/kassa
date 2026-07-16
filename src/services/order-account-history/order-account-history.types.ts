@@ -82,6 +82,7 @@ export interface OrderAccountHistoryItem {
 	updated_by: number | null;
 	company: number;
 	client: number;
+	status_order_label?: string;
 }
 
 export interface OrderAccountHistoryUpdatePayload {
