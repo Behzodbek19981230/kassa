@@ -91,11 +91,10 @@ export default function ImportPage() {
 
 	// Unfiltered catalog, kept separate so cart rows added before a filter change can
 	// still resolve their product info even once they fall outside the active filter.
-	const { data: catalogData } = useWarehouseAllListQuery({ company_id: companyId ?? undefined });
+	const { data: catalogData } = useWarehouseAllListQuery({});
 	const catalogGroups = catalogData ?? [];
 
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseAllListQuery({
-		company_id: companyId ?? undefined,
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Button, buttonProps, DataTable, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { useCurrentCompany } from '@/lib/company';
 import DeleteTypeModal from '@/pages/system/ProductMeasurementPage/components/DeleteTypeModal';
 import TypeFormModal from '@/pages/system/ProductMeasurementPage/components/TypeFormModal';
 import { useBrandSizeTypeListQuery } from '@/services/brand-size-type/brand-size-type.queries';
@@ -13,6 +14,7 @@ const PAGE_SIZE = 10;
 const typeColumnHelper = createColumnHelper<BrandSizeType>();
 
 export default function SizeTypesTab() {
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: PAGE_SIZE });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const nameFilter = columnFilters.find((f) => f.id === 'name')?.value as string | undefined;
@@ -46,13 +48,21 @@ export default function SizeTypesTab() {
 					/> */}
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}
+						elementProps={{
+							...buttonProps(<FaEdit />, 'warning', 'icon'),
+							'aria-label': 'Tahrirlash',
+							disabled: !canWrite,
+						}}
 						dialog={TypeFormModal}
 						dialogProps={{ mode: 'edit' as const, item: row.original }}
 					/>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+						elementProps={{
+							...buttonProps(<FaTrash />, 'danger', 'icon'),
+							'aria-label': "O'chirish",
+							disabled: !canWrite,
+						}}
 						dialog={DeleteTypeModal}
 						dialogProps={{ item: row.original }}
 					/>
@@ -66,12 +76,14 @@ export default function SizeTypesTab() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
-						dialog={TypeFormModal}
-						dialogProps={{ mode: 'create' as const }}
-					/>
+					canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							dialog={TypeFormModal}
+							dialogProps={{ mode: 'create' as const }}
+						/>
+					)
 				}
 				onReload={() => {
 					refetch();

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { useCurrentCompany } from '@/lib/company';
 import ConsignorFormModal from '@/pages/system/ConsignorPage/components/ConsignorFormModal';
 import DeleteConsignorModal from '@/pages/system/ConsignorPage/components/DeleteConsignorModal';
 import { useConsignorListQuery } from '@/services/consignor/consignor.queries';
@@ -16,6 +17,7 @@ import type { Consignor } from '@/services/consignor/consignor.types';
 const columnHelper = createColumnHelper<Consignor>();
 
 export default function ConsignorPage() {
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -48,13 +50,21 @@ export default function ConsignorPage() {
 				<div className='flex justify-end gap-1'>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}
+						elementProps={{
+							...buttonProps(<FaEdit />, 'warning', 'icon'),
+							'aria-label': 'Tahrirlash',
+							disabled: !canWrite,
+						}}
 						dialog={ConsignorFormModal}
 						dialogProps={{ mode: 'edit' as const, item: row.original }}
 					/>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+						elementProps={{
+							...buttonProps(<FaTrash />, 'danger', 'icon'),
+							'aria-label': "O'chirish",
+							disabled: !canWrite,
+						}}
 						dialog={DeleteConsignorModal}
 						dialogProps={{ item: row.original }}
 					/>
@@ -76,12 +86,14 @@ export default function ConsignorPage() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
-						dialog={ConsignorFormModal}
-						dialogProps={{ mode: 'create' as const }}
-					/>
+					canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							dialog={ConsignorFormModal}
+							dialogProps={{ mode: 'create' as const }}
+						/>
+					)
 				}
 				onReload={() => {
 					refetch();

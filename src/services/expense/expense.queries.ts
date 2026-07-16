@@ -12,7 +12,6 @@ export function useExpenseListQuery(params?: ExpenseListParams) {
     queryKey: expenseKeys.list(params),
     queryFn: () => expenseService.list(params),
     placeholderData: (prev) => prev,
-    enabled: params?.company_id != null,
   })
 }
 

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Button, buttonProps, DataTable, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { useCurrentCompany } from '@/lib/company';
 import DeleteRegionModal from '@/pages/system/LocationPage/components/DeleteRegionModal';
 import RegionFormModal from '@/pages/system/LocationPage/components/RegionFormModal';
 import { useRegionListQuery } from '@/services/region/region.queries';
@@ -16,6 +17,7 @@ import type { Region } from '@/services/region/region.types';
 const columnHelper = createColumnHelper<Region>();
 
 export default function RegionsTab() {
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -46,13 +48,21 @@ export default function RegionsTab() {
 				<div className='flex justify-end gap-1'>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}
+						elementProps={{
+							...buttonProps(<FaEdit />, 'warning', 'icon'),
+							'aria-label': 'Tahrirlash',
+							disabled: !canWrite,
+						}}
 						dialog={RegionFormModal}
 						dialogProps={{ mode: 'edit' as const, item: row.original }}
 					/>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+						elementProps={{
+							...buttonProps(<FaTrash />, 'danger', 'icon'),
+							'aria-label': "O'chirish",
+							disabled: !canWrite,
+						}}
 						dialog={DeleteRegionModal}
 						dialogProps={{ item: row.original }}
 					/>
@@ -65,12 +75,14 @@ export default function RegionsTab() {
 		<Panel
 			title="Ro'yxat"
 			actions={
-				<OpenDialogButton
-					element={(props) => <Button {...props} />}
-					elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
-					dialog={RegionFormModal}
-					dialogProps={{ mode: 'create' as const }}
-				/>
+				canWrite && (
+					<OpenDialogButton
+						element={(props) => <Button {...props} />}
+						elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+						dialog={RegionFormModal}
+						dialogProps={{ mode: 'create' as const }}
+					/>
+				)
 			}
 			onReload={() => {
 				refetch();

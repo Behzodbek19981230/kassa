@@ -32,7 +32,7 @@ function formatTime(value: string) {
 export default function WarehouseAccountPage() {
 	const navigate = useNavigate();
 	const { notify } = useNotification();
-	const { companyId, canWrite } = useCurrentCompany();
+	const { canWrite } = useCurrentCompany();
 
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
@@ -46,7 +46,6 @@ export default function WarehouseAccountPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useSkladListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		company_id: companyId ?? undefined,
 		consignor_ref: consignorFilter ? Number(consignorFilter) : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 		import_product_status: statusFilter ? statusFilter === 'true' : undefined,

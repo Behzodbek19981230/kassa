@@ -43,7 +43,7 @@ function formatDateTime(value: string) {
 export default function CustomerOrderHistoryPage() {
 	const navigate = useNavigate();
 	const { notify } = useNotification();
-	const { companyId, canWrite } = useCurrentCompany();
+	const { canWrite } = useCurrentCompany();
 
 	const [showFilters, setShowFilters] = useState(false);
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -56,7 +56,6 @@ export default function CustomerOrderHistoryPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useOrderAccountHistoryGroupedListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		company_id: companyId ?? undefined,
 		client: clientFilter ? Number(clientFilter) : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 		is_vozvrat: vozvratFilter ? vozvratFilter === 'true' : undefined,

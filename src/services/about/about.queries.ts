@@ -12,7 +12,6 @@ export function useAboutListQuery(params?: AboutListParams) {
     queryKey: aboutKeys.list(params),
     queryFn: () => aboutService.list(params),
     placeholderData: (prev) => prev,
-    enabled: params?.company_id != null,
   })
 }
 

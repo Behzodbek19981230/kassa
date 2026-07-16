@@ -33,7 +33,7 @@ function formatDate(value: string) {
 export default function MyDebtPage() {
 	const navigate = useNavigate();
 	const { notify } = useNotification();
-	const { companyId, canWrite } = useCurrentCompany();
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 200 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [addModalOpen, setAddModalOpen] = useState(false);
@@ -44,7 +44,6 @@ export default function MyDebtPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useMyDebtListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		company_id: companyId ?? undefined,
 		consignor: consignorFilter ? Number(consignorFilter) : undefined,
 		created_by: updatedByFilter ? Number(updatedByFilter) : undefined,
 	});

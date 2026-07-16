@@ -205,7 +205,6 @@ export interface VozvratOrderListItem {
 }
 
 export interface VozvratOrderListParams extends ListParams {
-	company_id?: number;
 	client?: number;
 	created_by?: number;
 	date?: string;

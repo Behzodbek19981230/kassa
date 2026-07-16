@@ -18,6 +18,5 @@ export interface ExpensePayload {
 }
 
 export interface ExpenseListParams extends ListParams {
-	company_id?: number;
 	type?: number;
 }

@@ -12,7 +12,6 @@ export function useMyDebtListQuery(params?: MyDebtListParams) {
 		queryKey: myDebtKeys.list(params),
 		queryFn: () => myDebtService.list(params),
 		placeholderData: (prev) => prev,
-		enabled: params?.company_id != null,
 	});
 }
 

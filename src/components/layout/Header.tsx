@@ -65,7 +65,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 	// const { theme, toggleTheme } = useTheme();
 	const now = useClock();
 	const { data: usdRate } = useCurrencyRateQuery('USD');
-	const { companyId, setCompanyId, companies, showCompanySelect, ownCompany } = useCurrentCompany();
+	const { companyId, setCompanyId, companies, showCompanySelect, ownCompany, ownCompanyId } = useCurrentCompany();
 	const currentCompany = companies.find((c) => c.id === companyId);
 	const { notify } = useNotification();
 
@@ -207,7 +207,14 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 											onSelect={() => handleSelectCompany(company.id)}
 											className='flex items-center justify-between gap-2'
 										>
-											{company.name}
+											<span className='flex items-center gap-1.5'>
+												{company.name}
+												{company.id === ownCompanyId && (
+													<Badge variant='info' className='px-1.5 py-0 text-[10px] font-normal'>
+														Ishchi
+													</Badge>
+												)}
+											</span>
 											{switchingCompanyId === company.id ? (
 												<span className='text-[10px] text-ca-text'>...</span>
 											) : (

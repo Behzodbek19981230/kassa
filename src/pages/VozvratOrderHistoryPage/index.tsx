@@ -25,7 +25,7 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 
 export default function VozvratOrderHistoryPage() {
 	const navigate = useNavigate();
-	const { companyId, canWrite } = useCurrentCompany();
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [deletingItem, setDeletingItem] = useState<VozvratOrderListItem | null>(null);
@@ -36,7 +36,6 @@ export default function VozvratOrderHistoryPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useVozvratOrderListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		company_id: companyId ?? undefined,
 		client: clientFilter ? Number(clientFilter) : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 	});

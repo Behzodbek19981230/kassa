@@ -41,6 +41,8 @@ export interface User {
   district_detail?: UserDistrictDetail | null
   trade_company?: number | null
   trade_company_detail?: UserCompanyDetail | null
+  current_company?: number | null
+  current_company_detail?: UserCompanyDetail | null
   companies: number[]
   companies_detail?: UserCompanyDetail[]
   address: string | null
@@ -61,6 +63,7 @@ export interface UserPayload {
   district: number
   role: number
   trade_company?: number
+  current_company?: number
   companies: number[]
   address: string
   password?: string

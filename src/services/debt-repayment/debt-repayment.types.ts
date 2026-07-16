@@ -88,7 +88,6 @@ export interface DebtRepaymentPayload {
 }
 
 export interface DebtRepaymentListParams extends ListParams {
-  company_id?: number
   client?: number
   is_worker?: number
 }

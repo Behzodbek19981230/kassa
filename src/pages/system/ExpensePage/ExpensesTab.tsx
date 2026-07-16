@@ -27,7 +27,7 @@ import { expenseTypeService } from '@/services/expense-type/expense-type.service
 const columnHelper = createColumnHelper<Expense>();
 
 export default function ExpensesTab() {
-	const { companyId, canWrite } = useCurrentCompany();
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -39,7 +39,6 @@ export default function ExpensesTab() {
 	const { data, isLoading, isFetching, isError, refetch } = useExpenseListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		company_id: companyId ?? undefined,
 		search: nameFilter || undefined,
 		type: typeFilter ? Number(typeFilter) : undefined,
 		ordering,

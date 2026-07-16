@@ -13,7 +13,6 @@ export function useClientListQuery(params?: ClientListParams) {
     queryKey: clientKeys.list(params),
     queryFn: () => clientService.list(params),
     placeholderData: (prev) => prev,
-    enabled: params?.company_id != null,
   })
 }
 

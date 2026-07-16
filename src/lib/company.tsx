@@ -49,10 +49,10 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 		return { id: tradeCompanyDetail.id, name: tradeCompanyDetail.name, logo: tradeCompanyDetail.logo };
 	}, [tradeCompanyDetail]);
 
-	// The selected company always mirrors the user's own trade_company: selecting a
-	// different one in the header dropdown persists it as the new trade_company (see
-	// setCompanyId below), so there is no separate "temporarily browsing" selection to track.
-	const companyId = ownCompanyId ?? companies[0]?.id ?? null;
+	// current_company tracks the header dropdown's selection and can differ from the
+	// user's own trade_company (see setCompanyId below); it falls back to trade_company
+	// when the user hasn't browsed to a different company.
+	const companyId = userInfo?.current_company ?? ownCompanyId ?? companies[0]?.id ?? null;
 
 	const updateUserMutation = useUpdateUserMutation();
 
@@ -77,7 +77,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 				region,
 				district,
 				role,
-				trade_company: id,
+				trade_company: userInfo.trade_company ?? undefined,
+				current_company: id,
 				companies: userInfo.companies,
 				address: userInfo.address ?? '',
 			};

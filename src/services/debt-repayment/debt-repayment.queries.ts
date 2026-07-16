@@ -16,7 +16,6 @@ export function useDebtRepaymentListQuery(params?: DebtRepaymentListParams) {
     queryKey: debtRepaymentKeys.list(params),
     queryFn: () => debtRepaymentService.list(params),
     placeholderData: (prev) => prev,
-    enabled: params?.company_id != null,
   })
 }
 

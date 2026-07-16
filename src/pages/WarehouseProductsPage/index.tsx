@@ -14,7 +14,6 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui';
-import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { brandService } from '@/services/brand/brand.service';
 import { productCategoryService } from '@/services/product-category/product-category.service';
@@ -24,13 +23,11 @@ import WarehouseProductImagesModal from '@/pages/WarehouseProductsPage/component
 import WarehouseProductThumbnail from '@/pages/WarehouseProductsPage/components/WarehouseProductThumbnail';
 
 export default function WarehouseProductsPage() {
-	const { companyId } = useCurrentCompany();
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
 	const [imagesItem, setImagesItem] = useState<WarehouseAllListItem | null>(null);
 
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseAllListQuery({
-		company_id: companyId ?? undefined,
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});

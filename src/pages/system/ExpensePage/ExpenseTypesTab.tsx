@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Button, buttonProps, DataTable, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { useCurrentCompany } from '@/lib/company';
 import DeleteExpenseTypeModal from '@/pages/system/ExpensePage/components/DeleteExpenseTypeModal';
 import ExpenseTypeFormModal from '@/pages/system/ExpensePage/components/ExpenseTypeFormModal';
 import { useExpenseTypeListQuery } from '@/services/expense-type/expense-type.queries';
@@ -11,6 +12,7 @@ import type { ExpenseType } from '@/services/expense-type/expense-type.types';
 const columnHelper = createColumnHelper<ExpenseType>();
 
 export default function ExpenseTypesTab() {
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -41,13 +43,21 @@ export default function ExpenseTypesTab() {
 				<div className='flex justify-end gap-1'>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}
+						elementProps={{
+							...buttonProps(<FaEdit />, 'warning', 'icon'),
+							'aria-label': 'Tahrirlash',
+							disabled: !canWrite,
+						}}
 						dialog={ExpenseTypeFormModal}
 						dialogProps={{ mode: 'edit' as const, item: row.original }}
 					/>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+						elementProps={{
+							...buttonProps(<FaTrash />, 'danger', 'icon'),
+							'aria-label': "O'chirish",
+							disabled: !canWrite,
+						}}
 						dialog={DeleteExpenseTypeModal}
 						dialogProps={{ item: row.original }}
 					/>
@@ -60,12 +70,14 @@ export default function ExpenseTypesTab() {
 		<Panel
 			title="Ro'yxat"
 			actions={
-				<OpenDialogButton
-					element={(props) => <Button {...props} />}
-					elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
-					dialog={ExpenseTypeFormModal}
-					dialogProps={{ mode: 'create' as const }}
-				/>
+				canWrite && (
+					<OpenDialogButton
+						element={(props) => <Button {...props} />}
+						elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+						dialog={ExpenseTypeFormModal}
+						dialogProps={{ mode: 'create' as const }}
+					/>
+				)
 			}
 			onReload={() => {
 				refetch();

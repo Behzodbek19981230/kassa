@@ -32,7 +32,7 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 	`${u.last_name} ${u.first_name}`.trim() || u.username;
 
 export default function DebtRepaymentPage() {
-	const { companyId, canWrite } = useCurrentCompany();
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -44,7 +44,6 @@ export default function DebtRepaymentPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useDebtRepaymentListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		company_id: companyId ?? undefined,
 		client: clientFilter ? Number(clientFilter) : undefined,
 		is_worker: workerFilter ? Number(workerFilter) : undefined,
 		ordering,

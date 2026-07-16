@@ -13,7 +13,6 @@ import {
 	RadioGroup,
 	useNotification,
 } from '@/components/ui';
-import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAccountHistoryGroupedListQuery } from '@/services/order-account-history/order-account-history.queries';
@@ -43,7 +42,6 @@ function formatDateTime(value: string) {
 export default function CustomerDebtPage() {
 	const navigate = useNavigate();
 	const { notify } = useNotification();
-	const { companyId } = useCurrentCompany();
 
 	const [showFilters, setShowFilters] = useState(false);
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -56,7 +54,6 @@ export default function CustomerDebtPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useOrderAccountHistoryGroupedListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		company_id: companyId ?? undefined,
 		client: clientFilter ? Number(clientFilter) : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 		is_vozvrat: vozvratFilter ? vozvratFilter === 'true' : undefined,

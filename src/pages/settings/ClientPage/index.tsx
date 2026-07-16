@@ -36,7 +36,7 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 	`${u.last_name} ${u.first_name}`.trim() || u.username;
 
 export default function ClientPage() {
-	const { companyId, canWrite } = useCurrentCompany();
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -53,7 +53,6 @@ export default function ClientPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useClientListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		company_id: companyId ?? undefined,
 		search: nameFilter || undefined,
 		worker_user: workerUserFilter ? Number(workerUserFilter) : undefined,
 		region: regionFilter ? Number(regionFilter) : undefined,

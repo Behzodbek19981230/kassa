@@ -38,7 +38,7 @@ import type { Warehouse } from '@/services/warehouse/warehouse.types';
 const columnHelper = createColumnHelper<Warehouse>();
 
 export default function WarehousePage() {
-	const { companyId, canWrite } = useCurrentCompany();
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -53,7 +53,6 @@ export default function WarehousePage() {
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		company_id: companyId ?? undefined,
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 		type: typeFilter ? Number(typeFilter) : undefined,

@@ -23,7 +23,6 @@ export function useOrderAccountHistoryListQuery(params?: OrderAccountHistoryList
 		queryKey: orderAccountHistoryKeys.list(params),
 		queryFn: () => orderAccountHistoryService.list(params),
 		placeholderData: (prev) => prev,
-		enabled: params?.company_id != null,
 	});
 }
 
@@ -32,7 +31,6 @@ export function useOrderAccountHistoryGroupedListQuery(params?: OrderAccountHist
 		queryKey: orderAccountHistoryKeys.groupedList(params),
 		queryFn: () => orderAccountHistoryService.listGrouped(params),
 		placeholderData: (prev) => prev,
-		enabled: params?.company_id != null,
 	});
 }
 

@@ -54,7 +54,6 @@ export interface SkladItem {
 }
 
 export interface SkladListParams extends ListParams {
-	company_id?: number;
 	consignor_ref?: number;
 	created_by?: number;
 	import_product_status?: boolean;

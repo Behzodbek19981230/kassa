@@ -17,7 +17,7 @@ import type { About } from '@/services/about/about.types';
 const columnHelper = createColumnHelper<About>();
 
 export default function AboutPage() {
-	const { companyId, canWrite } = useCurrentCompany();
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -28,7 +28,6 @@ export default function AboutPage() {
 	const { data, isLoading, isFetching, isError, refetch } = useAboutListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		company_id: companyId ?? undefined,
 		search: nomerFilter || undefined,
 		ordering,
 	});

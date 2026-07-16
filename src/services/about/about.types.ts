@@ -19,6 +19,4 @@ export interface AboutPayload {
   company: number
 }
 
-export interface AboutListParams extends ListParams {
-  company_id?: number
-}
+export type AboutListParams = ListParams
