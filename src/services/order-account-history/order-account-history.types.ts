@@ -83,6 +83,7 @@ export interface OrderAccountHistoryItem {
 	company: number;
 	client: number;
 	status_order_label?: string;
+	is_price_diff: boolean;
 }
 
 export interface OrderAccountHistoryUpdatePayload {
@@ -265,6 +266,7 @@ export interface OrderAccountHistoryProductItem {
 	vozvrat_order: number | null;
 	old_count: number | null;
 	vozvrat_summa: number;
+	is_price_diff: boolean;
 }
 
 export interface OrderAccountHistoryProductGroupTotals {

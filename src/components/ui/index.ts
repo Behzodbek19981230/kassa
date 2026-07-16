@@ -58,3 +58,4 @@ export {
 } from '@/components/ui/Modal'
 export { NotificationProvider, useNotification } from '@/components/ui/Notification'
 export type { NotificationOptions, NotificationPosition } from '@/components/ui/Notification'
+export { Tooltip } from '@/components/ui/Tooltip'

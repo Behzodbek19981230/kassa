@@ -10,6 +10,7 @@ import {
 	DataTable,
 	PageHeader,
 	Panel,
+	Tooltip,
 	useNotification,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
@@ -116,7 +117,16 @@ export default function CustomerOrderHistoryPage() {
 		}),
 		columnHelper.accessor('client', {
 			header: 'Mijoz',
-			cell: (info) => info.row.original.client_name ?? info.getValue(),
+			cell: (info) => (
+				<span className='inline-flex items-center gap-1.5'>
+					{info.row.original.client_name ?? info.getValue()}
+					{info.row.original.is_price_diff && (
+						<Tooltip content="Narxlarda tafovut">
+							<FaExclamationTriangle className='text-ca-orange' />
+						</Tooltip>
+					)}
+				</span>
+			),
 			meta: {
 				filterVariant: 'select',
 				filterLoadOptions: loadClientOptions,

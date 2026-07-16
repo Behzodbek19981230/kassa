@@ -1,7 +1,17 @@
 import { Fragment, useState } from 'react';
 import { FaArrowLeft, FaCoins, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useNotification } from '@/components/ui';
+import {
+	Button,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+	Tooltip,
+	useNotification,
+} from '@/components/ui';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
@@ -210,7 +220,16 @@ export default function OrderAccountHistoryDetailPage() {
 													{item.given_count} <FaCoins className='text-ca-orange' />
 												</button>
 											</TableCell>
-											<TableCell>{formatNumber(item.price)}</TableCell>
+											<TableCell>
+												<span className='inline-flex items-center gap-1.5'>
+													{formatNumber(item.price)}
+													{item.is_price_diff && (
+														<Tooltip content="Narxlarda tafovut">
+															<FaExclamationTriangle className='text-ca-orange' />
+														</Tooltip>
+													)}
+												</span>
+											</TableCell>
 											<TableCell>{formatNumber(item.real_price)}</TableCell>
 											<TableCell
 												className={`font-semibold ${item.profit < 0 ? 'text-ca-red' : 'text-ca-green'}`}
