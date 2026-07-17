@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
-import { FaExclamationTriangle, FaExpand } from 'react-icons/fa';
+import { useEffect, useMemo, useState } from 'react';
+import { FaEdit, FaExclamationTriangle, FaExpand, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
 	Badge,
@@ -8,8 +8,8 @@ import {
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
 	DataTable,
-	PageHeader,
-	Panel,
+	Tooltip,
+	useNotification,
 } from '@/components/ui';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
@@ -37,8 +37,19 @@ function formatDateTime(value: string) {
 	return `${date} ${time}`;
 }
 
-export default function CustomerDebtPage() {
+interface OrderAccountHistoryTableProps {
+	isDebtorOnly: boolean;
+	canWrite: boolean;
+	onRefetchReady?: (refetch: () => void) => void;
+}
+
+export default function OrderAccountHistoryTable({
+	isDebtorOnly,
+	canWrite,
+	onRefetchReady,
+}: OrderAccountHistoryTableProps) {
 	const navigate = useNavigate();
+	const { notify } = useNotification();
 
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -53,8 +64,13 @@ export default function CustomerDebtPage() {
 		client: clientFilter ? Number(clientFilter) : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 		is_vozvrat: vozvratFilter ? vozvratFilter === 'true' : undefined,
-		is_debtor: 1,
+		is_debtor: isDebtorOnly ? 1 : undefined,
 	});
+
+	useEffect(() => {
+		onRefetchReady?.(refetch);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [refetch]);
 
 	const paginationMeta = data?.pagination;
 
@@ -90,6 +106,10 @@ export default function CustomerDebtPage() {
 		};
 	};
 
+	function stub() {
+		notify({ title: 'Tez orada', text: 'Bu funksiya hali ulanmagan.' });
+	}
+
 	const columns = [
 		columnHelper.display({
 			id: 'no',
@@ -109,7 +129,16 @@ export default function CustomerDebtPage() {
 		}),
 		columnHelper.accessor('client', {
 			header: 'Mijoz',
-			cell: (info) => info.row.original.client_name ?? info.getValue(),
+			cell: (info) => (
+				<span className='inline-flex items-center gap-1.5'>
+					{info.row.original.client_name ?? info.getValue()}
+					{info.row.original.is_price_diff && (
+						<Tooltip content='Narxlarda tafovut'>
+							<FaExclamationTriangle className='text-ca-orange' />
+						</Tooltip>
+					)}
+				</span>
+			),
 			meta: {
 				filterVariant: 'select',
 				filterLoadOptions: loadClientOptions,
@@ -225,80 +254,89 @@ export default function CustomerDebtPage() {
 			header: 'Harakatlar',
 			meta: { align: 'right' },
 			enableColumnFilter: false,
-			size: 90,
-			cell: ({ row }) => (
-				<div className='flex justify-end gap-1'>
-					<Button
-						type='button'
-						variant='default'
-						size='icon'
-						aria-label='Batafsil'
-						onClick={() => navigate(`/customer-order-history/${row.original.id}`)}
-					>
-						<FaExpand />
-					</Button>
-				</div>
-			),
+			size: isDebtorOnly ? 90 : 220,
+			cell: ({ row }) => {
+				const item = row.original;
+				return (
+					<div className='flex justify-end gap-1'>
+						{!isDebtorOnly && (
+							<Button
+								type='button'
+								variant='info'
+								size='icon'
+								aria-label='Tahrirlash'
+								disabled={!canWrite}
+								onClick={() => navigate(`/customer-order-history/${item.id}/edit`)}
+							>
+								<FaEdit />
+							</Button>
+						)}
+						<Button
+							type='button'
+							variant='default'
+							size='icon'
+							aria-label='Batafsil'
+							onClick={() => navigate(`/customer-order-history/${item.id}`)}
+						>
+							<FaExpand />
+						</Button>
+						{!isDebtorOnly && (
+							<Button
+								type='button'
+								variant='danger'
+								size='icon'
+								aria-label="O'chirish"
+								disabled={!canWrite}
+								onClick={stub}
+							>
+								<FaTrash />
+							</Button>
+						)}
+					</div>
+				);
+			},
 		}),
 	];
 
 	return (
-		<>
-			<PageHeader
-				title='Mijozdan qarzdorlik'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Mijozdan qarzdorlik', active: true },
-				]}
-			/>
-
-			<Panel
-				title="Ro'yxat"
-				actions={
-					<div className='flex flex-wrap items-center gap-2'>
-						<Button type='button' variant='danger' size='xs' onClick={() => navigate('/place-order')}>
-							Karzinka
-						</Button>
-						<Button
-							type='button'
-							variant='theme'
-							size='xs'
-							onClick={() => {
-								setColumnFilters([]);
-								setPagination((p) => ({ ...p, pageIndex: 0 }));
-							}}
-						>
-							Hammasi
-						</Button>
-					</div>
-				}
-				onReload={() => refetch()}
-			>
-				<DataTable
-					columns={columns}
-					data={results}
-					manualPagination
-					manualFiltering
-					pageCount={paginationMeta?.lastPage ?? -1}
-					totalRows={paginationMeta?.total}
-					pagination={pagination}
-					onPaginationChange={setPagination}
-					columnFilters={columnFilters}
-					onColumnFiltersChange={(filters) => {
-						setColumnFilters(filters);
+		<div>
+			<div className='mb-3 flex justify-end'>
+				<Button
+					type='button'
+					variant='theme'
+					size='xs'
+					onClick={() => {
+						setColumnFilters([]);
 						setPagination((p) => ({ ...p, pageIndex: 0 }));
 					}}
-					enablePagination
-					enableSorting={false}
-					enableGlobalFilter={false}
-					enableColumnFilters={true}
-					enableColumnVisibility
-					enableStriping
-					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
-					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
-				/>
-			</Panel>
-		</>
+				>
+					Hammasi
+				</Button>
+			</div>
+			<DataTable
+				columns={columns}
+				data={results}
+				manualPagination
+				manualFiltering
+				pageCount={paginationMeta?.lastPage ?? -1}
+				totalRows={paginationMeta?.total}
+				pagination={pagination}
+				onPaginationChange={setPagination}
+				columnFilters={columnFilters}
+				onColumnFiltersChange={(filters) => {
+					setColumnFilters(filters);
+					setPagination((p) => ({ ...p, pageIndex: 0 }));
+				}}
+				enablePagination
+				enableSorting={false}
+				enableGlobalFilter={false}
+				enableColumnFilters={true}
+				enableColumnVisibility
+				enableStriping
+				isLoading={isLoading || isFetching}
+				emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+				emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
+			/>
+		</div>
 	);
 }

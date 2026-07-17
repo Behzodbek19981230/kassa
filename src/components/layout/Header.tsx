@@ -1,21 +1,18 @@
 import { useEffect, useState } from 'react';
 import { getApiErrorMessage } from '@/lib/errors';
 import {
-	FaBell,
-	FaBug,
 	FaBuilding,
 	FaCalendarAlt,
 	FaCheck,
 	FaClock,
 	FaDollarSign,
-	FaEnvelope,
 	FaExclamationTriangle,
 	FaPencilAlt,
-	FaPlus,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, getRefreshToken } from '@/lib/auth';
 import { useCurrentCompany } from '@/lib/company';
+import { cn } from '@/lib/utils';
 // import { useTheme } from '@/lib/theme';
 import { useLogoutMutation } from '@/services/auth/auth.queries';
 import { useUserInfoQuery } from '@/services/user/user.queries';
@@ -23,13 +20,10 @@ import {
 	Badge,
 	DropdownMenu,
 	DropdownMenuContent,
-	DropdownMenuFooter,
 	DropdownMenuItem,
 	DropdownMenuLabel,
-	DropdownMenuLinkItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-	DropdownMediaItem,
 	Tooltip,
 	useNotification,
 } from '@/components/ui';
@@ -138,23 +132,41 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 								<FaClock className='text-ca-nav-text' />
 								{formatTime(now)}
 							</span>
-							<span className='flex items-center gap-1.5'>
-								<FaDollarSign className='text-ca-green' />
-								{exchangeRate ? `${Number(exchangeRate.dollar).toLocaleString('ru-RU')} so'm` : '...'}
-								{!isExchangeRateSet && (
-									<Tooltip content='Bugungi dollar kursi hali belgilanmagan. Admin yoki menejer kursni yangilamaguncha kassada amallar bloklangan.'>
-										<FaExclamationTriangle className='text-ca-red' />
-									</Tooltip>
-								)}
-								{isAdminOrManager && (
-									<button
-										type='button'
-										aria-label="Dollar kursini o'zgartirish"
-										onClick={() => setRateModalOpen(true)}
-										className='text-ca-nav-text  focus:outline-none'
+							<span className='flex items-center gap-1'>
+								<Tooltip
+									side='bottom'
+									content={
+										isExchangeRateSet
+											? 'Bugungi dollar kursi'
+											: 'Bugungi dollar kursi hali belgilanmagan. Admin yoki menejer kursni yangilamaguncha kassada amallar bloklangan.'
+									}
+								>
+									<span
+										className={cn(
+											'flex items-center gap-1.5 rounded-full  px-2.5 py-1 font-semibold text-white',
+											isExchangeRateSet ? 'bg-ca-green' : 'bg-ca-red',
+										)}
 									>
-										<FaPencilAlt />
-									</button>
+										<FaDollarSign />
+										<span className='tabular-nums'>
+											{exchangeRate
+												? `${Number(exchangeRate.dollar).toLocaleString('ru-RU')} so'm`
+												: '...'}
+										</span>
+										{!isExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}
+									</span>
+								</Tooltip>
+								{isAdminOrManager && (
+									<Tooltip side='bottom' content="Kursni o'zgartirish">
+										<button
+											type='button'
+											aria-label="Dollar kursini o'zgartirish"
+											onClick={() => setRateModalOpen(true)}
+											className='rounded-full p-1.5 text-ca-nav-text/70 transition-colors hover:bg-white/10 hover:text-ca-theme focus:outline-none'
+										>
+											<FaPencilAlt className='text-[11px]' />
+										</button>
+									</Tooltip>
 								)}
 							</span>
 						</li>
@@ -171,49 +183,6 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 								{theme === 'dark' ? <FaSun /> : <FaMoon />}
 							</button>
 						</li> */}
-
-						<li>
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<button
-										type='button'
-										className='relative px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
-									>
-										<FaBell />
-										<Badge
-											variant='danger'
-											className='absolute top-[7px] right-[3px] rounded-full px-[0.6em] py-[0.3em] font-light'
-										>
-											5
-										</Badge>
-									</button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent className='w-[280px]'>
-									<DropdownMenuLabel>Notifications (5)</DropdownMenuLabel>
-									<DropdownMediaItem
-										icon={<FaBug />}
-										iconBg='bg-ca-red'
-										title='Server Error Reports'
-										time='3 minutes ago'
-									/>
-									<DropdownMediaItem
-										icon={<FaPlus />}
-										iconBg='bg-ca-green'
-										title='New User Registered'
-										time='1 hour ago'
-									/>
-									<DropdownMediaItem
-										icon={<FaEnvelope />}
-										iconBg='bg-ca-primary'
-										title='New Email From John'
-										time='2 hour ago'
-									/>
-									<DropdownMenuFooter>
-										<DropdownMenuLinkItem href='#'>View more</DropdownMenuLinkItem>
-									</DropdownMenuFooter>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</li>
 
 						{showCompanySelect && companies.length > 1 && (
 							<li>

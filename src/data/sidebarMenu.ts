@@ -9,7 +9,6 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		label: 'Mijoz buyurtmalar tarixi',
 		path: '/customer-order-history',
 	},
-	{ id: 'customer-debt', icon: 'balance-scale', label: 'Mijozdan qarzdorlik', path: '/customer-debt' },
 	{ id: 'orders-debts', icon: 'chart-pie', label: 'Buyurtmalar va qarzlar', path: '/order-and-debt' },
 	{ id: 'return', icon: 'undo', label: 'Vozvrat', path: '/vozvrat' },
 	{ id: 'return-history', icon: 'file-invoice', label: 'Vozvrat buyurtmalar tarixi', path: '/vozvrat-order-history' },

@@ -1,5 +1,7 @@
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import {
+	Button,
 	PageHeader,
 	Panel,
 	Table,
@@ -23,6 +25,7 @@ function formatDateTime(value: string) {
 }
 
 export default function CartDraftsPage() {
+	const navigate = useNavigate();
 	const { data, isLoading, isFetching, isError, refetch } = useOrderCartGroupedListQuery({
 		is_active: true,
 		limit: 100,
@@ -41,7 +44,15 @@ export default function CartDraftsPage() {
 				]}
 			/>
 
-			<Panel title="Ro'yxat" onReload={() => refetch()}>
+			<Panel
+				title="Ro'yxat"
+				actions={
+					<Button type='button' variant='info' size='xs' onClick={() => navigate(-1)}>
+						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
+					</Button>
+				}
+				onReload={() => refetch()}
+			>
 				{(isLoading || isFetching) && <p className='text-center'>Yuklanmoqda...</p>}
 				{!isLoading && isError && (
 					<p className='text-center text-ca-red'>
