@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Layout from '@/components/layout/Layout';
-import Dashboard from '@/pages/Dashboard';
+// import Dashboard from '@/pages/Dashboard';
 import LoginPage from '@/pages/LoginPage';
 
 import ModelsPage from '@/pages/system/ModelsPage';
@@ -43,20 +43,20 @@ export default function App() {
 
 			<Route element={<ProtectedRoute />}>
 				<Route element={<Layout />}>
-					<Route index element={<Dashboard />} />
+					{/* <Route index element={<Dashboard />} /> */}
 
 					<Route path='warehouse-products' element={<WarehouseProductsPage />} />
 					<Route path='place-order' element={<PlaceOrderPage />} />
 					<Route path='import' element={<ImportPage />} />
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
-						<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
-						<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
+					<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
+					<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
 					<Route path='customer-debt' element={<CustomerDebtPage />} />
 					<Route path='order-and-debt' element={<OrderAndDebtPage />} />
-						<Route path='vozvrat' element={<VozvratPage />} />
-						<Route path='vozvrat-order-history' element={<VozvratOrderHistoryPage />} />
-						<Route path='vozvrat-order-history/:id' element={<VozvratOrderHistoryDetailPage />} />
-						<Route path='vozvrat-order-history/:id/edit' element={<VozvratOrderHistoryEditPage />} />
+					<Route path='vozvrat' element={<VozvratPage />} />
+					<Route path='vozvrat-order-history' element={<VozvratOrderHistoryPage />} />
+					<Route path='vozvrat-order-history/:id' element={<VozvratOrderHistoryDetailPage />} />
+					<Route path='vozvrat-order-history/:id/edit' element={<VozvratOrderHistoryEditPage />} />
 					<Route path='warehouse-report' element={<WarehouseAccountPage />} />
 					<Route path='warehouse-report/:id' element={<WarehouseAccountDetailPage />} />
 					<Route path='warehouse-report/:id/edit' element={<WarehouseAccountEditPage />} />
@@ -69,7 +69,7 @@ export default function App() {
 					<Route path='system/product-measurement' element={<ProductMeasurementPage />} />
 					<Route path='system/consignors' element={<ConsignorPage />} />
 					<Route path='system/users' element={<UserPage />} />
-                    
+
 					<Route path='system/companies' element={<CompanyPage />} />
 					<Route path='system/locations' element={<LocationPage />} />
 					<Route path='system/sklad-types' element={<SkladTypePage />} />

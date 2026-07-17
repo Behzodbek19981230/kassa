@@ -36,7 +36,7 @@ export default function LoginPage() {
 		try {
 			const tokens = await loginMutation.mutateAsync({ username, password });
 			setSession(tokens, remember);
-			const redirectTo = (location.state as { from?: string } | null)?.from ?? '/';
+			const redirectTo = (location.state as { from?: string } | null)?.from ?? '/warehouse-products';
 			navigate(redirectTo, { replace: true });
 		} catch (err) {
 			const message = isAxiosError(err)
