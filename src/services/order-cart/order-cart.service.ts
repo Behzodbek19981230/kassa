@@ -5,6 +5,8 @@ import type {
 	ClearOrderCartResponse,
 	ConfirmSalePayload,
 	ConfirmSaleResponse,
+	OrderCartGroupedListParams,
+	OrderCartGroupedResponse,
 	OrderCartItem,
 	OrderCartListParams,
 	OrderCartPayload,
@@ -13,6 +15,12 @@ import type {
 export const orderCartService = {
 	list: async (params?: OrderCartListParams) => {
 		const { data } = await apiClient.get<PaginatedResponse<OrderCartItem>>('/order-account-cart-draft/', {
+			params,
+		});
+		return data;
+	},
+	listGrouped: async (params?: OrderCartGroupedListParams) => {
+		const { data } = await apiClient.get<OrderCartGroupedResponse>('/order-account-cart-draft/grouped/', {
 			params,
 		});
 		return data;

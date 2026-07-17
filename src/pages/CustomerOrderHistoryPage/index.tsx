@@ -121,7 +121,7 @@ export default function CustomerOrderHistoryPage() {
 				<span className='inline-flex items-center gap-1.5'>
 					{info.row.original.client_name ?? info.getValue()}
 					{info.row.original.is_price_diff && (
-						<Tooltip content="Narxlarda tafovut">
+						<Tooltip content='Narxlarda tafovut'>
 							<FaExclamationTriangle className='text-ca-orange' />
 						</Tooltip>
 					)}
@@ -296,13 +296,7 @@ export default function CustomerOrderHistoryPage() {
 				title="Ro'yxat"
 				actions={
 					<div className='flex flex-wrap items-center gap-2'>
-						<Button type='button' variant='info' size='xs' onClick={stub}>
-							$ Dollar kursni o'zgartirish
-						</Button>
-						<Button type='button' variant='warning' size='xs' onClick={stub}>
-							<FaExclamationTriangle className='mr-1.5' /> Narxdagi farq
-						</Button>
-						<Button type='button' variant='danger' size='xs' onClick={() => navigate('/place-order')}>
+						<Button type='button' variant='danger' size='xs' onClick={() => navigate('/cart-drafts')}>
 							Karzinka
 						</Button>
 						<Button

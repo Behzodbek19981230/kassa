@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Layout from '@/components/layout/Layout';
 // import Dashboard from '@/pages/Dashboard';
@@ -18,6 +18,7 @@ import WarehouseProductsPage from '@/pages/WarehouseProductsPage';
 import PlaceOrderPage from '@/pages/PlaceOrderPage';
 import ImportPage from '@/pages/ImportPage';
 import CustomerOrderHistoryPage from '@/pages/CustomerOrderHistoryPage';
+import CartDraftsPage from '@/pages/CartDraftsPage';
 import CustomerDebtPage from '@/pages/CustomerDebtPage';
 import OrderAccountHistoryDetailPage from '@/pages/OrderAccountHistoryDetailPage';
 import OrderAccountHistoryEditPage from '@/pages/OrderAccountHistoryEditPage';
@@ -33,6 +34,7 @@ import MyDebtPage from '@/pages/MyDebtPage';
 import MyDebtDetailPage from '@/pages/MyDebtDetailPage';
 import ExpensePage from '@/pages/system/ExpensePage';
 import AboutPage from '@/pages/system/AboutPage';
+import CompanyEventLogPage from '@/pages/system/CompanyEventLogPage';
 import ClientPage from '@/pages/settings/ClientPage';
 import DebtRepaymentPage from '@/pages/settings/DebtRepaymentPage';
 
@@ -40,6 +42,8 @@ export default function App() {
 	return (
 		<Routes>
 			<Route path='login' element={<LoginPage />} />
+
+			<Route index element={<Navigate to='/warehouse-products' replace />} />
 
 			<Route element={<ProtectedRoute />}>
 				<Route element={<Layout />}>
@@ -51,6 +55,7 @@ export default function App() {
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
 					<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
 					<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
+					<Route path='cart-drafts' element={<CartDraftsPage />} />
 					<Route path='customer-debt' element={<CustomerDebtPage />} />
 					<Route path='order-and-debt' element={<OrderAndDebtPage />} />
 					<Route path='vozvrat' element={<VozvratPage />} />
@@ -78,6 +83,7 @@ export default function App() {
 					<Route path='warehouse-prices/:id/edit' element={<WarehouseFormPage mode='edit' />} />
 					<Route path='system/expenses' element={<ExpensePage />} />
 					<Route path='system/about' element={<AboutPage />} />
+					<Route path='system/event-log' element={<CompanyEventLogPage />} />
 					<Route path='settings/clients' element={<ClientPage />} />
 					<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
 				</Route>

@@ -1,4 +1,4 @@
-import type { ListParams } from '@/services/api/types';
+import type { ListParams, PaginationMeta } from '@/services/api/types';
 
 export interface OrderCartWarehouseDetail {
 	id: number;
@@ -35,6 +35,36 @@ export interface OrderCartPayload {
 export interface OrderCartListParams extends ListParams {
 	client?: number;
 	is_active?: boolean;
+}
+
+export interface OrderCartGroupedListParams extends ListParams {
+	company?: number;
+	user?: number;
+	client?: number;
+	is_active?: boolean;
+}
+
+export interface OrderCartGroupClient {
+	id: number;
+	fio: string;
+}
+
+export interface OrderCartGroup {
+	client: OrderCartGroupClient;
+	client_id: number;
+	client_fio: string;
+	created_time: string;
+	items: OrderCartItem[];
+}
+
+export interface OrderCartGroupedResults {
+	group_count: number;
+	groups: OrderCartGroup[];
+}
+
+export interface OrderCartGroupedResponse {
+	pagination: PaginationMeta;
+	results: OrderCartGroupedResults;
 }
 
 export interface ClearOrderCartPayload {

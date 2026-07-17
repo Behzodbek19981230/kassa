@@ -10,7 +10,6 @@ import {
 	DataTable,
 	PageHeader,
 	Panel,
-	useNotification,
 } from '@/components/ui';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
@@ -40,7 +39,6 @@ function formatDateTime(value: string) {
 
 export default function CustomerDebtPage() {
 	const navigate = useNavigate();
-	const { notify } = useNotification();
 
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -91,10 +89,6 @@ export default function CustomerDebtPage() {
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
 		};
 	};
-
-	function stub() {
-		notify({ title: 'Tez orada', text: 'Bu funksiya hali ulanmagan.' });
-	}
 
 	const columns = [
 		columnHelper.display({
@@ -262,12 +256,6 @@ export default function CustomerDebtPage() {
 				title="Ro'yxat"
 				actions={
 					<div className='flex flex-wrap items-center gap-2'>
-						<Button type='button' variant='info' size='xs' onClick={stub}>
-							$ Dollar kursni o'zgartirish
-						</Button>
-						<Button type='button' variant='warning' size='xs' onClick={stub}>
-							<FaExclamationTriangle className='mr-1.5' /> Narxdagi farq
-						</Button>
 						<Button type='button' variant='danger' size='xs' onClick={() => navigate('/place-order')}>
 							Karzinka
 						</Button>

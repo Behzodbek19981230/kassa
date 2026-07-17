@@ -3,6 +3,7 @@ import { orderCartService } from '@/services/order-cart/order-cart.service';
 import type {
 	ClearOrderCartPayload,
 	ConfirmSalePayload,
+	OrderCartGroupedListParams,
 	OrderCartListParams,
 	OrderCartPayload,
 } from '@/services/order-cart/order-cart.types';
@@ -10,12 +11,21 @@ import type {
 const orderCartKeys = {
 	all: ['order-cart'] as const,
 	list: (params?: OrderCartListParams) => ['order-cart', 'list', params] as const,
+	groupedList: (params?: OrderCartGroupedListParams) => ['order-cart', 'grouped-list', params] as const,
 };
 
 export function useOrderCartListQuery(params?: OrderCartListParams, enabled = true) {
 	return useQuery({
 		queryKey: orderCartKeys.list(params),
 		queryFn: () => orderCartService.list(params),
+		enabled,
+	});
+}
+
+export function useOrderCartGroupedListQuery(params?: OrderCartGroupedListParams, enabled = true) {
+	return useQuery({
+		queryKey: orderCartKeys.groupedList(params),
+		queryFn: () => orderCartService.listGrouped(params),
 		enabled,
 	});
 }

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '@/components/ui';
 import { setSession } from '@/lib/auth';
@@ -17,7 +17,6 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
 	const navigate = useNavigate();
-	const location = useLocation();
 	const [remember, setRemember] = useState(false);
 	const [formError, setFormError] = useState('');
 	const loginMutation = useLoginMutation();
@@ -36,7 +35,7 @@ export default function LoginPage() {
 		try {
 			const tokens = await loginMutation.mutateAsync({ username, password });
 			setSession(tokens, remember);
-			const redirectTo = (location.state as { from?: string } | null)?.from ?? '/warehouse-products';
+			const redirectTo = '/warehouse-products';
 			navigate(redirectTo, { replace: true });
 		} catch (err) {
 			const message = isAxiosError(err)

@@ -9,6 +9,8 @@ import {
 	FaClock,
 	FaDollarSign,
 	FaEnvelope,
+	FaExclamationTriangle,
+	FaPencilAlt,
 	FaPlus,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +18,6 @@ import { clearSession, getRefreshToken } from '@/lib/auth';
 import { useCurrentCompany } from '@/lib/company';
 // import { useTheme } from '@/lib/theme';
 import { useLogoutMutation } from '@/services/auth/auth.queries';
-import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useUserInfoQuery } from '@/services/user/user.queries';
 import {
 	Badge,
@@ -29,8 +30,10 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 	DropdownMediaItem,
+	Tooltip,
 	useNotification,
 } from '@/components/ui';
+import ExchangeRateEditModal from '@/components/layout/ExchangeRateEditModal';
 
 interface HeaderProps {
 	onToggleSidebar: () => void;
@@ -64,12 +67,23 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 	const logoutMutation = useLogoutMutation();
 	// const { theme, toggleTheme } = useTheme();
 	const now = useClock();
-	const { data: usdRate } = useCurrencyRateQuery('USD');
-	const { companyId, setCompanyId, companies, showCompanySelect, ownCompany, ownCompanyId } = useCurrentCompany();
+	const {
+		companyId,
+		setCompanyId,
+		companies,
+		showCompanySelect,
+		ownCompany,
+		ownCompanyId,
+		isAdminOrManager,
+		isSuperAdmin,
+		exchangeRate,
+		isExchangeRateSet,
+	} = useCurrentCompany();
 	const currentCompany = companies.find((c) => c.id === companyId);
 	const { notify } = useNotification();
 
 	const [switchingCompanyId, setSwitchingCompanyId] = useState<number | null>(null);
+	const [rateModalOpen, setRateModalOpen] = useState(false);
 
 	const handleSelectCompany = async (id: number) => {
 		setSwitchingCompanyId(id);
@@ -92,182 +106,218 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 	};
 
 	return (
-		<header
-			id='header'
-			className='fixed top-0 right-0 left-0 z-[1020] h-[54px] bg-ca-header shadow-[0_0_2px_rgba(0,0,0,0.3)]'
-		>
-			<div className='flex h-full items-center px-5'>
-				<div className='flex items-center'>
-					<a
-						href='/'
-						className='flex h-[54px] w-[220px] items-center justify-center px-5 text-lg font-medium text-ca-nav-text no-underline'
-					>
-						<img src='/logo.png' alt='Logo' className='mr-2 ' />
-					</a>
-					<button
-						type='button'
-						onClick={onToggleSidebar}
-						className='ml-4 flex flex-col gap-1 p-2.5 lg:hidden'
-						aria-label='Toggle sidebar'
-					>
-						<span className='block h-0.5 w-5 bg-ca-heading' />
-						<span className='block h-0.5 w-5 bg-ca-heading' />
-						<span className='block h-0.5 w-5 bg-ca-heading' />
-					</button>
-					<li className='hidden items-center gap-4 px-3 text-xs text-ca-nav-text md:flex'>
-						<span className='flex items-center gap-1.5'>
-							<FaCalendarAlt className='text-ca-nav-text' />
-							{formatDate(now)}
-						</span>
-						<span className='flex items-center gap-1.5 font-medium text-ca-nav-text tabular-nums'>
-							<FaClock className='text-ca-nav-text' />
-							{formatTime(now)}
-						</span>
-						<span className='flex items-center gap-1.5'>
-							<FaDollarSign className='text-ca-green' />
-							{usdRate ? `${usdRate.rate.toLocaleString('ru-RU')} so'm` : '...'}
-						</span>
-					</li>
-				</div>
-
-				<ul className='ml-auto flex list-none items-center p-0'>
-					{/* <li>
+		<>
+			<header
+				id='header'
+				className='fixed top-0 right-0 left-0 z-[1020] h-[54px] bg-ca-header shadow-[0_0_2px_rgba(0,0,0,0.3)]'
+			>
+				<div className='flex h-full items-center px-5'>
+					<div className='flex items-center'>
+						<a
+							href='/'
+							className='flex h-[54px] w-[220px] items-center justify-center px-5 text-lg font-medium text-ca-nav-text no-underline'
+						>
+							<img src='/logo.png' alt='Logo' className='mr-2 ' />
+						</a>
 						<button
 							type='button'
-							onClick={toggleTheme}
-							className='px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60'
-							aria-label={theme === 'dark' ? "Yorug' rejimga o'tish" : "Qorong'i rejimga o'tish"}
+							onClick={onToggleSidebar}
+							className='ml-4 flex flex-col gap-1 p-2.5 lg:hidden'
+							aria-label='Toggle sidebar'
 						>
-							{theme === 'dark' ? <FaSun /> : <FaMoon />}
+							<span className='block h-0.5 w-5 bg-ca-heading' />
+							<span className='block h-0.5 w-5 bg-ca-heading' />
+							<span className='block h-0.5 w-5 bg-ca-heading' />
 						</button>
-					</li> */}
-
-					<li>
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<button
-									type='button'
-									className='relative px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
-								>
-									<FaBell />
-									<Badge
-										variant='danger'
-										className='absolute top-[7px] right-[3px] rounded-full px-[0.6em] py-[0.3em] font-light'
+						<li className='hidden items-center gap-4 px-3 text-xs text-ca-nav-text md:flex'>
+							<span className='flex items-center gap-1.5'>
+								<FaCalendarAlt className='text-ca-nav-text' />
+								{formatDate(now)}
+							</span>
+							<span className='flex items-center gap-1.5 font-medium text-ca-nav-text tabular-nums'>
+								<FaClock className='text-ca-nav-text' />
+								{formatTime(now)}
+							</span>
+							<span className='flex items-center gap-1.5'>
+								<FaDollarSign className='text-ca-green' />
+								{exchangeRate ? `${Number(exchangeRate.dollar).toLocaleString('ru-RU')} so'm` : '...'}
+								{!isExchangeRateSet && (
+									<Tooltip content='Bugungi dollar kursi hali belgilanmagan. Admin yoki menejer kursni yangilamaguncha kassada amallar bloklangan.'>
+										<FaExclamationTriangle className='text-ca-red' />
+									</Tooltip>
+								)}
+								{isAdminOrManager && (
+									<button
+										type='button'
+										aria-label="Dollar kursini o'zgartirish"
+										onClick={() => setRateModalOpen(true)}
+										className='text-ca-nav-text  focus:outline-none'
 									>
-										5
-									</Badge>
-								</button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent className='w-[280px]'>
-								<DropdownMenuLabel>Notifications (5)</DropdownMenuLabel>
-								<DropdownMediaItem
-									icon={<FaBug />}
-									iconBg='bg-ca-red'
-									title='Server Error Reports'
-									time='3 minutes ago'
-								/>
-								<DropdownMediaItem
-									icon={<FaPlus />}
-									iconBg='bg-ca-green'
-									title='New User Registered'
-									time='1 hour ago'
-								/>
-								<DropdownMediaItem
-									icon={<FaEnvelope />}
-									iconBg='bg-ca-primary'
-									title='New Email From John'
-									time='2 hour ago'
-								/>
-								<DropdownMenuFooter>
-									<DropdownMenuLinkItem href='#'>View more</DropdownMenuLinkItem>
-								</DropdownMenuFooter>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</li>
+										<FaPencilAlt />
+									</button>
+								)}
+							</span>
+						</li>
+					</div>
 
-					{showCompanySelect && companies.length > 1 && (
+					<ul className='ml-auto flex list-none items-center p-0'>
+						{/* <li>
+							<button
+								type='button'
+								onClick={toggleTheme}
+								className='px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60'
+								aria-label={theme === 'dark' ? "Yorug' rejimga o'tish" : "Qorong'i rejimga o'tish"}
+							>
+								{theme === 'dark' ? <FaSun /> : <FaMoon />}
+							</button>
+						</li> */}
+
 						<li>
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
 									<button
 										type='button'
-										className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+										className='relative px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
 									>
-										<FaBuilding />
-										<span className='hidden md:inline'>{currentCompany?.name ?? 'Tashkilot'}</span>
+										<FaBell />
+										<Badge
+											variant='danger'
+											className='absolute top-[7px] right-[3px] rounded-full px-[0.6em] py-[0.3em] font-light'
+										>
+											5
+										</Badge>
+									</button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent className='w-[280px]'>
+									<DropdownMenuLabel>Notifications (5)</DropdownMenuLabel>
+									<DropdownMediaItem
+										icon={<FaBug />}
+										iconBg='bg-ca-red'
+										title='Server Error Reports'
+										time='3 minutes ago'
+									/>
+									<DropdownMediaItem
+										icon={<FaPlus />}
+										iconBg='bg-ca-green'
+										title='New User Registered'
+										time='1 hour ago'
+									/>
+									<DropdownMediaItem
+										icon={<FaEnvelope />}
+										iconBg='bg-ca-primary'
+										title='New Email From John'
+										time='2 hour ago'
+									/>
+									<DropdownMenuFooter>
+										<DropdownMenuLinkItem href='#'>View more</DropdownMenuLinkItem>
+									</DropdownMenuFooter>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</li>
+
+						{showCompanySelect && companies.length > 1 && (
+							<li>
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<button
+											type='button'
+											className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+										>
+											<FaBuilding />
+											<span className='hidden md:inline'>
+												{currentCompany?.name ?? 'Tashkilot'}
+											</span>
+											<span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />
+										</button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent>
+										<DropdownMenuLabel>Tashkilotni tanlash</DropdownMenuLabel>
+										{companies.map((company) => (
+											<DropdownMenuItem
+												key={company.id}
+												disabled={switchingCompanyId != null}
+												onSelect={() => handleSelectCompany(company.id)}
+												className='flex items-center justify-between gap-2'
+											>
+												<span className='flex items-center gap-1.5'>
+													{company.name}
+													{company.id === ownCompanyId && (
+														<Badge
+															variant='info'
+															className='px-1.5 py-0 text-[10px] font-normal'
+														>
+															Ishchi
+														</Badge>
+													)}
+												</span>
+												{switchingCompanyId === company.id ? (
+													<span className='text-[10px] text-ca-text'>...</span>
+												) : (
+													company.id === companyId && <FaCheck className='text-ca-green' />
+												)}
+											</DropdownMenuItem>
+										))}
+									</DropdownMenuContent>
+								</DropdownMenu>
+							</li>
+						)}
+
+						<li>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<button
+										type='button'
+										className='flex items-center px-[15px] py-[17px] text-ca-nav-text hover:opacity-60 focus:outline-none'
+									>
+										<img
+											src={user?.avatar || '/assets/img/user-13.jpg'}
+											alt=''
+											className='-mt-[5px] mr-2.5 h-[30px] w-[30px] rounded-full '
+										/>
+										<span className='hidden md:inline'>{user?.username ?? 'Admin'}</span>
 										<span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />
 									</button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent>
-									<DropdownMenuLabel>Tashkilotni tanlash</DropdownMenuLabel>
-									{companies.map((company) => (
-										<DropdownMenuItem
-											key={company.id}
-											disabled={switchingCompanyId != null}
-											onSelect={() => handleSelectCompany(company.id)}
-											className='flex items-center justify-between gap-2'
-										>
-											<span className='flex items-center gap-1.5'>
-												{company.name}
-												{company.id === ownCompanyId && (
-													<Badge variant='info' className='px-1.5 py-0 text-[10px] font-normal'>
-														Ishchi
-													</Badge>
-												)}
-											</span>
-											{switchingCompanyId === company.id ? (
-												<span className='text-[10px] text-ca-text'>...</span>
+									{ownCompany && (
+										<DropdownMenuLabel className='flex items-center gap-2'>
+											{ownCompany.logo ? (
+												<img
+													src={ownCompany.logo}
+													alt=''
+													className='h-6 w-6 shrink-0 rounded-full object-cover'
+												/>
 											) : (
-												company.id === companyId && <FaCheck className='text-ca-green' />
+												<FaBuilding className='shrink-0 text-ca-text' />
 											)}
+											<span className='truncate font-semibold text-ca-heading'>
+												{ownCompany.name}
+											</span>
+										</DropdownMenuLabel>
+									)}
+
+									<DropdownMenuSeparator />
+									{isSuperAdmin && (
+										<DropdownMenuItem onSelect={() => navigate('/system/event-log')}>
+											O'zgarishlar tarixi
 										</DropdownMenuItem>
-									))}
+									)}
+									<DropdownMenuItem onSelect={handleLogout}>Chiqish</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
 						</li>
-					)}
+					</ul>
+				</div>
+			</header>
 
-					<li>
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<button
-									type='button'
-									className='flex items-center px-[15px] py-[17px] text-ca-nav-text hover:opacity-60 focus:outline-none'
-								>
-									<img
-										src={user?.avatar || '/assets/img/user-13.jpg'}
-										alt=''
-										className='-mt-[5px] mr-2.5 h-[30px] w-[30px] rounded-full '
-									/>
-									<span className='hidden md:inline'>{user?.username ?? 'Admin'}</span>
-									<span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />
-								</button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent>
-								{ownCompany && (
-									<DropdownMenuLabel className='flex items-center gap-2'>
-										{ownCompany.logo ? (
-											<img
-												src={ownCompany.logo}
-												alt=''
-												className='h-6 w-6 shrink-0 rounded-full object-cover'
-											/>
-										) : (
-											<FaBuilding className='shrink-0 text-ca-text' />
-										)}
-										<span className='truncate font-semibold text-ca-heading'>
-											{ownCompany.name}
-										</span>
-									</DropdownMenuLabel>
-								)}
-
-								<DropdownMenuSeparator />
-								<DropdownMenuItem onSelect={handleLogout}>Chiqish</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</li>
-				</ul>
-			</div>
-		</header>
+			{isAdminOrManager && companyId && (
+				<ExchangeRateEditModal
+					open={rateModalOpen}
+					setOpen={setRateModalOpen}
+					companyId={companyId}
+					exchangeRate={exchangeRate}
+				/>
+			)}
+		</>
 	);
 }

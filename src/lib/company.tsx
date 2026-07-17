@@ -1,4 +1,6 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { useExchangeRateQuery } from '@/services/exchange-rate/exchange-rate.queries';
+import type { ExchangeRateItem } from '@/services/exchange-rate/exchange-rate.types';
 import { useUpdateUserMutation, useUserInfoQuery } from '@/services/user/user.queries';
 import type { UserPayload } from '@/services/user/user.types';
 
@@ -27,6 +29,10 @@ interface CompanyContextValue {
 	showCompanySelect: boolean;
 	/** Whether POST/PUT/PATCH/DELETE actions are allowed for the currently selected company. */
 	canWrite: boolean;
+	/** Today's exchange rate record for the current company, or null if none has been set yet. */
+	exchangeRate: ExchangeRateItem | null;
+	/** Whether today's exchange rate has been confirmed (set) for the current company. */
+	isExchangeRateSet: boolean;
 }
 
 const CompanyContext = createContext<CompanyContextValue | null>(null);
@@ -89,7 +95,13 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 	};
 
 	const showCompanySelect = isAdminOrManager;
-	const canWrite = !isAdminOrManager || companyId === ownCompanyId;
+
+	const { data: exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRateQuery(companyId);
+	// Super Admin/Manager set the rate, so the lock never applies to them. While the
+	// initial fetch is in flight, don't lock the UI on a guess — wait for a real answer.
+	const isExchangeRateSet = isAdminOrManager || isExchangeRateLoading || exchangeRate?.status === true;
+
+	const canWrite = (!isAdminOrManager || companyId === ownCompanyId) && isExchangeRateSet;
 
 	const value = useMemo(
 		() => ({
@@ -103,6 +115,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 			ownCompany,
 			showCompanySelect,
 			canWrite,
+			exchangeRate: exchangeRate ?? null,
+			isExchangeRateSet,
 		}),
 		[
 			companyId,
@@ -111,6 +125,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 			isManager,
 			isAdminOrManager,
 			ownCompanyId,
+			exchangeRate,
+			isExchangeRateSet,
 			ownCompany,
 			showCompanySelect,
 			canWrite,
