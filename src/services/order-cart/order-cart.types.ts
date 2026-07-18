@@ -17,6 +17,7 @@ export interface OrderCartItem {
 	id: number;
 	client: number;
 	warehouse: number;
+	company?: number;
 	count: number;
 	price: string;
 	total_price: string;

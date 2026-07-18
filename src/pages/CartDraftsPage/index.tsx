@@ -1,7 +1,15 @@
-import { FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
+import { useState } from 'react';
+import { FaArrowLeft, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
 	Button,
+	buttonProps,
+	Modal,
+	ModalBody,
+	ModalContent,
+	ModalFooter,
+	ModalHeader,
+	ModalTitle,
 	PageHeader,
 	Panel,
 	Table,
@@ -10,9 +18,15 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
+	useNotification,
 } from '@/components/ui';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
-import { useOrderCartGroupedListQuery } from '@/services/order-cart/order-cart.queries';
+import {
+	useClearOrderCartMutation,
+	useDeleteOrderCartMutation,
+	useOrderCartGroupedListQuery,
+} from '@/services/order-cart/order-cart.queries';
 
 const DEFAULT_LOCATION_LABEL = 'Dokon';
 
@@ -24,14 +38,42 @@ function formatDateTime(value: string) {
 	return `${date} ${time}`;
 }
 
+interface GroupToDelete {
+	clientId: number;
+	companyId: number;
+	clientFio: string;
+}
+
 export default function CartDraftsPage() {
 	const navigate = useNavigate();
+	const { notify } = useNotification();
 	const { data, isLoading, isFetching, isError, refetch } = useOrderCartGroupedListQuery({
 		is_active: true,
 		limit: 100,
 	});
+	const deleteItemMutation = useDeleteOrderCartMutation();
+	const clearGroupMutation = useClearOrderCartMutation();
+	const [groupToDelete, setGroupToDelete] = useState<GroupToDelete | null>(null);
 
 	const groups = data?.results.groups ?? [];
+
+	function handleRemoveItem(id: number) {
+		deleteItemMutation.mutate(id);
+	}
+
+	async function handleConfirmGroupDelete() {
+		if (!groupToDelete) return;
+		try {
+			await clearGroupMutation.mutateAsync({
+				company: groupToDelete.companyId,
+				client: groupToDelete.clientId,
+			});
+			notify({ title: 'Karzinka o\'chirildi' });
+			setGroupToDelete(null);
+		} catch (err) {
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
+		}
+	}
 
 	return (
 		<>
@@ -70,11 +112,33 @@ export default function CartDraftsPage() {
 							(sum, item) => sum + (Number(item.total_price) || item.count * Number(item.price)),
 							0,
 						);
+						const companyId = group.items[0]?.company;
 						return (
-							<div key={group.client_id} className='mb-6 last:mb-0'>
-								<div className='mb-2 flex flex-wrap items-center justify-between gap-2'>
-									<span className='font-semibold text-ca-heading'>{group.client_fio}</span>
-									<span className='text-[11px] text-ca-text'>{formatDateTime(group.created_time)}</span>
+							<div
+								key={group.client_id}
+								className='mb-6 overflow-hidden rounded-[3px] border border-ca-border last:mb-0'
+							>
+								<div className='flex flex-wrap items-center justify-between gap-2 bg-ca-silver px-3 py-2'>
+									<span className='text-xs font-semibold text-ca-heading'>
+										{group.client_fio}{' '}
+										<span className='font-normal text-ca-text'>
+											({formatDateTime(group.created_time)})
+										</span>
+									</span>
+									<Button
+										type='button'
+										{...buttonProps(<FaTrash />, 'danger', 'icon')}
+										aria-label="Karzinkani o'chirish"
+										disabled={!companyId}
+										onClick={() =>
+											companyId &&
+											setGroupToDelete({
+												clientId: group.client_id,
+												companyId,
+												clientFio: group.client_fio,
+											})
+										}
+									/>
 								</div>
 								<div className='overflow-x-auto'>
 									<Table>
@@ -89,12 +153,13 @@ export default function CartDraftsPage() {
 												<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
 												<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
 												<TableHead className='bg-ca-theme text-white'>Umum. narxi ($)</TableHead>
+												<TableHead className='bg-ca-theme text-white' />
 											</TableRow>
 										</TableHeader>
 										<TableBody>
 											{group.items.length === 0 && (
 												<TableRow>
-													<TableCell colSpan={9} className='text-center'>
+													<TableCell colSpan={10} className='text-center'>
 														Mahsulot yo'q
 													</TableCell>
 												</TableRow>
@@ -121,6 +186,14 @@ export default function CartDraftsPage() {
 														<TableCell className='font-semibold'>
 															{formatNumber(totalPrice, 2)} $
 														</TableCell>
+														<TableCell>
+															<Button
+																type='button'
+																{...buttonProps(<FaTrash />, 'danger', 'icon')}
+																aria-label="O'chirish"
+																onClick={() => handleRemoveItem(item.id)}
+															/>
+														</TableCell>
 													</TableRow>
 												);
 											})}
@@ -135,6 +208,7 @@ export default function CartDraftsPage() {
 													<TableCell className='bg-ca-heading font-semibold text-white'>
 														{formatNumber(totalSum, 2)} $
 													</TableCell>
+													<TableCell className='bg-ca-heading' />
 												</TableRow>
 											)}
 										</TableBody>
@@ -144,6 +218,32 @@ export default function CartDraftsPage() {
 						);
 					})}
 			</Panel>
+
+			<Modal open={Boolean(groupToDelete)} onOpenChange={(open) => !open && setGroupToDelete(null)}>
+				<ModalContent>
+					<ModalHeader>
+						<ModalTitle>O'chirishni tasdiqlang</ModalTitle>
+					</ModalHeader>
+					<ModalBody>
+						<p>
+							<span className='font-semibold'>{groupToDelete?.clientFio}</span> mijozning
+							karzinkasidagi barcha mahsulotlarni o'chirmoqchimisiz?
+						</p>
+					</ModalBody>
+					<ModalFooter>
+						<Button variant='white' onClick={() => setGroupToDelete(null)}>
+							Yo'q
+						</Button>
+						<Button
+							variant='danger'
+							onClick={handleConfirmGroupDelete}
+							disabled={clearGroupMutation.isPending}
+						>
+							Ha, o'chirish
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
 		</>
 	);
 }
