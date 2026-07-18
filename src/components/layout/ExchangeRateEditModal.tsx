@@ -94,14 +94,15 @@ export default function ExchangeRateEditModal({ open, setOpen, companyId, exchan
 						{view === 'edit' ? "Kunlik dollar kursini o'zgartirish" : 'Dollar kursi tarixi'}
 					</ModalTitle>
 					{view === 'edit' ? (
-						<Tooltip content='Kurs tarixi'>
+						<Tooltip content="Kurs o'zgarishlari tarixini ko'rish">
 							<button
 								type='button'
 								aria-label='Kurs tarixi'
 								onClick={() => setView('history')}
-								className='mr-2 text-ca-theme focus:outline-none'
+								className='mr-2 flex items-center gap-1.5 rounded-full border border-ca-theme/30 bg-ca-theme/10 px-3 py-1.5 text-xs font-semibold text-ca-theme transition-colors hover:bg-ca-theme hover:text-white focus:outline-none'
 							>
 								<FaListUl />
+								Tarix
 							</button>
 						</Tooltip>
 					) : (
@@ -109,7 +110,7 @@ export default function ExchangeRateEditModal({ open, setOpen, companyId, exchan
 							type='button'
 							aria-label='Orqaga'
 							onClick={() => setView('edit')}
-							className='mr-2 flex items-center gap-1.5 text-xs text-ca-theme focus:outline-none'
+							className='mr-2 flex items-center gap-1.5 rounded-full border border-ca-border px-3 py-1.5 text-xs font-semibold text-ca-heading transition-colors hover:bg-ca-silver focus:outline-none'
 						>
 							<FaArrowLeft /> Orqaga
 						</button>

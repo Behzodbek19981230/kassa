@@ -250,16 +250,6 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 							/>
 						</FormField>
 
-						<FormField label="Narxi so'm" horizontal={false} className='mb-3'>
-							<Controller
-								name='priceSom'
-								control={control}
-								render={({ field }) => (
-									<PriceInput value={field.value} onChange={handlePriceSomChange} onBlur={field.onBlur} />
-								)}
-							/>
-						</FormField>
-
 						<FormField
 							label='Narxi ($)'
 							error={errors.priceDollar?.message}
@@ -278,6 +268,16 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 											onBlur={field.onBlur}
 										/>
 									</InputGroup>
+								)}
+							/>
+						</FormField>
+
+						<FormField label="Narxi so'm" horizontal={false} className='mb-3'>
+							<Controller
+								name='priceSom'
+								control={control}
+								render={({ field }) => (
+									<PriceInput value={field.value} onChange={handlePriceSomChange} onBlur={field.onBlur} />
 								)}
 							/>
 						</FormField>

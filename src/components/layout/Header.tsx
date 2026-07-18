@@ -7,7 +7,11 @@ import {
 	FaClock,
 	FaDollarSign,
 	FaExclamationTriangle,
+	FaHistory,
+	FaInfoCircle,
 	FaPencilAlt,
+	FaReceipt,
+	FaSignOutAlt,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, getRefreshToken } from '@/lib/auth';
@@ -267,11 +271,36 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
 									<DropdownMenuSeparator />
 									{isSuperAdmin && (
-										<DropdownMenuItem onSelect={() => navigate('/system/event-log')}>
+										<DropdownMenuItem
+											onSelect={() => navigate('/system/event-log')}
+											className='flex items-center gap-2'
+										>
+											<FaHistory className='text-ca-text' />
 											O'zgarishlar tarixi
 										</DropdownMenuItem>
 									)}
-									<DropdownMenuItem onSelect={handleLogout}>Chiqish</DropdownMenuItem>
+									<DropdownMenuItem
+										onSelect={() => navigate('/system/expenses')}
+										className='flex items-center gap-2'
+									>
+										<FaReceipt className='text-ca-text' />
+										Xarajatlar
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onSelect={() => navigate('/system/about')}
+										className='flex items-center gap-2'
+									>
+										<FaInfoCircle className='text-ca-text' />
+										Biz haqimizda
+									</DropdownMenuItem>
+									<DropdownMenuSeparator className='my-1 h-px bg-ca-border' />
+									<DropdownMenuItem
+										onSelect={handleLogout}
+										className='flex items-center gap-2 font-medium text-ca-red data-highlighted:bg-red-50'
+									>
+										<FaSignOutAlt />
+										Chiqish
+									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
 						</li>

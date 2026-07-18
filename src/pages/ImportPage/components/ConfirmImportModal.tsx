@@ -26,9 +26,9 @@ import { useConfirmImportMutation } from '@/services/import-cart-draft/import-ca
 const confirmImportFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
 	discount_amount: z.string().optional(),
-	sum_dollar: z.string().optional(),
-	sum_som: z.string().optional(),
-	car_number: z.string().optional(),
+	sum_dollar: z.string().min(1, 'Summani kiriting (0 ham mumkin)'),
+	sum_som: z.string().min(1, 'Summani kiriting (0 ham mumkin)'),
+	car_number: z.string().min(1, 'Mashina raqamini kiriting'),
 	comment: z.string().optional(),
 });
 
@@ -70,8 +70,8 @@ export default function ConfirmImportModal({
 		defaultValues: {
 			date: new Date().toISOString().slice(0, 10),
 			discount_amount: '0',
-			sum_dollar: '0',
-			sum_som: '0',
+			sum_dollar: '',
+			sum_som: '',
 			car_number: '',
 			comment: '',
 		},
@@ -171,14 +171,26 @@ export default function ConfirmImportModal({
 						</div>
 
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Sum dollar ($)' horizontal={false} className='mb-0'>
+							<FormField
+								label='Sum dollar ($)'
+								error={errors.sum_dollar?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='sum_dollar'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
-							<FormField label="Sum so'mda" horizontal={false} className='mb-0'>
+							<FormField
+								label="Sum so'mda"
+								error={errors.sum_som?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='sum_som'
 									control={control}
@@ -200,7 +212,13 @@ export default function ConfirmImportModal({
 							</FormField>
 						</div>
 
-						<FormField label='Mashina raqami' horizontal={false} className='mb-3'>
+						<FormField
+							label='Mashina raqami'
+							error={errors.car_number?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
 							<Input {...register('car_number')} placeholder='01A123AA' />
 						</FormField>
 

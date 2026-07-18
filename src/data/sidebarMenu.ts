@@ -38,13 +38,11 @@ export const sidebarMenu: SidebarMenuItem[] = [
 			{ id: 'sklad-types', icon: 'warehouse', label: 'Skladlar', path: '/system/sklad-types' },
 			{ id: 'import-goods-history', icon: 'history', label: 'Import tovarlar tarixi', path: '#' },
 			{ id: 'inspections-history', icon: 'check-circle', label: 'Tekshirishlar tarixi', path: '#' },
-			{ id: 'changes-report', icon: 'exclamation-triangle', label: "O'zgarishlar hisobi", path: '#' },
+
 			{ id: 'users', icon: 'users-cog', label: 'Foydalanuvchilar', path: '/system/users' },
 			// { id: 'companies', icon: 'building', label: 'Tashkilotlar', path: '/system/companies' },
 			// { id: 'locations', icon: 'layer-group', label: 'Hududlar', path: '/system/locations' },
 			{ id: 'profit-loss', icon: 'chart-bar', label: 'Foyda va zarar', path: '#' },
-			{ id: 'expenses', icon: 'receipt', label: 'Xarajatlar', path: '/system/expenses' },
-			{ id: 'about', icon: 'info-circle', label: 'Biz haqimizda', path: '/system/about' },
 		],
 	},
 	{
