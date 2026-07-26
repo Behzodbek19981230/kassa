@@ -18,6 +18,7 @@ import {
 	FaHistory,
 	FaInfoCircle,
 	FaLayerGroup,
+	FaPaperPlane,
 	FaReceipt,
 	FaRulerCombined,
 	FaShippingFast,
@@ -65,6 +66,7 @@ const iconMap: Record<SidebarIcon, ReactNode> = {
 	'info-circle': <FaInfoCircle />,
 	users: <FaUsers />,
 	settings: <FaCogs />,
+	'paper-plane': <FaPaperPlane />,
 };
 
 function SubMenuBullet({ active }: { active: boolean }) {

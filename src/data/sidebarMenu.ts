@@ -16,6 +16,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '/import' },
 	{ id: 'warehouse-report', icon: 'warehouse', label: 'Omborxona hisobi', path: '/warehouse-report' },
 	{ id: 'my-debts', icon: 'bookmark', label: 'Mening qarzlarim', path: '/my-debts' },
+	{ id: 'telegram-broadcast', icon: 'paper-plane', label: 'Telegram xabarnoma', path: '/telegram-broadcast' },
 	{
 		id: 'system-management',
 		icon: 'cogs',

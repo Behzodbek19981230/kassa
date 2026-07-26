@@ -36,6 +36,9 @@ import AboutPage from '@/pages/system/AboutPage';
 import CompanyEventLogPage from '@/pages/system/CompanyEventLogPage';
 import ClientPage from '@/pages/settings/ClientPage';
 import DebtRepaymentPage from '@/pages/settings/DebtRepaymentPage';
+import TelegramBroadcastPage from '@/pages/TelegramBroadcastPage';
+import TelegramBroadcastCreatePage from '@/pages/TelegramBroadcastPage/CreatePage';
+import TelegramBroadcastDetailPage from '@/pages/TelegramBroadcastPage/DetailPage';
 
 export default function App() {
 	return (
@@ -84,6 +87,9 @@ export default function App() {
 					<Route path='system/event-log' element={<CompanyEventLogPage />} />
 					<Route path='settings/clients' element={<ClientPage />} />
 					<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
+					<Route path='telegram-broadcast' element={<TelegramBroadcastPage />} />
+					<Route path='telegram-broadcast/create' element={<TelegramBroadcastCreatePage />} />
+					<Route path='telegram-broadcast/:id' element={<TelegramBroadcastDetailPage />} />
 				</Route>
 			</Route>
 		</Routes>

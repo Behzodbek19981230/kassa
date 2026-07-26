@@ -24,7 +24,8 @@ export type SidebarIcon =
 	| 'building'
 	| 'info-circle'
 	| 'users'
-	| 'settings';
+	| 'settings'
+	| 'paper-plane';
 
 export interface SidebarMenuItem {
 	id: string;
