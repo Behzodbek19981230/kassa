@@ -475,3 +475,21 @@ export interface OrderAndDebtListParams extends ListParams {
 	end_date?: string;
 	active_tab?: 'main' | 'worker';
 }
+
+export interface PayDebtPayload {
+	company: number;
+	client: number;
+	date: string;
+	all_summ_dollar: number;
+	summa: number;
+	summ_dollar: number;
+	sum_som: number;
+	summ_cart: number;
+	sum_transfers: number;
+	exchange_rate: number;
+	discount_amount: number;
+	zdacha_sum: number;
+	zdacha_dollar: number;
+	is_worker: number;
+	text: string;
+}

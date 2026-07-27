@@ -11,6 +11,7 @@ import type {
 	OrderAccountHistoryUpdateSaleResponse,
 	OrderAndDebtListParams,
 	OrderAndDebtResponse,
+	PayDebtPayload,
 } from '@/services/order-account-history/order-account-history.types';
 
 const API_PATH_PREFIX = new URL(API_BASE_URL).pathname.replace(/\/$/, '');
@@ -60,5 +61,9 @@ export const orderAccountHistoryService = {
 	printByUrl: async (url: string) => {
 		const { data } = await apiClient.get(toApiPath(url), { responseType: 'blob' });
 		return data as Blob;
+	},
+	payDebt: async (payload: PayDebtPayload) => {
+		const { data } = await apiClient.post<unknown>('/order-account-history/pay-debt/', payload);
+		return data;
 	},
 };

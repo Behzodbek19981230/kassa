@@ -30,10 +30,10 @@ import { productCategoryService } from '@/services/product-category/product-cate
 import { useWarehouseAllListQuery } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListBrandGroup, WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import ClientFormModal from '@/pages/settings/ClientPage/components/ClientFormModal';
-import DebtRepaymentFormModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentFormModal';
 import AddToCartModal, { type ProductVariant } from '@/pages/PlaceOrderPage/components/AddToCartModal';
 import ClearCartConfirmModal from '@/pages/PlaceOrderPage/components/ClearCartConfirmModal';
 import ConfirmSaleModal from '@/pages/PlaceOrderPage/components/ConfirmSaleModal';
+import PayDebtModal from '@/pages/PlaceOrderPage/components/PayDebtModal';
 
 const DEFAULT_LOCATION_LABEL = 'Dokon';
 
@@ -348,12 +348,12 @@ export default function PlaceOrderPage() {
 									<span className='font-bold text-ca-red'>
 										{formatNumber(selectedClient?.total_debt ?? 0)}
 									</span>
-									{canWrite && (
+									{canWrite && companyId && (
 										<OpenDialogButton
 											element={(props) => <Button {...props} />}
 											elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
-											dialog={DebtRepaymentFormModal}
-											dialogProps={{ mode: 'create' as const, initialClientId: Number(clientId) }}
+											dialog={PayDebtModal}
+											dialogProps={{ companyId, clientId: Number(clientId) }}
 										/>
 									)}
 								</div>
