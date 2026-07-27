@@ -50,7 +50,7 @@ export default function TelegramBroadcastCreatePage() {
   const createMutation = useCreateTelegramBroadcastMutation()
 
   const loadClientOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-    const result = await clientService.list({ search: search || undefined, page, limit: 20 })
+    const result = await clientService.list({ search: search || undefined, page, limit: 20, is_telegram_started: 1 })
     return {
       options: result.results.map((c) => ({ value: String(c.id), label: `${c.fio} — ${c.phone}` })),
       hasMore: result.pagination.currentPage < result.pagination.lastPage,
@@ -96,7 +96,7 @@ export default function TelegramBroadcastCreatePage() {
     let lastPage = 1
     const ids: number[] = []
     do {
-      const result = await clientService.list({ page, limit: chunkSize })
+      const result = await clientService.list({ page, limit: chunkSize, is_telegram_started: 1 })
       ids.push(...result.results.map((c) => c.id))
       lastPage = result.pagination.lastPage
       page += 1
