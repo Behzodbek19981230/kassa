@@ -9,6 +9,7 @@ import {
 	FaExclamationTriangle,
 	FaHistory,
 	FaInfoCircle,
+	FaPaperPlane,
 	FaPencilAlt,
 	FaReceipt,
 	FaSignOutAlt,
@@ -187,6 +188,20 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 								{theme === 'dark' ? <FaSun /> : <FaMoon />}
 							</button>
 						</li> */}
+
+						<li>
+							<Tooltip side='bottom' content='Telegram xabarnoma'>
+								<button
+									type='button'
+									onClick={() => navigate('/telegram-broadcast')}
+									className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+									aria-label='Telegram xabarnoma'
+								>
+									<FaPaperPlane />
+									<span className='hidden md:inline'>Telegram</span>
+								</button>
+							</Tooltip>
+						</li>
 
 						{showCompanySelect && companies.length > 1 && (
 							<li>

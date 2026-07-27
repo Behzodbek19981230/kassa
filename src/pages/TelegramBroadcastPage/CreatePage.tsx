@@ -4,6 +4,7 @@ import { FaArrowLeft, FaCloudUploadAlt, FaSpinner, FaTimes } from 'react-icons/f
 import { useNavigate } from 'react-router-dom'
 import {
   Button,
+  Checkbox,
   FormField,
   Modal,
   ModalBody,
@@ -14,6 +15,7 @@ import {
   MultiCombobox,
   PageHeader,
   Panel,
+  RadioGroup,
   Textarea,
   useNotification,
 } from '@/components/ui'
@@ -34,7 +36,10 @@ export default function TelegramBroadcastCreatePage() {
   const navigate = useNavigate()
   const { notify } = useNotification()
 
+  const [postType, setPostType] = useState<'new' | 'existing'>('new')
   const [clientIds, setClientIds] = useState<string[]>([])
+  const [selectAllClients, setSelectAllClients] = useState(false)
+  const [loadingAllClients, setLoadingAllClients] = useState(false)
   const [warehouseIds, setWarehouseIds] = useState<string[]>([])
   const [text, setText] = useState('')
   const [image, setImage] = useState<File | null>(null)
@@ -78,6 +83,45 @@ export default function TelegramBroadcastCreatePage() {
     setImagePreview(null)
   }
 
+  const handlePostTypeChange = (value: string) => {
+    const next = value as 'new' | 'existing'
+    setPostType(next)
+    if (next === 'new') setWarehouseIds([])
+    else removeImage()
+  }
+
+  const fetchAllClientIds = async () => {
+    const chunkSize = 200
+    let page = 1
+    let lastPage = 1
+    const ids: number[] = []
+    do {
+      const result = await clientService.list({ page, limit: chunkSize })
+      ids.push(...result.results.map((c) => c.id))
+      lastPage = result.pagination.lastPage
+      page += 1
+    } while (page <= lastPage)
+    return ids
+  }
+
+  const handleSelectAllClientsChange = async (checked: boolean) => {
+    setSelectAllClients(checked)
+    if (!checked) {
+      setClientIds([])
+      return
+    }
+    setLoadingAllClients(true)
+    try {
+      const ids = await fetchAllClientIds()
+      setClientIds(ids.map(String))
+    } catch {
+      notify({ title: 'Mijozlarni yuklashda xatolik yuz berdi' })
+      setSelectAllClients(false)
+    } finally {
+      setLoadingAllClients(false)
+    }
+  }
+
   const clientCount = clientIds.length
   const warehouseCount = warehouseIds.length
   const totalCount = useMemo(() => {
@@ -89,7 +133,11 @@ export default function TelegramBroadcastCreatePage() {
 
   const validate = () => {
     if (clientCount === 0) return 'Kamida bitta mijoz tanlanishi shart'
-    if (warehouseCount === 0 && !text.trim() && !image) return "Warehouse, text yoki rasmdan kamida bittasi bo'lishi shart"
+    if (postType === 'existing') {
+      if (warehouseCount === 0) return 'Kamida bitta mavjud tovar tanlanishi shart'
+    } else if (!text.trim() && !image) {
+      return "Matn yoki rasmdan kamida bittasi bo'lishi shart"
+    }
     return ''
   }
 
@@ -153,54 +201,91 @@ export default function TelegramBroadcastCreatePage() {
           )}
 
           <FormField label='Mijozlar tanlash' required horizontal={false}>
-            <MultiCombobox
-              value={clientIds}
-              onChange={setClientIds}
-              loadOptions={loadClientOptions}
-              placeholder='Mijozlarni tanlang'
+            <Checkbox
+              label='Barchasini tanlash'
+              checked={selectAllClients}
+              onCheckedChange={handleSelectAllClientsChange}
+              disabled={loadingAllClients}
+            />
+            {selectAllClients ? (
+              <div className='flex min-h-[34px] items-center gap-2 rounded-[3px] border border-[#ccd0d4] bg-ca-silver/40 px-2.5 py-1.5 text-xs text-ca-heading'>
+                {loadingAllClients ? (
+                  <>
+                    <FaSpinner className='animate-spin' /> Yuklanmoqda...
+                  </>
+                ) : (
+                  <>
+                    Barcha mijozlar tanlandi: <span className='font-semibold'>{clientIds.length} ta</span>
+                  </>
+                )}
+              </div>
+            ) : (
+              <MultiCombobox
+                value={clientIds}
+                onChange={setClientIds}
+                loadOptions={loadClientOptions}
+                placeholder='Mijozlarni tanlang'
+              />
+            )}
+          </FormField>
+
+          <FormField label='Post turi' horizontal={false}>
+            <RadioGroup
+              name='post-type'
+              value={postType}
+              onChange={handlePostTypeChange}
+              inline
+              options={[
+                { value: 'new', label: 'Yangi post' },
+                { value: 'existing', label: 'Mavjud tovar' },
+              ]}
             />
           </FormField>
 
-          <FormField label='Warehouse tanlash (ixtiyoriy)' horizontal={false}>
-            <MultiCombobox
-              value={warehouseIds}
-              onChange={setWarehouseIds}
-              loadOptions={loadWarehouseOptions}
-              placeholder='Warehouse mahsulotlarini tanlang'
-            />
-          </FormField>
+          {postType === 'existing' && (
+            <FormField label='Warehouse tanlash' required horizontal={false}>
+              <MultiCombobox
+                value={warehouseIds}
+                onChange={setWarehouseIds}
+                loadOptions={loadWarehouseOptions}
+                placeholder='Warehouse mahsulotlarini tanlang'
+              />
+            </FormField>
+          )}
 
           <FormField label='Xabar matni' horizontal={false}>
             <Textarea rows={4} value={text} onChange={(e) => setText(e.target.value)} placeholder='Xabar matnini kiriting' />
           </FormField>
 
-          <FormField label='Umumiy rasm' horizontal={false}>
-            {imagePreview ? (
-              <div className='relative inline-block'>
-                <img src={imagePreview} alt='Umumiy rasm' className='h-32 w-32 rounded-lg border border-ca-border object-cover' />
-                <button
-                  type='button'
-                  aria-label="Rasmni o'chirish"
-                  onClick={removeImage}
-                  className='absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-ca-red text-white shadow'
+          {postType === 'new' && (
+            <FormField label='Umumiy rasm' horizontal={false}>
+              {imagePreview ? (
+                <div className='relative inline-block'>
+                  <img src={imagePreview} alt='Umumiy rasm' className='h-32 w-32 rounded-lg border border-ca-border object-cover' />
+                  <button
+                    type='button'
+                    aria-label="Rasmni o'chirish"
+                    onClick={removeImage}
+                    className='absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-ca-red text-white shadow'
+                  >
+                    <FaTimes className='text-xs' />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  {...getRootProps()}
+                  className={cn(
+                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-ca-border bg-ca-silver/60 px-6 py-6 text-center transition-colors hover:border-ca-theme hover:bg-ca-theme/5',
+                    isDragActive && 'border-ca-theme bg-ca-theme/10',
+                  )}
                 >
-                  <FaTimes className='text-xs' />
-                </button>
-              </div>
-            ) : (
-              <div
-                {...getRootProps()}
-                className={cn(
-                  'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-ca-border bg-ca-silver/60 px-6 py-6 text-center transition-colors hover:border-ca-theme hover:bg-ca-theme/5',
-                  isDragActive && 'border-ca-theme bg-ca-theme/10',
-                )}
-              >
-                <input {...getInputProps()} />
-                <FaCloudUploadAlt className='mb-2 text-2xl text-ca-theme' />
-                <p className='text-xs font-medium text-ca-heading'>Rasm qo'shish uchun bosing yoki shu yerga tashlang</p>
-              </div>
-            )}
-          </FormField>
+                  <input {...getInputProps()} />
+                  <FaCloudUploadAlt className='mb-2 text-2xl text-ca-theme' />
+                  <p className='text-xs font-medium text-ca-heading'>Rasm qo'shish uchun bosing yoki shu yerga tashlang</p>
+                </div>
+              )}
+            </FormField>
+          )}
 
           <div className='mb-4 rounded-[3px] border border-ca-border bg-ca-silver/40 px-4 py-3 text-xs'>
             <h4 className='mb-2 text-sm font-semibold text-ca-heading'>Preview</h4>
