@@ -31,7 +31,10 @@ export function useCreateDebtRepaymentMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: DebtRepaymentPayload) => debtRepaymentService.create(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: debtRepaymentKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: debtRepaymentKeys.all })
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+    },
   })
 }
 
@@ -40,7 +43,10 @@ export function useUpdateDebtRepaymentMutation() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: DebtRepaymentPayload }) =>
       debtRepaymentService.update(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: debtRepaymentKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: debtRepaymentKeys.all })
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+    },
   })
 }
 
@@ -48,6 +54,9 @@ export function useDeleteDebtRepaymentMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => debtRepaymentService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: debtRepaymentKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: debtRepaymentKeys.all })
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+    },
   })
 }

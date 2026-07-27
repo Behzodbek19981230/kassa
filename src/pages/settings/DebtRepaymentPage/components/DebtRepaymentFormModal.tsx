@@ -55,6 +55,8 @@ interface DebtRepaymentFormModalProps {
 	setOpen: (open: boolean) => void;
 	mode: 'create' | 'edit';
 	item?: DebtRepayment;
+	/** Pre-selects the client (create mode only), e.g. when opened from the order page for a chosen client. */
+	initialClientId?: number;
 }
 
 const userLabel = (u: { username: string; first_name: string; last_name: string }) =>
@@ -78,7 +80,13 @@ function toFormValues(item: DebtRepayment): DebtRepaymentFormValues {
 	};
 }
 
-export default function DebtRepaymentFormModal({ open, setOpen, mode, item }: DebtRepaymentFormModalProps) {
+export default function DebtRepaymentFormModal({
+	open,
+	setOpen,
+	mode,
+	item,
+	initialClientId,
+}: DebtRepaymentFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 	const { companyId } = useCurrentCompany();
@@ -102,7 +110,7 @@ export default function DebtRepaymentFormModal({ open, setOpen, mode, item }: De
 			mode === 'edit' && item
 				? toFormValues(item)
 				: {
-						client: '',
+						client: initialClientId ? String(initialClientId) : '',
 						is_worker: '',
 						date: new Date().toISOString().slice(0, 10),
 						text: '',
@@ -253,7 +261,7 @@ export default function DebtRepaymentFormModal({ open, setOpen, mode, item }: De
 											value={field.value}
 											onChange={field.onChange}
 											loadOptions={loadClientOptions}
-											selectedLabel={currentItem?.client_detail?.fio}
+											selectedLabel={currentItem?.client_detail?.fio ?? clientDetailQuery.data?.fio}
 											placeholder='Tanlang...'
 											searchPlaceholder='Mijoz qidirish...'
 										/>

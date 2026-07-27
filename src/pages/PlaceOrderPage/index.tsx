@@ -30,6 +30,7 @@ import { productCategoryService } from '@/services/product-category/product-cate
 import { useWarehouseAllListQuery } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListBrandGroup, WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import ClientFormModal from '@/pages/settings/ClientPage/components/ClientFormModal';
+import DebtRepaymentFormModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentFormModal';
 import AddToCartModal, { type ProductVariant } from '@/pages/PlaceOrderPage/components/AddToCartModal';
 import ClearCartConfirmModal from '@/pages/PlaceOrderPage/components/ClearCartConfirmModal';
 import ConfirmSaleModal from '@/pages/PlaceOrderPage/components/ConfirmSaleModal';
@@ -342,11 +343,19 @@ export default function PlaceOrderPage() {
 								/>
 							</div>
 							{clientId && (
-								<div className='text-xs whitespace-nowrap text-ca-heading'>
+								<div className='flex items-center gap-2 text-xs whitespace-nowrap text-ca-heading'>
 									Qarzi ($):{' '}
 									<span className='font-bold text-ca-red'>
 										{formatNumber(selectedClient?.total_debt ?? 0)}
 									</span>
+									{canWrite && (
+										<OpenDialogButton
+											element={(props) => <Button {...props} />}
+											elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
+											dialog={DebtRepaymentFormModal}
+											dialogProps={{ mode: 'create' as const, initialClientId: Number(clientId) }}
+										/>
+									)}
 								</div>
 							)}
 						</div>
