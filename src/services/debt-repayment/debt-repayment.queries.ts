@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { debtRepaymentService } from '@/services/debt-repayment/debt-repayment.service'
 import type {
+  DebtRepaymentDraftListParams,
   DebtRepaymentGroupedListParams,
   DebtRepaymentListParams,
   DebtRepaymentPayload,
@@ -10,6 +11,8 @@ const debtRepaymentKeys = {
   all: ['debt-repayments'] as const,
   list: (params?: DebtRepaymentListParams) => ['debt-repayments', 'list', params] as const,
   groupedList: (params?: DebtRepaymentGroupedListParams) => ['debt-repayments', 'grouped-list', params] as const,
+  draftGroupedList: (params?: DebtRepaymentDraftListParams) =>
+    ['debt-repayments', 'draft-grouped-list', params] as const,
   detail: (id: number) => ['debt-repayments', 'detail', id] as const,
 }
 
@@ -25,6 +28,14 @@ export function useDebtRepaymentGroupedListQuery(params?: DebtRepaymentGroupedLi
   return useQuery({
     queryKey: debtRepaymentKeys.groupedList(params),
     queryFn: () => debtRepaymentService.listGrouped(params),
+    placeholderData: (prev) => prev,
+  })
+}
+
+export function useDebtRepaymentDraftGroupedListQuery(params?: DebtRepaymentDraftListParams) {
+  return useQuery({
+    queryKey: debtRepaymentKeys.draftGroupedList(params),
+    queryFn: () => debtRepaymentService.listDraftGrouped(params),
     placeholderData: (prev) => prev,
   })
 }
@@ -60,13 +71,31 @@ export function useUpdateDebtRepaymentMutation() {
   })
 }
 
-export function useDeleteDebtRepaymentMutation() {
+function invalidateAfterDraftAction(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: debtRepaymentKeys.all })
+  queryClient.invalidateQueries({ queryKey: ['clients'] })
+}
+
+export function useDraftDeleteDebtRepaymentMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => debtRepaymentService.remove(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: debtRepaymentKeys.all })
-      queryClient.invalidateQueries({ queryKey: ['clients'] })
-    },
+    mutationFn: (id: number) => debtRepaymentService.draftDelete(id),
+    onSuccess: () => invalidateAfterDraftAction(queryClient),
+  })
+}
+
+export function useReturnDebtRepaymentMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => debtRepaymentService.returnFromDraft(id),
+    onSuccess: () => invalidateAfterDraftAction(queryClient),
+  })
+}
+
+export function useHardDeleteDebtRepaymentMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => debtRepaymentService.hardDelete(id),
+    onSuccess: () => invalidateAfterDraftAction(queryClient),
   })
 }

@@ -153,3 +153,51 @@ export interface DebtRepaymentGroupedListParams extends ListParams {
   start_date?: string
   end_date?: string
 }
+
+export interface DebtRepaymentDraftListParams extends ListParams {
+  company?: number
+  client?: number
+  created_by?: number
+  date?: string
+  start_date?: string
+  end_date?: string
+}
+
+export interface DebtRepaymentDraftFilters {
+  is_delete: number
+}
+
+export interface DebtRepaymentDraftListResponse {
+  pagination: PaginationMeta
+  results: DebtRepaymentGroupedResults
+  filters: DebtRepaymentDraftFilters
+}
+
+export interface DebtRepaymentDraftActionResult {
+  id: number
+  is_delete: number
+}
+
+export interface DebtRepaymentDraftActionSummary {
+  client_total_debt?: string
+}
+
+export interface DebtRepaymentDraftDeleteResponse {
+  success: boolean
+  message: string
+  debt_repayment?: DebtRepaymentDraftActionResult
+  summary?: DebtRepaymentDraftActionSummary
+}
+
+export interface DebtRepaymentReturnResponse {
+  success: boolean
+  message: string
+  debt_repayment?: DebtRepaymentDraftActionResult
+  summary?: DebtRepaymentDraftActionSummary
+}
+
+export interface DebtRepaymentHardDeleteResponse {
+  success: boolean
+  message: string
+  deleted_id?: number
+}

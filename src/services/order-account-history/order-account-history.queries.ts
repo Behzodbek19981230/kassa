@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
 import type {
+	OrderAccountHistoryDraftListParams,
 	OrderAccountHistoryGroupedListParams,
 	OrderAccountHistoryListParams,
 	OrderAccountHistoryUpdatePayload,
@@ -14,6 +15,8 @@ const orderAccountHistoryKeys = {
 	list: (params?: OrderAccountHistoryListParams) => ['order-account-history', 'list', params] as const,
 	groupedList: (params?: OrderAccountHistoryGroupedListParams) =>
 		['order-account-history', 'grouped-list', params] as const,
+	draftGroupedList: (params?: OrderAccountHistoryDraftListParams) =>
+		['order-account-history', 'draft-grouped-list', params] as const,
 	detail: (id?: number) => ['order-account-history', 'detail', id] as const,
 	detailProducts: (id?: number) => ['order-account-history', 'detail-products', id] as const,
 	orderAndDebt: (params?: OrderAndDebtListParams) => ['order-account-history', 'order-and-debt', params] as const,
@@ -31,6 +34,14 @@ export function useOrderAccountHistoryGroupedListQuery(params?: OrderAccountHist
 	return useQuery({
 		queryKey: orderAccountHistoryKeys.groupedList(params),
 		queryFn: () => orderAccountHistoryService.listGrouped(params),
+		placeholderData: (prev) => prev,
+	});
+}
+
+export function useOrderAccountHistoryDraftGroupedListQuery(params?: OrderAccountHistoryDraftListParams) {
+	return useQuery({
+		queryKey: orderAccountHistoryKeys.draftGroupedList(params),
+		queryFn: () => orderAccountHistoryService.listDraftGrouped(params),
 		placeholderData: (prev) => prev,
 	});
 }
@@ -86,5 +97,35 @@ export function usePayDebtMutation() {
 			queryClient.invalidateQueries({ queryKey: ['clients'] });
 			queryClient.invalidateQueries({ queryKey: ['debt-repayments'] });
 		},
+	});
+}
+
+function invalidateAfterDraftAction(queryClient: ReturnType<typeof useQueryClient>) {
+	queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all });
+	queryClient.invalidateQueries({ queryKey: ['clients'] });
+	queryClient.invalidateQueries({ queryKey: ['warehouse'] });
+}
+
+export function useDraftDeleteOrderAccountHistoryMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: number) => orderAccountHistoryService.draftDelete(id),
+		onSuccess: () => invalidateAfterDraftAction(queryClient),
+	});
+}
+
+export function useReturnOrderAccountHistoryMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: number) => orderAccountHistoryService.returnFromDraft(id),
+		onSuccess: () => invalidateAfterDraftAction(queryClient),
+	});
+}
+
+export function useHardDeleteOrderAccountHistoryMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: number) => orderAccountHistoryService.hardDelete(id),
+		onSuccess: () => invalidateAfterDraftAction(queryClient),
 	});
 }

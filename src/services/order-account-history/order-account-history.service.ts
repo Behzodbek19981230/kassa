@@ -1,11 +1,16 @@
 import { apiClient, API_BASE_URL } from '@/services/api/client';
 import type { PaginatedResponse } from '@/services/api/types';
 import type {
+	OrderAccountHistoryDraftDeleteResponse,
+	OrderAccountHistoryDraftListParams,
+	OrderAccountHistoryDraftListResponse,
 	OrderAccountHistoryGroupedListParams,
 	OrderAccountHistoryGroupedResponse,
+	OrderAccountHistoryHardDeleteResponse,
 	OrderAccountHistoryItem,
 	OrderAccountHistoryListParams,
 	OrderAccountHistoryProductsResponse,
+	OrderAccountHistoryReturnResponse,
 	OrderAccountHistoryUpdatePayload,
 	OrderAccountHistoryUpdateSalePayload,
 	OrderAccountHistoryUpdateSaleResponse,
@@ -64,6 +69,29 @@ export const orderAccountHistoryService = {
 	},
 	payDebt: async (payload: PayDebtPayload) => {
 		const { data } = await apiClient.post<unknown>('/order-account-history/pay-debt/', payload);
+		return data;
+	},
+	listDraftGrouped: async (params?: OrderAccountHistoryDraftListParams) => {
+		const { data } = await apiClient.get<OrderAccountHistoryDraftListResponse>(
+			'/order-account-history/grouped/draft/',
+			{ params },
+		);
+		return data;
+	},
+	draftDelete: async (id: number) => {
+		const { data } = await apiClient.delete<OrderAccountHistoryDraftDeleteResponse>(
+			`/order-account-history/${id}/draft-delete/`,
+		);
+		return data;
+	},
+	returnFromDraft: async (id: number) => {
+		const { data } = await apiClient.post<OrderAccountHistoryReturnResponse>(`/order-account-history/${id}/return/`);
+		return data;
+	},
+	hardDelete: async (id: number) => {
+		const { data } = await apiClient.delete<OrderAccountHistoryHardDeleteResponse>(
+			`/order-account-history/${id}/hard-delete/`,
+		);
 		return data;
 	},
 };

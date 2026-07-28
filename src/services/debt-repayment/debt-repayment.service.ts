@@ -2,10 +2,15 @@ import { apiClient, API_BASE_URL } from '@/services/api/client'
 import type { PaginatedResponse } from '@/services/api/types'
 import type {
   DebtRepayment,
+  DebtRepaymentDraftDeleteResponse,
+  DebtRepaymentDraftListParams,
+  DebtRepaymentDraftListResponse,
   DebtRepaymentGroupedListParams,
   DebtRepaymentGroupedResponse,
+  DebtRepaymentHardDeleteResponse,
   DebtRepaymentListParams,
   DebtRepaymentPayload,
+  DebtRepaymentReturnResponse,
 } from '@/services/debt-repayment/debt-repayment.types'
 
 const API_PATH_PREFIX = new URL(API_BASE_URL).pathname.replace(/\/$/, '')
@@ -39,7 +44,22 @@ export const debtRepaymentService = {
     const { data } = await apiClient.put<DebtRepayment>(`/debt-repayment/${id}/`, payload)
     return data
   },
-  remove: async (id: number) => {
-    await apiClient.delete(`/debt-repayment/${id}/`)
+  listDraftGrouped: async (params?: DebtRepaymentDraftListParams) => {
+    const { data } = await apiClient.get<DebtRepaymentDraftListResponse>('/debt-repayment/grouped/draft/', {
+      params,
+    })
+    return data
+  },
+  draftDelete: async (id: number) => {
+    const { data } = await apiClient.delete<DebtRepaymentDraftDeleteResponse>(`/debt-repayment/${id}/draft-delete/`)
+    return data
+  },
+  returnFromDraft: async (id: number) => {
+    const { data } = await apiClient.post<DebtRepaymentReturnResponse>(`/debt-repayment/${id}/return/`)
+    return data
+  },
+  hardDelete: async (id: number) => {
+    const { data } = await apiClient.delete<DebtRepaymentHardDeleteResponse>(`/debt-repayment/${id}/hard-delete/`)
+    return data
   },
 }

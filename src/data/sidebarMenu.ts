@@ -57,6 +57,13 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				label: "To'langan qarzlar",
 				path: '/settings/debt-repayments',
 			},
+			{ id: 'order-cart-drafts', icon: 'cart', label: 'Buyurtma Karzinka', path: '/cart-drafts' },
+			{
+				id: 'debt-payment-cart-drafts',
+				icon: 'receipt',
+				label: "Qarz to'lov karzinka",
+				path: '/settings/debt-repayments-drafts',
+			},
 		],
 	},
 ];

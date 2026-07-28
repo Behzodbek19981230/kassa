@@ -493,3 +493,52 @@ export interface PayDebtPayload {
 	is_worker: number;
 	text: string;
 }
+
+export interface OrderAccountHistoryDraftListParams extends ListParams {
+	date?: string;
+	start_date?: string;
+	end_date?: string;
+	client?: number;
+	created_by?: number;
+	company?: number;
+}
+
+export interface OrderAccountHistoryDraftFilters {
+	is_delete: number;
+}
+
+export interface OrderAccountHistoryDraftListResponse {
+	pagination: PaginationMeta;
+	results: OrderAccountHistoryGroupedResults;
+	filters: OrderAccountHistoryDraftFilters;
+}
+
+export interface OrderAccountHistoryDraftDeleteSummary {
+	client_total_debt: string;
+	restored_stock_count: number;
+}
+
+export interface OrderAccountHistoryDraftDeleteResponse {
+	success: boolean;
+	message: string;
+	order_account_history: { id: number; is_delete: number };
+	summary: OrderAccountHistoryDraftDeleteSummary;
+}
+
+export interface OrderAccountHistoryReturnSummary {
+	client_total_debt: string;
+	withdrawn_stock_count: number;
+}
+
+export interface OrderAccountHistoryReturnResponse {
+	success: boolean;
+	message: string;
+	order_account_history: { id: number; is_delete: number };
+	summary: OrderAccountHistoryReturnSummary;
+}
+
+export interface OrderAccountHistoryHardDeleteResponse {
+	success: boolean;
+	message: string;
+	deleted_id: number;
+}

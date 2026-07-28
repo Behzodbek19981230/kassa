@@ -486,7 +486,7 @@ export function DataTable<TData>({
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button type='button' variant='white' size='sm'>
-									<FaColumns className='mr-1.5' /> Columns
+									<FaColumns className='mr-1.5' /> Ustunlar
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent className='min-w-[180px] p-2'>

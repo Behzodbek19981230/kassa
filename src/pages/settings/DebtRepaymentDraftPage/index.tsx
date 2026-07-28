@@ -1,6 +1,6 @@
 import { createColumnHelper, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { FaBan, FaEdit, FaExclamationTriangle, FaFilePdf, FaTrash } from 'react-icons/fa';
+import { FaBan, FaExclamationTriangle, FaUndo } from 'react-icons/fa';
 import {
 	Button,
 	buttonProps,
@@ -12,26 +12,22 @@ import {
 	Input,
 	PageHeader,
 	Panel,
-	useNotification,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
-import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
-import { debtRepaymentService } from '@/services/debt-repayment/debt-repayment.service';
-import { useDebtRepaymentGroupedListQuery } from '@/services/debt-repayment/debt-repayment.queries';
-import type { DebtRepayment, DebtRepaymentGroupedItem } from '@/services/debt-repayment/debt-repayment.types';
-import DebtRepaymentDraftDeleteModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentDraftDeleteModal';
-import DebtRepaymentFormModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentFormModal';
+import { useDebtRepaymentDraftGroupedListQuery } from '@/services/debt-repayment/debt-repayment.queries';
+import type { DebtRepaymentGroupedItem } from '@/services/debt-repayment/debt-repayment.types';
 import DebtRepaymentHardDeleteModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentHardDeleteModal';
+import DebtRepaymentReturnModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentReturnModal';
 
-type GroupedDebtRepaymentRow = DebtRepaymentGroupedItem & {
+type GroupedDraftRepaymentRow = DebtRepaymentGroupedItem & {
 	_dateLabel: string;
 	_groupId: number;
 };
 
-const columnHelper = createColumnHelper<GroupedDebtRepaymentRow>();
+const columnHelper = createColumnHelper<GroupedDraftRepaymentRow>();
 
 interface FilterState {
 	client: string;
@@ -42,46 +38,15 @@ interface FilterState {
 
 const emptyFilters: FilterState = { client: '', startDate: '', endDate: '', search: '' };
 
-/** The grouped listing endpoint returns a lighter shape than `/debt-repayment/{id}/` — this
- * fills in the few fields the edit/delete modals need before they refetch the full record. */
-function toDebtRepayment(item: DebtRepaymentGroupedItem): DebtRepayment {
-	return {
-		id: item.id,
-		company: item.company,
-		client: item.client,
-		client_detail: { fio: item.client_name } as DebtRepayment['client_detail'],
-		created_by: item.created_by,
-		summa: item.all_summ_dollar,
-		text: item.text,
-		date: item.date,
-		sum_som: item.sum_som,
-		summ_dollar: item.summ_dollar,
-		summ_cart: item.summ_cart,
-		sum_transfers: item.sum_transfers,
-		total_debt: item.total_debt,
-		exchange_rate: item.exchange_rate,
-		discount_amount: item.discount_amount,
-		all_summ_dollar: item.all_summ_dollar,
-		total_debt_old: item.total_debt_old,
-		is_delete: 0,
-		cr_date_time: item.datetime,
-		is_worker: null,
-		zdacha_sum: item.zdacha_sum,
-		zdacha_dollar: item.zdacha_dollar,
-	};
-}
-
-export default function DebtRepaymentPage() {
+export default function DebtRepaymentDraftPage() {
 	const { canWrite } = useCurrentCompany();
-	const { notify } = useNotification();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
 	const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);
-	const [printingId, setPrintingId] = useState<number | null>(null);
 
 	const hasAppliedFilters = Object.values(appliedFilters).some(Boolean);
 
-	const { data, isLoading, isFetching, isError, refetch } = useDebtRepaymentGroupedListQuery({
+	const { data, isLoading, isFetching, isError, refetch } = useDebtRepaymentDraftGroupedListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		client: appliedFilters.client ? Number(appliedFilters.client) : undefined,
@@ -92,7 +57,7 @@ export default function DebtRepaymentPage() {
 
 	const paginationMeta = data?.pagination;
 
-	const results: GroupedDebtRepaymentRow[] = useMemo(
+	const results: GroupedDraftRepaymentRow[] = useMemo(
 		() =>
 			(data?.results.groups ?? []).flatMap((group, groupIndex) =>
 				group.items.map((item) => ({
@@ -123,30 +88,13 @@ export default function DebtRepaymentPage() {
 		setPagination((p) => ({ ...p, pageIndex: 0 }));
 	}
 
-	async function handlePrint(item: GroupedDebtRepaymentRow) {
-		if (!item.print_url) return;
-		const tab = openPendingTab();
-		setPrintingId(item.id);
-		try {
-			const blob = await debtRepaymentService.printByUrl(item.print_url);
-			loadBlobIntoTab(blob, tab);
-		} catch {
-			tab?.close();
-			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
-		} finally {
-			setPrintingId(null);
-		}
-	}
-
 	const columns = [
 		columnHelper.display({
 			id: 'sana',
 			header: 'Sana',
 			size: 100,
 			cell: ({ row }) => <span className='font-semibold text-ca-theme'>{row.original._dateLabel}</span>,
-			meta: {
-				rowSpanGroupKey: (row) => row._groupId,
-			},
+			meta: { rowSpanGroupKey: (row) => row._groupId },
 		}),
 		columnHelper.accessor('client_name', {
 			header: 'Mijoz',
@@ -181,45 +129,24 @@ export default function DebtRepaymentPage() {
 				);
 			},
 		}),
-		columnHelper.accessor('created_by_name', { header: 'Kim qabul qildi', size: 150 }),
 		columnHelper.accessor('text', { header: 'Izoh' }),
 		columnHelper.display({
 			id: 'actions',
 			header: 'Harakatlar',
 			meta: { align: 'right' },
-			size: 220,
+			size: 110,
 			cell: ({ row }) => {
 				const item = row.original;
 				return (
 					<div className='flex justify-end gap-1'>
-						<Button
-							type='button'
-							variant='default'
-							size='icon'
-							aria-label='PDF'
-							disabled={printingId === item.id}
-							onClick={() => handlePrint(item)}
-						>
-							<FaFilePdf />
-						</Button>
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
-								...buttonProps(<FaEdit />, 'warning', 'icon'),
-								'aria-label': 'Tahrirlash',
+								...buttonProps(<FaUndo />, 'success', 'icon'),
+								'aria-label': 'Qayta tiklash',
 								disabled: !canWrite,
 							}}
-							dialog={DebtRepaymentFormModal}
-							dialogProps={{ mode: 'edit' as const, item: toDebtRepayment(item) }}
-						/>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaTrash />, 'danger', 'icon'),
-								'aria-label': 'Draftga olish',
-								disabled: !canWrite,
-							}}
-							dialog={DebtRepaymentDraftDeleteModal}
+							dialog={DebtRepaymentReturnModal}
 							dialogProps={{ id: item.id, clientName: item.client_name }}
 						/>
 						<OpenDialogButton
@@ -241,27 +168,15 @@ export default function DebtRepaymentPage() {
 	return (
 		<>
 			<PageHeader
-				title="To'langan qarzlar"
+				title="Qarz to'lov karzinka"
 				breadcrumb={[
 					{ label: 'Asosiy', path: '/' },
-					{ label: "To'langan qarzlar", active: true },
+					{ label: "To'langan qarzlar", path: '/settings/debt-repayments' },
+					{ label: "Qarz to'lov karzinka", active: true },
 				]}
 			/>
 
-			<Panel
-				title="Ro'yxat"
-				actions={
-					canWrite && (
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
-							dialog={DebtRepaymentFormModal}
-							dialogProps={{ mode: 'create' as const }}
-						/>
-					)
-				}
-				onReload={() => refetch()}
-			>
+			<Panel title="O'chirilgan to'lovlar" onReload={() => refetch()}>
 				<div className='mb-4 flex flex-wrap items-end gap-2'>
 					<div className='w-40'>
 						<DatePicker
@@ -315,10 +230,10 @@ export default function DebtRepaymentPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters={false}
 					enableColumnVisibility
-					columnVisibilityKey='debt-repayments'
+					columnVisibilityKey='debt-repayment-draft'
 					enableStriping
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? 'Xatolik yuz berdi' : "Draft to'lovlar yo'q"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

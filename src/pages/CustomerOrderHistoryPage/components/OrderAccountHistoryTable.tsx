@@ -1,22 +1,25 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaExpand, FaTrash } from 'react-icons/fa';
+import { FaBan, FaEdit, FaExclamationTriangle, FaExpand, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
 	Badge,
 	Button,
+	buttonProps,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
 	DataTable,
 	Tooltip,
-	useNotification,
 } from '@/components/ui';
+import OpenDialogButton from '@/components/OpenDialogButton';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAccountHistoryGroupedListQuery } from '@/services/order-account-history/order-account-history.queries';
 import type { OrderAccountHistoryItem } from '@/services/order-account-history/order-account-history.types';
 import { useUserListQuery } from '@/services/user/user.queries';
 import { userService } from '@/services/user/user.service';
+import OrderDraftDeleteModal from '@/pages/CustomerOrderHistoryPage/components/OrderDraftDeleteModal';
+import OrderHardDeleteModal from '@/pages/CustomerOrderHistoryPage/components/OrderHardDeleteModal';
 
 type GroupedOrderAccountHistoryItem = OrderAccountHistoryItem & {
 	_no: number;
@@ -49,7 +52,6 @@ export default function OrderAccountHistoryTable({
 	onRefetchReady,
 }: OrderAccountHistoryTableProps) {
 	const navigate = useNavigate();
-	const { notify } = useNotification();
 
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -105,10 +107,6 @@ export default function OrderAccountHistoryTable({
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
 		};
 	};
-
-	function stub() {
-		notify({ title: 'Tez orada', text: 'Bu funksiya hali ulanmagan.' });
-	}
 
 	const columns = [
 		columnHelper.display({
@@ -254,7 +252,7 @@ export default function OrderAccountHistoryTable({
 			header: 'Harakatlar',
 			meta: { align: 'right' },
 			enableColumnFilter: false,
-			size: isDebtorOnly ? 90 : 220,
+			size: isDebtorOnly ? 90 : 260,
 			cell: ({ row }) => {
 				const item = row.original;
 				return (
@@ -281,16 +279,28 @@ export default function OrderAccountHistoryTable({
 							<FaExpand />
 						</Button>
 						{!isDebtorOnly && (
-							<Button
-								type='button'
-								variant='danger'
-								size='icon'
-								aria-label="O'chirish"
-								disabled={!canWrite}
-								onClick={stub}
-							>
-								<FaTrash />
-							</Button>
+							<>
+								<OpenDialogButton
+									element={(props) => <Button {...props} />}
+									elementProps={{
+										...buttonProps(<FaTrash />, 'danger', 'icon'),
+										'aria-label': 'Draftga olish',
+										disabled: !canWrite,
+									}}
+									dialog={OrderDraftDeleteModal}
+									dialogProps={{ id: item.id, clientName: item.client_name }}
+								/>
+								<OpenDialogButton
+									element={(props) => <Button {...props} />}
+									elementProps={{
+										...buttonProps(<FaBan />, 'danger', 'icon'),
+										'aria-label': "Batamom o'chirish",
+										disabled: !canWrite,
+									}}
+									dialog={OrderHardDeleteModal}
+									dialogProps={{ id: item.id, clientName: item.client_name }}
+								/>
+							</>
 						)}
 					</div>
 				);
@@ -300,19 +310,6 @@ export default function OrderAccountHistoryTable({
 
 	return (
 		<div>
-			<div className='mb-3 flex justify-end'>
-				<Button
-					type='button'
-					variant='theme'
-					size='xs'
-					onClick={() => {
-						setColumnFilters([]);
-						setPagination((p) => ({ ...p, pageIndex: 0 }));
-					}}
-				>
-					Hammasi
-				</Button>
-			</div>
 			<DataTable
 				columns={columns}
 				data={results}
