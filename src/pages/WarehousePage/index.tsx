@@ -335,6 +335,7 @@ export default function WarehousePage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='warehouse'
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}

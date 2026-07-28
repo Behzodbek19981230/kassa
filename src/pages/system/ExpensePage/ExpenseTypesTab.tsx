@@ -101,6 +101,7 @@ export default function ExpenseTypesTab() {
 				enableGlobalFilter={false}
 				enableColumnFilters
 				enableColumnVisibility
+				columnVisibilityKey='expense-types'
 				enableSorting
 				enableStriping
 				isLoading={isLoading || isFetching}

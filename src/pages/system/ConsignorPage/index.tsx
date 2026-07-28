@@ -117,6 +117,7 @@ export default function ConsignorPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='consignor'
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}

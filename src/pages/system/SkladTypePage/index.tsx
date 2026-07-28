@@ -115,6 +115,7 @@ export default function SkladTypePage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='sklad-type'
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}

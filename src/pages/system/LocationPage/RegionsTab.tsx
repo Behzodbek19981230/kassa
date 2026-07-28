@@ -106,6 +106,7 @@ export default function RegionsTab() {
 				enableGlobalFilter={false}
 				enableColumnFilters
 				enableColumnVisibility
+				columnVisibilityKey='regions'
 				enableSorting
 				enableStriping
 				isLoading={isLoading || isFetching}

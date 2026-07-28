@@ -106,6 +106,7 @@ export default function SizeTypesTab() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='size-types'
 					isLoading={isLoading || isFetching}
 					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}

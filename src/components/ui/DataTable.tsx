@@ -43,7 +43,7 @@ const alignJustifyClass: Record<'left' | 'center' | 'right', string> = {
 	center: 'justify-center',
 	right: 'justify-end',
 };
-import { Fragment, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
 	FaChevronDown,
 	FaChevronRight,
@@ -73,6 +73,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { FcDeleteDatabase } from 'react-icons/fc';
+import { useUserInfoQuery } from '@/services/user/user.queries';
+import { useSaveUserColumnMutation, useUserColumnQuery } from '@/services/user-columns/user-columns.queries';
 
 function resolveUpdater<T>(updater: Updater<T>, current: T): T {
 	return typeof updater === 'function' ? (updater as (old: T) => T)(current) : updater;
@@ -92,6 +94,13 @@ interface DataTableProps<TData> {
 	enableGlobalFilter?: boolean;
 	enableColumnFilters?: boolean;
 	enableColumnVisibility?: boolean;
+	/**
+	 * Unique key identifying this table for column-visibility persistence.
+	 * When set together with `enableColumnVisibility`, shown/hidden columns
+	 * are saved per-user via the `/user-columns/` API instead of resetting
+	 * on every mount.
+	 */
+	columnVisibilityKey?: string;
 	enableColumnResizing?: boolean;
 	enableExpanding?: boolean;
 	enableExport?: boolean;
@@ -137,6 +146,7 @@ export function DataTable<TData>({
 	enableGlobalFilter = true,
 	enableColumnFilters = false,
 	enableColumnVisibility = false,
+	columnVisibilityKey,
 	enableColumnResizing = false,
 	enableExpanding = false,
 	enableExport = false,
@@ -199,6 +209,35 @@ export function DataTable<TData>({
 		else setInternalColumnFilters(next);
 	};
 
+	const columnVisibilityPersistenceEnabled = enableColumnVisibility && !!columnVisibilityKey;
+	const { data: currentUser } = useUserInfoQuery();
+	const currentUserId = currentUser?.id ?? null;
+	const { data: savedColumnVisibility } = useUserColumnQuery(
+		columnVisibilityPersistenceEnabled ? currentUserId : null,
+		columnVisibilityPersistenceEnabled ? (columnVisibilityKey as string) : '',
+	);
+	const saveColumnVisibilityMutation = useSaveUserColumnMutation();
+	const columnVisibilityHydratedRef = useRef(false);
+	const skipNextColumnVisibilitySaveRef = useRef(false);
+
+	useEffect(() => {
+		columnVisibilityHydratedRef.current = false;
+	}, [columnVisibilityKey]);
+
+	useEffect(() => {
+		if (!columnVisibilityPersistenceEnabled || columnVisibilityHydratedRef.current) return;
+		if (savedColumnVisibility === undefined) return;
+		if (savedColumnVisibility?.text) {
+			try {
+				skipNextColumnVisibilitySaveRef.current = true;
+				setColumnVisibility(JSON.parse(savedColumnVisibility.text));
+			} catch {
+				// ignore malformed saved column-visibility state
+			}
+		}
+		columnVisibilityHydratedRef.current = true;
+	}, [savedColumnVisibility, columnVisibilityPersistenceEnabled]);
+
 	const table = useReactTable({
 		data,
 		columns,
@@ -233,6 +272,30 @@ export function DataTable<TData>({
 		manualFiltering,
 		pageCount: manualPagination ? (pageCount ?? -1) : undefined,
 	});
+
+	useEffect(() => {
+		if (!columnVisibilityPersistenceEnabled || !columnVisibilityHydratedRef.current || currentUserId == null) {
+			return;
+		}
+		if (skipNextColumnVisibilitySaveRef.current) {
+			skipNextColumnVisibilitySaveRef.current = false;
+			return;
+		}
+		const fullVisibility: Record<string, boolean> = {};
+		table.getAllLeafColumns().forEach((col) => {
+			if (!col.getCanHide()) return;
+			fullVisibility[col.id] = columnVisibility[col.id] ?? true;
+		});
+		saveColumnVisibilityMutation.mutate({
+			id: savedColumnVisibility?.id,
+			payload: {
+				user: currentUserId,
+				key: columnVisibilityKey as string,
+				text: JSON.stringify(fullVisibility),
+			},
+		});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [columnVisibility]);
 
 	const { pageIndex, pageSize } = table.getState().pagination;
 	const resolvedSkeletonRows = skeletonRows ?? pageSize;

@@ -152,6 +152,7 @@ export default function ProductCategoriesPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='product-categories'
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}

@@ -137,6 +137,7 @@ export default function CompanyPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='company'
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}

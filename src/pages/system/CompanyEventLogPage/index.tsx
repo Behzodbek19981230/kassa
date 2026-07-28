@@ -210,6 +210,7 @@ export default function CompanyEventLogPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters={true}
 					enableColumnVisibility
+					columnVisibilityKey='company-event-log'
 					enableStriping
 					isLoading={isLoading || isFetching}
 					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}

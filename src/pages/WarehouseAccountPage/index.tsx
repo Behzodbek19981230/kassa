@@ -273,6 +273,7 @@ export default function WarehouseAccountPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='warehouse-account'
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}

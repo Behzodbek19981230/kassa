@@ -127,6 +127,7 @@ export default function AboutPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='about'
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}

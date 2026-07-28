@@ -148,6 +148,7 @@ export default function DistrictsTab() {
 				enableGlobalFilter={false}
 				enableColumnFilters
 				enableColumnVisibility
+				columnVisibilityKey='districts'
 				enableSorting
 				enableStriping
 				isLoading={isLoading || isFetching}

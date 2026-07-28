@@ -149,6 +149,7 @@ export default function ExpensesTab() {
 				enableGlobalFilter={false}
 				enableColumnFilters
 				enableColumnVisibility
+				columnVisibilityKey='expenses'
 				enableSorting
 				enableStriping
 				isLoading={isLoading || isFetching}

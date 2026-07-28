@@ -250,6 +250,7 @@ export default function ClientPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='clients'
 					enableSorting
 					enableStriping
 					enableExportPdf

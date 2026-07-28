@@ -332,6 +332,7 @@ export default function OrderAccountHistoryTable({
 				enableGlobalFilter={false}
 				enableColumnFilters={true}
 				enableColumnVisibility
+				columnVisibilityKey='order-account-history'
 				enableStriping
 				isLoading={isLoading || isFetching}
 				emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}

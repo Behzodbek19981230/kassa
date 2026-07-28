@@ -116,6 +116,7 @@ export default function ModelsPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='models'
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}

@@ -148,6 +148,7 @@ export default function UserPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='users'
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}

@@ -192,6 +192,7 @@ export default function MyDebtPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='my-debt'
 					enableStriping
 					isLoading={isLoading || isFetching}
 					emptyMessage={isError ? 'Xatolik yuz berdi' : 'Hech nima topilmadi.'}

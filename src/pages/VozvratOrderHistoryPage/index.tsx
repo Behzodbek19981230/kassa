@@ -182,6 +182,7 @@ export default function VozvratOrderHistoryPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
+					columnVisibilityKey='vozvrat-order-history'
 					enableStriping
 					isLoading={isLoading || isFetching}
 					emptyMessage={isError ? 'Xatolik yuz berdi' : 'Hech nima topilmadi.'}
