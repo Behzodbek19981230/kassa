@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, PageHeader, Panel, Tabs } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { useOrderCartGroupedListQuery } from '@/services/order-cart/order-cart.queries';
@@ -8,7 +8,8 @@ import OrderAccountHistoryTable from '@/pages/CustomerOrderHistoryPage/component
 export default function CustomerOrderHistoryPage() {
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
-	const [activeTab, setActiveTab] = useState<'all' | 'debtors'>('all');
+	const [searchParams, setSearchParams] = useSearchParams();
+	const activeTab = searchParams.get('tab') === 'debtors' ? 'debtors' : 'all';
 	const [refetchActive, setRefetchActive] = useState<() => void>(() => () => undefined);
 
 	const { data: cartDraftData } = useOrderCartGroupedListQuery({ is_active: true, limit: 1 });
@@ -35,7 +36,7 @@ export default function CustomerOrderHistoryPage() {
 			>
 				<Tabs
 					value={activeTab}
-					onValueChange={(v) => setActiveTab(v as 'all' | 'debtors')}
+					onValueChange={(tab) => setSearchParams(tab === 'all' ? {} : { tab }, { replace: false })}
 					items={[
 						{
 							value: 'all',

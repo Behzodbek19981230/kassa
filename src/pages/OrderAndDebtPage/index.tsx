@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FaFilePdf } from 'react-icons/fa';
+import { useSearchParams } from 'react-router-dom';
 import {
 	Button,
 	Combobox,
@@ -37,7 +38,8 @@ const USER_TYPE_OPTIONS: ComboboxLoadResult['options'] = [
 
 export default function OrderAndDebtPage() {
 	const { notify } = useNotification();
-	const [activeTab, setActiveTab] = useState<'main' | 'worker'>('main');
+	const [searchParams, setSearchParams] = useSearchParams();
+	const activeTab = searchParams.get('tab') === 'worker' ? 'worker' : 'main';
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
 	const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);
 	const [downloadingPdf, setDownloadingPdf] = useState<'pdf1' | 'pdf2' | 'pdf3' | null>(null);
@@ -197,7 +199,7 @@ export default function OrderAndDebtPage() {
 
 			<Tabs
 				value={activeTab}
-				onValueChange={(v) => setActiveTab(v as 'main' | 'worker')}
+				onValueChange={(tab) => setSearchParams(tab === 'main' ? {} : { tab }, { replace: false })}
 				items={[
 					{
 						value: 'main',

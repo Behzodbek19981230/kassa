@@ -17,7 +17,7 @@ import {
 	Textarea,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
-import { formatNumber } from '@/lib/number';
+import { formatNumber, roundMoney } from '@/lib/number';
 import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useVozvratConfirmMutation } from '@/services/vozvrat/vozvrat.queries';
 import type { VozvratCartItemInput } from '@/services/vozvrat/vozvrat.types';
@@ -90,7 +90,7 @@ export default function ConfirmVozvratModal({
 				company: companyId,
 				client: clientId,
 				date,
-				all_summ_dollar: allSummDollar,
+				all_summ_dollar: roundMoney(allSummDollar),
 				sum_dollar: Number(values.sum_dollar) || 0,
 				sum_som: Number(values.sum_som) || 0,
 				sum_cart: Number(values.sum_cart) || 0,

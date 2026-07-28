@@ -20,7 +20,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
-import { formatNumber } from '@/lib/number';
+import { formatNumber, roundMoney } from '@/lib/number';
 import { useConfirmSaleMutation } from '@/services/order-cart/order-cart.queries';
 import type { ConfirmSaleSummary } from '@/services/order-cart/order-cart.types';
 import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
@@ -118,7 +118,7 @@ export default function ConfirmSaleModal({
 				date: values.date,
 				exchange_rate: rate,
 				discount_amount: values.discount_amount || '0',
-				all_summ_dollar: String(allSummDollar),
+				all_summ_dollar: String(roundMoney(allSummDollar)),
 				sum_dollar: values.sum_dollar || '0',
 				sum_som: values.sum_som || '0',
 				sum_cart: values.sum_cart || '0',

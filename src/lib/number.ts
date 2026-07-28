@@ -9,3 +9,8 @@ export function formatNumber(value: number | string | null | undefined, decimals
 	const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 	return decPart !== undefined ? `${grouped}.${decPart}` : grouped;
 }
+
+/** Rounds a computed money value to 2 decimal places before sending it to the backend. */
+export function roundMoney(value: number): number {
+	return Math.round((value + Number.EPSILON) * 100) / 100;
+}

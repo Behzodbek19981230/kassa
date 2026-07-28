@@ -17,7 +17,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
-import { formatNumber } from '@/lib/number';
+import { formatNumber, roundMoney } from '@/lib/number';
 import { useClientQuery } from '@/services/client/client.queries';
 import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { usePayDebtMutation } from '@/services/order-account-history/order-account-history.queries';
@@ -106,8 +106,8 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 				sum_transfers: 0,
 				zdacha_sum: Number(values.zdacha_sum) || 0,
 				zdacha_dollar: Number(values.zdacha_dollar) || 0,
-				all_summ_dollar: allSummDollar,
-				summa: allSummDollar,
+				all_summ_dollar: roundMoney(allSummDollar),
+				summa: roundMoney(allSummDollar),
 				is_worker: client?.is_worker ?? 0,
 			});
 			notify({ title: "Qarz to'landi" });

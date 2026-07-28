@@ -21,7 +21,8 @@ function unformatPrice(display: string): string {
   const cleaned = display.replace(/[^\d.]/g, '')
   const firstDot = cleaned.indexOf('.')
   if (firstDot === -1) return cleaned
-  return cleaned.slice(0, firstDot + 1) + cleaned.slice(firstDot + 1).replace(/\./g, '')
+  const decPart = cleaned.slice(firstDot + 1).replace(/\./g, '').slice(0, 2)
+  return `${cleaned.slice(0, firstDot)}.${decPart}`
 }
 
 /** Number input with a live thousand-separator mask, for money fields (narxi/summa/price/...). */
