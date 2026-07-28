@@ -6,17 +6,22 @@ import {
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
+	DatePicker,
 	PageHeader,
 	Panel,
+	PriceInput,
+	Switch,
 	Table,
 	TableBody,
 	TableCell,
 	TableHead,
 	TableHeader,
 	TableRow,
+	useNotification,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { cn } from '@/lib/utils';
 import { brandService } from '@/services/brand/brand.service';
@@ -26,6 +31,7 @@ import {
 	useDeleteImportCartDraftMutation,
 	useImportCartDraftListQuery,
 } from '@/services/import-cart-draft/import-cart-draft.queries';
+import { useMyDebtListQuery, usePayMyDebtMutation } from '@/services/my-debt/my-debt.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useWarehouseAllListQuery } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListBrandGroup, WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
@@ -81,6 +87,7 @@ function buildBrandVariants(groups: WarehouseAllListBrandGroup[]): BrandVariants
 
 export default function ImportPage() {
 	const { companyId, canWrite } = useCurrentCompany();
+	const { notify } = useNotification();
 
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
@@ -88,6 +95,12 @@ export default function ImportPage() {
 	const [selectedVariant, setSelectedVariant] = useState<ImportProductVariant | null>(null);
 	const [confirmImportOpen, setConfirmImportOpen] = useState(false);
 	const [clearCartOpen, setClearCartOpen] = useState(false);
+
+	const [payDebtEnabled, setPayDebtEnabled] = useState(false);
+	const [payDate, setPayDate] = useState(() => new Date().toISOString().slice(0, 10));
+	const [paySumma, setPaySumma] = useState('');
+	const [payDiscount, setPayDiscount] = useState('');
+	const [payError, setPayError] = useState('');
 
 	// Unfiltered catalog, kept separate so cart rows added before a filter change can
 	// still resolve their product info even once they fall outside the active filter.
@@ -148,6 +161,50 @@ export default function ImportPage() {
 
 	const { data: selectedConsignor } = useConsignorQuery(consignorId ? Number(consignorId) : undefined);
 
+	function resetPayDebtForm() {
+		setPayDebtEnabled(false);
+		setPaySumma('');
+		setPayDiscount('');
+		setPayError('');
+	}
+
+	function handleConsignorChange(value: string) {
+		setConsignorId(value);
+		resetPayDebtForm();
+	}
+
+	const { data: myDebtData } = useMyDebtListQuery(
+		{ consignor: Number(consignorId), limit: 1 },
+		Boolean(consignorId),
+	);
+	const consignorDebt = consignorId ? myDebtData?.results?.[0] : undefined;
+
+	const payDebtMutation = usePayMyDebtMutation();
+	const canSubmitPay = (Number(paySumma) || 0) > 0 || (Number(payDiscount) || 0) > 0;
+
+	async function handlePayDebt() {
+		if (!companyId || !consignorId) return;
+		setPayError('');
+
+		try {
+			const result = await payDebtMutation.mutateAsync({
+				company: companyId,
+				consignor: Number(consignorId),
+				date: payDate,
+				all_summ_dollar: Number(paySumma) || 0,
+				discount_amount: Number(payDiscount) || 0,
+				text: '',
+			});
+			notify({
+				title: "To'lov qabul qilindi",
+				text: `Qolgan qarz: ${formatNumber(result.summary.my_total_debt, 2)} $`,
+			});
+			resetPayDebtForm();
+		} catch (err) {
+			setPayError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
+		}
+	}
+
 	const { data: cartData, isLoading: isCartLoading } = useImportCartDraftListQuery(
 		{ consignor: consignorId ? Number(consignorId) : undefined, is_active: true },
 		Boolean(consignorId),
@@ -168,6 +225,7 @@ export default function ImportPage() {
 
 	function handleImportConfirmed() {
 		setConsignorId('');
+		resetPayDebtForm();
 	}
 
 	return (
@@ -326,14 +384,54 @@ export default function ImportPage() {
 							<div className='min-w-[200px] flex-1'>
 								<Combobox
 									value={consignorId}
-									onChange={(value) => setConsignorId(value)}
+									onChange={handleConsignorChange}
 									loadOptions={loadConsignorOptions}
 									selectedLabel={selectedConsignor?.name}
 									placeholder="Yuk jo'natuvchini tanlang"
 									clearable
 								/>
 							</div>
+							<div className='flex items-center gap-2'>
+								<span className='text-xs font-semibold text-ca-heading'>Mening qarzim ($):</span>
+								<Switch checked={payDebtEnabled} onCheckedChange={setPayDebtEnabled} disabled={!consignorId} />
+							</div>
 						</div>
+
+						{consignorId && payDebtEnabled && (
+							<div className='mb-4 rounded border border-ca-border p-3'>
+								{payError && (
+									<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+										{payError}
+									</div>
+								)}
+								{consignorDebt && (
+									<div className='mb-3 rounded border border-ca-theme/30 bg-ca-theme/5 px-4 py-2 text-center text-sm font-semibold text-ca-theme'>
+										Joriy qarz: {formatNumber(consignorDebt.total_debt, 2)} $
+									</div>
+								)}
+								<div className='mb-3'>
+									<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sana</label>
+									<DatePicker value={payDate} onChange={setPayDate} />
+								</div>
+								<div className='mb-3'>
+									<label className='mb-1 block text-xs font-semibold text-ca-heading'>Summa ($)</label>
+									<PriceInput value={paySumma} onChange={setPaySumma} />
+								</div>
+								<div className='mb-3'>
+									<label className='mb-1 block text-xs font-semibold text-ca-heading'>Chegirma ($)</label>
+									<PriceInput value={payDiscount} onChange={setPayDiscount} />
+								</div>
+								<Button
+									type='button'
+									variant='danger'
+									className='w-full'
+									disabled={!canSubmitPay || payDebtMutation.isPending || !canWrite}
+									onClick={handlePayDebt}
+								>
+									Qarzni to'lash
+								</Button>
+							</div>
+						)}
 
 						<div className='overflow-x-auto'>
 							<Table>

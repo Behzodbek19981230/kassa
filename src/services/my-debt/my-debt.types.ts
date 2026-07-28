@@ -51,3 +51,46 @@ export interface MyDebtPayload {
 	total_debt: number;
 	cr_date: string;
 }
+
+export interface MyDebtPayPayload {
+	company: number;
+	consignor: number;
+	date: string;
+	all_summ_dollar?: number;
+	discount_amount?: number;
+	text?: string;
+}
+
+export interface MyDebtPaySummary {
+	consignor: number;
+	old_my_total_debt: string;
+	paid_amount: string;
+	discount_amount: string;
+	my_total_debt: string;
+}
+
+export interface MyDebtPayResultDebt {
+	id: number;
+	company: number;
+	cr_date: string;
+	total_debt: string;
+	consignor: number;
+}
+
+export interface MyDebtPayResultHistory {
+	id: number;
+	company: number;
+	cr_date: string;
+	cr_date_time: string;
+	total_debt: string;
+	discount_amount: string;
+	my_total_debt: number;
+	exchange_rate: string;
+	all_summ_dollar: string;
+}
+
+export interface MyDebtPayResponse {
+	my_total_debt: MyDebtPayResultDebt;
+	my_total_debt_history: MyDebtPayResultHistory;
+	summary: MyDebtPaySummary;
+}
