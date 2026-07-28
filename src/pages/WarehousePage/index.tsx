@@ -5,7 +5,7 @@ import {
 	type SortingState,
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaDollarSign, FaEdit, FaExclamationTriangle, FaImages, FaTrash } from 'react-icons/fa';
+import { FaDollarSign, FaEdit, FaExclamationTriangle, FaImages, FaTelegramPlane, FaTrash } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import {
 	Button,
@@ -24,6 +24,7 @@ import DeleteWarehouseModal from '@/pages/WarehousePage/components/DeleteWarehou
 import WarehouseEditModal from '@/pages/WarehousePage/components/WarehouseEditModal';
 import WarehouseImagesModal from '@/pages/WarehousePage/components/WarehouseImagesModal';
 import WarehousePaymentModal from '@/pages/WarehousePage/components/WarehousePaymentModal';
+import WarehouseSendTelegramModal from '@/pages/WarehousePage/components/WarehouseSendTelegramModal';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
 import { brandService } from '@/services/brand/brand.service';
 import { useBrandSizeTypeListQuery } from '@/services/brand-size-type/brand-size-type.queries';
@@ -175,6 +176,30 @@ export default function WarehousePage() {
 			size: 90,
 			enableColumnFilter: false,
 			cell: (info) => formatNumber(info.getValue()),
+		}),
+		columnHelper.display({
+			id: 'send_telegram',
+			header: '',
+			size: 50,
+			enableSorting: false,
+			enableColumnFilter: false,
+			cell: ({ row }) => {
+				const item = row.original;
+				const productLabel = [brandNameById.get(item.brand), categoryNameById.get(item.product_category)]
+					.filter(Boolean)
+					.join(' ');
+				return (
+					<OpenDialogButton
+						element={(props) => <Button {...props} />}
+						elementProps={{
+							...buttonProps(<FaTelegramPlane />, 'success', 'icon'),
+							'aria-label': 'Telegramga yuborish',
+						}}
+						dialog={WarehouseSendTelegramModal}
+						dialogProps={{ item, productLabel: productLabel || `#${item.id}` }}
+					/>
+				);
+			},
 		}),
 		columnHelper.accessor('price', {
 			header: 'Haqiqiy Narxi ($)',
