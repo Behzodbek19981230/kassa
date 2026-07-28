@@ -186,7 +186,7 @@ export default function ConfirmSaleModal({
 								<Controller
 									name='date'
 									control={control}
-									render={({ field }) => <DatePicker value={field.value} onChange={field.onChange} />}
+									render={({ field }) => <DatePicker value={field.value} onChange={field.onChange} disabled />}
 								/>
 							</FormField>
 							<FormField label='Dollar kursi' horizontal={false} className='mb-0'>

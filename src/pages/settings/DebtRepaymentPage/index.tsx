@@ -1,59 +1,107 @@
-import {
-	createColumnHelper,
-	type ColumnFiltersState,
-	type PaginationState,
-	type SortingState,
-} from '@tanstack/react-table';
-import { useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
+import { createColumnHelper, type PaginationState } from '@tanstack/react-table';
+import { useMemo, useState } from 'react';
+import { FaEdit, FaExclamationTriangle, FaFilePdf, FaTrash } from 'react-icons/fa';
 import {
 	Button,
 	buttonProps,
+	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
 	DataTable,
+	DatePicker,
+	Input,
 	PageHeader,
 	Panel,
+	useNotification,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
-import { useDebtRepaymentListQuery } from '@/services/debt-repayment/debt-repayment.queries';
-import type { DebtRepayment } from '@/services/debt-repayment/debt-repayment.types';
-import { useUserListQuery } from '@/services/user/user.queries';
-import { userService } from '@/services/user/user.service';
+import { debtRepaymentService } from '@/services/debt-repayment/debt-repayment.service';
+import { useDebtRepaymentGroupedListQuery } from '@/services/debt-repayment/debt-repayment.queries';
+import type { DebtRepayment, DebtRepaymentGroupedItem } from '@/services/debt-repayment/debt-repayment.types';
 import DebtRepaymentFormModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentFormModal';
 import DeleteDebtRepaymentModal from '@/pages/settings/DebtRepaymentPage/components/DeleteDebtRepaymentModal';
 
-const columnHelper = createColumnHelper<DebtRepayment>();
+type GroupedDebtRepaymentRow = DebtRepaymentGroupedItem & {
+	_groupFirst: boolean;
+	_dateLabel: string;
+};
 
-const userLabel = (u: { username: string; first_name: string; last_name: string }) =>
-	`${u.last_name} ${u.first_name}`.trim() || u.username;
+const columnHelper = createColumnHelper<GroupedDebtRepaymentRow>();
+
+interface FilterState {
+	client: string;
+	startDate: string;
+	endDate: string;
+	search: string;
+}
+
+const emptyFilters: FilterState = { client: '', startDate: '', endDate: '', search: '' };
+
+/** The grouped listing endpoint returns a lighter shape than `/debt-repayment/{id}/` — this
+ * fills in the few fields the edit/delete modals need before they refetch the full record. */
+function toDebtRepayment(item: DebtRepaymentGroupedItem): DebtRepayment {
+	return {
+		id: item.id,
+		company: item.company,
+		client: item.client,
+		client_detail: { fio: item.client_name } as DebtRepayment['client_detail'],
+		created_by: item.created_by,
+		summa: item.all_summ_dollar,
+		text: item.text,
+		date: item.date,
+		sum_som: item.sum_som,
+		summ_dollar: item.summ_dollar,
+		summ_cart: item.summ_cart,
+		sum_transfers: item.sum_transfers,
+		total_debt: item.total_debt,
+		exchange_rate: item.exchange_rate,
+		discount_amount: item.discount_amount,
+		all_summ_dollar: item.all_summ_dollar,
+		total_debt_old: item.total_debt_old,
+		is_delete: 0,
+		cr_date_time: item.datetime,
+		is_worker: null,
+		zdacha_sum: item.zdacha_sum,
+		zdacha_dollar: item.zdacha_dollar,
+	};
+}
 
 export default function DebtRepaymentPage() {
 	const { canWrite } = useCurrentCompany();
+	const { notify } = useNotification();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
-	const [sorting, setSorting] = useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
+	const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);
+	const [printingId, setPrintingId] = useState<number | null>(null);
 
-	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
-	const clientFilter = columnFilters.find((f) => f.id === 'client')?.value as string | undefined;
-	const workerFilter = columnFilters.find((f) => f.id === 'is_worker')?.value as string | undefined;
+	const hasAppliedFilters = Object.values(appliedFilters).some(Boolean);
 
-	const { data, isLoading, isFetching, isError, refetch } = useDebtRepaymentListQuery({
+	const { data, isLoading, isFetching, isError, refetch } = useDebtRepaymentGroupedListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		client: clientFilter ? Number(clientFilter) : undefined,
-		is_worker: workerFilter ? Number(workerFilter) : undefined,
-		ordering,
+		client: appliedFilters.client ? Number(appliedFilters.client) : undefined,
+		start_date: appliedFilters.startDate || undefined,
+		end_date: appliedFilters.endDate || undefined,
+		search: appliedFilters.search || undefined,
 	});
 
-	const results = data?.results ?? [];
 	const paginationMeta = data?.pagination;
 
-	const { data: userData } = useUserListQuery({ limit: 100 });
-	const userLabelById = new Map((userData?.results ?? []).map((u) => [u.id, userLabel(u)]));
+	const results: GroupedDebtRepaymentRow[] = useMemo(
+		() =>
+			(data?.results.groups ?? []).flatMap((group) =>
+				group.items.map((item, index) => ({
+					...item,
+					_groupFirst: index === 0,
+					_dateLabel: group.date_label,
+				})),
+			),
+		[data],
+	);
 
 	const loadClientOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await clientService.list({ search: search || undefined, page, limit: 20 });
@@ -63,101 +111,119 @@ export default function DebtRepaymentPage() {
 		};
 	};
 
-	const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await userService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.map((u) => ({ value: String(u.id), label: userLabel(u) })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
+	function handleSearch() {
+		setAppliedFilters(draftFilters);
+		setPagination((p) => ({ ...p, pageIndex: 0 }));
+	}
+
+	function handleClear() {
+		setDraftFilters(emptyFilters);
+		setAppliedFilters(emptyFilters);
+		setPagination((p) => ({ ...p, pageIndex: 0 }));
+	}
+
+	async function handlePrint(item: GroupedDebtRepaymentRow) {
+		if (!item.print_url) return;
+		const tab = openPendingTab();
+		setPrintingId(item.id);
+		try {
+			const blob = await debtRepaymentService.printByUrl(item.print_url);
+			loadBlobIntoTab(blob, tab);
+		} catch {
+			tab?.close();
+			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+		} finally {
+			setPrintingId(null);
+		}
+	}
 
 	const columns = [
-		columnHelper.accessor('client', {
-			header: 'Mijoz',
-			cell: (info) => info.row.original.client_detail?.fio ?? info.getValue(),
-			meta: {
-				filterVariant: 'select',
-				filterLoadOptions: loadClientOptions,
-				filterPlaceholder: 'Barchasi',
-			},
-		}),
-		columnHelper.accessor('is_worker', {
-			header: 'Qarzni olgan Xodim',
-			cell: (info) => {
-				const value = info.getValue();
-				return value ? (userLabelById.get(value) ?? value) : '';
-			},
-			meta: {
-				filterVariant: 'select',
-				filterLoadOptions: loadUserOptions,
-				filterPlaceholder: 'Barchasi',
-			},
-		}),
-		columnHelper.accessor('summ_dollar', {
-			header: 'Summa dollarda ($)',
-			size: 140,
-			enableColumnFilter: false,
-			cell: (info) => formatNumber(info.getValue(), 2),
-		}),
-		columnHelper.accessor('discount_amount', {
-			header: 'Jami chegirma ($)',
-			size: 140,
-			enableColumnFilter: false,
-			cell: (info) => formatNumber(info.getValue(), 2),
-		}),
 		columnHelper.display({
-			id: 'zdacha',
-			header: 'Qaytim',
-			size: 150,
-			enableSorting: false,
-			enableColumnFilter: false,
+			id: 'sana',
+			header: 'Sana',
+			size: 100,
 			cell: ({ row }) =>
-				`${formatNumber(row.original.zdacha_sum)} so'm / ${formatNumber(row.original.zdacha_dollar, 2)} $`,
+				row.original._groupFirst ? (
+					<span className='font-semibold text-ca-theme'>{row.original._dateLabel}</span>
+				) : null,
 		}),
-		columnHelper.accessor('all_summ_dollar', {
-			header: 'Umumiy summa ($)',
-			size: 150,
-			enableColumnFilter: false,
+		columnHelper.accessor('client_name', {
+			header: 'Mijoz',
+			cell: (info) => (
+				<div>
+					<div>{info.getValue()}</div>
+					{info.row.original.client_phone && (
+						<div className='text-[11px] text-ca-text'>{info.row.original.client_phone}</div>
+					)}
+				</div>
+			),
+		}),
+		columnHelper.accessor('paid_amount', {
+			header: "To'langan ($)",
+			size: 120,
 			cell: (info) => formatNumber(info.getValue(), 2),
 		}),
-		columnHelper.accessor('exchange_rate', {
-			header: 'Dollar kursi',
+		columnHelper.accessor('total_debt_old', {
+			header: 'Eski qarz ($)',
 			size: 120,
-			enableColumnFilter: false,
-			cell: (info) => formatNumber(info.getValue()),
+			cell: (info) => formatNumber(info.getValue(), 2),
 		}),
-		columnHelper.accessor('date', { header: 'Sana', size: 110, enableColumnFilter: false }),
+		columnHelper.accessor('total_debt', {
+			header: 'Qolgan qarz ($)',
+			size: 130,
+			cell: (info) => {
+				const value = Number(info.getValue()) || 0;
+				return (
+					<span className={value > 0 ? 'font-bold text-ca-red' : 'font-bold text-ca-green'}>
+						{formatNumber(value, 2)}
+					</span>
+				);
+			},
+		}),
+		columnHelper.accessor('created_by_name', { header: 'Kim qabul qildi', size: 150 }),
+		columnHelper.accessor('text', { header: 'Izoh' }),
 		columnHelper.display({
 			id: 'actions',
 			header: 'Harakatlar',
 			meta: { align: 'right' },
-			enableSorting: false,
-			enableColumnFilter: false,
-			size: 150,
-			cell: ({ row }) => (
-				<div className='flex justify-end gap-1'>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaEdit />, 'warning', 'icon'),
-							'aria-label': 'Tahrirlash',
-							disabled: !canWrite,
-						}}
-						dialog={DebtRepaymentFormModal}
-						dialogProps={{ mode: 'edit' as const, item: row.original }}
-					/>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaTrash />, 'danger', 'icon'),
-							'aria-label': "O'chirish",
-							disabled: !canWrite,
-						}}
-						dialog={DeleteDebtRepaymentModal}
-						dialogProps={{ item: row.original }}
-					/>
-				</div>
-			),
+			size: 160,
+			cell: ({ row }) => {
+				const item = row.original;
+				return (
+					<div className='flex justify-end gap-1'>
+						<Button
+							type='button'
+							variant='default'
+							size='icon'
+							aria-label='PDF'
+							disabled={printingId === item.id}
+							onClick={() => handlePrint(item)}
+						>
+							<FaFilePdf />
+						</Button>
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaEdit />, 'warning', 'icon'),
+								'aria-label': 'Tahrirlash',
+								disabled: !canWrite,
+							}}
+							dialog={DebtRepaymentFormModal}
+							dialogProps={{ mode: 'edit' as const, item: toDebtRepayment(item) }}
+						/>
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaTrash />, 'danger', 'icon'),
+								'aria-label': "O'chirish",
+								disabled: !canWrite,
+							}}
+							dialog={DeleteDebtRepaymentModal}
+							dialogProps={{ item: toDebtRepayment(item) }}
+						/>
+					</div>
+				);
+			},
 		}),
 	];
 
@@ -183,32 +249,60 @@ export default function DebtRepaymentPage() {
 						/>
 					)
 				}
-				onReload={() => {
-					refetch();
-				}}
+				onReload={() => refetch()}
 			>
+				<div className='mb-4 flex flex-wrap items-end gap-2'>
+					<div className='w-40'>
+						<DatePicker
+							value={draftFilters.startDate}
+							onChange={(v) => setDraftFilters((f) => ({ ...f, startDate: v }))}
+							placeholder='Boshlanish sana'
+						/>
+					</div>
+					<div className='w-40'>
+						<DatePicker
+							value={draftFilters.endDate}
+							onChange={(v) => setDraftFilters((f) => ({ ...f, endDate: v }))}
+							placeholder='Tugash sana'
+						/>
+					</div>
+					<div className='w-48'>
+						<Combobox
+							clearable
+							value={draftFilters.client}
+							onChange={(v) => setDraftFilters((f) => ({ ...f, client: v }))}
+							loadOptions={loadClientOptions}
+							placeholder='Mijoz tanlang'
+							searchPlaceholder='Qidirish...'
+						/>
+					</div>
+					<div className='w-56'>
+						<Input
+							value={draftFilters.search}
+							onChange={(e) => setDraftFilters((f) => ({ ...f, search: e.target.value }))}
+							placeholder="FIO yoki telefon bo'yicha qidirish"
+						/>
+					</div>
+					<Button type='button' variant='info' size='sm' onClick={handleSearch}>
+						Qidirish
+					</Button>
+					<Button type='button' variant='white' size='sm' disabled={!hasAppliedFilters} onClick={handleClear}>
+						Tozalash
+					</Button>
+				</div>
+
 				<DataTable
 					columns={columns}
 					data={results}
 					manualPagination
-					manualSorting
-					manualFiltering
 					pageCount={paginationMeta?.lastPage ?? -1}
 					totalRows={paginationMeta?.total}
 					pagination={pagination}
 					onPaginationChange={setPagination}
-					sorting={sorting}
-					onSortingChange={setSorting}
-					columnFilters={columnFilters}
-					onColumnFiltersChange={(filters) => {
-						setColumnFilters(filters);
-						setPagination((p) => ({ ...p, pageIndex: 0 }));
-					}}
 					enablePagination
+					enableSorting={false}
 					enableGlobalFilter={false}
-					enableColumnFilters
-					enableColumnVisibility
-					enableSorting
+					enableColumnFilters={false}
 					enableStriping
 					isLoading={isLoading || isFetching}
 					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}

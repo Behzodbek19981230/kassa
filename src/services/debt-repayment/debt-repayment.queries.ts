@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { debtRepaymentService } from '@/services/debt-repayment/debt-repayment.service'
 import type {
+  DebtRepaymentGroupedListParams,
   DebtRepaymentListParams,
   DebtRepaymentPayload,
 } from '@/services/debt-repayment/debt-repayment.types'
@@ -8,6 +9,7 @@ import type {
 const debtRepaymentKeys = {
   all: ['debt-repayments'] as const,
   list: (params?: DebtRepaymentListParams) => ['debt-repayments', 'list', params] as const,
+  groupedList: (params?: DebtRepaymentGroupedListParams) => ['debt-repayments', 'grouped-list', params] as const,
   detail: (id: number) => ['debt-repayments', 'detail', id] as const,
 }
 
@@ -15,6 +17,14 @@ export function useDebtRepaymentListQuery(params?: DebtRepaymentListParams) {
   return useQuery({
     queryKey: debtRepaymentKeys.list(params),
     queryFn: () => debtRepaymentService.list(params),
+    placeholderData: (prev) => prev,
+  })
+}
+
+export function useDebtRepaymentGroupedListQuery(params?: DebtRepaymentGroupedListParams) {
+  return useQuery({
+    queryKey: debtRepaymentKeys.groupedList(params),
+    queryFn: () => debtRepaymentService.listGrouped(params),
     placeholderData: (prev) => prev,
   })
 }

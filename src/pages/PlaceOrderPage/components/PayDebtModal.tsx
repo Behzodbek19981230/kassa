@@ -29,7 +29,6 @@ const payDebtFormSchema = z.object({
 	sum_som: z.string().optional(),
 	summ_dollar: z.string().optional(),
 	summ_cart: z.string().optional(),
-	sum_transfers: z.string().optional(),
 	zdacha_sum: z.string().optional(),
 	zdacha_dollar: z.string().optional(),
 });
@@ -67,7 +66,6 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 			sum_som: '0',
 			summ_dollar: '0',
 			summ_cart: '0',
-			sum_transfers: '0',
 			zdacha_sum: '0',
 			zdacha_dollar: '0',
 		},
@@ -76,10 +74,9 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 	const sumSom = watch('sum_som');
 	const summDollar = watch('summ_dollar');
 	const summCart = watch('summ_cart');
-	const sumTransfers = watch('sum_transfers');
 	const discountAmount = watch('discount_amount');
 
-	const somTotal = (Number(sumSom) || 0) + (Number(summCart) || 0) + (Number(sumTransfers) || 0);
+	const somTotal = (Number(sumSom) || 0) + (Number(summCart) || 0);
 	const allSummDollar = (rate > 0 ? somTotal / rate : 0) + (Number(summDollar) || 0) + (Number(discountAmount) || 0);
 
 	const payDebtMutation = usePayDebtMutation();
@@ -106,7 +103,7 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 				sum_som: Number(values.sum_som) || 0,
 				summ_dollar: Number(values.summ_dollar) || 0,
 				summ_cart: Number(values.summ_cart) || 0,
-				sum_transfers: Number(values.sum_transfers) || 0,
+				sum_transfers: 0,
 				zdacha_sum: Number(values.zdacha_sum) || 0,
 				zdacha_dollar: Number(values.zdacha_dollar) || 0,
 				all_summ_dollar: allSummDollar,
@@ -135,18 +132,12 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 							</div>
 						)}
 
-						<div className='mb-4 grid grid-cols-2 gap-2 rounded-[3px] bg-ca-silver p-3 text-center text-xs'>
-							<div>
-								<div className='text-ca-text'>Joriy qarzi ($)</div>
-								<div className='font-bold text-ca-red'>{formatNumber(client?.total_debt ?? 0, 2)}</div>
-							</div>
-							<div>
-								<div className='text-ca-text'>To'lanadigan summa ($)</div>
-								<div className='font-bold text-ca-green'>{formatNumber(allSummDollar, 2)}</div>
-							</div>
+						<div className='mb-4 rounded-[3px] bg-ca-silver p-3 text-center text-xs'>
+							<div className='text-ca-text'>Joriy qarzi ($)</div>
+							<div className='font-bold text-ca-red'>{formatNumber(client?.total_debt ?? 0, 2)}</div>
 						</div>
 
-						<div className='mb-3 grid grid-cols-2 gap-3'>
+						<div className='mb-3 grid grid-cols-3 gap-3'>
 							<FormField label='Sana' error={errors.date?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='date'
@@ -154,69 +145,58 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 									render={({ field }) => <DatePicker value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
-							<FormField label='Dollar kursi' horizontal={false} className='mb-0'>
-								<PriceInput value={rate ? String(rate) : ''} disabled />
+							<FormField label='Jami summa ($)' horizontal={false} className='mb-0'>
+								<PriceInput value={allSummDollar.toFixed(2)} disabled />
 							</FormField>
-						</div>
-
-						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label="Naqd (so'mda)" horizontal={false} className='mb-0'>
+							<FormField label='Chegirma ($)' horizontal={false} className='mb-0'>
 								<Controller
-									name='sum_som'
+									name='discount_amount'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
-							<FormField label='Summa dollarda ($)' horizontal={false} className='mb-0'>
+						</div>
+
+						<div className='mb-3 grid grid-cols-3 gap-3'>
+							<FormField label='Summa ($)' horizontal={false} className='mb-0'>
 								<Controller
 									name='summ_dollar'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
-						</div>
-
-						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Karta orqali' horizontal={false} className='mb-0'>
+							<FormField label="Summa so'm" horizontal={false} className='mb-0'>
+								<Controller
+									name='sum_som'
+									control={control}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+								/>
+							</FormField>
+							<FormField label='Summa karta' horizontal={false} className='mb-0'>
 								<Controller
 									name='summ_cart'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
-							<FormField label="O'tkazma orqali" horizontal={false} className='mb-0'>
-								<Controller
-									name='sum_transfers'
-									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
-								/>
-							</FormField>
 						</div>
 
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label="Qaytim (so'mda)" horizontal={false} className='mb-0'>
-								<Controller
-									name='zdacha_sum'
-									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
-								/>
-							</FormField>
-							<FormField label='Qaytim (dollarda)' horizontal={false} className='mb-0'>
+							<FormField label='Qaytim ($)' horizontal={false} className='mb-0'>
 								<Controller
 									name='zdacha_dollar'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
+							<FormField label="Qaytim so'm" horizontal={false} className='mb-0'>
+								<Controller
+									name='zdacha_sum'
+									control={control}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+								/>
+							</FormField>
 						</div>
-
-						<FormField label='Jami chegirma ($)' horizontal={false} className='mb-3'>
-							<Controller
-								name='discount_amount'
-								control={control}
-								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
-							/>
-						</FormField>
 
 						<FormField label='Izoh' horizontal={false} className='mb-0'>
 							<Input {...register('text')} />

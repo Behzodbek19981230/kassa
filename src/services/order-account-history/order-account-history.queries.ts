@@ -84,6 +84,7 @@ export function usePayDebtMutation() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all });
 			queryClient.invalidateQueries({ queryKey: ['clients'] });
+			queryClient.invalidateQueries({ queryKey: ['debt-repayments'] });
 		},
 	});
 }

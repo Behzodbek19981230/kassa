@@ -1,4 +1,4 @@
-import type { ListParams } from '@/services/api/types'
+import type { ListParams, PaginationMeta } from '@/services/api/types'
 
 export interface DebtRepaymentCompanyDetail {
   id: number
@@ -90,4 +90,66 @@ export interface DebtRepaymentPayload {
 export interface DebtRepaymentListParams extends ListParams {
   client?: number
   is_worker?: number
+}
+
+/** A single row returned by the lightweight `/debt-repayment/grouped/` listing endpoint. */
+export interface DebtRepaymentGroupedItem {
+  id: number
+  row_type: string
+  datetime: string
+  datetime_label: string
+  date: string
+  date_label: string
+  company: number
+  company_name: string
+  client: number
+  client_name: string
+  client_phone: string
+  created_by: number
+  created_by_name: string
+  paid_amount: string
+  all_summ_dollar: string
+  summ_dollar: string
+  sum_som: string
+  summ_cart: string
+  sum_transfers: string
+  discount_amount: string
+  total_debt_old: string
+  total_debt: string
+  exchange_rate: string
+  zdacha_sum: string
+  zdacha_dollar: string
+  text: string
+  print_url: string
+}
+
+export interface DebtRepaymentGroup {
+  date: string
+  date_label: string
+  items: DebtRepaymentGroupedItem[]
+}
+
+export interface DebtRepaymentGroupedResults {
+  groups: DebtRepaymentGroup[]
+}
+
+export interface DebtRepaymentGroupedFilters {
+  company: string | null
+  client: string | null
+  start_date: string | null
+  end_date: string | null
+  search: string | null
+}
+
+export interface DebtRepaymentGroupedResponse {
+  pagination: PaginationMeta
+  filters: DebtRepaymentGroupedFilters
+  results: DebtRepaymentGroupedResults
+}
+
+export interface DebtRepaymentGroupedListParams extends ListParams {
+  company?: number
+  client?: number
+  start_date?: string
+  end_date?: string
 }
