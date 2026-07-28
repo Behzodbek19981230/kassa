@@ -1,7 +1,7 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Layout from '@/components/layout/Layout';
-// import Dashboard from '@/pages/Dashboard';
+import Dashboard from '@/pages/Dashboard';
 import LoginPage from '@/pages/LoginPage';
 
 import ModelsPage from '@/pages/system/ModelsPage';
@@ -46,11 +46,9 @@ export default function App() {
 		<Routes>
 			<Route path='login' element={<LoginPage />} />
 
-			<Route index element={<Navigate to='/warehouse-products' replace />} />
-
 			<Route element={<ProtectedRoute />}>
 				<Route element={<Layout />}>
-					{/* <Route index element={<Dashboard />} /> */}
+					<Route index element={<Dashboard />} />
 
 					<Route path='warehouse-products' element={<WarehouseProductsPage />} />
 					<Route path='place-order' element={<PlaceOrderPage />} />

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, DatePicker, Input, PageHeader, Panel, useNotification } from '@/components/ui';
+import { Button, DatePicker, Input, PageHeader, Panel, PriceInput, useNotification } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { generateId } from '@/lib/utils';
 import WarehouseProductRow, {
@@ -33,6 +33,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 	}, [canWrite, navigate]);
 
 	const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+	const [realPrice, setRealPrice] = useState('');
 	const [comment, setComment] = useState('');
 	const [rows, setRows] = useState<WarehouseRowValue[]>([emptyWarehouseRow()]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
@@ -57,6 +58,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 		const w = warehouseQuery.data;
 		if (mode === 'edit' && w) {
 			setDate(w.cr_date);
+			setRealPrice(String(w.real_price ?? ''));
 			setComment(w.comment ?? '');
 			setRows([
 				{
@@ -129,6 +131,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 					size: row.size ?? 0,
 					count: 0,
 					price: Number(row.price) || 0,
+					real_price: Number(realPrice) || 0,
 					worker_price: w?.worker_price ?? 0,
 					status_count: w?.status_count ?? false,
 					company,
@@ -219,6 +222,13 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 							onDuplicateChange={handleDuplicateChange}
 						/>
 					))}
+
+					{mode === 'edit' && (
+						<div className='mt-4 mb-4 max-w-xs'>
+							<label className='mb-1 block text-xs font-semibold text-ca-heading'>Asl narxi ($)</label>
+							<PriceInput value={realPrice} onChange={setRealPrice} />
+						</div>
+					)}
 
 					<div className='mt-4 mb-4'>
 						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Izoh</label>

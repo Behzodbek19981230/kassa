@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 export type SidebarIcon =
+	| 'dashboard'
 	| 'boxes'
 	| 'cart'
 	| 'history'
@@ -62,13 +63,6 @@ export interface AdvancedTableRow {
 	salary: string;
 	status: 'Active' | 'Inactive';
 	notes: string;
-}
-
-export interface WidgetStatsProps {
-	color: 'green' | 'blue' | 'purple' | 'red';
-	icon: ReactNode;
-	title: string;
-	value: string;
 }
 
 export interface PanelProps {

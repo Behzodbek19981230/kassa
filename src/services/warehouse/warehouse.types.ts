@@ -31,6 +31,7 @@ export interface Warehouse {
   size: number
   count: number
   price: number
+  real_price: number
   worker_price: number
   all_sum_dollar: number
   all_discount_amount: number
@@ -54,6 +55,7 @@ export interface WarehousePayload {
   size: number
   count: number
   price: number
+  real_price?: number
   worker_price: number
   status_count: boolean
   company: number

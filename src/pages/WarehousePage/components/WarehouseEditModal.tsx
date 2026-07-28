@@ -44,6 +44,7 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 	const [type, setType] = useState<number | null>(item.type);
 	const [typeSklad, setTypeSklad] = useState(item.type_sklad ? String(item.type_sklad) : '');
 	const [count, setCount] = useState(String(item.count));
+	const [realPrice, setRealPrice] = useState(String(item.real_price ?? ''));
 	const [workerPrice, setWorkerPrice] = useState(String(item.worker_price));
 	const [comment, setComment] = useState(item.comment ?? '');
 	const [statusCount, setStatusCount] = useState(item.status_count);
@@ -84,7 +85,9 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 		setTypeSklad(w.type_sklad ? String(w.type_sklad) : '');
 		setCount(String(w.count));
 		setWorkerPrice(String(w.worker_price));
+		setRealPrice(String(w.real_price ?? ''));
 		setComment(w.comment ?? '');
+
 		setStatusCount(w.status_count);
 	}, [warehouseQuery.data]);
 
@@ -170,6 +173,7 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 			count: Number(count) || 0,
 			price: w.price,
 			worker_price: Number(workerPrice) || 0,
+			real_price: Number(realPrice) || 0,
 			status_count: statusCount,
 			company: w.company,
 			brand: Number(brand),
@@ -273,6 +277,10 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 								onChange={(e) => setCount(e.target.value)}
 							/>
 						</FormField>
+						<FormField label='Asl narxi ($)' horizontal={false}>
+							<PriceInput value={realPrice} onChange={setRealPrice} />
+						</FormField>
+
 						<FormField label='Ishchi Uchun Narx ($)' horizontal={false}>
 							<PriceInput value={workerPrice} onChange={setWorkerPrice} />
 						</FormField>

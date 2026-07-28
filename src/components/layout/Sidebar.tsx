@@ -23,6 +23,7 @@ import {
 	FaRulerCombined,
 	FaShippingFast,
 	FaShoppingCart,
+	FaTachometerAlt,
 	FaTags,
 	FaTruck,
 	FaUndo,
@@ -42,6 +43,7 @@ interface SidebarProps {
 }
 
 const iconMap: Record<SidebarIcon, ReactNode> = {
+	dashboard: <FaTachometerAlt />,
 	boxes: <FaBoxes />,
 	cart: <FaShoppingCart />,
 	history: <FaHistory />,

@@ -5,7 +5,7 @@ import {
 	type SortingState,
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaDollarSign, FaEdit, FaExclamationTriangle, FaImages, FaTelegramPlane, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaImages, FaTelegramPlane, FaTrash } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import {
 	Button,
@@ -23,7 +23,6 @@ import { formatNumber } from '@/lib/number';
 import DeleteWarehouseModal from '@/pages/WarehousePage/components/DeleteWarehouseModal';
 import WarehouseEditModal from '@/pages/WarehousePage/components/WarehouseEditModal';
 import WarehouseImagesModal from '@/pages/WarehousePage/components/WarehouseImagesModal';
-import WarehousePaymentModal from '@/pages/WarehousePage/components/WarehousePaymentModal';
 import WarehouseSendTelegramModal from '@/pages/WarehousePage/components/WarehouseSendTelegramModal';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
 import { brandService } from '@/services/brand/brand.service';
@@ -177,30 +176,7 @@ export default function WarehousePage() {
 			enableColumnFilter: false,
 			cell: (info) => formatNumber(info.getValue()),
 		}),
-		columnHelper.display({
-			id: 'send_telegram',
-			header: '',
-			size: 50,
-			enableSorting: false,
-			enableColumnFilter: false,
-			cell: ({ row }) => {
-				const item = row.original;
-				const productLabel = [brandNameById.get(item.brand), categoryNameById.get(item.product_category)]
-					.filter(Boolean)
-					.join(' ');
-				return (
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaTelegramPlane />, 'success', 'icon'),
-							'aria-label': 'Telegramga yuborish',
-						}}
-						dialog={WarehouseSendTelegramModal}
-						dialogProps={{ item, productLabel: productLabel || `#${item.id}` }}
-					/>
-				);
-			},
-		}),
+
 		columnHelper.accessor('price', {
 			header: 'Haqiqiy Narxi ($)',
 			size: 130,
@@ -217,6 +193,7 @@ export default function WarehousePage() {
 		columnHelper.accessor('status_count', {
 			header: 'Mahsulotlar sanalganligi',
 			size: 160,
+
 			enableColumnFilter: false,
 			cell: (info) => (
 				<span className={info.getValue() ? 'font-semibold text-ca-theme' : 'font-semibold text-ca-orange'}>
@@ -231,50 +208,66 @@ export default function WarehousePage() {
 			enableSorting: false,
 			enableColumnFilter: false,
 			size: 210,
-			cell: ({ row }) => (
-				<div className='flex justify-end gap-1'>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaDollarSign />, 'warning', 'icon'),
-							'aria-label': 'Hisob-kitob',
-							disabled: !canWrite,
-						}}
-						dialog={WarehousePaymentModal}
-						dialogProps={{ item: row.original }}
-					/>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaImages />, 'theme', 'icon'),
-							'aria-label': 'Rasmlar',
-							disabled: !canWrite,
-						}}
-						dialog={WarehouseImagesModal}
-						dialogProps={{ item: row.original }}
-					/>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaEdit />, 'info', 'icon'),
-							'aria-label': 'Tahrirlash',
-							disabled: !canWrite,
-						}}
-						dialog={WarehouseEditModal}
-						dialogProps={{ item: row.original }}
-					/>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaTrash />, 'danger', 'icon'),
-							'aria-label': "O'chirish",
-							disabled: !canWrite,
-						}}
-						dialog={DeleteWarehouseModal}
-						dialogProps={{ item: row.original }}
-					/>
-				</div>
-			),
+			cell: ({ row }) => {
+				const item = row.original;
+				const productLabel = [brandNameById.get(item.brand), categoryNameById.get(item.product_category)]
+					.filter(Boolean)
+					.join(' ');
+
+				return (
+					<div className='flex justify-end gap-1'>
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaTelegramPlane />, 'success', 'icon'),
+								'aria-label': 'Telegramga yuborish',
+							}}
+							dialog={WarehouseSendTelegramModal}
+							dialogProps={{ item, productLabel: productLabel || `#${item.id}` }}
+						/>
+						{/* <OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaDollarSign />, 'warning', 'icon'),
+								'aria-label': 'Hisob-kitob',
+								disabled: !canWrite,
+							}}
+							dialog={WarehousePaymentModal}
+							dialogProps={{ item }}
+						/> */}
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaImages />, 'theme', 'icon'),
+								'aria-label': 'Rasmlar',
+								disabled: !canWrite,
+							}}
+							dialog={WarehouseImagesModal}
+							dialogProps={{ item }}
+						/>
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaEdit />, 'info', 'icon'),
+								'aria-label': 'Tahrirlash',
+								disabled: !canWrite,
+							}}
+							dialog={WarehouseEditModal}
+							dialogProps={{ item }}
+						/>
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaTrash />, 'danger', 'icon'),
+								'aria-label': "O'chirish",
+								disabled: !canWrite,
+							}}
+							dialog={DeleteWarehouseModal}
+							dialogProps={{ item }}
+						/>
+					</div>
+				);
+			},
 		}),
 	];
 
@@ -304,7 +297,10 @@ export default function WarehousePage() {
 							Tekshirildi {onlyConfirmed && '✓'}
 						</Button>
 						{canWrite && (
-							<Link to='/warehouse-prices/create' className={buttonVariants({ variant: 'info', size: 'xs' })}>
+							<Link
+								to='/warehouse-prices/create'
+								className={buttonVariants({ variant: 'info', size: 'xs' })}
+							>
 								Qo'shish +
 							</Link>
 						)}
