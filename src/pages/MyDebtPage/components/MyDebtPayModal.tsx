@@ -19,7 +19,7 @@ import {
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { usePayMyDebtMutation } from '@/services/my-debt/my-debt.queries';
-import type { MyDebtItem, MyDebtPayPayload } from '@/services/my-debt/my-debt.types';
+import type { MyDebtPayPayload } from '@/services/my-debt/my-debt.types';
 
 const myDebtPayFormSchema = z
 	.object({
@@ -38,10 +38,20 @@ type MyDebtPayFormValues = z.infer<typeof myDebtPayFormSchema>;
 interface MyDebtPayModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
-	item: MyDebtItem;
+	companyId: number;
+	consignorId: number;
+	consignorName?: string;
+	currentDebt?: number;
 }
 
-export default function MyDebtPayModal({ open, setOpen, item }: MyDebtPayModalProps) {
+export default function MyDebtPayModal({
+	open,
+	setOpen,
+	companyId,
+	consignorId,
+	consignorName,
+	currentDebt = 0,
+}: MyDebtPayModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 
@@ -75,8 +85,8 @@ export default function MyDebtPayModal({ open, setOpen, item }: MyDebtPayModalPr
 		setFormError('');
 
 		const payload: MyDebtPayPayload = {
-			company: item.company,
-			consignor: item.consignor,
+			company: companyId,
+			consignor: consignorId,
 			date: values.date,
 			all_summ_dollar: Number(values.all_summ_dollar) || 0,
 			discount_amount: Number(values.discount_amount) || 0,
@@ -99,7 +109,7 @@ export default function MyDebtPayModal({ open, setOpen, item }: MyDebtPayModalPr
 		<Modal open={open} onOpenChange={handleOpenChange}>
 			<ModalContent>
 				<ModalHeader>
-					<ModalTitle>{item.consignor_detail?.name} qarzini to'lash</ModalTitle>
+					<ModalTitle>{consignorName ? `${consignorName} qarzini to'lash` : "Qarz to'lash"}</ModalTitle>
 				</ModalHeader>
 				<form onSubmit={onSubmit} noValidate>
 					<ModalBody>
@@ -109,7 +119,7 @@ export default function MyDebtPayModal({ open, setOpen, item }: MyDebtPayModalPr
 							</div>
 						)}
 						<div className='mb-4 rounded border border-ca-theme/30 bg-ca-theme/5 px-4 py-2 text-center text-sm font-semibold text-ca-theme'>
-							Joriy qarz: {formatNumber(item.total_debt, 2)} $
+							Joriy qarz: {formatNumber(currentDebt, 2)} $
 						</div>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
 							<FormField

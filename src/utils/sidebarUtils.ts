@@ -23,3 +23,23 @@ export function collectExpandedIds(items: SidebarMenuItem[], pathname: string): 
 
   return ids
 }
+
+function findContainingList(items: SidebarMenuItem[], targetId: string): SidebarMenuItem[] | null {
+  if (items.some((item) => item.id === targetId)) return items
+
+  for (const item of items) {
+    if (item.children?.length) {
+      const found = findContainingList(item.children, targetId)
+      if (found) return found
+    }
+  }
+
+  return null
+}
+
+/** Ids of the other dropdown items sharing `targetId`'s parent list, so opening one can close its siblings. */
+export function findSiblingGroupIds(items: SidebarMenuItem[], targetId: string): string[] {
+  const list = findContainingList(items, targetId)
+  if (!list) return []
+  return list.filter((item) => item.id !== targetId && item.children?.length).map((item) => item.id)
+}

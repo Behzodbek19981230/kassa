@@ -32,7 +32,7 @@ import {
 } from 'react-icons/fa';
 import { sidebarMenu } from '@/data/sidebarMenu';
 import type { SidebarIcon, SidebarMenuItem } from '@/types';
-import { collectExpandedIds, hasActiveDescendant, isRouteMatch } from '@/utils/sidebarUtils';
+import { collectExpandedIds, findSiblingGroupIds, hasActiveDescendant, isRouteMatch } from '@/utils/sidebarUtils';
 
 interface SidebarProps {
 	minified: boolean;
@@ -371,7 +371,9 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
 	const toggleExpanded = (id: string) => {
 		setExpanded((prev) => {
 			const next = new Set(prev);
-			if (next.has(id)) next.delete(id);
+			const isOpen = next.has(id);
+			for (const siblingId of findSiblingGroupIds(sidebarMenu, id)) next.delete(siblingId);
+			if (isOpen) next.delete(id);
 			else next.add(id);
 			return next;
 		});

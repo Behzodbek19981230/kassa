@@ -128,7 +128,12 @@ export default function MyDebtTab() {
 							disabled: !canWrite,
 						}}
 						dialog={MyDebtPayModal}
-						dialogProps={{ item: row.original }}
+						dialogProps={{
+							companyId: row.original.company,
+							consignorId: row.original.consignor,
+							consignorName: row.original.consignor_detail?.name,
+							currentDebt: Number(row.original.total_debt) || 0,
+						}}
 					/>
 					<Button
 						type='button'
