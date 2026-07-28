@@ -290,7 +290,7 @@ export default function OrderAccountHistoryTable({
 									dialog={OrderDraftDeleteModal}
 									dialogProps={{ id: item.id, clientName: item.client_name }}
 								/>
-								<OpenDialogButton
+								{/* <OpenDialogButton
 									element={(props) => <Button {...props} />}
 									elementProps={{
 										...buttonProps(<FaBan />, 'danger', 'icon'),
@@ -299,7 +299,7 @@ export default function OrderAccountHistoryTable({
 									}}
 									dialog={OrderHardDeleteModal}
 									dialogProps={{ id: item.id, clientName: item.client_name }}
-								/>
+								/> */}
 							</>
 						)}
 					</div>

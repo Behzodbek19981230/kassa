@@ -29,20 +29,7 @@ export default function CartDraftsPage() {
 				}
 				onReload={() => refetchActive()}
 			>
-				<Tabs
-					items={[
-						{
-							value: 'order-cart',
-							label: 'Buyurtma karzinkasi',
-							content: <OrderCartDraftTab onRefetchReady={(fn) => setRefetchActive(() => fn)} />,
-						},
-						{
-							value: 'deleted-orders',
-							label: "O'chirilgan buyurtmalar",
-							content: <OrderAccountHistoryDraftTab onRefetchReady={(fn) => setRefetchActive(() => fn)} />,
-						},
-					]}
-				/>
+				<OrderAccountHistoryDraftTab onRefetchReady={(fn) => setRefetchActive(() => fn)} />
 			</Panel>
 		</>
 	);

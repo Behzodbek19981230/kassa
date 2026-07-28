@@ -1,8 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { myDebtHistoryService } from '@/services/my-debt/my-debt-history.service';
 import type {
 	MyDebtHistoryGroupedListParams,
 	MyDebtHistoryListParams,
+	MyDebtHistoryUpdatePayload,
 } from '@/services/my-debt/my-debt-history.types';
 
 const myDebtHistoryKeys = {
@@ -25,5 +26,35 @@ export function useMyDebtHistoryGroupedListQuery(params?: MyDebtHistoryGroupedLi
 		queryKey: myDebtHistoryKeys.groupedList(params),
 		queryFn: () => myDebtHistoryService.listGrouped(params),
 		placeholderData: (prev) => prev,
+	});
+}
+
+function invalidateAfterDraftAction(queryClient: ReturnType<typeof useQueryClient>) {
+	queryClient.invalidateQueries({ queryKey: myDebtHistoryKeys.all });
+	queryClient.invalidateQueries({ queryKey: ['my-debts'] });
+}
+
+export function useUpdateMyDebtHistoryMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }: { id: number; payload: MyDebtHistoryUpdatePayload }) =>
+			myDebtHistoryService.update(id, payload),
+		onSuccess: () => invalidateAfterDraftAction(queryClient),
+	});
+}
+
+export function useDraftDeleteMyDebtHistoryMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: number) => myDebtHistoryService.draftDelete(id),
+		onSuccess: () => invalidateAfterDraftAction(queryClient),
+	});
+}
+
+export function useHardDeleteMyDebtHistoryMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: number) => myDebtHistoryService.hardDelete(id),
+		onSuccess: () => invalidateAfterDraftAction(queryClient),
 	});
 }

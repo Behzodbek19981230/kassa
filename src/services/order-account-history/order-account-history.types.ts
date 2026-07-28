@@ -501,6 +501,7 @@ export interface OrderAccountHistoryDraftListParams extends ListParams {
 	client?: number;
 	created_by?: number;
 	company?: number;
+	is_vozvrat?: boolean;
 }
 
 export interface OrderAccountHistoryDraftFilters {

@@ -192,7 +192,7 @@ export default function DebtRepaymentPage() {
 				const item = row.original;
 				return (
 					<div className='flex justify-end gap-1'>
-						<Button
+						{/* <Button
 							type='button'
 							variant='default'
 							size='icon'
@@ -201,7 +201,7 @@ export default function DebtRepaymentPage() {
 							onClick={() => handlePrint(item)}
 						>
 							<FaFilePdf />
-						</Button>
+						</Button> */}
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{

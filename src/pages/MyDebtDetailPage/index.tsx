@@ -1,8 +1,13 @@
-import { FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
+import { FaArrowLeft, FaBan, FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui';
+import { Button, buttonProps, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui';
+import OpenDialogButton from '@/components/OpenDialogButton';
+import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { useMyDebtHistoryListQuery } from '@/services/my-debt/my-debt-history.queries';
+import MyDebtHistoryDraftDeleteModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryDraftDeleteModal';
+import MyDebtHistoryEditModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryEditModal';
+import MyDebtHistoryHardDeleteModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryHardDeleteModal';
 
 const userLabel = (u: { username: string; first_name: string; last_name: string }) =>
 	`${u.last_name} ${u.first_name}`.trim() || u.username;
@@ -17,6 +22,7 @@ export default function MyDebtDetailPage() {
 	const navigate = useNavigate();
 	const { id } = useParams();
 	const myDebtId = id ? Number(id) : undefined;
+	const { canWrite } = useCurrentCompany();
 
 	const { data, isLoading, isError } = useMyDebtHistoryListQuery(
 		{ my_total_debt: myDebtId, limit: 200 },
@@ -77,29 +83,71 @@ export default function MyDebtDetailPage() {
 							<TableHead className='bg-ca-theme text-white'>Dollar kursi</TableHead>
 							<TableHead className='bg-ca-theme text-white'>Jami summa ($)</TableHead>
 							<TableHead className='bg-ca-theme text-white'>Kim tomonidan</TableHead>
+							<TableHead className='bg-ca-theme text-right text-white'>Harakatlar</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{results.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={7} className='text-center text-ca-text'>
+								<TableCell colSpan={8} className='text-center text-ca-text'>
 									Tarix topilmadi
 								</TableCell>
 							</TableRow>
 						) : (
-							results.map((item, index) => (
-								<TableRow key={item.id}>
-									<TableCell>{index + 1}</TableCell>
-									<TableCell>{formatDate(item.cr_date)}</TableCell>
-									<TableCell className='font-semibold text-ca-red'>{formatNumber(item.total_debt, 2)} $</TableCell>
-									<TableCell>{formatNumber(item.discount_amount, 2)} $</TableCell>
-									<TableCell>{formatNumber(item.exchange_rate, 2)}</TableCell>
-									<TableCell className='font-semibold text-ca-heading'>
-										{formatNumber(item.all_summ_dollar, 2)} $
-									</TableCell>
-									<TableCell>{item.created_by_detail ? userLabel(item.created_by_detail) : ''}</TableCell>
-								</TableRow>
-							))
+							results.map((item, index) => {
+								const consignorName = item.my_total_debt_detail?.consignor_detail?.name;
+								return (
+									<TableRow key={item.id}>
+										<TableCell>{index + 1}</TableCell>
+										<TableCell>{formatDate(item.cr_date)}</TableCell>
+										<TableCell className='font-semibold text-ca-red'>
+											{formatNumber(item.total_debt, 2)} $
+										</TableCell>
+										<TableCell>{formatNumber(item.discount_amount, 2)} $</TableCell>
+										<TableCell>{formatNumber(item.exchange_rate, 2)}</TableCell>
+										<TableCell className='font-semibold text-ca-heading'>
+											{formatNumber(item.all_summ_dollar, 2)} $
+										</TableCell>
+										<TableCell>
+											{item.created_by_detail ? userLabel(item.created_by_detail) : ''}
+										</TableCell>
+										<TableCell>
+											<div className='flex justify-end gap-1'>
+												<OpenDialogButton
+													element={(props) => <Button {...props} />}
+													elementProps={{
+														...buttonProps(<FaEdit />, 'warning', 'icon'),
+														'aria-label': 'Tahrirlash',
+														disabled: !canWrite,
+													}}
+													dialog={MyDebtHistoryEditModal}
+													dialogProps={{ item }}
+												/>
+												<OpenDialogButton
+													element={(props) => <Button {...props} />}
+													elementProps={{
+														...buttonProps(<FaTrash />, 'danger', 'icon'),
+														'aria-label': 'Draftga olish',
+														disabled: !canWrite,
+													}}
+													dialog={MyDebtHistoryDraftDeleteModal}
+													dialogProps={{ id: item.id, consignorName }}
+												/>
+												{/* <OpenDialogButton
+													element={(props) => <Button {...props} />}
+													elementProps={{
+														...buttonProps(<FaBan />, 'danger', 'icon'),
+														'aria-label': "Batamom o'chirish",
+														disabled: !canWrite,
+													}}
+													dialog={MyDebtHistoryHardDeleteModal}
+													dialogProps={{ id: item.id, consignorName }}
+												/> */}
+											</div>
+										</TableCell>
+									</TableRow>
+								);
+							})
 						)}
 					</TableBody>
 				</Table>

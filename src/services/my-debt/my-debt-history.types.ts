@@ -87,3 +87,33 @@ export interface MyDebtHistoryGroupedListParams extends ListParams {
 	consignor?: number;
 	my_total_debt?: number;
 }
+
+export interface MyDebtHistoryDraftActionResult {
+	id: number;
+	is_delete: number;
+}
+
+export interface MyDebtHistoryDraftActionSummary {
+	consignor_total_debt?: string;
+}
+
+export interface MyDebtHistoryDraftDeleteResponse {
+	success: boolean;
+	message: string;
+	my_total_debt_history?: MyDebtHistoryDraftActionResult;
+	summary?: MyDebtHistoryDraftActionSummary;
+}
+
+export interface MyDebtHistoryHardDeleteResponse {
+	success: boolean;
+	message: string;
+	deleted_id?: number;
+}
+
+export interface MyDebtHistoryUpdatePayload {
+	cr_date?: string;
+	total_debt?: string | number;
+	discount_amount?: string | number;
+	exchange_rate?: string | number;
+	all_summ_dollar?: string | number;
+}

@@ -1,16 +1,15 @@
-import { createColumnHelper, type PaginationState } from '@tanstack/react-table';
+import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
 import { FaBan, FaExclamationTriangle, FaExpand, FaUndo } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
+	Badge,
 	Button,
 	buttonProps,
-	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
 	DataTable,
-	DatePicker,
-	Input,
+	Tooltip,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
@@ -18,24 +17,29 @@ import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAccountHistoryDraftGroupedListQuery } from '@/services/order-account-history/order-account-history.queries';
 import type { OrderAccountHistoryItem } from '@/services/order-account-history/order-account-history.types';
+import { useUserListQuery } from '@/services/user/user.queries';
+import { userService } from '@/services/user/user.service';
 import OrderHardDeleteModal from '@/pages/CustomerOrderHistoryPage/components/OrderHardDeleteModal';
 import OrderReturnModal from '@/pages/CustomerOrderHistoryPage/components/OrderReturnModal';
 
 type GroupedDraftOrderItem = OrderAccountHistoryItem & {
+	_no: number;
 	_dateLabel: string;
 	_groupId: number;
 };
 
 const columnHelper = createColumnHelper<GroupedDraftOrderItem>();
 
-interface FilterState {
-	client: string;
-	startDate: string;
-	endDate: string;
-	search: string;
-}
+const userLabel = (u: { username: string; first_name: string; last_name: string }) =>
+	`${u.last_name} ${u.first_name}`.trim() || u.username;
 
-const emptyFilters: FilterState = { client: '', startDate: '', endDate: '', search: '' };
+function formatDateTime(value: string) {
+	const d = new Date(value);
+	if (Number.isNaN(d.getTime())) return value;
+	const date = d.toLocaleDateString('ru-RU');
+	const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+	return `${date} ${time}`;
+}
 
 interface OrderAccountHistoryDraftTabProps {
 	onRefetchReady?: (refetch: () => void) => void;
@@ -45,18 +49,18 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
-	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
-	const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-	const hasAppliedFilters = Object.values(appliedFilters).some(Boolean);
+	const clientFilter = columnFilters.find((f) => f.id === 'client')?.value as string | undefined;
+	const createdByFilter = columnFilters.find((f) => f.id === 'created_by')?.value as string | undefined;
+	const vozvratFilter = columnFilters.find((f) => f.id === 'is_vozvrat')?.value as string | undefined;
 
 	const { data, isLoading, isFetching, isError, refetch } = useOrderAccountHistoryDraftGroupedListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
-		client: appliedFilters.client ? Number(appliedFilters.client) : undefined,
-		start_date: appliedFilters.startDate || undefined,
-		end_date: appliedFilters.endDate || undefined,
-		search: appliedFilters.search || undefined,
+		client: clientFilter ? Number(clientFilter) : undefined,
+		created_by: createdByFilter ? Number(createdByFilter) : undefined,
+		is_vozvrat: vozvratFilter ? vozvratFilter === 'true' : undefined,
 	});
 
 	useEffect(() => {
@@ -69,14 +73,18 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 	const results: GroupedDraftOrderItem[] = useMemo(
 		() =>
 			(data?.results.groups ?? []).flatMap((group, groupIndex) =>
-				group.items.map((item) => ({
+				group.items.map((item, index) => ({
 					...item,
+					_no: group.count - index,
 					_dateLabel: group.date_label,
 					_groupId: groupIndex,
 				})),
 			),
 		[data],
 	);
+
+	const { data: userData } = useUserListQuery({ limit: 100 });
+	const userLabelById = new Map((userData?.results ?? []).map((u) => [u.id, userLabel(u)]));
 
 	const loadClientOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await clientService.list({ search: search || undefined, page, limit: 20 });
@@ -86,53 +94,159 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 		};
 	};
 
-	function handleSearch() {
-		setAppliedFilters(draftFilters);
-		setPagination((p) => ({ ...p, pageIndex: 0 }));
-	}
-
-	function handleClear() {
-		setDraftFilters(emptyFilters);
-		setAppliedFilters(emptyFilters);
-		setPagination((p) => ({ ...p, pageIndex: 0 }));
-	}
+	const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+		const result = await userService.list({ search: search || undefined, page, limit: 20 });
+		return {
+			options: result.results.map((u) => ({ value: String(u.id), label: userLabel(u) })),
+			hasMore: result.pagination.currentPage < result.pagination.lastPage,
+		};
+	};
 
 	const columns = [
 		columnHelper.display({
-			id: 'sana',
+			id: 'no',
+			header: '№',
+			size: 40,
+			enableColumnFilter: false,
+			cell: ({ row }) => row.original._no,
+		}),
+		columnHelper.accessor('date', {
 			header: 'Sana',
 			size: 100,
+			enableColumnFilter: false,
 			cell: ({ row }) => <span className='font-semibold text-ca-theme'>{row.original._dateLabel}</span>,
-			meta: { rowSpanGroupKey: (row) => row._groupId },
+			meta: {
+				rowSpanGroupKey: (row) => row._groupId,
+			},
 		}),
-		columnHelper.accessor('client_name', { header: 'Mijoz' }),
-		columnHelper.accessor('all_product_sum', {
-			header: 'Mahsulot summasi ($)',
-			size: 150,
-			cell: (info) => formatNumber(info.getValue(), 2),
+		columnHelper.accessor('client', {
+			header: 'Mijoz',
+			cell: (info) => (
+				<span className='inline-flex items-center gap-1.5'>
+					{info.row.original.client_name ?? info.getValue()}
+					{info.row.original.is_price_diff && (
+						<Tooltip content='Narxlarda tafovut'>
+							<FaExclamationTriangle className='text-ca-orange' />
+						</Tooltip>
+					)}
+				</span>
+			),
+			meta: {
+				filterVariant: 'select',
+				filterLoadOptions: loadClientOptions,
+				filterPlaceholder: 'Barchasi',
+			},
+		}),
+		columnHelper.accessor('created_by', {
+			header: 'Kim buyurtma oldi',
+			cell: (info) => {
+				const detail = info.row.original.created_by_detail;
+				return detail ? userLabel(detail) : (userLabelById.get(info.getValue()) ?? '');
+			},
+			meta: {
+				filterVariant: 'select',
+				filterLoadOptions: loadUserOptions,
+				filterPlaceholder: 'Barchasi',
+			},
+		}),
+		columnHelper.accessor('is_vozvrat', {
+			header: 'Vozvrat',
+			size: 90,
+			cell: (info) => (
+				<Badge variant={info.getValue() ? 'danger' : 'default'}>{info.getValue() ? 'Ha' : "Yo'q"}</Badge>
+			),
+			meta: {
+				filterVariant: 'select',
+				filterOptions: [
+					{ value: 'true', label: 'Ha' },
+					{ value: 'false', label: "Yo'q" },
+				],
+				filterPlaceholder: 'Barchasi',
+			},
 		}),
 		columnHelper.accessor('all_summ_dollar', {
 			header: "To'lanadigan summa ($)",
-			size: 160,
+			size: 150,
+			enableColumnFilter: false,
+			cell: (info) => formatNumber(info.getValue(), 2),
+		}),
+		columnHelper.display({
+			id: 'paid_summa',
+			header: "To'langan summa ($)",
+			size: 150,
+			enableColumnFilter: false,
+			cell: ({ row }) => {
+				const item = row.original;
+				const rate = Number(item.exchange_rate) || 0;
+				const somTotal =
+					(Number(item.sum_som) || 0) + (Number(item.sum_cart) || 0) + (Number(item.sum_transfers) || 0);
+				const paid = (Number(item.sum_dollar) || 0) + (rate > 0 ? somTotal / rate : 0);
+				return `${formatNumber(paid, 2)} $`;
+			},
+		}),
+		columnHelper.display({
+			id: 'zdacha',
+			header: 'Qaytim',
+			size: 150,
+			enableColumnFilter: false,
+			cell: ({ row }) =>
+				`${formatNumber(row.original.zdacha_sum)} so'm / ${formatNumber(row.original.zdacha_dollar, 2)} $`,
+		}),
+		columnHelper.accessor('total_debt_today', {
+			header: 'Bugungi qarz ($)',
+			size: 130,
+			enableColumnFilter: false,
 			cell: (info) => formatNumber(info.getValue(), 2),
 		}),
 		columnHelper.accessor('total_debt', {
-			header: 'Umumiy qarz ($)',
-			size: 140,
+			header: 'Umumiy qolgan qarz ($)',
+			size: 160,
+			enableColumnFilter: false,
 			cell: (info) => {
 				const value = Number(info.getValue()) || 0;
 				return (
 					<span className={value > 0 ? 'font-bold text-ca-red' : 'font-bold text-ca-green'}>
-						{formatNumber(value, 2)}
+						{formatNumber(value, 2)} $
 					</span>
 				);
 			},
+		}),
+		columnHelper.accessor('all_profit_dollar', {
+			header: 'Jami foyda ($)',
+			size: 130,
+			enableColumnFilter: false,
+			cell: (info) => formatNumber(info.getValue(), 2),
+		}),
+		columnHelper.accessor('created_time', {
+			header: 'Yaratilgan vaqt',
+			size: 140,
+			enableColumnFilter: false,
+			cell: (info) => <span className='text-ca-red'>{formatDateTime(info.getValue())}</span>,
+		}),
+		columnHelper.display({
+			id: 'status',
+			header: 'Buyurtma holati',
+			size: 130,
+			enableColumnFilter: false,
+			cell: ({ row }) => <span className='text-ca-orange'>{row.original.status_order_label}</span>,
+		}),
+		columnHelper.display({
+			id: 'keshbek',
+			header: 'Keshbek ($)',
+			size: 110,
+			enableColumnFilter: false,
+			cell: ({ row }) => (
+				<span className='font-semibold text-ca-green'>
+					{formatNumber(row.original.client_detail?.keshbek ?? 0, 2)} $
+				</span>
+			),
 		}),
 		columnHelper.display({
 			id: 'actions',
 			header: 'Harakatlar',
 			meta: { align: 'right' },
-			size: 160,
+			enableColumnFilter: false,
+			size: 190,
 			cell: ({ row }) => {
 				const item = row.original;
 				return (
@@ -174,58 +288,24 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 
 	return (
 		<div>
-			<div className='mb-4 flex flex-wrap items-end gap-2'>
-				<div className='w-40'>
-					<DatePicker
-						value={draftFilters.startDate}
-						onChange={(v) => setDraftFilters((f) => ({ ...f, startDate: v }))}
-						placeholder='Boshlanish sana'
-					/>
-				</div>
-				<div className='w-40'>
-					<DatePicker
-						value={draftFilters.endDate}
-						onChange={(v) => setDraftFilters((f) => ({ ...f, endDate: v }))}
-						placeholder='Tugash sana'
-					/>
-				</div>
-				<div className='w-48'>
-					<Combobox
-						clearable
-						value={draftFilters.client}
-						onChange={(v) => setDraftFilters((f) => ({ ...f, client: v }))}
-						loadOptions={loadClientOptions}
-						placeholder='Mijoz tanlang'
-						searchPlaceholder='Qidirish...'
-					/>
-				</div>
-				<div className='w-56'>
-					<Input
-						value={draftFilters.search}
-						onChange={(e) => setDraftFilters((f) => ({ ...f, search: e.target.value }))}
-						placeholder="FIO, telefon yoki izoh bo'yicha qidirish"
-					/>
-				</div>
-				<Button type='button' variant='info' size='sm' onClick={handleSearch}>
-					Qidirish
-				</Button>
-				<Button type='button' variant='white' size='sm' disabled={!hasAppliedFilters} onClick={handleClear}>
-					Tozalash
-				</Button>
-			</div>
-
 			<DataTable
 				columns={columns}
 				data={results}
 				manualPagination
+				manualFiltering
 				pageCount={paginationMeta?.lastPage ?? -1}
 				totalRows={paginationMeta?.total}
 				pagination={pagination}
 				onPaginationChange={setPagination}
+				columnFilters={columnFilters}
+				onColumnFiltersChange={(filters) => {
+					setColumnFilters(filters);
+					setPagination((p) => ({ ...p, pageIndex: 0 }));
+				}}
 				enablePagination
 				enableSorting={false}
 				enableGlobalFilter={false}
-				enableColumnFilters={false}
+				enableColumnFilters={true}
 				enableColumnVisibility
 				columnVisibilityKey='order-account-history-draft'
 				enableStriping

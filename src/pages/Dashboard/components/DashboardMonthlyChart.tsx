@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import {
+	Bar,
+	BarChart,
 	CartesianGrid,
 	Legend,
-	Line,
-	LineChart,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
@@ -100,7 +100,7 @@ export default function DashboardMonthlyChart({ monthly, isLoading, isFetching }
 				<div className={isFetching ? 'opacity-60 transition-opacity' : 'transition-opacity'}>
 					{!showTable ? (
 						<ResponsiveContainer width='100%' height={340}>
-							<LineChart data={data} margin={{ top: 8, right: 16, left: 8, bottom: 0 }}>
+							<BarChart data={data} margin={{ top: 8, right: 16, left: 8, bottom: 0 }} barGap={4} barCategoryGap='20%'>
 								<CartesianGrid stroke={GRID_COLOR} vertical={false} />
 								<XAxis
 									dataKey='month_label'
@@ -115,24 +115,15 @@ export default function DashboardMonthlyChart({ monthly, isLoading, isFetching }
 									width={64}
 									tickFormatter={(v: number) => formatNumber(v)}
 								/>
-								<Tooltip content={<CustomTooltip />} cursor={{ stroke: GRID_COLOR, strokeWidth: 1 }} />
+								<Tooltip content={<CustomTooltip />} cursor={{ fill: GRID_COLOR, opacity: 0.4 }} />
 								<Legend
 									iconType='plainline'
 									wrapperStyle={{ fontSize: 11, color: AXIS_TEXT_COLOR, paddingTop: 12 }}
 								/>
 								{SERIES.map((s) => (
-									<Line
-										key={s.key}
-										type='monotone'
-										dataKey={s.key}
-										name={s.name}
-										stroke={s.color}
-										strokeWidth={2}
-										dot={{ r: 4, strokeWidth: 2, stroke: '#fff', fill: s.color }}
-										activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
-									/>
+									<Bar key={s.key} dataKey={s.key} name={s.name} fill={s.color} radius={[4, 4, 0, 0]} maxBarSize={28} />
 								))}
-							</LineChart>
+							</BarChart>
 						</ResponsiveContainer>
 					) : (
 						<div className='overflow-x-auto'>
