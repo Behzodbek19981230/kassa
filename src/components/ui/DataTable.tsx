@@ -29,6 +29,12 @@ declare module '@tanstack/react-table' {
 		/** Resolves the label for the current filter value when it isn't among the loaded options yet. */
 		filterSelectedLabel?: (value: string) => string | undefined;
 		filterPlaceholder?: string;
+		/**
+		 * Computes a grouping key per row for this column. Consecutive rows (in
+		 * current render order) sharing the same key have their cells merged into
+		 * one, spanning all their rows via the `rowSpan` attribute.
+		 */
+		rowSpanGroupKey?: (row: TData) => unknown;
 	}
 }
 
@@ -78,6 +84,25 @@ import { useSaveUserColumnMutation, useUserColumnQuery } from '@/services/user-c
 
 function resolveUpdater<T>(updater: Updater<T>, current: T): T {
 	return typeof updater === 'function' ? (updater as (old: T) => T)(current) : updater;
+}
+
+/**
+ * Returns, per row index, the `rowSpan` to render (0 meaning the cell is
+ * absorbed into the preceding row's merged cell) for consecutive rows that
+ * share the same `keyFn` result.
+ */
+function computeRowSpans<TData>(rows: { original: TData }[], keyFn: (row: TData) => unknown): number[] {
+	const spans = new Array(rows.length).fill(1);
+	let groupStart = 0;
+	for (let i = 1; i <= rows.length; i++) {
+		const endOfGroup = i === rows.length || keyFn(rows[i].original) !== keyFn(rows[groupStart].original);
+		if (endOfGroup) {
+			spans[groupStart] = i - groupStart;
+			for (let j = groupStart + 1; j < i; j++) spans[j] = 0;
+			groupStart = i;
+		}
+	}
+	return spans;
 }
 
 interface DataTableProps<TData> {
@@ -141,7 +166,7 @@ export function DataTable<TData>({
 	enableSorting = true,
 	enableRowSelection = false,
 	enableStriping = true,
-	enableBordered = false,
+	enableBordered = true,
 	enablePagination = true,
 	enableGlobalFilter = true,
 	enableColumnFilters = false,
@@ -306,6 +331,13 @@ export function DataTable<TData>({
 		? Math.min((pageIndex + 1) * pageSize, totalCount)
 		: Math.min((pageIndex + 1) * pageSize, filteredCount);
 	const selectedCount = Object.keys(rowSelection).length;
+
+	const bodyRows = table.getRowModel().rows;
+	const rowSpansByColumnId: Record<string, number[]> = {};
+	table.getAllLeafColumns().forEach((col) => {
+		const keyFn = col.columnDef.meta?.rowSpanGroupKey;
+		if (keyFn) rowSpansByColumnId[col.id] = computeRowSpans(bodyRows, keyFn);
+	});
 
 	function getExportData() {
 		const exportableColumns = table
@@ -614,27 +646,34 @@ export function DataTable<TData>({
 									))}
 								</TableRow>
 							))
-						) : table.getRowModel().rows.length ? (
-							table.getRowModel().rows.map((row, index) => (
+						) : bodyRows.length ? (
+							bodyRows.map((row, index) => (
 								<Fragment key={row.id}>
 									<TableRow className='group'>
-										{row.getVisibleCells().map((cell) => (
-											<TableCell
-												key={cell.id}
-												className={cn(
-													alignTextClass[cell.column.columnDef.meta?.align ?? 'left'],
-													enableStriping && index % 2 === 0 && 'bg-ca-table-stripe',
-													'group-hover:bg-ca-table-hover',
-													enableBordered && 'border-x border-b border-ca-border',
-													row.getIsSelected() && 'bg-[#ffc]!',
-												)}
-												style={
-													enableColumnResizing ? { width: cell.column.getSize() } : undefined
-												}
-											>
-												{flexRender(cell.column.columnDef.cell, cell.getContext())}
-											</TableCell>
-										))}
+										{row.getVisibleCells().map((cell) => {
+											const rowSpans = rowSpansByColumnId[cell.column.id];
+											if (rowSpans && rowSpans[index] === 0) return null;
+											return (
+												<TableCell
+													key={cell.id}
+													rowSpan={rowSpans ? rowSpans[index] : undefined}
+													className={cn(
+														alignTextClass[cell.column.columnDef.meta?.align ?? 'left'],
+														enableStriping && index % 2 === 0 && 'bg-ca-table-stripe',
+														'group-hover:bg-ca-table-hover',
+														enableBordered && 'border-x border-b border-ca-border',
+														row.getIsSelected() && 'bg-[#ffc]!',
+													)}
+													style={
+														enableColumnResizing
+															? { width: cell.column.getSize() }
+															: undefined
+													}
+												>
+													{flexRender(cell.column.columnDef.cell, cell.getContext())}
+												</TableCell>
+											);
+										})}
 									</TableRow>
 									{enableExpanding && row.getIsExpanded() && (
 										<TableRow>

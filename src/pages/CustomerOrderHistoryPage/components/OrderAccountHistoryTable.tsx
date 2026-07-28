@@ -20,8 +20,8 @@ import { userService } from '@/services/user/user.service';
 
 type GroupedOrderAccountHistoryItem = OrderAccountHistoryItem & {
 	_no: number;
-	_groupFirst: boolean;
 	_dateLabel: string;
+	_groupId: number;
 };
 
 const columnHelper = createColumnHelper<GroupedOrderAccountHistoryItem>();
@@ -76,12 +76,12 @@ export default function OrderAccountHistoryTable({
 
 	const results: GroupedOrderAccountHistoryItem[] = useMemo(
 		() =>
-			(data?.results.groups ?? []).flatMap((group) =>
+			(data?.results.groups ?? []).flatMap((group, groupIndex) =>
 				group.items.map((item, index) => ({
 					...item,
 					_no: group.count - index,
-					_groupFirst: index === 0,
 					_dateLabel: group.date_label,
+					_groupId: groupIndex,
 				})),
 			),
 		[data],
@@ -122,10 +122,10 @@ export default function OrderAccountHistoryTable({
 			header: 'Sana',
 			size: 100,
 			enableColumnFilter: false,
-			cell: ({ row }) =>
-				row.original._groupFirst ? (
-					<span className='font-semibold text-ca-theme'>{row.original._dateLabel}</span>
-				) : null,
+			cell: ({ row }) => <span className='font-semibold text-ca-theme'>{row.original._dateLabel}</span>,
+			meta: {
+				rowSpanGroupKey: (row) => row._groupId,
+			},
 		}),
 		columnHelper.accessor('client', {
 			header: 'Mijoz',

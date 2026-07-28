@@ -26,8 +26,8 @@ import DebtRepaymentFormModal from '@/pages/settings/DebtRepaymentPage/component
 import DeleteDebtRepaymentModal from '@/pages/settings/DebtRepaymentPage/components/DeleteDebtRepaymentModal';
 
 type GroupedDebtRepaymentRow = DebtRepaymentGroupedItem & {
-	_groupFirst: boolean;
 	_dateLabel: string;
+	_groupId: number;
 };
 
 const columnHelper = createColumnHelper<GroupedDebtRepaymentRow>();
@@ -93,11 +93,11 @@ export default function DebtRepaymentPage() {
 
 	const results: GroupedDebtRepaymentRow[] = useMemo(
 		() =>
-			(data?.results.groups ?? []).flatMap((group) =>
-				group.items.map((item, index) => ({
+			(data?.results.groups ?? []).flatMap((group, groupIndex) =>
+				group.items.map((item) => ({
 					...item,
-					_groupFirst: index === 0,
 					_dateLabel: group.date_label,
+					_groupId: groupIndex,
 				})),
 			),
 		[data],
@@ -142,10 +142,10 @@ export default function DebtRepaymentPage() {
 			id: 'sana',
 			header: 'Sana',
 			size: 100,
-			cell: ({ row }) =>
-				row.original._groupFirst ? (
-					<span className='font-semibold text-ca-theme'>{row.original._dateLabel}</span>
-				) : null,
+			cell: ({ row }) => <span className='font-semibold text-ca-theme'>{row.original._dateLabel}</span>,
+			meta: {
+				rowSpanGroupKey: (row) => row._groupId,
+			},
 		}),
 		columnHelper.accessor('client_name', {
 			header: 'Mijoz',
