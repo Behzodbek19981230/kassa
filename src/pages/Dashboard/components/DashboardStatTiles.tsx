@@ -14,8 +14,7 @@ interface Tile {
 const TILES: Tile[] = [
 	{ key: 'clients_count', label: 'Mijozlar soni', icon: <FaUsers />, accent: 'theme' },
 	{ key: 'debtor_clients_count', label: 'Qarzdor mijozlar soni', icon: <FaUserClock />, accent: 'red' },
-	{ key: 'products_count', label: 'Tovarlar soni', icon: <FaBoxes />, accent: 'theme' },
-	{ key: 'warehouse_items_count', label: 'Ombordagi mahsulot qatorlari', icon: <FaWarehouse />, accent: 'theme' },
+	{ key: 'warehouse_items_count', label: 'Ombordagi tovarlar', icon: <FaWarehouse />, accent: 'theme' },
 	{ key: 'users_count', label: 'Foydalanuvchilar soni', icon: <FaUserShield />, accent: 'theme' },
 ];
 
@@ -38,13 +37,22 @@ export default function DashboardStatTiles({ cards, isLoading }: DashboardStatTi
 				return (
 					<div key={tile.key} className='w-full px-2.5 pb-5 sm:w-1/2 lg:w-1/5'>
 						<div className='flex h-full items-center gap-3 rounded-[3px] border border-ca-border bg-white p-4'>
-							<div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base', accent.badge)}>
+							<div
+								className={cn(
+									'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base',
+									accent.badge,
+								)}
+							>
 								{tile.icon}
 							</div>
 							<div className='min-w-0'>
 								<div className='truncate text-[11px] font-medium text-ca-text'>{tile.label}</div>
 								<div className={cn('text-2xl font-semibold', accent.value)}>
-									{isLoading ? <span className='inline-block h-6 w-14 animate-pulse rounded bg-ca-silver' /> : (value ?? '—')}
+									{isLoading ? (
+										<span className='inline-block h-6 w-14 animate-pulse rounded bg-ca-silver' />
+									) : (
+										(value ?? '—')
+									)}
 								</div>
 							</div>
 						</div>
