@@ -14,6 +14,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { brandService } from '@/services/brand/brand.service';
 import { productCategoryService } from '@/services/product-category/product-category.service';
@@ -21,11 +22,14 @@ import { useWarehouseAllListQuery } from '@/services/warehouse/warehouse.queries
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import WarehouseProductImagesModal from '@/pages/WarehouseProductsPage/components/WarehouseProductImagesModal';
 import WarehouseProductThumbnail from '@/pages/WarehouseProductsPage/components/WarehouseProductThumbnail';
+import WarehouseRealPriceModal from '@/pages/WarehouseProductsPage/components/WarehouseRealPriceModal';
 
 export default function WarehouseProductsPage() {
+	const { canWrite } = useCurrentCompany();
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
 	const [imagesItem, setImagesItem] = useState<WarehouseAllListItem | null>(null);
+	const [realPriceItem, setRealPriceItem] = useState<WarehouseAllListItem | null>(null);
 
 	const { data, isLoading, isFetching, isError, refetch } = useWarehouseAllListQuery({
 		brand: brandFilter ? Number(brandFilter) : undefined,
@@ -189,7 +193,7 @@ export default function WarehouseProductsPage() {
 								<TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Asl Narxi ($)</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Jami narxi ($)</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -245,8 +249,15 @@ export default function WarehouseProductsPage() {
 														<TableCell>{item.type_name ?? ''}</TableCell>
 
 														<TableCell>{formatNumber(item.count)}</TableCell>
-														<TableCell className='font-semibold text-ca-green'>
-															{formatNumber(item.price, 2)} $
+														<TableCell>
+															<button
+																type='button'
+																className='font-semibold text-ca-green hover:underline disabled:cursor-not-allowed disabled:opacity-60 disabled:no-underline'
+																disabled={!canWrite}
+																onClick={() => setRealPriceItem(item)}
+															>
+																{formatNumber(item.real_price, 2)} $
+															</button>
 														</TableCell>
 														<TableCell className='font-semibold'>
 															{formatNumber(item.price * item.count, 2)} $
@@ -301,6 +312,14 @@ export default function WarehouseProductsPage() {
 					open={Boolean(imagesItem)}
 					setOpen={(open) => !open && setImagesItem(null)}
 					item={imagesItem}
+				/>
+			)}
+
+			{realPriceItem && (
+				<WarehouseRealPriceModal
+					open={Boolean(realPriceItem)}
+					setOpen={(open) => !open && setRealPriceItem(null)}
+					item={realPriceItem}
 				/>
 			)}
 		</>

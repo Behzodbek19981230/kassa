@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { warehouseService } from '@/services/warehouse/warehouse.service'
-import type { WarehouseAllListParams, WarehouseListParams, WarehousePayload } from '@/services/warehouse/warehouse.types'
+import type {
+  WarehouseAllListParams,
+  WarehouseEditRealPricePayload,
+  WarehouseListParams,
+  WarehousePayload,
+} from '@/services/warehouse/warehouse.types'
 
 const warehouseKeys = {
   all: ['warehouse'] as const,
@@ -55,6 +60,15 @@ export function useDeleteWarehouseMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => warehouseService.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: warehouseKeys.all }),
+  })
+}
+
+export function useEditWarehouseRealPriceMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: WarehouseEditRealPricePayload }) =>
+      warehouseService.editRealPrice(id, payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: warehouseKeys.all }),
   })
 }

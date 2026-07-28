@@ -4,6 +4,7 @@ import type {
   Warehouse,
   WarehouseAllListBrandGroup,
   WarehouseAllListParams,
+  WarehouseEditRealPricePayload,
   WarehouseListParams,
   WarehousePayload,
 } from '@/services/warehouse/warehouse.types'
@@ -31,5 +32,9 @@ export const warehouseService = {
   },
   remove: async (id: number) => {
     await apiClient.delete(`/warehouse/${id}/`)
+  },
+  editRealPrice: async (id: number, payload: WarehouseEditRealPricePayload) => {
+    const { data } = await apiClient.patch<Warehouse>(`/warehouse/${id}/edit-real-price/`, payload)
+    return data
   },
 }

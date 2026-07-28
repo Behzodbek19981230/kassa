@@ -92,6 +92,7 @@ export interface WarehouseAllListItem {
   count: number
   cr_date: string
   price: number
+  real_price: number
   all_sum_dollar: number
   all_discount_amount: number
   all_my_total_debt: number
@@ -132,4 +133,8 @@ export interface WarehouseAllListBrandGroup {
 export interface WarehouseAllListParams {
   brand?: number
   product_category?: number
+}
+
+export interface WarehouseEditRealPricePayload {
+  real_price: number
 }

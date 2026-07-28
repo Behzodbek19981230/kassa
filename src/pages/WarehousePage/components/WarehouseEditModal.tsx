@@ -269,21 +269,23 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 							/>
 						</FormField>
 
-						<FormField label='Soni' horizontal={false}>
-							<Input
-								type='number'
-								inputMode='numeric'
-								value={count}
-								onChange={(e) => setCount(e.target.value)}
-							/>
-						</FormField>
-						<FormField label='Asl narxi ($)' horizontal={false}>
-							<PriceInput value={realPrice} onChange={setRealPrice} />
-						</FormField>
+						<div className='grid grid-cols-3 gap-3 sm:col-span-2'>
+							<FormField label='Soni' horizontal={false}>
+								<Input
+									type='number'
+									inputMode='numeric'
+									value={count}
+									onChange={(e) => setCount(e.target.value)}
+								/>
+							</FormField>
+							<FormField label='Asl narxi ($)' horizontal={false}>
+								<PriceInput value={realPrice} onChange={setRealPrice} />
+							</FormField>
 
-						<FormField label='Ishchi Uchun Narx ($)' horizontal={false}>
-							<PriceInput value={workerPrice} onChange={setWorkerPrice} />
-						</FormField>
+							<FormField label='Ishchi Uchun Narx ($)' horizontal={false}>
+								<PriceInput value={workerPrice} onChange={setWorkerPrice} />
+							</FormField>
+						</div>
 					</div>
 
 					<FormField label='Izoh' error={commentError} required horizontal={false}>
