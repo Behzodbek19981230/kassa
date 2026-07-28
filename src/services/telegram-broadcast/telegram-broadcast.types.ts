@@ -81,6 +81,13 @@ export interface TelegramBroadcastCreatePayload {
   image?: File | null
 }
 
+/** For `POST /telegram/warehouse-broadcast/all/` — backend resolves the client list itself. */
+export interface TelegramBroadcastCreateAllPayload {
+  warehouse_ids?: number[]
+  text?: string
+  image?: File | null
+}
+
 export interface TelegramBroadcastCreateResponse {
   ok: boolean
   job_id: number

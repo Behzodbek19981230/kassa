@@ -22,7 +22,10 @@ import {
 import type { ComboboxLoadParams, ComboboxLoadResult } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { clientService } from '@/services/client/client.service'
-import { useCreateTelegramBroadcastMutation } from '@/services/telegram-broadcast/telegram-broadcast.queries'
+import {
+  useCreateAllTelegramBroadcastMutation,
+  useCreateTelegramBroadcastMutation,
+} from '@/services/telegram-broadcast/telegram-broadcast.queries'
 import { warehouseService } from '@/services/warehouse/warehouse.service'
 
 const LARGE_BROADCAST_THRESHOLD = 50
@@ -40,6 +43,7 @@ export default function TelegramBroadcastCreatePage() {
   const [clientIds, setClientIds] = useState<string[]>([])
   const [selectAllClients, setSelectAllClients] = useState(false)
   const [loadingAllClients, setLoadingAllClients] = useState(false)
+  const [allClientsCount, setAllClientsCount] = useState(0)
   const [warehouseIds, setWarehouseIds] = useState<string[]>([])
   const [text, setText] = useState('')
   const [image, setImage] = useState<File | null>(null)
@@ -48,6 +52,8 @@ export default function TelegramBroadcastCreatePage() {
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const createMutation = useCreateTelegramBroadcastMutation()
+  const createAllMutation = useCreateAllTelegramBroadcastMutation()
+  const isSubmitting = createMutation.isPending || createAllMutation.isPending
 
   const loadClientOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
     const result = await clientService.list({ search: search || undefined, page, limit: 20, is_telegram_started: 1 })
@@ -90,39 +96,26 @@ export default function TelegramBroadcastCreatePage() {
     else removeImage()
   }
 
-  const fetchAllClientIds = async () => {
-    const chunkSize = 200
-    let page = 1
-    let lastPage = 1
-    const ids: number[] = []
-    do {
-      const result = await clientService.list({ page, limit: chunkSize, is_telegram_started: 1 })
-      ids.push(...result.results.map((c) => c.id))
-      lastPage = result.pagination.lastPage
-      page += 1
-    } while (page <= lastPage)
-    return ids
-  }
-
   const handleSelectAllClientsChange = async (checked: boolean) => {
     setSelectAllClients(checked)
+    setClientIds([])
     if (!checked) {
-      setClientIds([])
+      setAllClientsCount(0)
       return
     }
     setLoadingAllClients(true)
     try {
-      const ids = await fetchAllClientIds()
-      setClientIds(ids.map(String))
+      const result = await clientService.list({ page: 1, limit: 1, is_telegram_started: 1 })
+      setAllClientsCount(result.pagination.total)
     } catch {
-      notify({ title: 'Mijozlarni yuklashda xatolik yuz berdi' })
+      notify({ title: 'Mijozlar sonini yuklashda xatolik yuz berdi' })
       setSelectAllClients(false)
     } finally {
       setLoadingAllClients(false)
     }
   }
 
-  const clientCount = clientIds.length
+  const clientCount = selectAllClients ? allClientsCount : clientIds.length
   const warehouseCount = warehouseIds.length
   const totalCount = useMemo(() => {
     if (warehouseCount > 0) return clientCount * (warehouseCount + (image ? 1 : 0))
@@ -143,12 +136,18 @@ export default function TelegramBroadcastCreatePage() {
 
   const submit = async () => {
     try {
-      const result = await createMutation.mutateAsync({
-        client_ids: clientIds.map(Number),
-        warehouse_ids: warehouseIds.length ? warehouseIds.map(Number) : undefined,
-        text: text.trim() || undefined,
-        image,
-      })
+      const result = selectAllClients
+        ? await createAllMutation.mutateAsync({
+            warehouse_ids: warehouseIds.length ? warehouseIds.map(Number) : undefined,
+            text: text.trim() || undefined,
+            image,
+          })
+        : await createMutation.mutateAsync({
+            client_ids: clientIds.map(Number),
+            warehouse_ids: warehouseIds.length ? warehouseIds.map(Number) : undefined,
+            text: text.trim() || undefined,
+            image,
+          })
       notify({ title: 'Xabarnoma yuborish boshlandi' })
       navigate(`/telegram-broadcast/${result.job_id}`)
     } catch {
@@ -215,7 +214,7 @@ export default function TelegramBroadcastCreatePage() {
                   </>
                 ) : (
                   <>
-                    Barcha mijozlar tanlandi: <span className='font-semibold'>{clientIds.length} ta</span>
+                    Barcha mijozlarga yuboriladi: <span className='font-semibold'>{allClientsCount} ta</span>
                   </>
                 )}
               </div>
@@ -309,8 +308,8 @@ export default function TelegramBroadcastCreatePage() {
             </div>
           </div>
 
-          <Button type='submit' variant='theme' className='h-11 w-full text-sm' disabled={createMutation.isPending}>
-            {createMutation.isPending ? (
+          <Button type='submit' variant='theme' className='h-11 w-full text-sm' disabled={isSubmitting}>
+            {isSubmitting ? (
               <>
                 <FaSpinner className='mr-2 animate-spin' /> Yuborilmoqda...
               </>
@@ -336,7 +335,7 @@ export default function TelegramBroadcastCreatePage() {
             <Button variant='white' onClick={() => setConfirmOpen(false)}>
               Bekor qilish
             </Button>
-            <Button variant='theme' onClick={handleConfirm} disabled={createMutation.isPending}>
+            <Button variant='theme' onClick={handleConfirm} disabled={isSubmitting}>
               Ha, yuborish
             </Button>
           </ModalFooter>

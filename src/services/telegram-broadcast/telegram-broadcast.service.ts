@@ -1,6 +1,7 @@
 import { apiClient } from '@/services/api/client'
 import type { PaginatedResponse } from '@/services/api/types'
 import type {
+  TelegramBroadcastCreateAllPayload,
   TelegramBroadcastCreatePayload,
   TelegramBroadcastCreateResponse,
   TelegramBroadcastDeleteResponse,
@@ -11,9 +12,9 @@ import type {
   TelegramBroadcastRetryDeleteResponse,
 } from '@/services/telegram-broadcast/telegram-broadcast.types'
 
-function buildBroadcastFormData(payload: TelegramBroadcastCreatePayload) {
+function buildBroadcastFormData(payload: TelegramBroadcastCreateAllPayload & { client_ids?: number[] }) {
   const formData = new FormData()
-  payload.client_ids.forEach((id, index) => formData.append(`client_ids[${index}]`, String(id)))
+  payload.client_ids?.forEach((id, index) => formData.append(`client_ids[${index}]`, String(id)))
   payload.warehouse_ids?.forEach((id, index) => formData.append(`warehouse_ids[${index}]`, String(id)))
   if (payload.text) formData.append('text', payload.text)
   if (payload.image) formData.append('image', payload.image)
@@ -34,6 +35,15 @@ export const telegramBroadcastService = {
   create: async (payload: TelegramBroadcastCreatePayload) => {
     const { data } = await apiClient.post<TelegramBroadcastCreateResponse>(
       '/telegram/warehouse-broadcast/',
+      buildBroadcastFormData(payload),
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    )
+    return data
+  },
+  /** Sends to every Telegram-connected client of the current company; backend resolves the list. */
+  createAll: async (payload: TelegramBroadcastCreateAllPayload) => {
+    const { data } = await apiClient.post<TelegramBroadcastCreateResponse>(
+      '/telegram/warehouse-broadcast/all/',
       buildBroadcastFormData(payload),
       { headers: { 'Content-Type': 'multipart/form-data' } },
     )

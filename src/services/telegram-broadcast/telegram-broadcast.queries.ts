@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { telegramBroadcastService } from '@/services/telegram-broadcast/telegram-broadcast.service'
 import type {
+  TelegramBroadcastCreateAllPayload,
   TelegramBroadcastCreatePayload,
   TelegramBroadcastDetailParams,
   TelegramBroadcastListParams,
@@ -36,6 +37,14 @@ export function useCreateTelegramBroadcastMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: TelegramBroadcastCreatePayload) => telegramBroadcastService.create(payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all }),
+  })
+}
+
+export function useCreateAllTelegramBroadcastMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: TelegramBroadcastCreateAllPayload) => telegramBroadcastService.createAll(payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all }),
   })
 }
