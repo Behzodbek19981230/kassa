@@ -5,9 +5,6 @@ import {
 	Button,
 	Checkbox,
 	Combobox,
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuTrigger,
 	Input,
 	Modal,
 	ModalBody,
@@ -15,6 +12,7 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalTitle,
+	Tooltip,
 	useNotification,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -89,24 +87,25 @@ export default function TelegramBotRegisterModal({ open, setOpen, item }: Telegr
 					<div>
 						<div className='mb-1 flex items-center gap-1.5'>
 							<label className='block text-xs font-semibold text-ca-heading'>Send bot turi</label>
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<button
-										type='button'
-										className='flex items-center text-ca-text hover:text-ca-heading'
-										aria-label="Ma'lumot"
-									>
-										<FaQuestionCircle />
-									</button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align='start' className='w-64 p-3'>
-									<ul className='list-disc space-y-1 pl-4 text-[11px] text-ca-heading'>
+							<Tooltip
+								side='bottom'
+								content={
+									<ul className='w-56 list-disc space-y-1 pl-4 text-left whitespace-normal'>
 										{(SEND_BOT_TYPE_DESCRIPTIONS[sendBotType] ?? []).map((line) => (
 											<li key={line}>{line}</li>
 										))}
 									</ul>
-								</DropdownMenuContent>
-							</DropdownMenu>
+								}
+							>
+								<button
+									type='button'
+									onClick={(e) => e.currentTarget.focus()}
+									className='flex items-center text-ca-text hover:text-ca-heading'
+									aria-label="Ma'lumot"
+								>
+									<FaQuestionCircle />
+								</button>
+							</Tooltip>
 						</div>
 						<Combobox
 							value={sendBotType}
