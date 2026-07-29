@@ -33,9 +33,9 @@ const SEND_BOT_TYPE_OPTIONS = [
 ];
 
 const SEND_BOT_TYPE_DESCRIPTIONS: Record<string, string[]> = {
-	admin: ["Buyurtma", "Qarz to'lovi", 'Import', 'Vozvrat', 'Login/block kabi admin xabarlari'],
+	admin: ['Buyurtma', "Qarz to'lovi", 'Import', 'Vozvrat', 'Login/block kabi admin xabarlari'],
 	manager: ['Buyurtma', 'Vozvrat'],
-	sklad_manager: ['Import bo\'yicha xabarlar'],
+	sklad_manager: ["Import bo'yicha xabarlar"],
 	employee: ["Faqat o'zi qilgan buyurtma", "O'ziga tegishli qarz to'lovi"],
 };
 
@@ -55,7 +55,10 @@ export default function TelegramBotRegisterModal({ open, setOpen, item }: Telegr
 
 	async function handleSave() {
 		try {
-			await registerMutation.mutateAsync({ id: item.id, payload: { send_bot_type: sendBotType, is_send_bot: isSendBot } });
+			await registerMutation.mutateAsync({
+				id: item.id,
+				payload: { send_bot_type: sendBotType, is_send_bot: isSendBot },
+			});
 			notify({ title: "Hodim Telegram bot uchun ro'yxatga olindi" });
 			setOpen(false);
 		} catch (err) {
@@ -72,29 +75,40 @@ export default function TelegramBotRegisterModal({ open, setOpen, item }: Telegr
 				<ModalBody className='space-y-3'>
 					<AlertBlock variant='danger' title='Eslatma' icon={<FaExclamationTriangle />}>
 						Admin tomonidan Telegram botga kirilib{' '}
-						<span className='font-semibold'>/connect {item.telegram_connect_code ?? 'KOD'}</span> yozilib Enter
-						bosiladi. Shunda "Telegram akkauntingiz user profilingizga ulandi" ga o'xshash xabar olinadi. Shundan
-						so'ng hodimning telegramiga xabarnoma boradi.
+						<span className='font-semibold'>/connect {item.telegram_connect_code ?? 'KOD'}</span> yozilib
+						Enter bosiladi. Shunda "Telegram akkauntingiz user profilingizga ulandi" ga o'xshash xabar
+						olinadi. Shundan so'ng hodimning telegramiga xabarnoma boradi.
 					</AlertBlock>
 
 					<Checkbox
+						className='my-2'
 						id='is_send_bot'
 						label='Bot orqali xabarnoma olsinmi?'
 						checked={isSendBot}
 						onCheckedChange={setIsSendBot}
 					/>
-
 					<div>
 						<div className='mb-1 flex items-center gap-1.5'>
 							<label className='block text-xs font-semibold text-ca-heading'>Send bot turi</label>
 							<Tooltip
 								side='bottom'
+								contentClassName='w-72 max-w-[80vw] whitespace-normal text-left'
 								content={
-									<ul className='w-56 list-disc space-y-1 pl-4 text-left whitespace-normal'>
-										{(SEND_BOT_TYPE_DESCRIPTIONS[sendBotType] ?? []).map((line) => (
-											<li key={line}>{line}</li>
-										))}
-									</ul>
+									<div className='space-y-1.5'>
+										<p className='font-semibold'>Bot hodim turiga qarab xabar yuboradi:</p>
+										<ul className='space-y-1'>
+											{SEND_BOT_TYPE_OPTIONS.map((option) => (
+												<li key={option.value}>
+													<span className='font-semibold'>{option.label}</span>
+													<ul className='list-disc space-y-0.5 pl-4'>
+														{SEND_BOT_TYPE_DESCRIPTIONS[option.value].map((description) => (
+															<li key={description}>{description}</li>
+														))}
+													</ul>
+												</li>
+											))}
+										</ul>
+									</div>
 								}
 							>
 								<button
@@ -116,7 +130,9 @@ export default function TelegramBotRegisterModal({ open, setOpen, item }: Telegr
 					</div>
 
 					<div>
-						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Telegram ulanish kodi</label>
+						<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+							Telegram ulanish kodi
+						</label>
 						<div className='flex gap-2'>
 							<Input value={item.telegram_connect_code ?? ''} disabled />
 							<Button

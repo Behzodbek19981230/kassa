@@ -7,9 +7,11 @@ interface TooltipProps {
 	className?: string;
 	/** Which side of the trigger the bubble opens on. Use 'bottom' near the top of the viewport (e.g. the header), where a 'top' bubble would render off-screen. */
 	side?: 'top' | 'bottom';
+	/** Overrides the bubble's default single-line, auto-width sizing — use for longer, multi-line content. */
+	contentClassName?: string;
 }
 
-export function Tooltip({ content, children, className, side = 'top' }: TooltipProps) {
+export function Tooltip({ content, children, className, side = 'top', contentClassName }: TooltipProps) {
 	return (
 		<span className={cn('group relative inline-flex', className)}>
 			{children}
@@ -18,6 +20,7 @@ export function Tooltip({ content, children, className, side = 'top' }: TooltipP
 				className={cn(
 					'pointer-events-none absolute left-1/2 z-50 -translate-x-1/2 rounded-[3px] bg-ca-heading px-2 py-1 text-[11px] whitespace-nowrap text-white opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100',
 					side === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
+					contentClassName,
 				)}
 			>
 				{content}
