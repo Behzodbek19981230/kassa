@@ -284,21 +284,26 @@ export default function WarehouseProductRow({
 							</Button>
 						)}
 						{showAdd && (
-							<Button type='button' variant='success' size='icon' aria-label='Qator qo’shish' onClick={onAdd}>
+							<Button
+								type='button'
+								variant='success'
+								size='icon'
+								aria-label='Qator qo’shish'
+								onClick={onAdd}
+							>
 								<FaPlus />
 							</Button>
 						)}
 					</div>
 				</div>
 			</div>
-			{!resolveStock && duplicateItem && (
-				<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar bazada mavjud</p>
-			)}
+
 			{resolveStock &&
 				isVariantComplete &&
 				(duplicateItem ? (
 					<p className='mt-1 text-[11px] text-ca-text'>
-						Qoldiq: <span className='font-semibold text-ca-heading'>{formatNumber(duplicateItem.count)} ta</span>
+						Qoldiq:{' '}
+						<span className='font-semibold text-ca-heading'>{formatNumber(duplicateItem.count)} ta</span>
 					</p>
 				) : (
 					<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar omborda topilmadi</p>

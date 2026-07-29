@@ -1,16 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-	Button,
-	Combobox,
-	DatePicker,
-	Input,
-	PageHeader,
-	Panel,
-	PriceInput,
-	useNotification,
-} from '@/components/ui';
+import { Button, Combobox, DatePicker, Input, PageHeader, Panel, PriceInput, useNotification } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { generateId } from '@/lib/utils';
@@ -265,7 +256,9 @@ export default function WarehouseAccountEditPage() {
 							/>
 						</div>
 						<div>
-							<label className='mb-1 block text-xs font-semibold text-ca-heading'>Mening qarzim ($)</label>
+							<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+								Mening qarzim ($)
+							</label>
 							<PriceInput value={data.report.my_total_debt} disabled />
 						</div>
 						<div>
@@ -320,12 +313,7 @@ export default function WarehouseAccountEditPage() {
 						</div>
 					</div>
 
-					<Button
-						type='submit'
-						variant='theme'
-						className='mt-4 h-11 w-full text-sm'
-						disabled={isSaving || hasDuplicate}
-					>
+					<Button type='submit' variant='theme' className='mt-4 h-11 w-full text-sm' disabled={isSaving}>
 						O'zgartirish
 					</Button>
 				</form>
