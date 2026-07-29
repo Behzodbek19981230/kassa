@@ -23,4 +23,5 @@ export interface BrandSizeListParams extends ListParams {
   brand?: number
   product_category?: number
   type?: number
+  type_sklad?: number
 }

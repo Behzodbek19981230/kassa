@@ -19,7 +19,9 @@ export interface BrandPayload {
   sup_status: number
 }
 
-export type BrandListParams = ListParams
+export interface BrandListParams extends ListParams {
+  type_sklad?: number
+}
 
 export interface BrandNextSorting {
   model: string

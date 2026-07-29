@@ -75,17 +75,24 @@ export default function WarehouseProductRow({
 	resolveStock,
 	onResolveStock,
 }: WarehouseProductRowProps) {
-	const { data: brandData } = useBrandListQuery({ limit: 100 });
+	const typeSkladId = value.type_sklad ? Number(value.type_sklad) : undefined;
+
+	const { data: brandData } = useBrandListQuery({ type_sklad: typeSkladId, limit: 100 });
 	const brandNameById = new Map((brandData?.results ?? []).map((b) => [b.id, b.name]));
 
 	const brandId = value.brand ? Number(value.brand) : undefined;
-	const { data: categoryData } = useProductCategoryListQuery({ brand: brandId, limit: 100 });
+	const { data: categoryData } = useProductCategoryListQuery({
+		brand: brandId,
+		type_sklad: typeSkladId,
+		limit: 100,
+	});
 	const categoryNameById = new Map((categoryData?.results ?? []).map((c) => [c.id, c.name]));
 
 	const categoryId = value.product_category ? Number(value.product_category) : undefined;
 	const { data: brandSizeData } = useBrandSizeListQuery({
 		brand: brandId,
 		product_category: categoryId,
+		type_sklad: typeSkladId,
 		limit: 100,
 	});
 	const brandSizes = brandSizeData?.results ?? [];
@@ -100,7 +107,6 @@ export default function WarehouseProductRow({
 
 	const lineTotal = (Number(value.count) || 0) * (Number(value.price) || 0);
 
-	const typeSkladId = value.type_sklad ? Number(value.type_sklad) : undefined;
 	const isVariantComplete = Boolean(companyId && brandId && categoryId && typeSkladId && value.brandSize);
 	const { data: duplicateData } = useWarehouseListQuery(
 		{
@@ -126,7 +132,8 @@ export default function WarehouseProductRow({
 	}, [duplicateItem, value.key, resolveStock]);
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
+		if (!typeSkladId) return { options: [], hasMore: false };
+		const result = await brandService.list({ type_sklad: typeSkladId, search: search || undefined, page, limit: 20 });
 		return {
 			options: result.results.map((b) => ({ value: String(b.id), label: b.name })),
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
@@ -137,6 +144,7 @@ export default function WarehouseProductRow({
 		if (!brandId) return { options: [], hasMore: false };
 		const result = await productCategoryService.list({
 			brand: brandId,
+			type_sklad: typeSkladId,
 			search: search || undefined,
 			page,
 			limit: 20,
@@ -154,6 +162,10 @@ export default function WarehouseProductRow({
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [brandSizes, value.size, value.type, value.brandSize]);
+
+	const handleSkladChange = (type_sklad: string) => {
+		onChange({ ...value, type_sklad, brand: '', product_category: '', brandSize: '', size: null, type: null });
+	};
 
 	const handleBrandChange = (brand: string) => {
 		onChange({ ...value, brand, product_category: '', brandSize: '', size: null, type: null });
@@ -185,7 +197,7 @@ export default function WarehouseProductRow({
 					</label>
 					<Combobox
 						value={value.type_sklad}
-						onChange={(type_sklad) => onChange({ ...value, type_sklad })}
+						onChange={handleSkladChange}
 						loadOptions={loadSkladTypeOptions}
 						selectedLabel={skladTypeNameById.get(Number(value.type_sklad))}
 						placeholder='Tanlang...'
@@ -204,6 +216,7 @@ export default function WarehouseProductRow({
 						selectedLabel={brandNameById.get(Number(value.brand))}
 						placeholder='Tanlang...'
 						searchPlaceholder='Model qidirish...'
+						disabled={!value.type_sklad}
 					/>
 				</div>
 				<div className='min-w-45 flex-1'>

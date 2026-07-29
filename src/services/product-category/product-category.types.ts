@@ -23,6 +23,7 @@ export interface ProductCategoryPayload {
 
 export interface ProductCategoryListParams extends ListParams {
   brand?: number
+  type_sklad?: number
 }
 
 export interface ProductCategoryNextSorting {
