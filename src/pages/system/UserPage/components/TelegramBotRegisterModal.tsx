@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { FaCopy, FaExclamationTriangle } from 'react-icons/fa';
+import { FaCopy, FaExclamationTriangle, FaQuestionCircle } from 'react-icons/fa';
 import {
 	AlertBlock,
 	Button,
 	Checkbox,
 	Combobox,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
 	Input,
 	Modal,
 	ModalBody,
@@ -24,7 +27,19 @@ interface TelegramBotRegisterModalProps {
 	item: User;
 }
 
-const SEND_BOT_TYPE_OPTIONS = [{ value: 'asosiy', label: 'Asosiy bot' }];
+const SEND_BOT_TYPE_OPTIONS = [
+	{ value: 'admin', label: 'Admin' },
+	{ value: 'manager', label: 'Manager' },
+	{ value: 'sklad_manager', label: 'Sklad Manager' },
+	{ value: 'employee', label: 'Hodim' },
+];
+
+const SEND_BOT_TYPE_DESCRIPTIONS: Record<string, string[]> = {
+	admin: ["Buyurtma", "Qarz to'lovi", 'Import', 'Vozvrat', 'Login/block kabi admin xabarlari'],
+	manager: ['Buyurtma', 'Vozvrat'],
+	sklad_manager: ['Import bo\'yicha xabarlar'],
+	employee: ["Faqat o'zi qilgan buyurtma", "O'ziga tegishli qarz to'lovi"],
+};
 
 export default function TelegramBotRegisterModal({ open, setOpen, item }: TelegramBotRegisterModalProps) {
 	const { notify } = useNotification();
@@ -72,7 +87,27 @@ export default function TelegramBotRegisterModal({ open, setOpen, item }: Telegr
 					/>
 
 					<div>
-						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Send bot turi</label>
+						<div className='mb-1 flex items-center gap-1.5'>
+							<label className='block text-xs font-semibold text-ca-heading'>Send bot turi</label>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<button
+										type='button'
+										className='flex items-center text-ca-text hover:text-ca-heading'
+										aria-label="Ma'lumot"
+									>
+										<FaQuestionCircle />
+									</button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align='start' className='w-64 p-3'>
+									<ul className='list-disc space-y-1 pl-4 text-[11px] text-ca-heading'>
+										{(SEND_BOT_TYPE_DESCRIPTIONS[sendBotType] ?? []).map((line) => (
+											<li key={line}>{line}</li>
+										))}
+									</ul>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</div>
 						<Combobox
 							value={sendBotType}
 							onChange={setSendBotType}
