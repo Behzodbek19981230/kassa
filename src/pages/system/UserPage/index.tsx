@@ -5,11 +5,13 @@ import {
 	type SortingState,
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaTrash, FaUser } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaTelegramPlane, FaTrash, FaUnlock, FaUser } from 'react-icons/fa';
 import { Badge, Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import DeleteUserModal from '@/pages/system/UserPage/components/DeleteUserModal';
+import TelegramBotRegisterModal from '@/pages/system/UserPage/components/TelegramBotRegisterModal';
+import UnblockUserModal from '@/pages/system/UserPage/components/UnblockUserModal';
 import UserFormModal from '@/pages/system/UserPage/components/UserFormModal';
 import { useUserListQuery } from '@/services/user/user.queries';
 import type { User } from '@/services/user/user.types';
@@ -21,6 +23,8 @@ export default function UserPage() {
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+	const [unblockTarget, setUnblockTarget] = useState<User | null>(null);
+	const [telegramTarget, setTelegramTarget] = useState<User | null>(null);
 
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const usernameFilter = columnFilters.find((f) => f.id === 'username')?.value as string | undefined;
@@ -68,7 +72,17 @@ export default function UserPage() {
 			header: 'Holati',
 			size: 100,
 			enableColumnFilter: false,
-			cell: (info) => <Badge variant={info.getValue() ? 'success' : 'danger'}>{info.getValue() ? 'Faol' : 'Nofaol'}</Badge>,
+			cell: (info) => (
+				<Badge variant={info.getValue() ? 'success' : 'danger'}>{info.getValue() ? 'Faol' : 'Nofaol'}</Badge>
+			),
+		}),
+		columnHelper.accessor('is_login_blocked', {
+			header: 'Bloklangan',
+			size: 110,
+			enableColumnFilter: false,
+			cell: (info) => (
+				<Badge variant={info.getValue() ? 'danger' : 'default'}>{info.getValue() ? 'Ha' : "Yo'q"}</Badge>
+			),
 		}),
 		columnHelper.display({
 			id: 'actions',
@@ -76,15 +90,37 @@ export default function UserPage() {
 			meta: { align: 'right' },
 			enableSorting: false,
 			enableColumnFilter: false,
-			size: 150,
+			size: 190,
 			cell: ({ row }) => (
-				<div className='flex justify-end gap-1'>
+				<div className='flex items-center justify-end gap-1'>
+					{row.original.is_login_blocked && (
+						<Button
+							type='button'
+							variant='success'
+							size='icon'
+							aria-label='Blokdan chiqarish'
+							disabled={!canWrite}
+							onClick={() => setUnblockTarget(row.original)}
+						>
+							<FaUnlock />
+						</Button>
+					)}
+					<Button
+						type='button'
+						variant='info'
+						size='icon'
+						aria-label="Telegram Botdan ro'yxatdan o'tkazish"
+						disabled={!canWrite}
+						onClick={() => setTelegramTarget(row.original)}
+					>
+						<FaTelegramPlane />
+					</Button>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
 						elementProps={{
 							...buttonProps(<FaEdit />, 'warning', 'icon'),
 							'aria-label': 'Tahrirlash',
-							disabled: !canWrite,
+							// disabled: !canWrite,
 						}}
 						dialog={UserFormModal}
 						dialogProps={{ mode: 'edit' as const, item: row.original }}
@@ -156,6 +192,26 @@ export default function UserPage() {
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>
+
+			{unblockTarget && (
+				<UnblockUserModal
+					open
+					setOpen={(open) => {
+						if (!open) setUnblockTarget(null);
+					}}
+					item={unblockTarget}
+				/>
+			)}
+
+			{telegramTarget && (
+				<TelegramBotRegisterModal
+					open
+					setOpen={(open) => {
+						if (!open) setTelegramTarget(null);
+					}}
+					item={telegramTarget}
+				/>
+			)}
 		</>
 	);
 }

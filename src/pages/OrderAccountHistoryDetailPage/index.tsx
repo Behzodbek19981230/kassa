@@ -165,7 +165,7 @@ export default function OrderAccountHistoryDetailPage() {
 					<Button type='button' variant='danger' size='xs' onClick={() => printFor('admin')}>
 						<FaDownload className='mr-1.5' /> Chop qilish Admin uchun
 					</Button>
-					<Button
+					{/* <Button
 						type='button'
 						variant='danger'
 						size='xs'
@@ -174,7 +174,7 @@ export default function OrderAccountHistoryDetailPage() {
 					>
 						<FaUndo className='mr-1.5' />{' '}
 						{calculateMutation.isPending ? 'Hisoblanmoqda...' : 'Vozvrat qilish'}
-					</Button>
+					</Button> */}
 					<Button type='button' variant='default' size='xs' onClick={() => setChangeLogsOpen(true)}>
 						<FaHistory className='mr-1.5' /> O'zgarishlar tarixi
 					</Button>
@@ -296,7 +296,7 @@ export default function OrderAccountHistoryDetailPage() {
 													<span className='inline-flex items-center gap-1.5'>
 														{formatNumber(item.price)}
 														{item.is_price_diff && (
-															<Tooltip content="Narxlarda tafovut">
+															<Tooltip content='Narxlarda tafovut'>
 																<FaExclamationTriangle className='text-ca-orange' />
 															</Tooltip>
 														)}
@@ -312,12 +312,15 @@ export default function OrderAccountHistoryDetailPage() {
 											{item.has_vozvrat &&
 												item.vozvrat_products.map((vp) => (
 													<TableRow key={vp.id} className='bg-ca-orange/10'>
-														<TableCell colSpan={11} className='py-1.5 text-[11px] text-ca-orange'>
+														<TableCell
+															colSpan={11}
+															className='py-1.5 text-[11px] text-ca-orange'
+														>
 															<span className='inline-flex flex-wrap items-center gap-1.5'>
 																<FaUndo />
 																<span className='font-semibold'>
-																	{vp.vozvrat_order_date_label} sanada {formatNumber(vp.count)} ta
-																	qaytarilgan
+																	{vp.vozvrat_order_date_label} sanada{' '}
+																	{formatNumber(vp.count)} ta qaytarilgan
 																</span>
 																<span>({formatNumber(vp.price_total, 2)} $)</span>
 																<Link
@@ -336,8 +339,12 @@ export default function OrderAccountHistoryDetailPage() {
 										<TableCell colSpan={6} className='font-semibold text-ca-heading'>
 											Jami:
 										</TableCell>
-										<TableCell className='font-semibold text-ca-heading'>{group.totals.count}</TableCell>
-										<TableCell className='font-semibold text-ca-heading'>{group.totals.given_count}</TableCell>
+										<TableCell className='font-semibold text-ca-heading'>
+											{group.totals.count}
+										</TableCell>
+										<TableCell className='font-semibold text-ca-heading'>
+											{group.totals.given_count}
+										</TableCell>
 										<TableCell className='font-semibold text-ca-heading'>
 											{formatNumber(group.totals.price_total)}
 										</TableCell>
@@ -355,7 +362,9 @@ export default function OrderAccountHistoryDetailPage() {
 							<TableCell className='bg-ca-heading text-white' colSpan={6}>
 								Jami:
 							</TableCell>
-							<TableCell className='bg-ca-heading font-semibold text-white'>{products.totals.count}</TableCell>
+							<TableCell className='bg-ca-heading font-semibold text-white'>
+								{products.totals.count}
+							</TableCell>
 							<TableCell className='bg-ca-heading font-semibold text-white'>
 								{products.totals.given_count}
 							</TableCell>

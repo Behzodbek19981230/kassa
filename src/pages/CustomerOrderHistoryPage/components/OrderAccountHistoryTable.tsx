@@ -10,19 +10,15 @@ import {
 	type ComboboxLoadResult,
 	DataTable,
 	Tooltip,
-	useNotification,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
-import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
-import {
-	useOrderAccountHistoryGroupedListQuery,
-	useUpdateOrderAccountHistoryStatusMutation,
-} from '@/services/order-account-history/order-account-history.queries';
+import { useOrderAccountHistoryGroupedListQuery } from '@/services/order-account-history/order-account-history.queries';
 import type { OrderAccountHistoryItem } from '@/services/order-account-history/order-account-history.types';
 import { useUserListQuery } from '@/services/user/user.queries';
 import { userService } from '@/services/user/user.service';
+import ConfirmOrderUpdateModal from '@/pages/CustomerOrderHistoryPage/components/ConfirmOrderUpdateModal';
 import OrderDraftDeleteModal from '@/pages/CustomerOrderHistoryPage/components/OrderDraftDeleteModal';
 import OrderHardDeleteModal from '@/pages/CustomerOrderHistoryPage/components/OrderHardDeleteModal';
 
@@ -57,8 +53,6 @@ export default function OrderAccountHistoryTable({
 	onRefetchReady,
 }: OrderAccountHistoryTableProps) {
 	const navigate = useNavigate();
-	const { notify } = useNotification();
-	const updateStatusMutation = useUpdateOrderAccountHistoryStatusMutation();
 
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -270,24 +264,16 @@ export default function OrderAccountHistoryTable({
 					<div className='flex justify-end gap-1'>
 						{item.update_status === 1 && (
 							<Tooltip content="Buyurtma o'zgartirilgan, tasdiqlash uchun bosing">
-								<Button
-									type='button'
-									variant='warning'
-									size='icon'
-									aria-label="O'zgarishni tasdiqlash"
-									disabled={!canWrite || updateStatusMutation.isPending}
-									onClick={() =>
-										updateStatusMutation.mutate(
-											{ id: item.id, payload: { update_status: 0 } },
-											{
-												onError: (err) =>
-													notify({ title: getApiErrorMessage(err, 'Xatolik yuz berdi') }),
-											},
-										)
-									}
-								>
-									<FaCheck />
-								</Button>
+								<OpenDialogButton
+									element={(props) => <Button {...props} />}
+									elementProps={{
+										...buttonProps(<FaCheck />, 'warning', 'icon'),
+										'aria-label': "O'zgarishni tasdiqlash",
+										disabled: !canWrite,
+									}}
+									dialog={ConfirmOrderUpdateModal}
+									dialogProps={{ id: item.id }}
+								/>
 							</Tooltip>
 						)}
 						{!isDebtorOnly && (

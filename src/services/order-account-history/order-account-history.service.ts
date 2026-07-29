@@ -1,6 +1,7 @@
 import { apiClient, API_BASE_URL } from '@/services/api/client';
 import type { PaginatedResponse } from '@/services/api/types';
 import type {
+	OrderAccountHistoryChangeLogsParams,
 	OrderAccountHistoryChangeLogsResponse,
 	OrderAccountHistoryDraftDeleteResponse,
 	OrderAccountHistoryDraftListParams,
@@ -63,9 +64,10 @@ export const orderAccountHistoryService = {
 		const { data } = await apiClient.get<OrderAccountHistoryProductsResponse>(`/order-account-history/${id}/products/`);
 		return data;
 	},
-	getChangeLogs: async (id: number) => {
+	getChangeLogs: async (id: number, params?: OrderAccountHistoryChangeLogsParams) => {
 		const { data } = await apiClient.get<OrderAccountHistoryChangeLogsResponse>(
 			`/order-account-history/${id}/change-logs/`,
+			{ params },
 		);
 		return data;
 	},

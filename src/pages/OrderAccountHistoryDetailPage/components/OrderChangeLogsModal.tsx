@@ -1,4 +1,5 @@
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { type UIEvent } from 'react';
+import { FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
 import { Modal, ModalBody, ModalContent, ModalHeader, ModalTitle } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/lib/number';
@@ -6,7 +7,6 @@ import { useOrderAccountHistoryChangeLogsQuery } from '@/services/order-account-
 import type {
 	OrderAccountHistoryChangeLog,
 	OrderAccountHistoryChangeLogChange,
-	OrderAccountHistoryChangeLogUserDetail,
 } from '@/services/order-account-history/order-account-history.types';
 
 interface OrderChangeLogsModalProps {
@@ -15,45 +15,35 @@ interface OrderChangeLogsModalProps {
 	orderId?: number;
 }
 
-function formatDateTime(value: string) {
-	const d = new Date(value);
-	if (Number.isNaN(d.getTime())) return value;
-	const date = d.toLocaleDateString('ru-RU');
-	const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-	return `${date} ${time}`;
-}
-
-function userLabel(u: OrderAccountHistoryChangeLogUserDetail) {
-	return `${u.last_name} ${u.first_name}`.trim() || u.username;
-}
-
 const productActionCardClass: Record<'added' | 'removed' | 'changed', string> = {
 	added: 'border-ca-green bg-ca-green/5',
 	removed: 'border-ca-red bg-ca-red/5',
 	changed: 'border-ca-orange bg-ca-orange/5',
 };
 
-const productActionLabel: Record<'added' | 'removed' | 'changed', string> = {
+const productActionLabel: Record<'added' | 'removed', string> = {
 	added: "Qo'shildi",
 	removed: "O'chirildi",
-	changed: "O'zgardi",
 };
 
 function ChangeRow({ change, index }: { change: OrderAccountHistoryChangeLogChange; index: number }) {
 	if (change.type === 'field') {
 		return (
-			<p key={index} className='text-xs text-ca-text'>
-				<span className='font-semibold text-ca-heading'>{change.label}:</span> {formatNumber(change.old)}{' '}
-				<span aria-hidden>→</span> <span className='font-semibold text-ca-heading'>{formatNumber(change.new)}</span>
+			<p key={index} className='text-xs text-ca-heading'>
+				<span className='font-semibold'>{change.label}:</span> {formatNumber(change.old)}{' '}
+				<span aria-hidden>→</span> <span className='font-semibold'>{formatNumber(change.new)}</span>
 			</p>
 		);
 	}
 
+	const snapshot = change.action === 'removed' ? change.old : change.new;
+
 	return (
 		<div key={index} className={cn('rounded border-l-4 p-2 text-xs', productActionCardClass[change.action])}>
-			<p className='font-semibold text-ca-heading'>
-				{productActionLabel[change.action]}: {change.label}
-			</p>
+			{change.action !== 'changed' && (
+				<p className='font-semibold text-ca-heading'>{productActionLabel[change.action]}</p>
+			)}
+			<p className='font-semibold text-ca-heading'>{change.label}</p>
 			<div className='mt-1 space-y-0.5 text-ca-text'>
 				{change.action === 'changed' &&
 					change.changes?.map((fieldChange, i) => (
@@ -62,16 +52,12 @@ function ChangeRow({ change, index }: { change: OrderAccountHistoryChangeLogChan
 							{formatNumber(fieldChange.new)}
 						</p>
 					))}
-				{change.action === 'added' && change.new && (
+				{change.action !== 'changed' && snapshot && (
 					<>
-						<p>Soni: {formatNumber(change.new.count)}</p>
-						<p>Narx: {formatNumber(change.new.price, 2)}</p>
-					</>
-				)}
-				{change.action === 'removed' && change.old && (
-					<>
-						<p>Soni: {formatNumber(change.old.count)}</p>
-						<p>Narx: {formatNumber(change.old.price, 2)}</p>
+						<p>Soni: {formatNumber(snapshot.count)}</p>
+						<p>Narx: {formatNumber(snapshot.price, 2)}</p>
+						<p>Haqiqiy narx: {formatNumber(snapshot.real_price, 2)}</p>
+						<p>Foyda: {formatNumber(snapshot.profit, 2)}</p>
 					</>
 				)}
 			</div>
@@ -83,23 +69,31 @@ function ChangeLogCard({ log }: { log: OrderAccountHistoryChangeLog }) {
 	return (
 		<div className='rounded border border-ca-border p-3'>
 			<div className='mb-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-ca-text'>
-				<span className='font-semibold text-ca-heading'>{formatDateTime(log.created_time)}</span>
-				<span>Hodim: {userLabel(log.user_detail)}</span>
+				<span className='font-semibold text-ca-heading'>{log.created_time_label}</span>
+				<span>Hodim: {log.user_name}</span>
 			</div>
+			{log.text && <p className='mb-2 text-xs text-ca-text'>{log.text}</p>}
 			<div className='space-y-2'>
-				{log.changes.length === 0 ? (
-					<p className='text-xs text-ca-text'>{log.text}</p>
-				) : (
-					log.changes.map((change, i) => <ChangeRow key={i} change={change} index={i} />)
-				)}
+				{log.changes.map((change, i) => (
+					<ChangeRow key={i} change={change} index={i} />
+				))}
 			</div>
 		</div>
 	);
 }
 
 export default function OrderChangeLogsModal({ open, setOpen, orderId }: OrderChangeLogsModalProps) {
-	const { data, isLoading, isError } = useOrderAccountHistoryChangeLogsQuery(orderId, open);
-	const logs = data?.results ?? [];
+	const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
+		useOrderAccountHistoryChangeLogsQuery(orderId, open);
+	const logs = data?.pages.flatMap((page) => page.results) ?? [];
+
+	function handleScroll(e: UIEvent<HTMLDivElement>) {
+		if (!hasNextPage || isFetchingNextPage) return;
+		const el = e.currentTarget;
+		if (el.scrollTop + el.clientHeight >= el.scrollHeight - 40) {
+			fetchNextPage();
+		}
+	}
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
@@ -107,7 +101,7 @@ export default function OrderChangeLogsModal({ open, setOpen, orderId }: OrderCh
 				<ModalHeader>
 					<ModalTitle>O'zgarishlar tarixi</ModalTitle>
 				</ModalHeader>
-				<ModalBody className='max-h-[70vh] space-y-3 overflow-y-auto'>
+				<ModalBody className='max-h-[70vh] space-y-3 overflow-y-auto' onScroll={handleScroll}>
 					{isLoading && <p className='text-center'>Yuklanmoqda...</p>}
 					{!isLoading && isError && (
 						<p className='flex items-center justify-center gap-2 text-ca-red'>
@@ -115,11 +109,14 @@ export default function OrderChangeLogsModal({ open, setOpen, orderId }: OrderCh
 						</p>
 					)}
 					{!isLoading && !isError && logs.length === 0 && (
-						<p className='text-center text-ca-text'>O'zgarishlar tarixi topilmadi</p>
+						<p className='text-center text-ca-text'>Hali o'zgarishlar yo'q</p>
 					)}
-					{!isLoading &&
-						!isError &&
-						logs.map((log) => <ChangeLogCard key={log.id} log={log} />)}
+					{!isLoading && !isError && logs.map((log) => <ChangeLogCard key={log.id} log={log} />)}
+					{isFetchingNextPage && (
+						<p className='flex items-center justify-center gap-2 text-ca-text'>
+							<FaSpinner className='animate-spin' /> Yuklanmoqda...
+						</p>
+					)}
 				</ModalBody>
 			</ModalContent>
 		</Modal>

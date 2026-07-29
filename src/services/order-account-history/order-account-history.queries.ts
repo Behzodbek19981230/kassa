@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
 import type {
 	OrderAccountHistoryDraftListParams,
@@ -64,10 +64,18 @@ export function useOrderAccountHistoryProductsQuery(id?: number) {
 	});
 }
 
+const CHANGE_LOGS_PAGE_SIZE = 20;
+
 export function useOrderAccountHistoryChangeLogsQuery(id?: number, enabled = true) {
-	return useQuery({
+	return useInfiniteQuery({
 		queryKey: orderAccountHistoryKeys.changeLogs(id),
-		queryFn: () => orderAccountHistoryService.getChangeLogs(id!),
+		queryFn: ({ pageParam }) =>
+			orderAccountHistoryService.getChangeLogs(id!, { page: pageParam, limit: CHANGE_LOGS_PAGE_SIZE }),
+		initialPageParam: 1,
+		getNextPageParam: (lastPage) =>
+			lastPage.pagination.currentPage < lastPage.pagination.lastPage
+				? lastPage.pagination.currentPage + 1
+				: undefined,
 		enabled: enabled && id !== undefined,
 	});
 }

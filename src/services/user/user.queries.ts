@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { isAuthenticated } from '@/lib/auth'
 import { userService } from '@/services/user/user.service'
-import type { UserListParams, UserPayload } from '@/services/user/user.types'
+import type { UserListParams, UserPayload, UserTelegramBotRegisterPayload } from '@/services/user/user.types'
 
 export function useUserInfoQuery() {
   return useQuery({
@@ -56,6 +56,23 @@ export function useDeleteUserMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => userService.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+  })
+}
+
+export function useUnblockUserMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => userService.unblock(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+  })
+}
+
+export function useRegisterTelegramBotMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: UserTelegramBotRegisterPayload }) =>
+      userService.registerTelegramBot(id, payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
   })
 }

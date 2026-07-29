@@ -1,6 +1,6 @@
 import { apiClient } from '@/services/api/client'
 import type { PaginatedResponse } from '@/services/api/types'
-import type { User, UserListParams, UserPayload } from '@/services/user/user.types'
+import type { User, UserListParams, UserPayload, UserTelegramBotRegisterPayload } from '@/services/user/user.types'
 
 function buildUserFormData(payload: UserPayload, avatar?: File | null) {
   const formData = new FormData()
@@ -52,5 +52,13 @@ export const userService = {
   },
   remove: async (id: number) => {
     await apiClient.delete(`/user/${id}/`)
+  },
+  unblock: async (id: number) => {
+    const { data } = await apiClient.patch<User>(`/user/${id}/`, { is_login_blocked: false })
+    return data
+  },
+  registerTelegramBot: async (id: number, payload: UserTelegramBotRegisterPayload) => {
+    const { data } = await apiClient.patch<User>(`/user/${id}/`, payload)
+    return data
   },
 }

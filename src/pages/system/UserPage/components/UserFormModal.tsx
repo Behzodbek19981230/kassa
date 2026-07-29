@@ -167,9 +167,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 		setAvatarPreview(file ? URL.createObjectURL(file) : (currentUser?.avatar ?? null));
 	};
 
-	const companyLabels = Object.fromEntries(
-		(currentUser?.companies_detail ?? []).map((c) => [String(c.id), c.name]),
-	);
+	const companyLabels = Object.fromEntries((currentUser?.companies_detail ?? []).map((c) => [String(c.id), c.name]));
 
 	const loadRegionOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await regionService.list({ search: search || undefined, page, limit: 20 });
@@ -268,7 +266,11 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								className='group relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-ca-border bg-ca-silver'
 							>
 								{avatarPreview ? (
-									<img src={avatarPreview} alt='Avatar' className='h-full w-full rounded-full object-cover' />
+									<img
+										src={avatarPreview}
+										alt='Avatar'
+										className='h-full w-full rounded-full object-cover'
+									/>
 								) : (
 									<FaUser className='text-3xl text-ca-text' />
 								)}
@@ -285,7 +287,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 							/>
 						</FormField>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Login' error={errors.username?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Login'
+								error={errors.username?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Input {...register('username')} />
 							</FormField>
 							<FormField
@@ -303,18 +311,41 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 							</FormField>
 						</div>
 						<div className='mb-3 grid grid-cols-3 gap-3'>
-							<FormField label='Ism' error={errors.first_name?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Ism'
+								error={errors.first_name?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Input {...register('first_name')} />
 							</FormField>
-							<FormField label='Familiya' error={errors.last_name?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Familiya'
+								error={errors.last_name?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Input {...register('last_name')} />
 							</FormField>
-							<FormField label='Otasining ismi' error={errors.second_name?.message} horizontal={false} className='mb-0'>
+							<FormField
+								label='Otasining ismi'
+								error={errors.second_name?.message}
+								horizontal={false}
+								className='mb-0'
+							>
 								<Input {...register('second_name')} />
 							</FormField>
 						</div>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Jinsi' error={errors.gender?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Jinsi'
+								error={errors.gender?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='gender'
 									control={control}
@@ -349,7 +380,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 							</FormField>
 						</div>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Telefon' error={errors.phone_number?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Telefon'
+								error={errors.phone_number?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='phone_number'
 									control={control}
@@ -364,12 +401,24 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 									)}
 								/>
 							</FormField>
-							<FormField label='Email' error={errors.email?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Email'
+								error={errors.email?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Input type='email' {...register('email')} />
 							</FormField>
 						</div>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Viloyat' error={errors.region?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Viloyat'
+								error={errors.region?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='region'
 									control={control}
@@ -378,7 +427,9 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 											value={field.value}
 											onChange={handleRegionChange}
 											loadOptions={loadRegionOptions}
-											selectedLabel={currentUser?.region_detail?.name ?? regionDetailQuery.data?.name}
+											selectedLabel={
+												currentUser?.region_detail?.name ?? regionDetailQuery.data?.name
+											}
 											placeholder='Tanlang...'
 											searchPlaceholder='Viloyat qidirish...'
 											clearable
@@ -386,7 +437,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 									)}
 								/>
 							</FormField>
-							<FormField label='Tuman' error={errors.district?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Tuman'
+								error={errors.district?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='district'
 									control={control}
@@ -395,7 +452,9 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 											value={field.value}
 											onChange={field.onChange}
 											loadOptions={loadDistrictOptions}
-											selectedLabel={currentUser?.district_detail?.name ?? districtDetailQuery.data?.name}
+											selectedLabel={
+												currentUser?.district_detail?.name ?? districtDetailQuery.data?.name
+											}
 											placeholder='Tanlang...'
 											searchPlaceholder='Tuman qidirish...'
 											disabled={!regionValue}
@@ -405,7 +464,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								/>
 							</FormField>
 						</div>
-						<FormField label='Rol' error={errors.role?.message} required horizontal={false} className='mb-3'>
+						<FormField
+							label='Rol'
+							error={errors.role?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
 							<Controller
 								name='role'
 								control={control}
@@ -422,7 +487,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								)}
 							/>
 						</FormField>
-						<FormField label='Tashkilotlar' error={errors.companies?.message} required horizontal={false} className='mb-3'>
+						<FormField
+							label='Tashkilotlar'
+							error={errors.companies?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
 							<MultiCombobox
 								value={companiesValue}
 								onChange={(values) => setValue('companies', values, { shouldValidate: true })}
@@ -432,7 +503,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								searchPlaceholder='Tashkilot qidirish...'
 							/>
 						</FormField>
-						<FormField label='Manzil' error={errors.address?.message} required horizontal={false} className='mb-3'>
+						<FormField
+							label='Manzil'
+							error={errors.address?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
 							<Textarea rows={2} {...register('address')} />
 						</FormField>
 						<Controller
