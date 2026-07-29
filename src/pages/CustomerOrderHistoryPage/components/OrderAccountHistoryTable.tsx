@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaExpand, FaTrash } from 'react-icons/fa';
+import { FaCheck, FaEdit, FaExclamationTriangle, FaExpand, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
 	Badge,
@@ -115,6 +115,9 @@ export default function OrderAccountHistoryTable({
 			size: 40,
 			enableColumnFilter: false,
 			cell: ({ row }) => row.original._no,
+			meta: {
+				excludeRowHighlight: true,
+			},
 		}),
 		columnHelper.accessor('date', {
 			header: 'Sana',
@@ -123,6 +126,7 @@ export default function OrderAccountHistoryTable({
 			cell: ({ row }) => <span className='font-semibold text-ca-theme'>{row.original._dateLabel}</span>,
 			meta: {
 				rowSpanGroupKey: (row) => row._groupId,
+				excludeRowHighlight: true,
 			},
 		}),
 		columnHelper.accessor('client', {
@@ -257,6 +261,13 @@ export default function OrderAccountHistoryTable({
 				const item = row.original;
 				return (
 					<div className='flex justify-end gap-1'>
+						{item.update_status === 1 && (
+							<Tooltip content="Buyurtma o'zgartirilgan">
+								<Button type='button' variant='warning' size='icon' aria-label="O'zgartirilgan">
+									<FaCheck />
+								</Button>
+							</Tooltip>
+						)}
 						{!isDebtorOnly && (
 							<Button
 								type='button'
@@ -324,6 +335,7 @@ export default function OrderAccountHistoryTable({
 					setColumnFilters(filters);
 					setPagination((p) => ({ ...p, pageIndex: 0 }));
 				}}
+				getRowClassName={(row) => (row.update_status === 1 ? 'bg-ca-orange/10' : undefined)}
 				enablePagination
 				enableSorting={false}
 				enableGlobalFilter={false}

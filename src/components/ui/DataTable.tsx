@@ -35,6 +35,8 @@ declare module '@tanstack/react-table' {
 		 * one, spanning all their rows via the `rowSpan` attribute.
 		 */
 		rowSpanGroupKey?: (row: TData) => unknown;
+		/** Excludes this column's cells from the background applied by `getRowClassName`. */
+		excludeRowHighlight?: boolean;
 	}
 }
 
@@ -667,7 +669,7 @@ export function DataTable<TData>({
 															enableStriping && index % 2 === 0 && 'bg-ca-table-stripe',
 															'group-hover:bg-ca-table-hover',
 															enableBordered && 'border-x border-b border-ca-border',
-															rowClassName,
+															!cell.column.columnDef.meta?.excludeRowHighlight && rowClassName,
 															row.getIsSelected() && 'bg-[#ffc]!',
 														)}
 														style={
