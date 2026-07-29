@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
-import { FaBan, FaExclamationTriangle, FaExpand, FaUndo } from 'react-icons/fa';
+import { FaTrash, FaExclamationTriangle, FaExpand, FaUndo } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
 	Badge,
@@ -273,7 +273,7 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
-								...buttonProps(<FaBan />, 'danger', 'icon'),
+								...buttonProps(<FaTrash />, 'danger', 'icon'),
 								'aria-label': "Batamom o'chirish",
 								disabled: !canWrite,
 							}}

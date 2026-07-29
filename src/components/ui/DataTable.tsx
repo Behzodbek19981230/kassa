@@ -132,6 +132,8 @@ interface DataTableProps<TData> {
 	enableExportPdf?: boolean;
 	enableExportExcel?: boolean;
 	renderExpandedRow?: (row: TData) => ReactNode;
+	/** Returns extra classes (e.g. a background color) applied to every cell of a row, based on its data. */
+	getRowClassName?: (row: TData) => string | undefined;
 	exportFileName?: string;
 	emptyMessage?: ReactNode;
 	emptyIcon?: ReactNode;
@@ -178,6 +180,7 @@ export function DataTable<TData>({
 	enableExportPdf = false,
 	enableExportExcel = false,
 	renderExpandedRow,
+	getRowClassName,
 	exportFileName = 'table-export.csv',
 	emptyMessage = 'No data available',
 	emptyIcon = <FcDeleteDatabase className='text-4xl text-ca-border' />,
@@ -647,46 +650,50 @@ export function DataTable<TData>({
 								</TableRow>
 							))
 						) : bodyRows.length ? (
-							bodyRows.map((row, index) => (
-								<Fragment key={row.id}>
-									<TableRow className='group'>
-										{row.getVisibleCells().map((cell) => {
-											const rowSpans = rowSpansByColumnId[cell.column.id];
-											if (rowSpans && rowSpans[index] === 0) return null;
-											return (
-												<TableCell
-													key={cell.id}
-													rowSpan={rowSpans ? rowSpans[index] : undefined}
-													className={cn(
-														alignTextClass[cell.column.columnDef.meta?.align ?? 'left'],
-														enableStriping && index % 2 === 0 && 'bg-ca-table-stripe',
-														'group-hover:bg-ca-table-hover',
-														enableBordered && 'border-x border-b border-ca-border',
-														row.getIsSelected() && 'bg-[#ffc]!',
-													)}
-													style={
-														enableColumnResizing
-															? { width: cell.column.getSize() }
-															: undefined
-													}
-												>
-													{flexRender(cell.column.columnDef.cell, cell.getContext())}
-												</TableCell>
-											);
-										})}
-									</TableRow>
-									{enableExpanding && row.getIsExpanded() && (
-										<TableRow>
-											<TableCell
-												colSpan={row.getVisibleCells().length}
-												className='bg-ca-silver-light'
-											>
-												{renderExpandedRow ? renderExpandedRow(row.original) : null}
-											</TableCell>
+							bodyRows.map((row, index) => {
+								const rowClassName = getRowClassName?.(row.original);
+								return (
+									<Fragment key={row.id}>
+										<TableRow className='group'>
+											{row.getVisibleCells().map((cell) => {
+												const rowSpans = rowSpansByColumnId[cell.column.id];
+												if (rowSpans && rowSpans[index] === 0) return null;
+												return (
+													<TableCell
+														key={cell.id}
+														rowSpan={rowSpans ? rowSpans[index] : undefined}
+														className={cn(
+															alignTextClass[cell.column.columnDef.meta?.align ?? 'left'],
+															enableStriping && index % 2 === 0 && 'bg-ca-table-stripe',
+															'group-hover:bg-ca-table-hover',
+															enableBordered && 'border-x border-b border-ca-border',
+															rowClassName,
+															row.getIsSelected() && 'bg-[#ffc]!',
+														)}
+														style={
+															enableColumnResizing
+																? { width: cell.column.getSize() }
+																: undefined
+														}
+													>
+														{flexRender(cell.column.columnDef.cell, cell.getContext())}
+													</TableCell>
+												);
+											})}
 										</TableRow>
-									)}
-								</Fragment>
-							))
+										{enableExpanding && row.getIsExpanded() && (
+											<TableRow>
+												<TableCell
+													colSpan={row.getVisibleCells().length}
+													className='bg-ca-silver-light'
+												>
+													{renderExpandedRow ? renderExpandedRow(row.original) : null}
+												</TableCell>
+											</TableRow>
+										)}
+									</Fragment>
+								);
+							})
 						) : (
 							<TableRow>
 								<TableCell colSpan={columns.length} className='p-0'>

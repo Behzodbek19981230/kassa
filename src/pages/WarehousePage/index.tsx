@@ -313,6 +313,7 @@ export default function WarehousePage() {
 				<DataTable
 					columns={columns}
 					data={results}
+					getRowClassName={(row) => (row.count <= 0 ? 'bg-red-100' : undefined)}
 					manualPagination
 					manualSorting
 					manualFiltering

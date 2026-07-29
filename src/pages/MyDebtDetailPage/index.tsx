@@ -1,4 +1,4 @@
-import { FaArrowLeft, FaBan, FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
+import { FaArrowLeft, FaTrash, FaEdit, FaExclamationTriangle } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, buttonProps, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
@@ -136,7 +136,7 @@ export default function MyDebtDetailPage() {
 												{/* <OpenDialogButton
 													element={(props) => <Button {...props} />}
 													elementProps={{
-														...buttonProps(<FaBan />, 'danger', 'icon'),
+														...buttonProps(<FaTrash />, 'danger', 'icon'),
 														'aria-label': "Batamom o'chirish",
 														disabled: !canWrite,
 													}}

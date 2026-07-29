@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
-import { FaBan, FaEdit, FaExclamationTriangle, FaExpand, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaExpand, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
 	Badge,
@@ -293,7 +293,7 @@ export default function OrderAccountHistoryTable({
 								{/* <OpenDialogButton
 									element={(props) => <Button {...props} />}
 									elementProps={{
-										...buttonProps(<FaBan />, 'danger', 'icon'),
+										...buttonProps(<FaTrash />, 'danger', 'icon'),
 										'aria-label': "Batamom o'chirish",
 										disabled: !canWrite,
 									}}

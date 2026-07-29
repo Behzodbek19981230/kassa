@@ -19,6 +19,7 @@ import PlaceOrderPage from '@/pages/PlaceOrderPage';
 import ImportPage from '@/pages/ImportPage';
 import CustomerOrderHistoryPage from '@/pages/CustomerOrderHistoryPage';
 import CartDraftsPage from '@/pages/CartDraftsPage';
+import OrderCartPage from '@/pages/OrderCartPage';
 import OrderAccountHistoryDetailPage from '@/pages/OrderAccountHistoryDetailPage';
 import OrderAccountHistoryEditPage from '@/pages/OrderAccountHistoryEditPage';
 import OrderAndDebtPage from '@/pages/OrderAndDebtPage';
@@ -57,6 +58,7 @@ export default function App() {
 					<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
 					<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
 					<Route path='cart-drafts' element={<CartDraftsPage />} />
+					<Route path='order-cart' element={<OrderCartPage />} />
 					<Route path='order-and-debt' element={<OrderAndDebtPage />} />
 					<Route path='vozvrat' element={<VozvratPage />} />
 					<Route path='vozvrat-order-history' element={<VozvratOrderHistoryPage />} />

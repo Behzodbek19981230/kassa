@@ -1,14 +1,5 @@
 import { useState } from 'react';
-import {
-	Bar,
-	BarChart,
-	CartesianGrid,
-	Legend,
-	ResponsiveContainer,
-	Tooltip,
-	XAxis,
-	YAxis,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui';
 import { formatNumber } from '@/lib/number';
 import type { DashboardMonthlyItem } from '@/services/dashboard/dashboard.types';
@@ -18,7 +9,7 @@ const AXIS_TEXT_COLOR = '#64748b';
 
 const SERIES = [
 	{ key: 'order_all_product_sum', name: 'Mahsulot summasi', color: '#2a78d6' },
-	{ key: 'order_all_summ_dollar', name: "Buyurtmadan to'langan", color: '#eb6834' },
+	{ key: 'order_all_summ_dollar', name: "To'langan summa", color: '#eb6834' },
 	{ key: 'debt_repayment_all_summ_dollar', name: "Qarz to'lovlari", color: '#1baf7a' },
 ] as const;
 
@@ -44,7 +35,9 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 						<div key={s.key} className='flex items-center gap-2 text-[11px]'>
 							<span className='inline-block h-0.5 w-3 shrink-0' style={{ backgroundColor: s.color }} />
 							<span className='text-ca-text'>{s.name}</span>
-							<span className='ml-auto font-semibold text-ca-heading'>{formatNumber(row.value, 2)} $</span>
+							<span className='ml-auto font-semibold text-ca-heading'>
+								{formatNumber(row.value, 2)} $
+							</span>
 						</div>
 					);
 				})}
@@ -100,7 +93,12 @@ export default function DashboardMonthlyChart({ monthly, isLoading, isFetching }
 				<div className={isFetching ? 'opacity-60 transition-opacity' : 'transition-opacity'}>
 					{!showTable ? (
 						<ResponsiveContainer width='100%' height={340}>
-							<BarChart data={data} margin={{ top: 8, right: 16, left: 8, bottom: 0 }} barGap={4} barCategoryGap='20%'>
+							<BarChart
+								data={data}
+								margin={{ top: 8, right: 16, left: 8, bottom: 0 }}
+								barGap={4}
+								barCategoryGap='20%'
+							>
 								<CartesianGrid stroke={GRID_COLOR} vertical={false} />
 								<XAxis
 									dataKey='month_label'
@@ -121,7 +119,14 @@ export default function DashboardMonthlyChart({ monthly, isLoading, isFetching }
 									wrapperStyle={{ fontSize: 11, color: AXIS_TEXT_COLOR, paddingTop: 12 }}
 								/>
 								{SERIES.map((s) => (
-									<Bar key={s.key} dataKey={s.key} name={s.name} fill={s.color} radius={[4, 4, 0, 0]} maxBarSize={28} />
+									<Bar
+										key={s.key}
+										dataKey={s.key}
+										name={s.name}
+										fill={s.color}
+										radius={[4, 4, 0, 0]}
+										maxBarSize={28}
+									/>
 								))}
 							</BarChart>
 						</ResponsiveContainer>
@@ -141,7 +146,9 @@ export default function DashboardMonthlyChart({ monthly, isLoading, isFetching }
 								<TableBody>
 									{data.map((row) => (
 										<TableRow key={row.month_label}>
-											<TableCell className='font-semibold text-ca-heading'>{row.month_label}</TableCell>
+											<TableCell className='font-semibold text-ca-heading'>
+												{row.month_label}
+											</TableCell>
 											{SERIES.map((s) => (
 												<TableCell key={s.key}>{formatNumber(row[s.key], 2)}</TableCell>
 											))}

@@ -1,6 +1,6 @@
 import { createColumnHelper, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { FaBan, FaExclamationTriangle, FaUndo } from 'react-icons/fa';
+import { FaTrash, FaExclamationTriangle, FaUndo } from 'react-icons/fa';
 import {
 	Button,
 	buttonProps,
@@ -152,7 +152,7 @@ export default function DebtRepaymentDraftPage() {
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
-								...buttonProps(<FaBan />, 'danger', 'icon'),
+								...buttonProps(<FaTrash />, 'danger', 'icon'),
 								'aria-label': "Batamom o'chirish",
 								disabled: !canWrite,
 							}}

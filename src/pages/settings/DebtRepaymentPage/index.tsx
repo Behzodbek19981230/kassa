@@ -1,6 +1,6 @@
 import { createColumnHelper, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { FaBan, FaEdit, FaExclamationTriangle, FaFilePdf, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaFilePdf, FaTrash } from 'react-icons/fa';
 import {
 	Button,
 	buttonProps,
@@ -24,7 +24,6 @@ import { useDebtRepaymentGroupedListQuery } from '@/services/debt-repayment/debt
 import type { DebtRepayment, DebtRepaymentGroupedItem } from '@/services/debt-repayment/debt-repayment.types';
 import DebtRepaymentDraftDeleteModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentDraftDeleteModal';
 import DebtRepaymentFormModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentFormModal';
-import DebtRepaymentHardDeleteModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentHardDeleteModal';
 
 type GroupedDebtRepaymentRow = DebtRepaymentGroupedItem & {
 	_dateLabel: string;
@@ -192,16 +191,16 @@ export default function DebtRepaymentPage() {
 				const item = row.original;
 				return (
 					<div className='flex justify-end gap-1'>
-						{/* <Button
+						<Button
 							type='button'
 							variant='default'
 							size='icon'
 							aria-label='PDF'
-							disabled={printingId === item.id}
+							disabled={printingId === item.id || !item.print_url}
 							onClick={() => handlePrint(item)}
 						>
 							<FaFilePdf />
-						</Button> */}
+						</Button>
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
@@ -216,20 +215,10 @@ export default function DebtRepaymentPage() {
 							element={(props) => <Button {...props} />}
 							elementProps={{
 								...buttonProps(<FaTrash />, 'danger', 'icon'),
-								'aria-label': 'Draftga olish',
+								'aria-label': "O'chirish",
 								disabled: !canWrite,
 							}}
 							dialog={DebtRepaymentDraftDeleteModal}
-							dialogProps={{ id: item.id, clientName: item.client_name }}
-						/>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaBan />, 'danger', 'icon'),
-								'aria-label': "Batamom o'chirish",
-								disabled: !canWrite,
-							}}
-							dialog={DebtRepaymentHardDeleteModal}
 							dialogProps={{ id: item.id, clientName: item.client_name }}
 						/>
 					</div>

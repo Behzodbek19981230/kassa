@@ -28,7 +28,7 @@ export default function CustomerOrderHistoryPage() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					<Button type='button' variant='danger' size='xs' onClick={() => navigate('/cart-drafts')}>
+					<Button type='button' variant='danger' size='xs' onClick={() => navigate('/order-cart')}>
 						Karzinka {cartDraftCount > 0 && `(${cartDraftCount})`}
 					</Button>
 				}
