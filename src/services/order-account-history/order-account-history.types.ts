@@ -547,3 +547,65 @@ export interface OrderAccountHistoryHardDeleteResponse {
 	message: string;
 	deleted_id: number;
 }
+
+export interface OrderAccountHistoryChangeLogFieldChange {
+	type: 'field';
+	field: string;
+	label: string;
+	old: string | number | null;
+	new: string | number | null;
+}
+
+export interface OrderAccountHistoryChangeLogProductFieldDiff {
+	field: string;
+	label: string;
+	old: string | number | null;
+	new: string | number | null;
+}
+
+export interface OrderAccountHistoryChangeLogProductSnapshot {
+	count: number;
+	given_count: number;
+	price: string;
+	real_price: string;
+	profit: string;
+}
+
+export interface OrderAccountHistoryChangeLogProductChange {
+	type: 'product';
+	action: 'changed' | 'added' | 'removed';
+	label: string;
+	old: OrderAccountHistoryChangeLogProductSnapshot | null;
+	new: OrderAccountHistoryChangeLogProductSnapshot | null;
+	changes?: OrderAccountHistoryChangeLogProductFieldDiff[];
+}
+
+export type OrderAccountHistoryChangeLogChange =
+	| OrderAccountHistoryChangeLogFieldChange
+	| OrderAccountHistoryChangeLogProductChange;
+
+export interface OrderAccountHistoryChangeLogUserDetail {
+	id: number;
+	first_name: string;
+	last_name: string;
+	username: string;
+}
+
+export interface OrderAccountHistoryChangeLog {
+	id: number;
+	company: number;
+	order_account_history: number;
+	user: number;
+	action: string;
+	text: string;
+	old_values: { order: Record<string, unknown>; products: unknown[] };
+	new_values: { order: Record<string, unknown>; products: unknown[] };
+	changes: OrderAccountHistoryChangeLogChange[];
+	created_time: string;
+	user_detail: OrderAccountHistoryChangeLogUserDetail;
+}
+
+export interface OrderAccountHistoryChangeLogsResponse {
+	count: number;
+	results: OrderAccountHistoryChangeLog[];
+}

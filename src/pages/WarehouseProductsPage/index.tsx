@@ -223,7 +223,7 @@ export default function WarehouseProductsPage() {
 								!isError &&
 								brandGroups.map((group) => {
 									const groupCount = group.items.reduce((s, w) => s + w.count, 0);
-									const groupSum = group.items.reduce((s, w) => s + w.price * w.count, 0);
+									const groupSum = group.items.reduce((s, w) => s + w.real_price * w.count, 0);
 									return (
 										<Fragment key={group.brand.id}>
 											<TableRow>
@@ -260,7 +260,7 @@ export default function WarehouseProductsPage() {
 															</button>
 														</TableCell>
 														<TableCell className='font-semibold'>
-															{formatNumber(item.price * item.count, 2)} $
+															{formatNumber(item.real_price * item.count, 2)} $
 														</TableCell>
 													</TableRow>
 												);

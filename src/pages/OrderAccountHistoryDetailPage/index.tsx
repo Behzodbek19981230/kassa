@@ -1,5 +1,5 @@
 import { Fragment, useMemo, useState } from 'react';
-import { FaArrowLeft, FaCoins, FaDownload, FaExclamationTriangle, FaUndo } from 'react-icons/fa';
+import { FaArrowLeft, FaCoins, FaDownload, FaExclamationTriangle, FaHistory, FaUndo } from 'react-icons/fa';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
 	Button,
@@ -22,6 +22,7 @@ import type { OrderAccountHistoryProductItem } from '@/services/order-account-hi
 import { useVozvratCalculateMutation } from '@/services/vozvrat/vozvrat.queries';
 import type { VozvratCalculateResponse, VozvratCartItemInput } from '@/services/vozvrat/vozvrat.types';
 import EditGivenCountModal from '@/pages/OrderAccountHistoryDetailPage/components/EditGivenCountModal';
+import OrderChangeLogsModal from '@/pages/OrderAccountHistoryDetailPage/components/OrderChangeLogsModal';
 import ConfirmVozvratModal from '@/pages/VozvratPage/components/ConfirmVozvratModal';
 
 type PrintRole = 'xodim' | 'sklad' | 'mijoz' | 'admin';
@@ -36,6 +37,7 @@ export default function OrderAccountHistoryDetailPage() {
 	const { canWrite } = useCurrentCompany();
 	const [printingRole, setPrintingRole] = useState<PrintRole | null>(null);
 	const [editingItem, setEditingItem] = useState<OrderAccountHistoryProductItem | null>(null);
+	const [changeLogsOpen, setChangeLogsOpen] = useState(false);
 
 	const today = new Date().toISOString().slice(0, 10);
 	const [vozvratOpen, setVozvratOpen] = useState(false);
@@ -172,6 +174,9 @@ export default function OrderAccountHistoryDetailPage() {
 					>
 						<FaUndo className='mr-1.5' />{' '}
 						{calculateMutation.isPending ? 'Hisoblanmoqda...' : 'Vozvrat qilish'}
+					</Button>
+					<Button type='button' variant='default' size='xs' onClick={() => setChangeLogsOpen(true)}>
+						<FaHistory className='mr-1.5' /> O'zgarishlar tarixi
 					</Button>
 				</div>
 			</div>
@@ -376,6 +381,8 @@ export default function OrderAccountHistoryDetailPage() {
 				item={editingItem}
 				orderId={orderId}
 			/>
+
+			<OrderChangeLogsModal open={changeLogsOpen} setOpen={setChangeLogsOpen} orderId={orderId} />
 
 			{vozvratOpen && calcResult && (
 				<ConfirmVozvratModal

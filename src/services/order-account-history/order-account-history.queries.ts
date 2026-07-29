@@ -20,6 +20,7 @@ const orderAccountHistoryKeys = {
 		['order-account-history', 'draft-grouped-list', params] as const,
 	detail: (id?: number) => ['order-account-history', 'detail', id] as const,
 	detailProducts: (id?: number) => ['order-account-history', 'detail-products', id] as const,
+	changeLogs: (id?: number) => ['order-account-history', 'change-logs', id] as const,
 	orderAndDebt: (params?: OrderAndDebtListParams) => ['order-account-history', 'order-and-debt', params] as const,
 };
 
@@ -60,6 +61,14 @@ export function useOrderAccountHistoryProductsQuery(id?: number) {
 		queryKey: orderAccountHistoryKeys.detailProducts(id),
 		queryFn: () => orderAccountHistoryService.getProducts(id!),
 		enabled: id !== undefined,
+	});
+}
+
+export function useOrderAccountHistoryChangeLogsQuery(id?: number, enabled = true) {
+	return useQuery({
+		queryKey: orderAccountHistoryKeys.changeLogs(id),
+		queryFn: () => orderAccountHistoryService.getChangeLogs(id!),
+		enabled: enabled && id !== undefined,
 	});
 }
 
