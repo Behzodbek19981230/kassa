@@ -223,7 +223,9 @@ export default function OrderAccountHistoryEditPage() {
 							<Controller
 								name='date'
 								control={control}
-								render={({ field }) => <DatePicker value={field.value} onChange={field.onChange} />}
+								render={({ field }) => (
+									<DatePicker value={field.value} onChange={field.onChange} disabled />
+								)}
 							/>
 						</FormField>
 						<FormField
@@ -236,7 +238,9 @@ export default function OrderAccountHistoryEditPage() {
 							<Controller
 								name='exchange_rate'
 								control={control}
-								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+								render={({ field }) => (
+									<PriceInput value={field.value} onChange={field.onChange} disabled />
+								)}
 							/>
 						</FormField>
 					</div>
