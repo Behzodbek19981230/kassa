@@ -3,6 +3,7 @@ import { FaCopy, FaExclamationTriangle } from 'react-icons/fa';
 import {
 	AlertBlock,
 	Button,
+	Checkbox,
 	Combobox,
 	Input,
 	Modal,
@@ -28,6 +29,7 @@ const SEND_BOT_TYPE_OPTIONS = [{ value: 'asosiy', label: 'Asosiy bot' }];
 export default function TelegramBotRegisterModal({ open, setOpen, item }: TelegramBotRegisterModalProps) {
 	const { notify } = useNotification();
 	const [sendBotType, setSendBotType] = useState(item.send_bot_type ?? SEND_BOT_TYPE_OPTIONS[0].value);
+	const [isSendBot, setIsSendBot] = useState(item.is_send_bot ?? true);
 	const [copied, setCopied] = useState(false);
 	const registerMutation = useRegisterTelegramBotMutation();
 
@@ -40,7 +42,7 @@ export default function TelegramBotRegisterModal({ open, setOpen, item }: Telegr
 
 	async function handleSave() {
 		try {
-			await registerMutation.mutateAsync({ id: item.id, payload: { send_bot_type: sendBotType, is_send_bot: true } });
+			await registerMutation.mutateAsync({ id: item.id, payload: { send_bot_type: sendBotType, is_send_bot: isSendBot } });
 			notify({ title: "Hodim Telegram bot uchun ro'yxatga olindi" });
 			setOpen(false);
 		} catch (err) {
@@ -61,6 +63,13 @@ export default function TelegramBotRegisterModal({ open, setOpen, item }: Telegr
 						bosiladi. Shunda "Telegram akkauntingiz user profilingizga ulandi" ga o'xshash xabar olinadi. Shundan
 						so'ng hodimning telegramiga xabarnoma boradi.
 					</AlertBlock>
+
+					<Checkbox
+						id='is_send_bot'
+						label='Bot orqali xabarnoma olsinmi?'
+						checked={isSendBot}
+						onCheckedChange={setIsSendBot}
+					/>
 
 					<div>
 						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Send bot turi</label>

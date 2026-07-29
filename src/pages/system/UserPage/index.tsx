@@ -5,7 +5,7 @@ import {
 	type SortingState,
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaTelegramPlane, FaTrash, FaUnlock, FaUser } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaLock, FaTelegramPlane, FaTrash, FaUnlock, FaUser } from 'react-icons/fa';
 import { Badge, Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
@@ -96,13 +96,13 @@ export default function UserPage() {
 					{row.original.is_login_blocked && (
 						<Button
 							type='button'
-							variant='success'
+							variant='danger'
 							size='icon'
 							aria-label='Blokdan chiqarish'
 							disabled={!canWrite}
 							onClick={() => setUnblockTarget(row.original)}
 						>
-							<FaUnlock />
+							<FaLock />
 						</Button>
 					)}
 					<Button
@@ -187,6 +187,7 @@ export default function UserPage() {
 					columnVisibilityKey='users'
 					enableSorting
 					enableStriping
+					getRowClassName={(row) => (row.is_login_blocked ? 'bg-ca-orange/10' : undefined)}
 					isLoading={isLoading || isFetching}
 					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
