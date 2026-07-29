@@ -14,6 +14,7 @@ import type {
 	OrderAccountHistoryUpdatePayload,
 	OrderAccountHistoryUpdateSalePayload,
 	OrderAccountHistoryUpdateSaleResponse,
+	OrderAccountHistoryUpdateStatusPayload,
 	OrderAndDebtListParams,
 	OrderAndDebtResponse,
 	PayDebtPayload,
@@ -44,6 +45,10 @@ export const orderAccountHistoryService = {
 	},
 	update: async (id: number, payload: OrderAccountHistoryUpdatePayload) => {
 		const { data } = await apiClient.put<OrderAccountHistoryItem>(`/order-account-history/${id}/`, payload);
+		return data;
+	},
+	updateStatus: async (id: number, payload: OrderAccountHistoryUpdateStatusPayload) => {
+		const { data } = await apiClient.patch<OrderAccountHistoryItem>(`/order-account-history/${id}/`, payload);
 		return data;
 	},
 	updateSale: async (id: number, payload: OrderAccountHistoryUpdateSalePayload) => {

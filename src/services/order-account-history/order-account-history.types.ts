@@ -86,6 +86,10 @@ export interface OrderAccountHistoryItem {
 	is_price_diff: boolean;
 }
 
+export interface OrderAccountHistoryUpdateStatusPayload {
+	update_status: number;
+}
+
 export interface OrderAccountHistoryUpdatePayload {
 	company: number;
 	client: number;
