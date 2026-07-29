@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { FaPlus, FaTrash } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import { Button, Combobox, type ComboboxLoadParams, type ComboboxLoadResult, PriceInput } from '@/components/ui';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
 import { brandService } from '@/services/brand/brand.service';
@@ -58,6 +59,14 @@ interface WarehouseProductRowProps {
 	resolveStock?: boolean;
 	/** Reports the resolved existing warehouse row for this variant — only fires when `resolveStock` is set. */
 	onResolveStock?: (key: string | number, warehouse: Warehouse | undefined) => void;
+	/**
+	 * Sklad batch (kirim) context: the variant must already exist as a catalog product (any
+	 * batch/location) — new products aren't defined ad hoc here, they're registered first via
+	 * "Tovarlar va narxlar". Shows a "not found" hint and reports the match state via `onCatalogMatchChange`.
+	 */
+	requireCatalogMatch?: boolean;
+	/** Reports whether the current variant matches an existing catalog product — only fires when `requireCatalogMatch` is set. */
+	onCatalogMatchChange?: (key: string | number, matched: boolean) => void;
 }
 
 export default function WarehouseProductRow({
@@ -74,6 +83,8 @@ export default function WarehouseProductRow({
 	showCount,
 	resolveStock,
 	onResolveStock,
+	requireCatalogMatch,
+	onCatalogMatchChange,
 }: WarehouseProductRowProps) {
 	const typeSkladId = value.type_sklad ? Number(value.type_sklad) : undefined;
 
@@ -121,6 +132,16 @@ export default function WarehouseProductRow({
 	const duplicateItem = isVariantComplete
 		? duplicateData?.results.find((w) => Number(w.size) === value.size && (resolveStock || w.id !== excludeId))
 		: undefined;
+	const catalogMatch = isVariantComplete
+		? duplicateData?.results.find((w) => Number(w.size) === value.size)
+		: undefined;
+
+	useEffect(() => {
+		if (requireCatalogMatch) {
+			onCatalogMatchChange?.(value.key, isVariantComplete ? Boolean(catalogMatch) : true);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [catalogMatch, isVariantComplete, value.key, requireCatalogMatch]);
 
 	useEffect(() => {
 		if (resolveStock) {
@@ -133,7 +154,12 @@ export default function WarehouseProductRow({
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		if (!typeSkladId) return { options: [], hasMore: false };
-		const result = await brandService.list({ type_sklad: typeSkladId, search: search || undefined, page, limit: 20 });
+		const result = await brandService.list({
+			type_sklad: typeSkladId,
+			search: search || undefined,
+			page,
+			limit: 20,
+		});
 		return {
 			options: result.results.map((b) => ({ value: String(b.id), label: b.name })),
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
@@ -321,6 +347,15 @@ export default function WarehouseProductRow({
 				) : (
 					<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar omborda topilmadi</p>
 				))}
+
+			{requireCatalogMatch && isVariantComplete && !catalogMatch && (
+				<p className='mt-1 text-[11px] font-semibold text-ca-red'>
+					Bu tovar bazada topilmadi.{' '}
+					<Link to='/warehouse-prices/create' className='underline'>
+						Tovarlar va narxlarga o'tib bu tovarni qo'shing
+					</Link>
+				</p>
+			)}
 		</div>
 	);
 }

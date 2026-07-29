@@ -44,7 +44,7 @@ export default function WarehouseAccountEditPage() {
 	const [rows, setRows] = useState<EditableRow[]>([]);
 	const [removedWarehouseIds, setRemovedWarehouseIds] = useState<number[]>([]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
-	const [duplicateRowKeys, setDuplicateRowKeys] = useState<Record<string | number, boolean>>({});
+	const [unmatchedRowKeys, setUnmatchedRowKeys] = useState<Record<string | number, boolean>>({});
 	const [formError, setFormError] = useState('');
 
 	const updateSkladMutation = useUpdateSkladMutation();
@@ -57,7 +57,7 @@ export default function WarehouseAccountEditPage() {
 		updateWarehouseMutation.isPending ||
 		deleteWarehouseMutation.isPending;
 
-	const hasDuplicate = Object.values(duplicateRowKeys).some(Boolean);
+	const hasUnmatchedRow = Object.values(unmatchedRowKeys).some(Boolean);
 
 	useEffect(() => {
 		if (!data) return;
@@ -85,10 +85,11 @@ export default function WarehouseAccountEditPage() {
 		setRemovedWarehouseIds([]);
 	}, [data]);
 
-	const handleDuplicateChange = (key: string | number, isDuplicate: boolean) => {
-		setDuplicateRowKeys((prev) => {
-			if (isDuplicate === Boolean(prev[key])) return prev;
-			return { ...prev, [key]: isDuplicate };
+	const handleCatalogMatchChange = (key: string | number, matched: boolean) => {
+		setUnmatchedRowKeys((prev) => {
+			const isUnmatched = !matched;
+			if (isUnmatched === Boolean(prev[key])) return prev;
+			return { ...prev, [key]: isUnmatched };
 		});
 	};
 
@@ -102,7 +103,7 @@ export default function WarehouseAccountEditPage() {
 			setRemovedWarehouseIds((prev) => [...prev, row.warehouseId!]);
 		}
 		if (row?.key !== undefined) {
-			setDuplicateRowKeys((keys) => {
+			setUnmatchedRowKeys((keys) => {
 				const { [row.key]: _removed, ...rest } = keys;
 				return rest;
 			});
@@ -133,8 +134,8 @@ export default function WarehouseAccountEditPage() {
 			setFormError('Kamida bitta mahsulot qatori kiritilishi shart');
 			return;
 		}
-		if (hasDuplicate) {
-			setFormError('Bu tovar bazada mavjud');
+		if (hasUnmatchedRow) {
+			setFormError("Bu tovar bazada topilmadi. Tovarlar va narxlarga o'tib bu tovarni qo'shing");
 			return;
 		}
 
@@ -286,8 +287,8 @@ export default function WarehouseAccountEditPage() {
 							showRemove
 							onRemove={() => removeRow(index)}
 							companyId={data.sklad.company}
-							excludeId={row.warehouseId}
-							onDuplicateChange={handleDuplicateChange}
+							requireCatalogMatch
+							onCatalogMatchChange={handleCatalogMatchChange}
 							showCount
 						/>
 					))}
