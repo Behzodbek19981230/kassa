@@ -238,36 +238,39 @@ export default function WarehousePage() {
 							dialog={WarehousePaymentModal}
 							dialogProps={{ item }}
 						/> */}
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaImages />, 'theme', 'icon'),
-								'aria-label': 'Rasmlar',
-								disabled: !canWrite || !canManageWarehouse,
-							}}
-							dialog={WarehouseImagesModal}
-							dialogProps={{ item }}
-						/>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaEdit />, 'info', 'icon'),
-								'aria-label': 'Tahrirlash',
-								disabled: !canWrite || !canManageWarehouse,
-							}}
-							dialog={WarehouseEditModal}
-							dialogProps={{ item }}
-						/>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaTrash />, 'danger', 'icon'),
-								'aria-label': "O'chirish",
-								disabled: !canWrite || !canManageWarehouse,
-							}}
-							dialog={DeleteWarehouseModal}
-							dialogProps={{ item }}
-						/>
+						{canWrite && canManageWarehouse && (
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{
+									...buttonProps(<FaImages />, 'theme', 'icon'),
+									'aria-label': 'Rasmlar',
+								}}
+								dialog={WarehouseImagesModal}
+								dialogProps={{ item }}
+							/>
+						)}
+						{canWrite && canManageWarehouse && (
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{
+									...buttonProps(<FaEdit />, 'info', 'icon'),
+									'aria-label': 'Tahrirlash',
+								}}
+								dialog={WarehouseEditModal}
+								dialogProps={{ item }}
+							/>
+						)}
+						{canWrite && canManageWarehouse && (
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{
+									...buttonProps(<FaTrash />, 'danger', 'icon'),
+									'aria-label': "O'chirish",
+								}}
+								dialog={DeleteWarehouseModal}
+								dialogProps={{ item }}
+							/>
+						)}
 					</div>
 				);
 			},

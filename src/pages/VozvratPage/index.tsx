@@ -423,16 +423,17 @@ export default function VozvratPage() {
 													</span>
 												</TableCell>
 												<TableCell>
-													<Button
-														type='button'
-														variant='danger'
-														size='icon'
-														aria-label="O'chirish"
-														disabled={!canWrite}
-														onClick={() => handleRemoveRow(row.key)}
-													>
-														<FaTrash />
-													</Button>
+													{canWrite && (
+														<Button
+															type='button'
+															variant='danger'
+															size='icon'
+															aria-label="O'chirish"
+															onClick={() => handleRemoveRow(row.key)}
+														>
+															<FaTrash />
+														</Button>
+													)}
 												</TableCell>
 											</TableRow>
 										);
@@ -458,18 +459,20 @@ export default function VozvratPage() {
 							</Table>
 						</div>
 
-						<div className='mt-4'>
-							<Button
-								type='button'
-								variant='danger'
-								className='w-full'
-								size='lg'
-								disabled={!clientId || cartRows.length === 0 || !canWrite}
-								onClick={() => setConfirmOpen(true)}
-							>
-								<FaUndo className='mr-1.5' /> Vozvrat qilish
-							</Button>
-						</div>
+						{canWrite && (
+							<div className='mt-4'>
+								<Button
+									type='button'
+									variant='danger'
+									className='w-full'
+									size='lg'
+									disabled={!clientId || cartRows.length === 0}
+									onClick={() => setConfirmOpen(true)}
+								>
+									<FaUndo className='mr-1.5' /> Vozvrat qilish
+								</Button>
+							</div>
+						)}
 					</Panel>
 				</div>
 			</div>

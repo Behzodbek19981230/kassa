@@ -183,20 +183,22 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 															{formatNumber(totalSum, 2)} $
 														</span>
 													</div>
-													<Button
-														type='button'
-														{...buttonProps(<FaTrash />, 'danger', 'icon')}
-														aria-label="Karzinkani o'chirish"
-														disabled={!companyId || !canWrite}
-														onClick={() =>
-															companyId &&
-															setGroupToDelete({
-																clientId: group.client_id,
-																companyId,
-																clientFio: group.client_fio,
-															})
-														}
-													/>
+													{canWrite && (
+														<Button
+															type='button'
+															{...buttonProps(<FaTrash />, 'danger', 'icon')}
+															aria-label="Karzinkani o'chirish"
+															disabled={!companyId}
+															onClick={() =>
+																companyId &&
+																setGroupToDelete({
+																	clientId: group.client_id,
+																	companyId,
+																	clientFio: group.client_fio,
+																})
+															}
+														/>
+													)}
 												</div>
 											</TableCell>
 										</TableRow>
@@ -222,13 +224,14 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 													</TableCell>
 													<TableCell>
 														<div className='flex justify-end'>
-															<Button
-																type='button'
-																{...buttonProps(<FaTrash />, 'danger', 'icon')}
-																aria-label="O'chirish"
-																disabled={!canWrite}
-																onClick={() => handleRemoveItem(item.id)}
-															/>
+															{canWrite && (
+																<Button
+																	type='button'
+																	{...buttonProps(<FaTrash />, 'danger', 'icon')}
+																	aria-label="O'chirish"
+																	onClick={() => handleRemoveItem(item.id)}
+																/>
+															)}
 														</div>
 													</TableCell>
 												</TableRow>
@@ -265,11 +268,7 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 						<Button variant='white' onClick={() => setGroupToDelete(null)}>
 							Yo'q
 						</Button>
-						<Button
-							variant='danger'
-							onClick={handleConfirmGroupDelete}
-							disabled={clearGroupMutation.isPending || !canWrite}
-						>
+						<Button variant='danger' onClick={handleConfirmGroupDelete} disabled={clearGroupMutation.isPending}>
 							Ha, o'chirish
 						</Button>
 					</ModalFooter>

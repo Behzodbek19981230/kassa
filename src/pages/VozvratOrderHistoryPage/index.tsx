@@ -123,16 +123,17 @@ export default function VozvratOrderHistoryPage() {
 				const canEdit = canEditOwned(row.original);
 				return (
 					<div className='flex justify-end gap-1'>
-						<Button
-							type='button'
-							variant='warning'
-							size='icon'
-							aria-label='Tahrirlash'
-							disabled={!canWrite || !canEdit}
-							onClick={() => navigate(`/vozvrat-order-history/${row.original.id}/edit`)}
-						>
-							<FaEdit />
-						</Button>
+						{canWrite && canEdit && (
+							<Button
+								type='button'
+								variant='warning'
+								size='icon'
+								aria-label='Tahrirlash'
+								onClick={() => navigate(`/vozvrat-order-history/${row.original.id}/edit`)}
+							>
+								<FaEdit />
+							</Button>
+						)}
 						<Button
 							type='button'
 							variant='info'
@@ -142,16 +143,17 @@ export default function VozvratOrderHistoryPage() {
 						>
 							<FaExpand />
 						</Button>
-						<Button
-							type='button'
-							variant='danger'
-							size='icon'
-							aria-label="O'chirish"
-							disabled={!canWrite || !canEdit}
-							onClick={() => setDeletingItem(row.original)}
-						>
-							<FaTrash />
-						</Button>
+						{canWrite && canEdit && (
+							<Button
+								type='button'
+								variant='danger'
+								size='icon'
+								aria-label="O'chirish"
+								onClick={() => setDeletingItem(row.original)}
+							>
+								<FaTrash />
+							</Button>
+						)}
 					</div>
 				);
 			},

@@ -287,14 +287,19 @@ export default function OrderAccountHistoryDetailPage() {
 													</span>
 												</TableCell>
 												<TableCell>
-													<button
-														type='button'
-														className='inline-flex items-center gap-1.5 font-semibold text-ca-green hover:underline disabled:cursor-not-allowed disabled:opacity-60 disabled:no-underline'
-														disabled={!canWrite || !canEditOwned(order)}
-														onClick={() => setEditingItem(item)}
-													>
-														{item.given_count} <FaCoins className='text-ca-orange' />
-													</button>
+													{canWrite && canEditOwned(order) ? (
+														<button
+															type='button'
+															className='inline-flex items-center gap-1.5 font-semibold text-ca-green hover:underline'
+															onClick={() => setEditingItem(item)}
+														>
+															{item.given_count} <FaCoins className='text-ca-orange' />
+														</button>
+													) : (
+														<span className='inline-flex items-center gap-1.5 font-semibold text-ca-green'>
+															{item.given_count} <FaCoins className='text-ca-orange' />
+														</span>
+													)}
 												</TableCell>
 												<TableCell>
 													<span className='inline-flex items-center gap-1.5'>

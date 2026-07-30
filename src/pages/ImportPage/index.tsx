@@ -444,13 +444,14 @@ export default function ImportPage() {
 														{formatNumber(totalPrice, 2)} $
 													</TableCell>
 													<TableCell>
-														<Button
-															type='button'
-															{...buttonProps(<FaTrash />, 'danger', 'icon')}
-															aria-label="O'chirish"
-															disabled={!canWrite}
-															onClick={() => handleRemoveCartItem(item.id)}
-														/>
+														{canWrite && (
+															<Button
+																type='button'
+																{...buttonProps(<FaTrash />, 'danger', 'icon')}
+																aria-label="O'chirish"
+																onClick={() => handleRemoveCartItem(item.id)}
+															/>
+														)}
 													</TableCell>
 												</TableRow>
 											);
@@ -473,28 +474,30 @@ export default function ImportPage() {
 							</Table>
 						</div>
 
-						<div className='mt-4 flex gap-2'>
-							<Button
-								type='button'
-								variant='white'
-								className='flex-1'
-								size='lg'
-								disabled={!consignorId || cartItems.length === 0 || !canWrite}
-								onClick={() => setClearCartOpen(true)}
-							>
-								Bekor qilish
-							</Button>
-							<Button
-								type='button'
-								variant='danger'
-								className='flex-1'
-								size='lg'
-								disabled={!consignorId || cartItems.length === 0 || !canWrite}
-								onClick={() => setConfirmImportOpen(true)}
-							>
-								Import qilish
-							</Button>
-						</div>
+						{canWrite && (
+							<div className='mt-4 flex gap-2'>
+								<Button
+									type='button'
+									variant='white'
+									className='flex-1'
+									size='lg'
+									disabled={!consignorId || cartItems.length === 0}
+									onClick={() => setClearCartOpen(true)}
+								>
+									Bekor qilish
+								</Button>
+								<Button
+									type='button'
+									variant='danger'
+									className='flex-1'
+									size='lg'
+									disabled={!consignorId || cartItems.length === 0}
+									onClick={() => setConfirmImportOpen(true)}
+								>
+									Import qilish
+								</Button>
+							</div>
+						)}
 					</Panel>
 				</div>
 			</div>

@@ -205,26 +205,28 @@ export default function DebtRepaymentPage() {
 						>
 							<FaFilePdf />
 						</Button>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaEdit />, 'warning', 'icon'),
-								'aria-label': 'Tahrirlash',
-								disabled: !canWrite || !canEdit,
-							}}
-							dialog={DebtRepaymentFormModal}
-							dialogProps={{ mode: 'edit' as const, item: toDebtRepayment(item) }}
-						/>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaTrash />, 'danger', 'icon'),
-								'aria-label': "O'chirish",
-								disabled: !canWrite || !canEdit,
-							}}
-							dialog={DebtRepaymentDraftDeleteModal}
-							dialogProps={{ id: item.id, clientName: item.client_name }}
-						/>
+						{canWrite && canEdit && (
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{
+									...buttonProps(<FaEdit />, 'warning', 'icon'),
+									'aria-label': 'Tahrirlash',
+								}}
+								dialog={DebtRepaymentFormModal}
+								dialogProps={{ mode: 'edit' as const, item: toDebtRepayment(item) }}
+							/>
+						)}
+						{canWrite && canEdit && (
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{
+									...buttonProps(<FaTrash />, 'danger', 'icon'),
+									'aria-label': "O'chirish",
+								}}
+								dialog={DebtRepaymentDraftDeleteModal}
+								dialogProps={{ id: item.id, clientName: item.client_name }}
+							/>
+						)}
 					</div>
 				);
 			},

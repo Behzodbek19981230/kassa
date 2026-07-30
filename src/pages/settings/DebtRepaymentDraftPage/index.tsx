@@ -143,26 +143,28 @@ export default function DebtRepaymentDraftPage() {
 				const canEdit = canEditOwned(item);
 				return (
 					<div className='flex justify-end gap-1'>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaUndo />, 'success', 'icon'),
-								'aria-label': 'Qayta tiklash',
-								disabled: !canWrite || !canEdit,
-							}}
-							dialog={DebtRepaymentReturnModal}
-							dialogProps={{ id: item.id, clientName: item.client_name }}
-						/>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaTrash />, 'danger', 'icon'),
-								'aria-label': "Batamom o'chirish",
-								disabled: !canWrite || !canEdit,
-							}}
-							dialog={DebtRepaymentHardDeleteModal}
-							dialogProps={{ id: item.id, clientName: item.client_name }}
-						/>
+						{canWrite && canEdit && (
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{
+									...buttonProps(<FaUndo />, 'success', 'icon'),
+									'aria-label': 'Qayta tiklash',
+								}}
+								dialog={DebtRepaymentReturnModal}
+								dialogProps={{ id: item.id, clientName: item.client_name }}
+							/>
+						)}
+						{canWrite && canEdit && (
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{
+									...buttonProps(<FaTrash />, 'danger', 'icon'),
+									'aria-label': "Batamom o'chirish",
+								}}
+								dialog={DebtRepaymentHardDeleteModal}
+								dialogProps={{ id: item.id, clientName: item.client_name }}
+							/>
+						)}
 					</div>
 				);
 			},

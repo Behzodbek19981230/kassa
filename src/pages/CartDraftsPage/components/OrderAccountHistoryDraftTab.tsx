@@ -264,26 +264,28 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 						>
 							<FaExpand />
 						</Button>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaUndo />, 'success', 'icon'),
-								'aria-label': 'Qayta tiklash',
-								disabled: !canWrite || !canEdit,
-							}}
-							dialog={OrderReturnModal}
-							dialogProps={{ id: item.id, clientName: item.client_name }}
-						/>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaTrash />, 'danger', 'icon'),
-								'aria-label': "Batamom o'chirish",
-								disabled: !canWrite || !canEdit,
-							}}
-							dialog={OrderHardDeleteModal}
-							dialogProps={{ id: item.id, clientName: item.client_name }}
-						/>
+						{canWrite && canEdit && (
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{
+									...buttonProps(<FaUndo />, 'success', 'icon'),
+									'aria-label': 'Qayta tiklash',
+								}}
+								dialog={OrderReturnModal}
+								dialogProps={{ id: item.id, clientName: item.client_name }}
+							/>
+						)}
+						{canWrite && canEdit && (
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{
+									...buttonProps(<FaTrash />, 'danger', 'icon'),
+									'aria-label': "Batamom o'chirish",
+								}}
+								dialog={OrderHardDeleteModal}
+								dialogProps={{ id: item.id, clientName: item.client_name }}
+							/>
+						)}
 					</div>
 				);
 			},

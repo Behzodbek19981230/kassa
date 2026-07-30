@@ -113,26 +113,28 @@ export default function MyDebtDetailPage() {
 										</TableCell>
 										<TableCell>
 											<div className='flex justify-end gap-1'>
-												<OpenDialogButton
-													element={(props) => <Button {...props} />}
-													elementProps={{
-														...buttonProps(<FaEdit />, 'warning', 'icon'),
-														'aria-label': 'Tahrirlash',
-														disabled: !canWrite,
-													}}
-													dialog={MyDebtHistoryEditModal}
-													dialogProps={{ item }}
-												/>
-												<OpenDialogButton
-													element={(props) => <Button {...props} />}
-													elementProps={{
-														...buttonProps(<FaTrash />, 'danger', 'icon'),
-														'aria-label': 'Draftga olish',
-														disabled: !canWrite,
-													}}
-													dialog={MyDebtHistoryDraftDeleteModal}
-													dialogProps={{ id: item.id, consignorName }}
-												/>
+												{canWrite && (
+													<OpenDialogButton
+														element={(props) => <Button {...props} />}
+														elementProps={{
+															...buttonProps(<FaEdit />, 'warning', 'icon'),
+															'aria-label': 'Tahrirlash',
+														}}
+														dialog={MyDebtHistoryEditModal}
+														dialogProps={{ item }}
+													/>
+												)}
+												{canWrite && (
+													<OpenDialogButton
+														element={(props) => <Button {...props} />}
+														elementProps={{
+															...buttonProps(<FaTrash />, 'danger', 'icon'),
+															'aria-label': 'Draftga olish',
+														}}
+														dialog={MyDebtHistoryDraftDeleteModal}
+														dialogProps={{ id: item.id, consignorName }}
+													/>
+												)}
 												{/* <OpenDialogButton
 													element={(props) => <Button {...props} />}
 													elementProps={{

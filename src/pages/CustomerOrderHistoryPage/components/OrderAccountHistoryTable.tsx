@@ -276,27 +276,25 @@ export default function OrderAccountHistoryTable({
 				const canEdit = canEditOwned(item);
 				return (
 					<div className='flex justify-end gap-1'>
-						{item.update_status === 1 && (
+						{item.update_status === 1 && canWrite && canEdit && (
 							<Tooltip content="Buyurtma o'zgartirilgan, tasdiqlash uchun bosing">
 								<OpenDialogButton
 									element={(props) => <Button {...props} />}
 									elementProps={{
 										...buttonProps(<FaCheck />, 'warning', 'icon'),
 										'aria-label': "O'zgarishni tasdiqlash",
-										disabled: !canWrite || !canEdit,
 									}}
 									dialog={ConfirmOrderUpdateModal}
 									dialogProps={{ id: item.id }}
 								/>
 							</Tooltip>
 						)}
-						{!isDebtorOnly && (
+						{!isDebtorOnly && canWrite && canEdit && (
 							<Button
 								type='button'
 								variant='info'
 								size='icon'
 								aria-label='Tahrirlash'
-								disabled={!canWrite || !canEdit}
 								onClick={() => navigate(`/customer-order-history/${item.id}/edit`)}
 							>
 								<FaEdit />
@@ -311,14 +309,13 @@ export default function OrderAccountHistoryTable({
 						>
 							<FaExpand />
 						</Button>
-						{!isDebtorOnly && (
+						{!isDebtorOnly && canWrite && canEdit && (
 							<>
 								<OpenDialogButton
 									element={(props) => <Button {...props} />}
 									elementProps={{
 										...buttonProps(<FaTrash />, 'danger', 'icon'),
 										'aria-label': 'Draftga olish',
-										disabled: !canWrite || !canEdit,
 									}}
 									dialog={OrderDraftDeleteModal}
 									dialogProps={{ id: item.id, clientName: item.client_name }}

@@ -94,48 +94,50 @@ export default function UserPage() {
 			size: 190,
 			cell: ({ row }) => (
 				<div className='flex items-center justify-end gap-1'>
-					{row.original.is_login_blocked && (
+					{row.original.is_login_blocked && canWrite && (
 						<Button
 							type='button'
 							variant='danger'
 							size='icon'
 							aria-label='Blokdan chiqarish'
-							disabled={!canWrite}
 							onClick={() => setUnblockTarget(row.original)}
 						>
 							<FaLock />
 						</Button>
 					)}
-					<Button
-						type='button'
-						variant='info'
-						size='icon'
-						aria-label="Telegram Botdan ro'yxatdan o'tkazish"
-						disabled={!canWrite}
-						onClick={() => setTelegramTarget(row.original)}
-					>
-						<FaTelegramPlane />
-					</Button>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaEdit />, 'warning', 'icon'),
-							'aria-label': 'Tahrirlash',
-							disabled: !isAdminOrManager,
-						}}
-						dialog={UserFormModal}
-						dialogProps={{ mode: 'edit' as const, item: row.original }}
-					/>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaTrash />, 'danger', 'icon'),
-							'aria-label': "O'chirish",
-							disabled: !canWrite,
-						}}
-						dialog={DeleteUserModal}
-						dialogProps={{ item: row.original }}
-					/>
+					{canWrite && (
+						<Button
+							type='button'
+							variant='info'
+							size='icon'
+							aria-label="Telegram Botdan ro'yxatdan o'tkazish"
+							onClick={() => setTelegramTarget(row.original)}
+						>
+							<FaTelegramPlane />
+						</Button>
+					)}
+					{isAdminOrManager && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaEdit />, 'warning', 'icon'),
+								'aria-label': 'Tahrirlash',
+							}}
+							dialog={UserFormModal}
+							dialogProps={{ mode: 'edit' as const, item: row.original }}
+						/>
+					)}
+					{canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaTrash />, 'danger', 'icon'),
+								'aria-label': "O'chirish",
+							}}
+							dialog={DeleteUserModal}
+							dialogProps={{ item: row.original }}
+						/>
+					)}
 				</div>
 			),
 		}),

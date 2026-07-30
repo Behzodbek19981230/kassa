@@ -48,26 +48,28 @@ export default function ModelsPage() {
 			size: 150,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaEdit />, 'warning', 'icon'),
-							'aria-label': 'Tahrirlash',
-							disabled: !canWrite,
-						}}
-						dialog={BrandFormModal}
-						dialogProps={{ mode: 'edit' as const, item: row.original }}
-					/>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaTrash />, 'danger', 'icon'),
-							'aria-label': "O'chirish",
-							disabled: !canWrite,
-						}}
-						dialog={DeleteBrandModal}
-						dialogProps={{ item: row.original }}
-					/>
+					{canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaEdit />, 'warning', 'icon'),
+								'aria-label': 'Tahrirlash',
+							}}
+							dialog={BrandFormModal}
+							dialogProps={{ mode: 'edit' as const, item: row.original }}
+						/>
+					)}
+					{canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaTrash />, 'danger', 'icon'),
+								'aria-label': "O'chirish",
+							}}
+							dialog={DeleteBrandModal}
+							dialogProps={{ item: row.original }}
+						/>
+					)}
 				</div>
 			),
 		}),

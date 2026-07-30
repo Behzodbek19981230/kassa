@@ -200,28 +200,22 @@ export default function WarehouseAccountPage() {
 				const canEdit = canEditSklad(row.original);
 				return (
 					<div className='flex flex-wrap justify-end gap-1'>
-						{!row.original.import_product_status && (
-							<Button
-								type='button'
-								variant='danger'
-								size='icon'
-								aria-label='Tasdiqlash'
-								disabled={!canWrite || !canEdit}
-								onClick={stub}
-							>
+						{!row.original.import_product_status && canWrite && canEdit && (
+							<Button type='button' variant='danger' size='icon' aria-label='Tasdiqlash' onClick={stub}>
 								<FaCheckSquare />
 							</Button>
 						)}
-						<Button
-							type='button'
-							variant='warning'
-							size='icon'
-							aria-label='Tahrirlash'
-							disabled={!canWrite || !canEdit}
-							onClick={() => navigate(`/warehouse-report/${row.original.id}/edit`)}
-						>
-							<FaEdit />
-						</Button>
+						{canWrite && canEdit && (
+							<Button
+								type='button'
+								variant='warning'
+								size='icon'
+								aria-label='Tahrirlash'
+								onClick={() => navigate(`/warehouse-report/${row.original.id}/edit`)}
+							>
+								<FaEdit />
+							</Button>
+						)}
 						<Button
 							type='button'
 							variant='info'
@@ -231,16 +225,11 @@ export default function WarehouseAccountPage() {
 						>
 							<FaExpand />
 						</Button>
-						<Button
-							type='button'
-							variant='danger'
-							size='icon'
-							aria-label="O'chirish"
-							disabled={!canWrite || !canEdit}
-							onClick={stub}
-						>
-							<FaTrash />
-						</Button>
+						{canWrite && canEdit && (
+							<Button type='button' variant='danger' size='icon' aria-label="O'chirish" onClick={stub}>
+								<FaTrash />
+							</Button>
+						)}
 					</div>
 				);
 			},

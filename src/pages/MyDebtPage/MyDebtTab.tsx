@@ -121,21 +121,22 @@ export default function MyDebtTab() {
 			enableColumnFilter: false,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaDollarSign />, 'warning', 'icon'),
-							'aria-label': "To'lash",
-							disabled: !canWrite,
-						}}
-						dialog={MyDebtPayModal}
-						dialogProps={{
-							companyId: row.original.company,
-							consignorId: row.original.consignor,
-							consignorName: row.original.consignor_detail?.name,
-							currentDebt: Number(row.original.total_debt) || 0,
-						}}
-					/>
+					{canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaDollarSign />, 'warning', 'icon'),
+								'aria-label': "To'lash",
+							}}
+							dialog={MyDebtPayModal}
+							dialogProps={{
+								companyId: row.original.company,
+								consignorId: row.original.consignor,
+								consignorName: row.original.consignor_detail?.name,
+								currentDebt: Number(row.original.total_debt) || 0,
+							}}
+						/>
+					)}
 					<Button
 						type='button'
 						variant='info'
@@ -145,16 +146,11 @@ export default function MyDebtTab() {
 					>
 						<FaExpand />
 					</Button>
-					<Button
-						type='button'
-						variant='danger'
-						size='icon'
-						aria-label="O'chirish"
-						disabled={!canWrite}
-						onClick={stub}
-					>
-						<FaTrash />
-					</Button>
+					{canWrite && (
+						<Button type='button' variant='danger' size='icon' aria-label="O'chirish" onClick={stub}>
+							<FaTrash />
+						</Button>
+					)}
 				</div>
 			),
 		}),

@@ -450,13 +450,14 @@ export default function PlaceOrderPage() {
 														)}
 													</TableCell>
 													<TableCell>
-														<Button
-															type='button'
-															{...buttonProps(<FaTrash />, 'danger', 'icon')}
-															aria-label="O'chirish"
-															disabled={!canWrite}
-															onClick={() => handleRemoveCartItem(item.id)}
-														/>
+														{canWrite && (
+															<Button
+																type='button'
+																{...buttonProps(<FaTrash />, 'danger', 'icon')}
+																aria-label="O'chirish"
+																onClick={() => handleRemoveCartItem(item.id)}
+															/>
+														)}
 													</TableCell>
 												</TableRow>
 											);
@@ -484,28 +485,30 @@ export default function PlaceOrderPage() {
 							</Table>
 						</div>
 
-						<div className='mt-4 flex gap-2'>
-							<Button
-								type='button'
-								variant='white'
-								className='flex-1'
-								size='lg'
-								disabled={!clientId || cartItems.length === 0 || !canWrite}
-								onClick={() => setClearCartOpen(true)}
-							>
-								Bekor qilish
-							</Button>
-							<Button
-								type='button'
-								variant='danger'
-								className='flex-1'
-								size='lg'
-								disabled={!clientId || cartItems.length === 0 || !canWrite}
-								onClick={() => setConfirmSaleOpen(true)}
-							>
-								Sotish
-							</Button>
-						</div>
+						{canWrite && (
+							<div className='mt-4 flex gap-2'>
+								<Button
+									type='button'
+									variant='white'
+									className='flex-1'
+									size='lg'
+									disabled={!clientId || cartItems.length === 0}
+									onClick={() => setClearCartOpen(true)}
+								>
+									Bekor qilish
+								</Button>
+								<Button
+									type='button'
+									variant='danger'
+									className='flex-1'
+									size='lg'
+									disabled={!clientId || cartItems.length === 0}
+									onClick={() => setConfirmSaleOpen(true)}
+								>
+									Sotish
+								</Button>
+							</div>
+						)}
 					</Panel>
 				</div>
 			</div>

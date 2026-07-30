@@ -127,26 +127,28 @@ export default function ProductSizesTab() {
 						dialog={SizeViewModal}
 						dialogProps={{ item: row.original }}
 					/> */}
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaEdit />, 'warning', 'icon'),
-							'aria-label': 'Tahrirlash',
-							disabled: !canWrite,
-						}}
-						dialog={SizeFormModal}
-						dialogProps={{ mode: 'edit' as const, item: row.original }}
-					/>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaTrash />, 'danger', 'icon'),
-							'aria-label': "O'chirish",
-							disabled: !canWrite,
-						}}
-						dialog={DeleteSizeModal}
-						dialogProps={{ item: row.original }}
-					/>
+					{canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaEdit />, 'warning', 'icon'),
+								'aria-label': 'Tahrirlash',
+							}}
+							dialog={SizeFormModal}
+							dialogProps={{ mode: 'edit' as const, item: row.original }}
+						/>
+					)}
+					{canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaTrash />, 'danger', 'icon'),
+								'aria-label': "O'chirish",
+							}}
+							dialog={DeleteSizeModal}
+							dialogProps={{ item: row.original }}
+						/>
+					)}
 				</div>
 			),
 		}),

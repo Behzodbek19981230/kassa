@@ -59,26 +59,28 @@ export default function AboutPage() {
 			size: 150,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaEdit />, 'warning', 'icon'),
-							'aria-label': 'Tahrirlash',
-							disabled: !canWrite,
-						}}
-						dialog={AboutFormModal}
-						dialogProps={{ mode: 'edit' as const, item: row.original }}
-					/>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaTrash />, 'danger', 'icon'),
-							'aria-label': "O'chirish",
-							disabled: !canWrite,
-						}}
-						dialog={DeleteAboutModal}
-						dialogProps={{ item: row.original }}
-					/>
+					{canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaEdit />, 'warning', 'icon'),
+								'aria-label': 'Tahrirlash',
+							}}
+							dialog={AboutFormModal}
+							dialogProps={{ mode: 'edit' as const, item: row.original }}
+						/>
+					)}
+					{canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaTrash />, 'danger', 'icon'),
+								'aria-label': "O'chirish",
+							}}
+							dialog={DeleteAboutModal}
+							dialogProps={{ item: row.original }}
+						/>
+					)}
 				</div>
 			),
 		}),

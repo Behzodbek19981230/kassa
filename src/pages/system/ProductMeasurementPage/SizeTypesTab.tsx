@@ -47,26 +47,28 @@ export default function SizeTypesTab() {
 						dialog={TypeViewModal}
 						dialogProps={{ item: row.original }}
 					/> */}
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaEdit />, 'warning', 'icon'),
-							'aria-label': 'Tahrirlash',
-							disabled: !canWrite,
-						}}
-						dialog={TypeFormModal}
-						dialogProps={{ mode: 'edit' as const, item: row.original }}
-					/>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{
-							...buttonProps(<FaTrash />, 'danger', 'icon'),
-							'aria-label': "O'chirish",
-							disabled: !canWrite,
-						}}
-						dialog={DeleteTypeModal}
-						dialogProps={{ item: row.original }}
-					/>
+					{canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaEdit />, 'warning', 'icon'),
+								'aria-label': 'Tahrirlash',
+							}}
+							dialog={TypeFormModal}
+							dialogProps={{ mode: 'edit' as const, item: row.original }}
+						/>
+					)}
+					{canWrite && (
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaTrash />, 'danger', 'icon'),
+								'aria-label': "O'chirish",
+							}}
+							dialog={DeleteTypeModal}
+							dialogProps={{ item: row.original }}
+						/>
+					)}
 				</div>
 			),
 		}),

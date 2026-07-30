@@ -251,14 +251,19 @@ export default function WarehouseProductsPage() {
 
 														<TableCell>{formatNumber(item.count)}</TableCell>
 														<TableCell>
-															<button
-																type='button'
-																className='font-semibold text-ca-green hover:underline disabled:cursor-not-allowed disabled:opacity-60 disabled:no-underline'
-																disabled={!canWrite}
-																onClick={() => setRealPriceItem(item)}
-															>
-																{formatNumber(item.real_price, 2)} $
-															</button>
+															{canWrite ? (
+																<button
+																	type='button'
+																	className='font-semibold text-ca-green hover:underline'
+																	onClick={() => setRealPriceItem(item)}
+																>
+																	{formatNumber(item.real_price, 2)} $
+																</button>
+															) : (
+																<span className='font-semibold text-ca-green'>
+																	{formatNumber(item.real_price, 2)} $
+																</span>
+															)}
 														</TableCell>
 														<TableCell className='font-semibold'>
 															{formatNumber(item.real_price * item.count, 2)} $
