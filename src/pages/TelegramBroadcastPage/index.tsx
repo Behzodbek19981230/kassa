@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { FaEye, FaExclamationTriangle, FaPaperPlane } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { Button, DataTable, PageHeader, Panel } from '@/components/ui';
+import { getApiErrorMessage } from '@/lib/errors';
 import { BroadcastStatusBadge } from '@/pages/TelegramBroadcastPage/components/StatusBadge';
 import { useTelegramBroadcastListQuery } from '@/services/telegram-broadcast/telegram-broadcast.queries';
 import type { TelegramBroadcastJob } from '@/services/telegram-broadcast/telegram-broadcast.types';
@@ -21,7 +22,7 @@ export default function TelegramBroadcastPage() {
 	const navigate = useNavigate();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 
-	const { data, isLoading, isFetching, isError, refetch } = useTelegramBroadcastListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useTelegramBroadcastListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 	});
@@ -117,7 +118,7 @@ export default function TelegramBroadcastPage() {
 					enableColumnFilters={false}
 					enableStriping
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

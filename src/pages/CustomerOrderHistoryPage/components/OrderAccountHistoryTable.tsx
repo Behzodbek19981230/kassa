@@ -12,6 +12,7 @@ import {
 	Tooltip,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAccountHistoryGroupedListQuery } from '@/services/order-account-history/order-account-history.queries';
@@ -62,7 +63,7 @@ export default function OrderAccountHistoryTable({
 	const createdByFilter = columnFilters.find((f) => f.id === 'created_by')?.value as string | undefined;
 	const vozvratFilter = columnFilters.find((f) => f.id === 'is_vozvrat')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useOrderAccountHistoryGroupedListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useOrderAccountHistoryGroupedListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		client: clientFilter ? Number(clientFilter) : undefined,
@@ -362,7 +363,7 @@ export default function OrderAccountHistoryTable({
 				columnVisibilityKey='order-account-history'
 				enableStriping
 				isLoading={isLoading || isFetching}
-				emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+				emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 				emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 			/>
 		</div>

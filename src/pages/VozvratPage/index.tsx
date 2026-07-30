@@ -16,6 +16,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { brandService } from '@/services/brand/brand.service';
 import { clientService } from '@/services/client/client.service';
@@ -75,7 +76,7 @@ export default function VozvratPage() {
 
 	const today = new Date().toISOString().slice(0, 10);
 
-	const { data, isLoading, isFetching, isError, refetch } = useVozvratProductsQuery(
+	const { data, isLoading, isFetching, isError, error, refetch } = useVozvratProductsQuery(
 		clientId
 			? {
 					client_id: Number(clientId),
@@ -276,7 +277,8 @@ export default function VozvratPage() {
 									{clientId && !isLoading && isError && (
 										<TableRow>
 											<TableCell colSpan={6} className='text-center text-ca-red'>
-												<FaExclamationTriangle className='mr-1.5 inline' /> Xatolik yuz berdi
+												<FaExclamationTriangle className='mr-1.5 inline' />{' '}
+												{getApiErrorMessage(error, 'Xatolik yuz berdi')}
 											</TableCell>
 										</TableRow>
 									)}

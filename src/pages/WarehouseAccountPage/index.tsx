@@ -12,6 +12,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { consignorService } from '@/services/consignor/consignor.service';
 import { useSkladListQuery } from '@/services/sklad/sklad.queries';
@@ -43,7 +44,7 @@ export default function WarehouseAccountPage() {
 	const createdByFilter = columnFilters.find((f) => f.id === 'created_by')?.value as string | undefined;
 	const statusFilter = columnFilters.find((f) => f.id === 'import_product_status')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useSkladListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useSkladListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		consignor_ref: consignorFilter ? Number(consignorFilter) : undefined,
@@ -277,7 +278,7 @@ export default function WarehouseAccountPage() {
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

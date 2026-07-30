@@ -15,6 +15,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { useDebtRepaymentDraftGroupedListQuery } from '@/services/debt-repayment/debt-repayment.queries';
@@ -46,7 +47,7 @@ export default function DebtRepaymentDraftPage() {
 
 	const hasAppliedFilters = Object.values(appliedFilters).some(Boolean);
 
-	const { data, isLoading, isFetching, isError, refetch } = useDebtRepaymentDraftGroupedListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useDebtRepaymentDraftGroupedListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		client: appliedFilters.client ? Number(appliedFilters.client) : undefined,
@@ -233,7 +234,7 @@ export default function DebtRepaymentDraftPage() {
 					columnVisibilityKey='debt-repayment-draft'
 					enableStriping
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Draft to'lovlar yo'q"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Draft to'lovlar yo'q"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

@@ -4,6 +4,7 @@ import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Button, buttonProps, DataTable, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import DeleteExpenseTypeModal from '@/pages/system/ExpensePage/components/DeleteExpenseTypeModal';
 import ExpenseTypeFormModal from '@/pages/system/ExpensePage/components/ExpenseTypeFormModal';
 import { useExpenseTypeListQuery } from '@/services/expense-type/expense-type.queries';
@@ -20,7 +21,7 @@ export default function ExpenseTypesTab() {
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const nameFilter = columnFilters.find((f) => f.id === 'name')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useExpenseTypeListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useExpenseTypeListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
@@ -105,7 +106,7 @@ export default function ExpenseTypesTab() {
 				enableSorting
 				enableStriping
 				isLoading={isLoading || isFetching}
-				emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+				emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 				emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 			/>
 		</Panel>

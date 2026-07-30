@@ -9,6 +9,7 @@ import { FaEdit, FaExclamationTriangle, FaLock, FaTelegramPlane, FaTrash, FaUnlo
 import { Badge, Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import DeleteUserModal from '@/pages/system/UserPage/components/DeleteUserModal';
 import TelegramBotRegisterModal from '@/pages/system/UserPage/components/TelegramBotRegisterModal';
 import UnblockUserModal from '@/pages/system/UserPage/components/UnblockUserModal';
@@ -29,7 +30,7 @@ export default function UserPage() {
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const usernameFilter = columnFilters.find((f) => f.id === 'username')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useUserListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useUserListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: usernameFilter || undefined,
@@ -189,7 +190,7 @@ export default function UserPage() {
 					enableStriping
 					getRowClassName={(row) => (row.is_login_blocked ? 'bg-ca-orange/10' : undefined)}
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

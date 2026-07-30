@@ -13,6 +13,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { consignorService } from '@/services/consignor/consignor.service';
 import { useMyDebtListQuery } from '@/services/my-debt/my-debt.queries';
@@ -43,7 +44,7 @@ export default function MyDebtTab() {
 	const consignorFilter = columnFilters.find((f) => f.id === 'consignor')?.value as string | undefined;
 	const updatedByFilter = columnFilters.find((f) => f.id === 'updated_by')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useMyDebtListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useMyDebtListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		consignor: consignorFilter ? Number(consignorFilter) : undefined,
@@ -194,7 +195,7 @@ export default function MyDebtTab() {
 					columnVisibilityKey='my-debt'
 					enableStriping
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : 'Hech nima topilmadi.'}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : 'Hech nima topilmadi.'}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

@@ -11,6 +11,7 @@ import {
 	Input,
 	Panel,
 } from '@/components/ui';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { consignorService } from '@/services/consignor/consignor.service';
 import { useMyDebtHistoryGroupedListQuery } from '@/services/my-debt/my-debt-history.queries';
@@ -38,7 +39,7 @@ export default function MyDebtHistoryTab() {
 
 	const hasAppliedFilters = Object.values(appliedFilters).some(Boolean);
 
-	const { data, isLoading, isFetching, isError, refetch } = useMyDebtHistoryGroupedListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useMyDebtHistoryGroupedListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		consignor: appliedFilters.consignor ? Number(appliedFilters.consignor) : undefined,
@@ -177,7 +178,7 @@ export default function MyDebtHistoryTab() {
 				enableColumnFilters={false}
 				enableStriping
 				isLoading={isLoading || isFetching}
-				emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+				emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 				emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 			/>
 		</Panel>

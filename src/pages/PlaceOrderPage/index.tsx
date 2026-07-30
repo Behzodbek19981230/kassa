@@ -18,6 +18,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { cn } from '@/lib/utils';
 import { brandService } from '@/services/brand/brand.service';
@@ -94,7 +95,7 @@ export default function PlaceOrderPage() {
 	const { data: catalogData } = useWarehouseAllListQuery({});
 	const catalogGroups = catalogData ?? [];
 
-	const { data, isLoading, isFetching, isError, refetch } = useWarehouseAllListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useWarehouseAllListQuery({
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
@@ -254,7 +255,8 @@ export default function PlaceOrderPage() {
 									{!isLoading && isError && (
 										<TableRow>
 											<TableCell colSpan={6} className='text-center text-ca-red'>
-												<FaExclamationTriangle className='mr-1.5 inline' /> Xatolik yuz berdi
+												<FaExclamationTriangle className='mr-1.5 inline' />{' '}
+												{getApiErrorMessage(error, 'Xatolik yuz berdi')}
 											</TableCell>
 										</TableRow>
 									)}

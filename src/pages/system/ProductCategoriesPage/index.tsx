@@ -12,6 +12,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import CategoryFormModal from '@/pages/system/ProductCategoriesPage/components/CategoryFormModal';
 import DeleteCategoryModal from '@/pages/system/ProductCategoriesPage/components/DeleteCategoryModal';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
@@ -45,7 +46,7 @@ export default function ProductCategoriesPage() {
 		};
 	};
 
-	const { data, isLoading, isError, isFetching, refetch } = useProductCategoryListQuery({
+	const { data, isLoading, isError, error, isFetching, refetch } = useProductCategoryListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
@@ -156,7 +157,7 @@ export default function ProductCategoriesPage() {
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

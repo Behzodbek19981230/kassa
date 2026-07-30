@@ -17,6 +17,7 @@ import {
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { debtRepaymentService } from '@/services/debt-repayment/debt-repayment.service';
@@ -80,7 +81,7 @@ export default function DebtRepaymentPage() {
 
 	const hasAppliedFilters = Object.values(appliedFilters).some(Boolean);
 
-	const { data, isLoading, isFetching, isError, refetch } = useDebtRepaymentGroupedListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useDebtRepaymentGroupedListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		client: appliedFilters.client ? Number(appliedFilters.client) : undefined,
@@ -307,7 +308,7 @@ export default function DebtRepaymentPage() {
 					columnVisibilityKey='debt-repayments'
 					enableStriping
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

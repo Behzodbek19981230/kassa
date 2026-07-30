@@ -11,6 +11,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import DeleteSizeModal from '@/pages/system/ProductMeasurementPage/components/DeleteSizeModal';
 import SizeFormModal from '@/pages/system/ProductMeasurementPage/components/SizeFormModal';
 import { useBrandSizeListQuery } from '@/services/brand-size/brand-size.queries';
@@ -45,7 +46,7 @@ export default function ProductSizesTab() {
 	const { data: typeData } = useBrandSizeTypeListQuery({ limit: 100 });
 	const typeNameById = new Map((typeData?.results ?? []).map((t) => [t.id, t.name]));
 
-	const { data, isLoading, isFetching, isError, refetch } = useBrandSizeListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useBrandSizeListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		brand: brandFilter ? Number(brandFilter) : undefined,
@@ -187,7 +188,7 @@ export default function ProductSizesTab() {
 					enableColumnFilters
 					enableSorting={false}
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

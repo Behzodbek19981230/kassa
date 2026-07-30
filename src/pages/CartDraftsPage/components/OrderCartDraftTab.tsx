@@ -57,7 +57,7 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
 
-	const { data, isLoading, isFetching, isError, refetch } = useOrderCartGroupedListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useOrderCartGroupedListQuery({
 		is_active: true,
 		page,
 		limit: pageSize,
@@ -145,7 +145,7 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 						{!isLoading && isError && (
 							<TableRow>
 								<TableCell colSpan={COLUMN_COUNT + 1} className='text-center text-ca-red'>
-									<FaExclamationTriangle className='mr-1.5 inline' /> Xatolik yuz berdi
+									<FaExclamationTriangle className='mr-1.5 inline' /> {getApiErrorMessage(error, 'Xatolik yuz berdi')}
 								</TableCell>
 							</TableRow>
 						)}

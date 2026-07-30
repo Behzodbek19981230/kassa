@@ -1,6 +1,7 @@
 import { type UIEvent } from 'react';
 import { FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
 import { Modal, ModalBody, ModalContent, ModalHeader, ModalTitle } from '@/components/ui';
+import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/lib/number';
 import { useOrderAccountHistoryChangeLogsQuery } from '@/services/order-account-history/order-account-history.queries';
@@ -83,7 +84,7 @@ function ChangeLogCard({ log }: { log: OrderAccountHistoryChangeLog }) {
 }
 
 export default function OrderChangeLogsModal({ open, setOpen, orderId }: OrderChangeLogsModalProps) {
-	const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
+	const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
 		useOrderAccountHistoryChangeLogsQuery(orderId, open);
 	const logs = data?.pages.flatMap((page) => page.results) ?? [];
 
@@ -105,7 +106,7 @@ export default function OrderChangeLogsModal({ open, setOpen, orderId }: OrderCh
 					{isLoading && <p className='text-center'>Yuklanmoqda...</p>}
 					{!isLoading && isError && (
 						<p className='flex items-center justify-center gap-2 text-ca-red'>
-							<FaExclamationTriangle /> Xatolik yuz berdi
+							<FaExclamationTriangle /> {getApiErrorMessage(error, 'Xatolik yuz berdi')}
 						</p>
 					)}
 					{!isLoading && !isError && logs.length === 0 && (

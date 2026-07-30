@@ -4,6 +4,7 @@ import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Button, buttonProps, DataTable, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import DeleteTypeModal from '@/pages/system/ProductMeasurementPage/components/DeleteTypeModal';
 import TypeFormModal from '@/pages/system/ProductMeasurementPage/components/TypeFormModal';
 import { useBrandSizeTypeListQuery } from '@/services/brand-size-type/brand-size-type.queries';
@@ -19,7 +20,7 @@ export default function SizeTypesTab() {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const nameFilter = columnFilters.find((f) => f.id === 'name')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useBrandSizeTypeListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useBrandSizeTypeListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
@@ -108,7 +109,7 @@ export default function SizeTypesTab() {
 					enableColumnVisibility
 					columnVisibilityKey='size-types'
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

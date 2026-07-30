@@ -11,6 +11,7 @@ import {
 	Panel,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { useVozvratOrderListQuery } from '@/services/vozvrat/vozvrat.queries';
@@ -33,7 +34,7 @@ export default function VozvratOrderHistoryPage() {
 	const clientFilter = columnFilters.find((f) => f.id === 'client')?.value as string | undefined;
 	const createdByFilter = columnFilters.find((f) => f.id === 'created_by')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useVozvratOrderListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useVozvratOrderListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		client: clientFilter ? Number(clientFilter) : undefined,
@@ -185,7 +186,7 @@ export default function VozvratOrderHistoryPage() {
 					columnVisibilityKey='vozvrat-order-history'
 					enableStriping
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : 'Hech nima topilmadi.'}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : 'Hech nima topilmadi.'}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

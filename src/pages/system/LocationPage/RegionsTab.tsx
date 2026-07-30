@@ -9,6 +9,7 @@ import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Button, buttonProps, DataTable, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import DeleteRegionModal from '@/pages/system/LocationPage/components/DeleteRegionModal';
 import RegionFormModal from '@/pages/system/LocationPage/components/RegionFormModal';
 import { useRegionListQuery } from '@/services/region/region.queries';
@@ -25,7 +26,7 @@ export default function RegionsTab() {
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const nameFilter = columnFilters.find((f) => f.id === 'name')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useRegionListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useRegionListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
@@ -110,7 +111,7 @@ export default function RegionsTab() {
 				enableSorting
 				enableStriping
 				isLoading={isLoading || isFetching}
-				emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+				emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 				emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 			/>
 		</Panel>

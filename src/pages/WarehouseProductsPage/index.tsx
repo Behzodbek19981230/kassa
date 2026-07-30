@@ -15,6 +15,7 @@ import {
 	TableRow,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { brandService } from '@/services/brand/brand.service';
 import { productCategoryService } from '@/services/product-category/product-category.service';
@@ -31,7 +32,7 @@ export default function WarehouseProductsPage() {
 	const [imagesItem, setImagesItem] = useState<WarehouseAllListItem | null>(null);
 	const [realPriceItem, setRealPriceItem] = useState<WarehouseAllListItem | null>(null);
 
-	const { data, isLoading, isFetching, isError, refetch } = useWarehouseAllListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useWarehouseAllListQuery({
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
@@ -208,7 +209,7 @@ export default function WarehouseProductsPage() {
 							{!isLoading && isError && (
 								<TableRow>
 									<TableCell colSpan={10} className='text-center text-ca-red'>
-										<FaExclamationTriangle className='mr-1.5 inline' /> Xatolik yuz berdi
+										<FaExclamationTriangle className='mr-1.5 inline' /> {getApiErrorMessage(error, 'Xatolik yuz berdi')}
 									</TableCell>
 								</TableRow>
 							)}

@@ -12,6 +12,7 @@ import {
 	Panel,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { useCompanyEventLogListQuery } from '@/services/company-event-log/company-event-log.queries';
 import type { CompanyEventLogItem } from '@/services/company-event-log/company-event-log.types';
 import { userService } from '@/services/user/user.service';
@@ -48,7 +49,7 @@ export default function CompanyEventLogPage() {
 	const modelNameFilter = columnFilters.find((f) => f.id === 'model_name')?.value as string | undefined;
 	const userFilter = columnFilters.find((f) => f.id === 'user_label')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useCompanyEventLogListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useCompanyEventLogListQuery({
 		company: companyId ?? undefined,
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
@@ -213,7 +214,7 @@ export default function CompanyEventLogPage() {
 					columnVisibilityKey='company-event-log'
 					enableStriping
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

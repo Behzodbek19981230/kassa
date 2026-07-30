@@ -19,6 +19,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import DeleteWarehouseModal from '@/pages/WarehousePage/components/DeleteWarehouseModal';
 import WarehouseEditModal from '@/pages/WarehousePage/components/WarehouseEditModal';
@@ -50,7 +51,7 @@ export default function WarehousePage() {
 	const typeFilter = columnFilters.find((f) => f.id === 'type')?.value as string | undefined;
 	const skladTypeFilter = columnFilters.find((f) => f.id === 'type_sklad')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useWarehouseListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useWarehouseListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		brand: brandFilter ? Number(brandFilter) : undefined,
@@ -336,7 +337,7 @@ export default function WarehousePage() {
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

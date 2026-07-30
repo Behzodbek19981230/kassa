@@ -17,6 +17,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import ClientFormModal from '@/pages/settings/ClientPage/components/ClientFormModal';
 import DeleteClientModal from '@/pages/settings/ClientPage/components/DeleteClientModal';
@@ -50,7 +51,7 @@ export default function ClientPage() {
 	const profitLossFilter = columnFilters.find((f) => f.id === 'is_profit_loss')?.value as string | undefined;
 	const createdByFilter = columnFilters.find((f) => f.id === 'created_by')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useClientListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useClientListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
@@ -257,7 +258,7 @@ export default function ClientPage() {
 					enableExportExcel
 					exportFileName='mijozlar.csv'
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAccountHistoryDraftGroupedListQuery } from '@/services/order-account-history/order-account-history.queries';
@@ -55,7 +56,7 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 	const createdByFilter = columnFilters.find((f) => f.id === 'created_by')?.value as string | undefined;
 	const vozvratFilter = columnFilters.find((f) => f.id === 'is_vozvrat')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useOrderAccountHistoryDraftGroupedListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useOrderAccountHistoryDraftGroupedListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		client: clientFilter ? Number(clientFilter) : undefined,
@@ -310,7 +311,7 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 				columnVisibilityKey='order-account-history-draft'
 				enableStriping
 				isLoading={isLoading || isFetching}
-				emptyMessage={isError ? 'Xatolik yuz berdi' : "Draft buyurtmalar yo'q"}
+				emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Draft buyurtmalar yo'q"}
 				emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 			/>
 		</div>

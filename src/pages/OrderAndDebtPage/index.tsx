@@ -46,7 +46,7 @@ export default function OrderAndDebtPage() {
 
 	const hasAppliedFilters = Object.values(appliedFilters).some(Boolean);
 
-	const { data, isLoading, isFetching, isError } = useOrderAndDebtListQuery({
+	const { data, isLoading, isFetching, isError, error } = useOrderAndDebtListQuery({
 		client: appliedFilters.client ? Number(appliedFilters.client) : undefined,
 		user_type: appliedFilters.userType || undefined,
 		start_date: appliedFilters.startDate || undefined,
@@ -210,6 +210,7 @@ export default function OrderAndDebtPage() {
 								items={results?.items ?? []}
 								isLoading={isLoading || isFetching}
 								isError={isError}
+								error={error}
 								onPrint={handlePrintItem}
 							/>
 						),
@@ -222,6 +223,7 @@ export default function OrderAndDebtPage() {
 								groups={results?.worker_type_groups ?? []}
 								isLoading={isLoading || isFetching}
 								isError={isError}
+								error={error}
 								onPrint={handlePrintItem}
 							/>
 						),

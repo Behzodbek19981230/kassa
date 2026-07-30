@@ -9,6 +9,7 @@ import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import AboutFormModal from '@/pages/system/AboutPage/components/AboutFormModal';
 import DeleteAboutModal from '@/pages/system/AboutPage/components/DeleteAboutModal';
 import { useAboutListQuery } from '@/services/about/about.queries';
@@ -25,7 +26,7 @@ export default function AboutPage() {
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const nomerFilter = columnFilters.find((f) => f.id === 'nomer_nakladnoy')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useAboutListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useAboutListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nomerFilter || undefined,
@@ -131,7 +132,7 @@ export default function AboutPage() {
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>

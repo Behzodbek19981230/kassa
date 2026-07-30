@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import { Skeleton, Table, TableBody, TableCell, TableRow } from '@/components/ui';
+import { getApiErrorMessage } from '@/lib/errors';
 import OrderAndDebtRow, { type OrderAndDebtPrintRole } from '@/pages/OrderAndDebtPage/components/OrderAndDebtRow';
 import OrderAndDebtTableHeader, {
 	ORDER_AND_DEBT_COLUMN_COUNT,
@@ -15,6 +16,7 @@ interface WorkerTypeTabProps {
 	groups: OrderAndDebtWorkerTypeGroup[];
 	isLoading: boolean;
 	isError: boolean;
+	error?: unknown;
 	onPrint: (item: OrderAndDebtItem, role: OrderAndDebtPrintRole) => void;
 }
 
@@ -22,7 +24,7 @@ function sumDebt(items: OrderAndDebtItem[]) {
 	return items.reduce((sum, item) => sum + item.total_debt, 0);
 }
 
-export default function WorkerTypeTab({ groups, isLoading, isError, onPrint }: WorkerTypeTabProps) {
+export default function WorkerTypeTab({ groups, isLoading, isError, error, onPrint }: WorkerTypeTabProps) {
 	return (
 		<div className='overflow-x-auto'>
 			<Table className='min-w-[1200px] rounded-[3px] border border-ca-border'>
@@ -43,7 +45,9 @@ export default function WorkerTypeTab({ groups, isLoading, isError, onPrint }: W
 							<TableCell colSpan={ORDER_AND_DEBT_COLUMN_COUNT} className='p-0'>
 								<div className='flex h-40 flex-col items-center justify-center gap-2 text-ca-text'>
 									{isError && <FaExclamationTriangle className='text-4xl text-ca-red' />}
-									<div className='text-xs'>{isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}</div>
+									<div className='text-xs'>
+										{isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
+									</div>
 								</div>
 							</TableCell>
 						</TableRow>

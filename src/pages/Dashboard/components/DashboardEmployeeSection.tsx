@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import { Button, DataTable, DatePicker } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useDashboardUserStatisticsQuery } from '@/services/dashboard/dashboard.queries';
 import type { DashboardUserStatisticsItem } from '@/services/dashboard/dashboard.types';
@@ -53,7 +54,7 @@ export default function DashboardEmployeeSection() {
 	const [appliedFrom, setAppliedFrom] = useState(draftFrom);
 	const [appliedTo, setAppliedTo] = useState(draftTo);
 
-	const { data, isLoading, isFetching, isError, refetch } = useDashboardUserStatisticsQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useDashboardUserStatisticsQuery({
 		fromdate: appliedFrom,
 		todate: appliedTo,
 		company: companyId ?? undefined,
@@ -88,7 +89,7 @@ export default function DashboardEmployeeSection() {
 			{isLoading && <p className='py-16 text-center text-xs text-ca-text'>Yuklanmoqda...</p>}
 			{!isLoading && isError && (
 				<p className='py-16 text-center text-xs text-ca-red'>
-					<FaExclamationTriangle className='mr-1.5 inline' /> Xatolik yuz berdi
+					<FaExclamationTriangle className='mr-1.5 inline' /> {getApiErrorMessage(error, 'Xatolik yuz berdi')}
 				</p>
 			)}
 

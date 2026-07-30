@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import DeleteExpenseModal from '@/pages/system/ExpensePage/components/DeleteExpenseModal';
 import ExpenseFormModal from '@/pages/system/ExpensePage/components/ExpenseFormModal';
@@ -36,7 +37,7 @@ export default function ExpensesTab() {
 	const nameFilter = columnFilters.find((f) => f.id === 'nomi')?.value as string | undefined;
 	const typeFilter = columnFilters.find((f) => f.id === 'type')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, refetch } = useExpenseListQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useExpenseListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
@@ -153,7 +154,7 @@ export default function ExpensesTab() {
 				enableSorting
 				enableStriping
 				isLoading={isLoading || isFetching}
-				emptyMessage={isError ? 'Xatolik yuz berdi' : "Ma'lumot topilmadi"}
+				emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 				emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 			/>
 		</Panel>
