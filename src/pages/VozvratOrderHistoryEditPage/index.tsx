@@ -16,6 +16,7 @@ import {
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import { generateId } from '@/lib/utils';
 import VozvratProductRow, {
 	emptyVozvratRow,
@@ -47,6 +48,7 @@ export default function VozvratOrderHistoryEditPage() {
 	const vozvratId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
 	const { canWrite } = useCurrentCompany();
+	const { canEditOwned } = usePermissions();
 	const [formError, setFormError] = useState('');
 
 	useEffect(() => {
@@ -55,6 +57,10 @@ export default function VozvratOrderHistoryEditPage() {
 
 	const { data: item, isLoading, isError } = useVozvratOrderQuery(vozvratId);
 	const { data: productsData } = useVozvratOrderProductsQuery(vozvratId);
+
+	useEffect(() => {
+		if (item && !canEditOwned(item)) navigate('/vozvrat-order-history', { replace: true });
+	}, [item, canEditOwned, navigate]);
 
 	const [rows, setRows] = useState<EditableVozvratRow[]>([]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});

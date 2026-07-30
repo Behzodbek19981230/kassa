@@ -3,6 +3,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, DatePicker, Input, PageHeader, Panel, PriceInput, useNotification } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import { generateId } from '@/lib/utils';
 import WarehouseProductRow, {
 	emptyWarehouseRow,
@@ -26,11 +27,12 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 
 	const { notify } = useNotification();
 	const { companyId, canWrite } = useCurrentCompany();
+	const { canManageWarehouse } = usePermissions();
 	const warehouseQuery = useWarehouseQuery(mode === 'edit' ? warehouseId : undefined);
 
 	useEffect(() => {
-		if (!canWrite) navigate('/warehouse-prices', { replace: true });
-	}, [canWrite, navigate]);
+		if (!canWrite || !canManageWarehouse) navigate('/warehouse-prices', { replace: true });
+	}, [canWrite, canManageWarehouse, navigate]);
 
 	const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 	const [realPrice, setRealPrice] = useState('');

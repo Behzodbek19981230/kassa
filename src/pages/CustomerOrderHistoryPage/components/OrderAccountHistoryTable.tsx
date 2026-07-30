@@ -14,6 +14,7 @@ import {
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAccountHistoryGroupedListQuery } from '@/services/order-account-history/order-account-history.queries';
 import type { OrderAccountHistoryItem } from '@/services/order-account-history/order-account-history.types';
@@ -55,6 +56,7 @@ export default function OrderAccountHistoryTable({
 	onRefetchReady,
 }: OrderAccountHistoryTableProps) {
 	const navigate = useNavigate();
+	const { canEditOwned } = usePermissions();
 
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -271,6 +273,7 @@ export default function OrderAccountHistoryTable({
 			size: isDebtorOnly ? 90 : 260,
 			cell: ({ row }) => {
 				const item = row.original;
+				const canEdit = canEditOwned(item);
 				return (
 					<div className='flex justify-end gap-1'>
 						{item.update_status === 1 && (
@@ -280,7 +283,7 @@ export default function OrderAccountHistoryTable({
 									elementProps={{
 										...buttonProps(<FaCheck />, 'warning', 'icon'),
 										'aria-label': "O'zgarishni tasdiqlash",
-										disabled: !canWrite,
+										disabled: !canWrite || !canEdit,
 									}}
 									dialog={ConfirmOrderUpdateModal}
 									dialogProps={{ id: item.id }}
@@ -293,7 +296,7 @@ export default function OrderAccountHistoryTable({
 								variant='info'
 								size='icon'
 								aria-label='Tahrirlash'
-								disabled={!canWrite}
+								disabled={!canWrite || !canEdit}
 								onClick={() => navigate(`/customer-order-history/${item.id}/edit`)}
 							>
 								<FaEdit />
@@ -315,7 +318,7 @@ export default function OrderAccountHistoryTable({
 									elementProps={{
 										...buttonProps(<FaTrash />, 'danger', 'icon'),
 										'aria-label': 'Draftga olish',
-										disabled: !canWrite,
+										disabled: !canWrite || !canEdit,
 									}}
 									dialog={OrderDraftDeleteModal}
 									dialogProps={{ id: item.id, clientName: item.client_name }}

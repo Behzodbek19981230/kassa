@@ -19,6 +19,7 @@ import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import { clientService } from '@/services/client/client.service';
 import { debtRepaymentService } from '@/services/debt-repayment/debt-repayment.service';
 import { useDebtRepaymentGroupedListQuery } from '@/services/debt-repayment/debt-repayment.queries';
@@ -73,6 +74,7 @@ function toDebtRepayment(item: DebtRepaymentGroupedItem): DebtRepayment {
 
 export default function DebtRepaymentPage() {
 	const { canWrite } = useCurrentCompany();
+	const { canEditOwned } = usePermissions();
 	const { notify } = useNotification();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
@@ -190,6 +192,7 @@ export default function DebtRepaymentPage() {
 			size: 220,
 			cell: ({ row }) => {
 				const item = row.original;
+				const canEdit = canEditOwned(item);
 				return (
 					<div className='flex justify-end gap-1'>
 						<Button
@@ -207,7 +210,7 @@ export default function DebtRepaymentPage() {
 							elementProps={{
 								...buttonProps(<FaEdit />, 'warning', 'icon'),
 								'aria-label': 'Tahrirlash',
-								disabled: !canWrite,
+								disabled: !canWrite || !canEdit,
 							}}
 							dialog={DebtRepaymentFormModal}
 							dialogProps={{ mode: 'edit' as const, item: toDebtRepayment(item) }}
@@ -217,7 +220,7 @@ export default function DebtRepaymentPage() {
 							elementProps={{
 								...buttonProps(<FaTrash />, 'danger', 'icon'),
 								'aria-label': "O'chirish",
-								disabled: !canWrite,
+								disabled: !canWrite || !canEdit,
 							}}
 							dialog={DebtRepaymentDraftDeleteModal}
 							dialogProps={{ id: item.id, clientName: item.client_name }}

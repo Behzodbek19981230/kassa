@@ -16,6 +16,7 @@ import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import { useOrderAccountHistoryProductsQuery } from '@/services/order-account-history/order-account-history.queries';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
 import type { OrderAccountHistoryProductItem } from '@/services/order-account-history/order-account-history.types';
@@ -35,6 +36,7 @@ export default function OrderAccountHistoryDetailPage() {
 	const { data, isLoading, isError } = useOrderAccountHistoryProductsQuery(orderId);
 	const { notify } = useNotification();
 	const { canWrite } = useCurrentCompany();
+	const { canEditOwned, canViewChangeLogs } = usePermissions();
 	const [printingRole, setPrintingRole] = useState<PrintRole | null>(null);
 	const [editingItem, setEditingItem] = useState<OrderAccountHistoryProductItem | null>(null);
 	const [changeLogsOpen, setChangeLogsOpen] = useState(false);
@@ -175,9 +177,11 @@ export default function OrderAccountHistoryDetailPage() {
 						<FaUndo className='mr-1.5' />{' '}
 						{calculateMutation.isPending ? 'Hisoblanmoqda...' : 'Vozvrat qilish'}
 					</Button> */}
-					<Button type='button' variant='default' size='xs' onClick={() => setChangeLogsOpen(true)}>
-						<FaHistory className='mr-1.5' /> O'zgarishlar tarixi
-					</Button>
+					{canViewChangeLogs && (
+						<Button type='button' variant='default' size='xs' onClick={() => setChangeLogsOpen(true)}>
+							<FaHistory className='mr-1.5' /> O'zgarishlar tarixi
+						</Button>
+					)}
 				</div>
 			</div>
 
@@ -286,7 +290,7 @@ export default function OrderAccountHistoryDetailPage() {
 													<button
 														type='button'
 														className='inline-flex items-center gap-1.5 font-semibold text-ca-green hover:underline disabled:cursor-not-allowed disabled:opacity-60 disabled:no-underline'
-														disabled={!canWrite}
+														disabled={!canWrite || !canEditOwned(order)}
 														onClick={() => setEditingItem(item)}
 													>
 														{item.given_count} <FaCoins className='text-ca-orange' />

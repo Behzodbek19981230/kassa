@@ -17,6 +17,7 @@ import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import { clientService } from '@/services/client/client.service';
 import { useDebtRepaymentDraftGroupedListQuery } from '@/services/debt-repayment/debt-repayment.queries';
 import type { DebtRepaymentGroupedItem } from '@/services/debt-repayment/debt-repayment.types';
@@ -41,6 +42,7 @@ const emptyFilters: FilterState = { client: '', startDate: '', endDate: '', sear
 
 export default function DebtRepaymentDraftPage() {
 	const { canWrite } = useCurrentCompany();
+	const { canEditOwned } = usePermissions();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
 	const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);
@@ -138,6 +140,7 @@ export default function DebtRepaymentDraftPage() {
 			size: 110,
 			cell: ({ row }) => {
 				const item = row.original;
+				const canEdit = canEditOwned(item);
 				return (
 					<div className='flex justify-end gap-1'>
 						<OpenDialogButton
@@ -145,7 +148,7 @@ export default function DebtRepaymentDraftPage() {
 							elementProps={{
 								...buttonProps(<FaUndo />, 'success', 'icon'),
 								'aria-label': 'Qayta tiklash',
-								disabled: !canWrite,
+								disabled: !canWrite || !canEdit,
 							}}
 							dialog={DebtRepaymentReturnModal}
 							dialogProps={{ id: item.id, clientName: item.client_name }}
@@ -155,7 +158,7 @@ export default function DebtRepaymentDraftPage() {
 							elementProps={{
 								...buttonProps(<FaTrash />, 'danger', 'icon'),
 								'aria-label': "Batamom o'chirish",
-								disabled: !canWrite,
+								disabled: !canWrite || !canEdit,
 							}}
 							dialog={DebtRepaymentHardDeleteModal}
 							dialogProps={{ id: item.id, clientName: item.client_name }}

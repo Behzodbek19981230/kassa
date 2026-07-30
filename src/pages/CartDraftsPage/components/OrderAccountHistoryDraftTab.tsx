@@ -15,6 +15,7 @@ import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAccountHistoryDraftGroupedListQuery } from '@/services/order-account-history/order-account-history.queries';
 import type { OrderAccountHistoryItem } from '@/services/order-account-history/order-account-history.types';
@@ -49,6 +50,7 @@ interface OrderAccountHistoryDraftTabProps {
 export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAccountHistoryDraftTabProps) {
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
+	const { canEditOwned } = usePermissions();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -250,6 +252,7 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 			size: 190,
 			cell: ({ row }) => {
 				const item = row.original;
+				const canEdit = canEditOwned(item);
 				return (
 					<div className='flex justify-end gap-1'>
 						<Button
@@ -266,7 +269,7 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 							elementProps={{
 								...buttonProps(<FaUndo />, 'success', 'icon'),
 								'aria-label': 'Qayta tiklash',
-								disabled: !canWrite,
+								disabled: !canWrite || !canEdit,
 							}}
 							dialog={OrderReturnModal}
 							dialogProps={{ id: item.id, clientName: item.client_name }}
@@ -276,7 +279,7 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 							elementProps={{
 								...buttonProps(<FaTrash />, 'danger', 'icon'),
 								'aria-label': "Batamom o'chirish",
-								disabled: !canWrite,
+								disabled: !canWrite || !canEdit,
 							}}
 							dialog={OrderHardDeleteModal}
 							dialogProps={{ id: item.id, clientName: item.client_name }}

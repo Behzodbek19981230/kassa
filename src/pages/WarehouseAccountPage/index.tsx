@@ -14,6 +14,7 @@ import {
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import { consignorService } from '@/services/consignor/consignor.service';
 import { useSkladListQuery } from '@/services/sklad/sklad.queries';
 import type { SkladItem } from '@/services/sklad/sklad.types';
@@ -34,6 +35,7 @@ export default function WarehouseAccountPage() {
 	const navigate = useNavigate();
 	const { notify } = useNotification();
 	const { canWrite } = useCurrentCompany();
+	const { canEditSklad } = usePermissions();
 
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
@@ -194,51 +196,54 @@ export default function WarehouseAccountPage() {
 			enableSorting: false,
 			enableColumnFilter: false,
 			size: 150,
-			cell: ({ row }) => (
-				<div className='flex flex-wrap justify-end gap-1'>
-					{!row.original.import_product_status && (
+			cell: ({ row }) => {
+				const canEdit = canEditSklad(row.original);
+				return (
+					<div className='flex flex-wrap justify-end gap-1'>
+						{!row.original.import_product_status && (
+							<Button
+								type='button'
+								variant='danger'
+								size='icon'
+								aria-label='Tasdiqlash'
+								disabled={!canWrite || !canEdit}
+								onClick={stub}
+							>
+								<FaCheckSquare />
+							</Button>
+						)}
+						<Button
+							type='button'
+							variant='warning'
+							size='icon'
+							aria-label='Tahrirlash'
+							disabled={!canWrite || !canEdit}
+							onClick={() => navigate(`/warehouse-report/${row.original.id}/edit`)}
+						>
+							<FaEdit />
+						</Button>
+						<Button
+							type='button'
+							variant='info'
+							size='icon'
+							aria-label='Batafsil'
+							onClick={() => navigate(`/warehouse-report/${row.original.id}`)}
+						>
+							<FaExpand />
+						</Button>
 						<Button
 							type='button'
 							variant='danger'
 							size='icon'
-							aria-label='Tasdiqlash'
-							disabled={!canWrite}
+							aria-label="O'chirish"
+							disabled={!canWrite || !canEdit}
 							onClick={stub}
 						>
-							<FaCheckSquare />
+							<FaTrash />
 						</Button>
-					)}
-					<Button
-						type='button'
-						variant='warning'
-						size='icon'
-						aria-label='Tahrirlash'
-						disabled={!canWrite}
-						onClick={() => navigate(`/warehouse-report/${row.original.id}/edit`)}
-					>
-						<FaEdit />
-					</Button>
-					<Button
-						type='button'
-						variant='info'
-						size='icon'
-						aria-label='Batafsil'
-						onClick={() => navigate(`/warehouse-report/${row.original.id}`)}
-					>
-						<FaExpand />
-					</Button>
-					<Button
-						type='button'
-						variant='danger'
-						size='icon'
-						aria-label="O'chirish"
-						disabled={!canWrite}
-						onClick={stub}
-					>
-						<FaTrash />
-					</Button>
-				</div>
-			),
+					</div>
+				);
+			},
 		}),
 	];
 

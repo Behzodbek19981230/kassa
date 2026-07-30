@@ -13,6 +13,7 @@ import {
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import { clientService } from '@/services/client/client.service';
 import { useVozvratOrderListQuery } from '@/services/vozvrat/vozvrat.queries';
 import type { VozvratOrderListItem } from '@/services/vozvrat/vozvrat.types';
@@ -27,6 +28,7 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 export default function VozvratOrderHistoryPage() {
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
+	const { canEditOwned } = usePermissions();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [deletingItem, setDeletingItem] = useState<VozvratOrderListItem | null>(null);
@@ -117,39 +119,42 @@ export default function VozvratOrderHistoryPage() {
 			header: 'Harakatlar',
 			meta: { align: 'right' },
 			enableColumnFilter: false,
-			cell: ({ row }) => (
-				<div className='flex justify-end gap-1'>
-					<Button
-						type='button'
-						variant='warning'
-						size='icon'
-						aria-label='Tahrirlash'
-						disabled={!canWrite}
-						onClick={() => navigate(`/vozvrat-order-history/${row.original.id}/edit`)}
-					>
-						<FaEdit />
-					</Button>
-					<Button
-						type='button'
-						variant='info'
-						size='icon'
-						aria-label='Batafsil'
-						onClick={() => navigate(`/vozvrat-order-history/${row.original.id}`)}
-					>
-						<FaExpand />
-					</Button>
-					<Button
-						type='button'
-						variant='danger'
-						size='icon'
-						aria-label="O'chirish"
-						disabled={!canWrite}
-						onClick={() => setDeletingItem(row.original)}
-					>
-						<FaTrash />
-					</Button>
-				</div>
-			),
+			cell: ({ row }) => {
+				const canEdit = canEditOwned(row.original);
+				return (
+					<div className='flex justify-end gap-1'>
+						<Button
+							type='button'
+							variant='warning'
+							size='icon'
+							aria-label='Tahrirlash'
+							disabled={!canWrite || !canEdit}
+							onClick={() => navigate(`/vozvrat-order-history/${row.original.id}/edit`)}
+						>
+							<FaEdit />
+						</Button>
+						<Button
+							type='button'
+							variant='info'
+							size='icon'
+							aria-label='Batafsil'
+							onClick={() => navigate(`/vozvrat-order-history/${row.original.id}`)}
+						>
+							<FaExpand />
+						</Button>
+						<Button
+							type='button'
+							variant='danger'
+							size='icon'
+							aria-label="O'chirish"
+							disabled={!canWrite || !canEdit}
+							onClick={() => setDeletingItem(row.original)}
+						>
+							<FaTrash />
+						</Button>
+					</div>
+				);
+			},
 		}),
 	];
 

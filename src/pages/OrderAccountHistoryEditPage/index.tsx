@@ -8,6 +8,7 @@ import { Button, Checkbox, DatePicker, FormField, Input, PriceInput, Textarea, u
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import { generateId } from '@/lib/utils';
 import WarehouseProductRow, {
 	emptyWarehouseRow,
@@ -45,6 +46,7 @@ export default function OrderAccountHistoryEditPage() {
 	const orderId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
 	const { canWrite } = useCurrentCompany();
+	const { canEditOwned } = usePermissions();
 	const [formError, setFormError] = useState('');
 
 	useEffect(() => {
@@ -53,6 +55,10 @@ export default function OrderAccountHistoryEditPage() {
 
 	const { data: item, isLoading, isError } = useOrderAccountHistoryQuery(orderId);
 	const { data: productsData } = useOrderAccountHistoryProductsQuery(orderId);
+
+	useEffect(() => {
+		if (item && !canEditOwned(item)) navigate('/customer-order-history', { replace: true });
+	}, [item, canEditOwned, navigate]);
 
 	const [rows, setRows] = useState<EditableProductRow[]>([]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});

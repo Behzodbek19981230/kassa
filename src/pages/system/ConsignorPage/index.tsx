@@ -10,6 +10,7 @@ import { Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
+import { usePermissions } from '@/lib/permissions';
 import ConsignorFormModal from '@/pages/system/ConsignorPage/components/ConsignorFormModal';
 import DeleteConsignorModal from '@/pages/system/ConsignorPage/components/DeleteConsignorModal';
 import { useConsignorListQuery } from '@/services/consignor/consignor.queries';
@@ -19,6 +20,7 @@ const columnHelper = createColumnHelper<Consignor>();
 
 export default function ConsignorPage() {
 	const { canWrite } = useCurrentCompany();
+	const { canManageConsignor } = usePermissions();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -54,7 +56,7 @@ export default function ConsignorPage() {
 						elementProps={{
 							...buttonProps(<FaEdit />, 'warning', 'icon'),
 							'aria-label': 'Tahrirlash',
-							disabled: !canWrite,
+							disabled: !canWrite || !canManageConsignor,
 						}}
 						dialog={ConsignorFormModal}
 						dialogProps={{ mode: 'edit' as const, item: row.original }}
@@ -64,7 +66,7 @@ export default function ConsignorPage() {
 						elementProps={{
 							...buttonProps(<FaTrash />, 'danger', 'icon'),
 							'aria-label': "O'chirish",
-							disabled: !canWrite,
+							disabled: !canWrite || !canManageConsignor,
 						}}
 						dialog={DeleteConsignorModal}
 						dialogProps={{ item: row.original }}
@@ -87,7 +89,7 @@ export default function ConsignorPage() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					canWrite && (
+					canWrite && canManageConsignor && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}

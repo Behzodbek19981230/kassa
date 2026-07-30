@@ -21,6 +21,7 @@ import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import DeleteWarehouseModal from '@/pages/WarehousePage/components/DeleteWarehouseModal';
 import WarehouseEditModal from '@/pages/WarehousePage/components/WarehouseEditModal';
 import WarehouseImagesModal from '@/pages/WarehousePage/components/WarehouseImagesModal';
@@ -40,6 +41,7 @@ const columnHelper = createColumnHelper<Warehouse>();
 
 export default function WarehousePage() {
 	const { canWrite } = useCurrentCompany();
+	const { canManageWarehouse } = usePermissions();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -241,7 +243,7 @@ export default function WarehousePage() {
 							elementProps={{
 								...buttonProps(<FaImages />, 'theme', 'icon'),
 								'aria-label': 'Rasmlar',
-								disabled: !canWrite,
+								disabled: !canWrite || !canManageWarehouse,
 							}}
 							dialog={WarehouseImagesModal}
 							dialogProps={{ item }}
@@ -251,7 +253,7 @@ export default function WarehousePage() {
 							elementProps={{
 								...buttonProps(<FaEdit />, 'info', 'icon'),
 								'aria-label': 'Tahrirlash',
-								disabled: !canWrite,
+								disabled: !canWrite || !canManageWarehouse,
 							}}
 							dialog={WarehouseEditModal}
 							dialogProps={{ item }}
@@ -261,7 +263,7 @@ export default function WarehousePage() {
 							elementProps={{
 								...buttonProps(<FaTrash />, 'danger', 'icon'),
 								'aria-label': "O'chirish",
-								disabled: !canWrite,
+								disabled: !canWrite || !canManageWarehouse,
 							}}
 							dialog={DeleteWarehouseModal}
 							dialogProps={{ item }}
@@ -297,7 +299,7 @@ export default function WarehousePage() {
 						>
 							Tekshirildi {onlyConfirmed && '✓'}
 						</Button>
-						{canWrite && (
+						{canWrite && canManageWarehouse && (
 							<Link
 								to='/warehouse-prices/create'
 								className={buttonVariants({ variant: 'info', size: 'xs' })}
