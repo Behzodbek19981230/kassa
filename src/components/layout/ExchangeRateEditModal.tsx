@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaArrowLeft, FaListUl } from 'react-icons/fa';
 import {
 	Badge,
@@ -54,6 +54,13 @@ export default function ExchangeRateEditModal({ open, setOpen, companyId, exchan
 	const [error, setError] = useState('');
 	const [view, setView] = useState<'edit' | 'history'>('edit');
 
+	// exchangeRate can still be loading (or resolve to a newer value) by the time this
+	// modal is opened, since it's mounted once in Header and just toggled visible/hidden —
+	// keep the field in sync with it for as long as the dialog is open.
+	useEffect(() => {
+		if (open) setDollar(String(exchangeRate?.dollar ?? ''));
+	}, [open, exchangeRate]);
+
 	const { data: historyData, isLoading: isHistoryLoading } = useExchangeRateHistoryListQuery(
 		{ company: companyId, limit: 50 },
 		open && view === 'history',
@@ -61,10 +68,7 @@ export default function ExchangeRateEditModal({ open, setOpen, companyId, exchan
 	const historyItems = historyData?.results ?? [];
 
 	const resetAndClose = (next: boolean) => {
-		if (!next) {
-			setDollar(String(exchangeRate?.dollar ?? ''));
-			setView('edit');
-		}
+		if (!next) setView('edit');
 		setOpen(next);
 	};
 
