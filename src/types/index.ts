@@ -28,6 +28,13 @@ export type SidebarIcon =
 	| 'settings'
 	| 'paper-plane';
 
+/** Permission flags a menu item's visibility can be gated on; see src/utils/sidebarUtils.ts. */
+export interface SidebarMenuPermissions {
+	isAdminOrManager: boolean;
+	canManageConsignor: boolean;
+	canManageWarehouse: boolean;
+}
+
 export interface SidebarMenuItem {
 	id: string;
 	type?: 'header';
@@ -37,6 +44,8 @@ export interface SidebarMenuItem {
 	badge?: string;
 	tag?: string;
 	children?: SidebarMenuItem[];
+	/** If set, the item (and its children) is hidden unless this permission flag is true. */
+	requiredPermission?: keyof SidebarMenuPermissions;
 }
 
 export interface BreadcrumbItem {

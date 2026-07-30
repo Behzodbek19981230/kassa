@@ -1,4 +1,4 @@
-import type { SidebarMenuItem } from '@/types'
+import type { SidebarMenuItem, SidebarMenuPermissions } from '@/types'
 
 export function isRouteMatch(path: string | undefined, pathname: string): boolean {
   if (!path || path === '#') return false
@@ -42,4 +42,24 @@ export function findSiblingGroupIds(items: SidebarMenuItem[], targetId: string):
   const list = findContainingList(items, targetId)
   if (!list) return []
   return list.filter((item) => item.id !== targetId && item.children?.length).map((item) => item.id)
+}
+
+/** Drops items (and groups left with no visible children) the user lacks the required permission for. */
+export function filterMenuByPermissions(
+  items: SidebarMenuItem[],
+  permissions: SidebarMenuPermissions,
+): SidebarMenuItem[] {
+  return items.reduce<SidebarMenuItem[]>((acc, item) => {
+    if (item.requiredPermission && !permissions[item.requiredPermission]) return acc
+
+    if (item.children?.length) {
+      const children = filterMenuByPermissions(item.children, permissions)
+      if (children.length === 0) return acc
+      acc.push({ ...item, children })
+      return acc
+    }
+
+    acc.push(item)
+    return acc
+  }, [])
 }

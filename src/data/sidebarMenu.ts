@@ -1,7 +1,7 @@
 import type { SidebarMenuItem } from '@/types';
 
 export const sidebarMenu: SidebarMenuItem[] = [
-	{ id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/' },
+	{ id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/', requiredPermission: 'isAdminOrManager' },
 	{ id: 'warehouse-products', icon: 'boxes', label: 'Ombor mahsulotlari', path: '/warehouse-products' },
 	{ id: 'place-order', icon: 'cart', label: 'Buyurtma qilish', path: '/place-order' },
 	{
@@ -13,10 +13,22 @@ export const sidebarMenu: SidebarMenuItem[] = [
 	{ id: 'orders-debts', icon: 'chart-pie', label: 'Buyurtmalar va qarzlar', path: '/order-and-debt' },
 	{ id: 'return', icon: 'undo', label: 'Vozvrat', path: '/vozvrat' },
 	{ id: 'return-history', icon: 'file-invoice', label: 'Vozvrat buyurtmalar tarixi', path: '/vozvrat-order-history' },
-	{ id: 'goods-prices', icon: 'tags', label: 'Tovarlar va Narxlar', path: '/warehouse-prices' },
+	{
+		id: 'goods-prices',
+		icon: 'tags',
+		label: 'Tovarlar va Narxlar',
+		path: '/warehouse-prices',
+		requiredPermission: 'canManageWarehouse',
+	},
 	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '/import' },
 	{ id: 'warehouse-report', icon: 'warehouse', label: 'Omborxona hisobi', path: '/warehouse-report' },
-	{ id: 'my-debts', icon: 'bookmark', label: 'Mening qarzlarim', path: '/my-debts' },
+	{
+		id: 'my-debts',
+		icon: 'bookmark',
+		label: 'Mening qarzlarim',
+		path: '/my-debts',
+		requiredPermission: 'canManageConsignor',
+	},
 	{
 		id: 'system-management',
 		icon: 'cogs',
@@ -35,12 +47,24 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				label: "Mahsulot o'lchami",
 				path: '/system/product-measurement',
 			},
-			{ id: 'shippers', icon: 'shipping-fast', label: "Yuk jo'natuvchilar", path: '/system/consignors' },
+			{
+				id: 'shippers',
+				icon: 'shipping-fast',
+				label: "Yuk jo'natuvchilar",
+				path: '/system/consignors',
+				requiredPermission: 'canManageConsignor',
+			},
 			{ id: 'sklad-types', icon: 'warehouse', label: 'Skladlar', path: '/system/sklad-types' },
 			{ id: 'import-goods-history', icon: 'history', label: 'Import tovarlar tarixi', path: '#' },
 			{ id: 'inspections-history', icon: 'check-circle', label: 'Tekshirishlar tarixi', path: '#' },
 
-			{ id: 'users', icon: 'users-cog', label: 'Foydalanuvchilar', path: '/system/users' },
+			{
+				id: 'users',
+				icon: 'users-cog',
+				label: 'Foydalanuvchilar',
+				path: '/system/users',
+				requiredPermission: 'isAdminOrManager',
+			},
 			// { id: 'companies', icon: 'building', label: 'Tashkilotlar', path: '/system/companies' },
 			// { id: 'locations', icon: 'layer-group', label: 'Hududlar', path: '/system/locations' },
 			{ id: 'profit-loss', icon: 'chart-bar', label: 'Foyda va zarar', path: '#' },

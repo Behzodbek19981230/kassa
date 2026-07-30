@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { PageHeader, Panel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { useDashboardStatisticsQuery } from '@/services/dashboard/dashboard.queries';
@@ -10,13 +11,15 @@ const CURRENT_YEAR = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
 
 export default function Dashboard() {
-	const { companyId } = useCurrentCompany();
+	const { companyId, isAdminOrManager } = useCurrentCompany();
 	const [year, setYear] = useState(CURRENT_YEAR);
 
 	const { data, isLoading, isFetching, refetch } = useDashboardStatisticsQuery({
 		year,
 		company: companyId ?? undefined,
 	});
+
+	if (!isAdminOrManager) return <Navigate to='/warehouse-products' replace />;
 
 	return (
 		<>

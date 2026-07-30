@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
 	FaAngleDoubleLeft,
@@ -32,8 +32,16 @@ import {
 	FaWarehouse,
 } from 'react-icons/fa';
 import { sidebarMenu } from '@/data/sidebarMenu';
+import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import type { SidebarIcon, SidebarMenuItem } from '@/types';
-import { collectExpandedIds, findSiblingGroupIds, hasActiveDescendant, isRouteMatch } from '@/utils/sidebarUtils';
+import {
+	collectExpandedIds,
+	filterMenuByPermissions,
+	findSiblingGroupIds,
+	hasActiveDescendant,
+	isRouteMatch,
+} from '@/utils/sidebarUtils';
 
 interface SidebarProps {
 	minified: boolean;
@@ -364,17 +372,24 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
 
 export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile }: SidebarProps) {
 	const { pathname } = useLocation();
-	const [expanded, setExpanded] = useState<Set<string>>(() => new Set(collectExpandedIds(sidebarMenu, pathname)));
+	const { isAdminOrManager } = useCurrentCompany();
+	const { canManageConsignor, canManageWarehouse } = usePermissions();
+	const menu = useMemo(
+		() => filterMenuByPermissions(sidebarMenu, { isAdminOrManager, canManageConsignor, canManageWarehouse }),
+		[isAdminOrManager, canManageConsignor, canManageWarehouse],
+	);
+
+	const [expanded, setExpanded] = useState<Set<string>>(() => new Set(collectExpandedIds(menu, pathname)));
 	useEffect(() => {
-		const activeIds = collectExpandedIds(sidebarMenu, pathname);
+		const activeIds = collectExpandedIds(menu, pathname);
 		setExpanded((prev) => new Set([...prev, ...activeIds]));
-	}, [pathname]);
+	}, [pathname, menu]);
 
 	const toggleExpanded = (id: string) => {
 		setExpanded((prev) => {
 			const next = new Set(prev);
 			const isOpen = next.has(id);
-			for (const siblingId of findSiblingGroupIds(sidebarMenu, id)) next.delete(siblingId);
+			for (const siblingId of findSiblingGroupIds(menu, id)) next.delete(siblingId);
 			if (isOpen) next.delete(id);
 			else next.add(id);
 			return next;
@@ -427,7 +442,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
 				</ul>
 
 				<ul className={`m-0 list-none p-0 pb-12 ${minified ? 'overflow-visible' : ''}`}>
-					{sidebarMenu.map((item) => (
+					{menu.map((item) => (
 						<MenuItem
 							key={item.id}
 							item={item}
