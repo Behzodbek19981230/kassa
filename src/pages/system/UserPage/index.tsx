@@ -20,7 +20,7 @@ import type { User } from '@/services/user/user.types';
 const columnHelper = createColumnHelper<User>();
 
 export default function UserPage() {
-	const { canWrite } = useCurrentCompany();
+	const { canWrite, isAdminOrManager } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -121,7 +121,7 @@ export default function UserPage() {
 						elementProps={{
 							...buttonProps(<FaEdit />, 'warning', 'icon'),
 							'aria-label': 'Tahrirlash',
-							// disabled: !canWrite,
+							disabled: !isAdminOrManager,
 						}}
 						dialog={UserFormModal}
 						dialogProps={{ mode: 'edit' as const, item: row.original }}
@@ -154,7 +154,7 @@ export default function UserPage() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					canWrite && (
+					isAdminOrManager && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}

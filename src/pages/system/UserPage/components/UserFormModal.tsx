@@ -43,26 +43,32 @@ const GENDER_OPTIONS = [
 ];
 
 function buildUserFormSchema(mode: 'create' | 'edit') {
-	return z.object({
-		username: z.string().min(1, 'Login kiritilishi shart'),
-		first_name: z.string().min(1, 'Ism kiritilishi shart'),
-		last_name: z.string().min(1, 'Familiya kiritilishi shart'),
-		second_name: z.string().optional(),
-		gender: z.string().min(1, 'Jinsi tanlanishi shart'),
-		date_of_birthday: z.string().min(1, "Tug'ilgan sana kiritilishi shart"),
-		phone_number: z.string().regex(UZ_PHONE_REGEX, "Telefon raqami to'liq kiritilishi shart"),
-		email: z.string().min(1, 'Email kiritilishi shart').email("Email noto'g'ri kiritilgan"),
-		region: z.string().min(1, 'Viloyat tanlanishi shart'),
-		district: z.string().min(1, 'Tuman tanlanishi shart'),
-		role: z.string().min(1, 'Rol tanlanishi shart'),
-		companies: z.array(z.string()).min(1, 'Kamida bitta tashkilot tanlanishi shart'),
-		address: z.string().min(1, 'Manzil kiritilishi shart'),
-		active: z.boolean(),
-		password:
-			mode === 'create'
-				? z.string().min(6, "Parol kamida 6 ta belgidan iborat bo'lishi kerak")
-				: z.union([z.string().min(6, "Parol kamida 6 ta belgidan iborat bo'lishi kerak"), z.literal('')]),
-	});
+	return z
+		.object({
+			username: z.string().min(1, 'Login kiritilishi shart'),
+			first_name: z.string().min(1, 'Ism kiritilishi shart'),
+			last_name: z.string().min(1, 'Familiya kiritilishi shart'),
+			second_name: z.string().optional(),
+			gender: z.string().min(1, 'Jinsi tanlanishi shart'),
+			date_of_birthday: z.string().min(1, "Tug'ilgan sana kiritilishi shart"),
+			phone_number: z.string().regex(UZ_PHONE_REGEX, "Telefon raqami to'liq kiritilishi shart"),
+			email: z.string().min(1, 'Email kiritilishi shart').email("Email noto'g'ri kiritilgan"),
+			region: z.string().min(1, 'Viloyat tanlanishi shart'),
+			district: z.string().min(1, 'Tuman tanlanishi shart'),
+			role: z.string().min(1, 'Rol tanlanishi shart'),
+			companies: z.array(z.string()).min(1, 'Kamida bitta tashkilot tanlanishi shart'),
+			trade_company: z.string().min(1, 'Asosiy tashkilot tanlanishi shart'),
+			address: z.string().min(1, 'Manzil kiritilishi shart'),
+			active: z.boolean(),
+			password:
+				mode === 'create'
+					? z.string().min(6, "Parol kamida 6 ta belgidan iborat bo'lishi kerak")
+					: z.union([z.string().min(6, "Parol kamida 6 ta belgidan iborat bo'lishi kerak"), z.literal('')]),
+		})
+		.refine((data) => data.companies.includes(data.trade_company), {
+			message: "Asosiy tashkilot tanlangan tashkilotlar ichidan bo'lishi kerak",
+			path: ['trade_company'],
+		});
 }
 
 type UserFormValues = z.infer<ReturnType<typeof buildUserFormSchema>>;
@@ -81,6 +87,7 @@ function userToFormValues(user: User): UserFormValues {
 		district: user.district ? String(user.district) : '',
 		role: user.role ? String(user.role) : '',
 		companies: user.companies.map(String),
+		trade_company: user.trade_company ? String(user.trade_company) : '',
 		address: user.address ?? '',
 		active: user.is_active,
 		password: '',
@@ -133,6 +140,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 						district: '',
 						role: '',
 						companies: [],
+						trade_company: '',
 						address: '',
 						active: true,
 						password: '',
@@ -149,6 +157,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 
 	const regionValue = watch('region');
 	const companiesValue = watch('companies');
+	const tradeCompanyValue = watch('trade_company');
 
 	const createMutation = useCreateUserMutation();
 	const updateMutation = useUpdateUserMutation();
@@ -168,6 +177,26 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 	};
 
 	const companyLabels = Object.fromEntries((currentUser?.companies_detail ?? []).map((c) => [String(c.id), c.name]));
+	const [companyLabelCache, setCompanyLabelCache] = useState<Record<string, string>>({});
+
+	useEffect(() => {
+		if (currentUser?.companies_detail?.length) {
+			setCompanyLabelCache((prev) => ({ ...prev, ...companyLabels }));
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentUser?.companies_detail]);
+
+	useEffect(() => {
+		if (tradeCompanyValue && !companiesValue.includes(tradeCompanyValue)) {
+			setValue('trade_company', '', { shouldValidate: true });
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [companiesValue]);
+
+	const tradeCompanyOptions = companiesValue.map((id) => ({
+		value: id,
+		label: companyLabelCache[id] ?? companyLabels[id] ?? id,
+	}));
 
 	const loadRegionOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await regionService.list({ search: search || undefined, page, limit: 20 });
@@ -201,8 +230,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 
 	const loadCompanyOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await companyService.list({ search: search || undefined, page, limit: 20 });
+		const options = result.results.map((c) => ({ value: String(c.id), label: c.name }));
+		setCompanyLabelCache((prev) => ({
+			...prev,
+			...Object.fromEntries(options.map((o) => [o.value, o.label])),
+		}));
 		return {
-			options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
+			options,
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
 		};
 	};
@@ -228,6 +262,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 			district: Number(values.district),
 			role: Number(values.role),
 			companies: values.companies.map(Number),
+			trade_company: Number(values.trade_company),
 			address: values.address.trim(),
 		};
 		if (values.password) payload.password = values.password;
@@ -501,6 +536,29 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								selectedLabels={companyLabels}
 								placeholder='Tanlang...'
 								searchPlaceholder='Tashkilot qidirish...'
+							/>
+						</FormField>
+						<FormField
+							label='Asosiy tashkilot'
+							error={errors.trade_company?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
+							<Controller
+								name='trade_company'
+								control={control}
+								render={({ field }) => (
+									<Combobox
+										value={field.value}
+										onChange={field.onChange}
+										options={tradeCompanyOptions}
+										placeholder={companiesValue.length ? 'Tanlang...' : 'Avval tashkilot tanlang'}
+										searchPlaceholder='Tashkilot qidirish...'
+										disabled={companiesValue.length === 0}
+										clearable
+									/>
+								)}
 							/>
 						</FormField>
 						<FormField
