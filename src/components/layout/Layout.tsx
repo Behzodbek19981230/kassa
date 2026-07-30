@@ -42,7 +42,7 @@ export default function Layout() {
 	const contentMargin = sidebarMinified ? 'lg:ml-[60px]' : 'lg:ml-[220px]';
 
 	return (
-		<NotificationProvider>
+		<NotificationProvider defaultPosition='bottom-right'>
 			<div id='page-container' className='min-h-screen pt-[54px]'>
 				<Header onToggleSidebar={() => setMobileSidebarOpen((prev) => !prev)} />
 

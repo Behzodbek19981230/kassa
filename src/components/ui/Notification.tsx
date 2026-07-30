@@ -44,8 +44,8 @@ const NotificationContext = createContext<NotificationContextValue | null>(null)
 const positionClasses: Record<NotificationPosition, string> = {
   'top-right': 'top-17.5 right-5',
   'top-left': 'top-17.5 left-5',
-  'bottom-right': 'bottom-5 right-5',
-  'bottom-left': 'bottom-5 left-5',
+  'bottom-right': 'bottom-20 right-5',
+  'bottom-left': 'bottom-20 left-5',
 }
 
 function NotificationToast({
