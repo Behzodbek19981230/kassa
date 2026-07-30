@@ -56,7 +56,7 @@ export default function LoginPage() {
 			<div className='relative w-full max-w-105'>
 				<div className='rounded-2xl border border-white/40 bg-white/95 px-8 py-9 shadow-[0_20px_50px_rgba(15,23,42,0.3)] backdrop-blur-sm'>
 					<div className='my-0 flex w-full justify-center'>
-						<img src='/logo.png' alt='Logo' className='h-16 w-auto' />
+						<img src='/logo.png' alt='Logo' className='h-16 w-full object-cover' />
 					</div>
 					<div className='mb-6 text-center'>
 						<h1 className='text-lg font-semibold text-ca-heading'>Xush kelibsiz</h1>

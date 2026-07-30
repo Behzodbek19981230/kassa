@@ -17,7 +17,6 @@ export interface NotificationOptions {
   title: string
   text?: string
   image?: string
-  variant?: 'default' | 'light'
   sticky?: boolean
   duration?: number
   beforeOpen?: () => boolean | void
@@ -43,8 +42,8 @@ interface NotificationContextValue {
 const NotificationContext = createContext<NotificationContextValue | null>(null)
 
 const positionClasses: Record<NotificationPosition, string> = {
-  'top-right': 'top-5 right-5',
-  'top-left': 'top-5 left-5',
+  'top-right': 'top-17.5 right-5',
+  'top-left': 'top-17.5 left-5',
   'bottom-right': 'bottom-5 right-5',
   'bottom-left': 'bottom-5 left-5',
 }
@@ -58,7 +57,6 @@ function NotificationToast({
 }) {
   const [visible, setVisible] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const isLight = item.variant === 'light'
 
   useEffect(() => {
     item.afterOpen?.()
@@ -82,9 +80,8 @@ function NotificationToast({
   return (
     <div
       className={cn(
-        'relative mb-2.5 w-[301px] overflow-hidden rounded-[3px] shadow-[0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-150',
+        'relative mb-2.5 w-[301px] overflow-hidden rounded-[3px] border border-ca-border border-l-4 border-l-ca-theme bg-white text-ca-heading shadow-[0_4px_12px_rgba(15,23,42,0.15)] transition-all duration-150',
         visible ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0',
-        isLight ? 'bg-white text-[#222]' : 'bg-[#222] text-[#eee]',
       )}
     >
       <div className="flex gap-2.5 p-2.5 pr-8">
@@ -96,24 +93,14 @@ function NotificationToast({
           />
         )}
         <div className="min-w-0 flex-1">
-          <div
-            className={cn(
-              'mb-1.5 text-sm font-bold',
-              !isLight && 'text-shadow-[1px_1px_0_#000]',
-            )}
-          >
-            {item.title}
-          </div>
-          {item.text && <p className="m-0 text-[11px] leading-relaxed">{item.text}</p>}
+          <div className="mb-1.5 text-sm font-bold">{item.title}</div>
+          {item.text && <p className="m-0 text-[11px] leading-relaxed text-ca-text">{item.text}</p>}
         </div>
       </div>
       <button
         type="button"
         onClick={handleClose}
-        className={cn(
-          'absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded opacity-70 transition-opacity hover:opacity-100',
-          isLight ? 'text-[#333]' : 'text-[#eee]',
-        )}
+        className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded text-ca-text opacity-70 transition-opacity hover:opacity-100"
         aria-label="Close notification"
       >
         <FaTimes className="text-[10px]" />
