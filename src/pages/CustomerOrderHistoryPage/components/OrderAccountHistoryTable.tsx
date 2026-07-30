@@ -21,6 +21,7 @@ import { userService } from '@/services/user/user.service';
 import ConfirmOrderUpdateModal from '@/pages/CustomerOrderHistoryPage/components/ConfirmOrderUpdateModal';
 import OrderDraftDeleteModal from '@/pages/CustomerOrderHistoryPage/components/OrderDraftDeleteModal';
 import OrderHardDeleteModal from '@/pages/CustomerOrderHistoryPage/components/OrderHardDeleteModal';
+import { cn } from '@/lib/utils';
 
 type GroupedOrderAccountHistoryItem = OrderAccountHistoryItem & {
 	_no: number;
@@ -124,7 +125,16 @@ export default function OrderAccountHistoryTable({
 			header: 'Sana',
 			size: 100,
 			enableColumnFilter: false,
-			cell: ({ row }) => <span className='font-semibold text-ca-theme'>{row.original._dateLabel}</span>,
+			cell: ({ row }) => (
+				<span
+					className={cn(
+						'font-semibold',
+						row.original.update_status === 2 ? 'text-ca-orange' : 'text-ca-heading',
+					)}
+				>
+					{row.original._dateLabel}
+				</span>
+			),
 			meta: {
 				rowSpanGroupKey: (row) => row._groupId,
 				excludeRowHighlight: true,

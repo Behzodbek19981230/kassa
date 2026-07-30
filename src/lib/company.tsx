@@ -97,12 +97,12 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 	const showCompanySelect = isAdminOrManager;
 
 	const { data: exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRateQuery(companyId);
-	// Super Admin/Manager set the rate, so the lock never applies to them. While the
+	// The lock applies to everyone, including Super Admin/Manager — they fix it via the
+	// header's rate-edit button, which stays reachable regardless (see Header.tsx). While the
 	// initial fetch is in flight (or companyId itself hasn't resolved from userInfo yet,
 	// which leaves the query disabled rather than loading), don't lock the UI on a guess —
 	// wait for a real answer.
-	const isExchangeRateSet =
-		isAdminOrManager || companyId == null || isExchangeRateLoading || exchangeRate?.status === true;
+	const isExchangeRateSet = companyId == null || isExchangeRateLoading || exchangeRate?.status === true;
 
 	const canWrite = (!isAdminOrManager || companyId === ownCompanyId) && isExchangeRateSet;
 
