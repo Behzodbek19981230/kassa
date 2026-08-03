@@ -53,6 +53,8 @@ export function MultiCombobox({
 
   const requestId = useRef(0)
   const listRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const registerSurface = useDismissableLayerSurface()
 
   useEffect(() => {
@@ -104,6 +106,18 @@ export function MultiCombobox({
     if (!open) setSearch('')
   }, [open])
 
+  useEffect(() => {
+    if (!open) return
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Node
+      if (triggerRef.current?.contains(target)) return
+      if (contentRef.current?.contains(target)) return
+      setOpen(false)
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [open])
+
   const filteredItems = useMemo(() => {
     if (isAsync) return items
     const q = search.trim().toLowerCase()
@@ -150,6 +164,7 @@ export function MultiCombobox({
     <PopoverPrimitive.Root open={open} onOpenChange={(o) => !disabled && setOpen(o)}>
       <PopoverPrimitive.Trigger asChild>
         <button
+          ref={triggerRef}
           type="button"
           disabled={disabled}
           className={cn(
@@ -184,7 +199,10 @@ export function MultiCombobox({
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
-          ref={registerSurface}
+          ref={(node) => {
+            contentRef.current = node
+            registerSurface(node)
+          }}
           align="start"
           sideOffset={4}
           className={cn(
