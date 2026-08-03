@@ -577,7 +577,9 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 											value={field.value}
 											onChange={handleTradeCompanyChange}
 											options={tradeCompanyOptions}
-											placeholder={companiesValue.length ? 'Tanlang...' : 'Avval tashkilot tanlang'}
+											placeholder={
+												companiesValue.length ? 'Tanlang...' : 'Avval tashkilot tanlang'
+											}
 											searchPlaceholder='Tashkilot qidirish...'
 											disabled={companiesValue.length === 0}
 											clearable
@@ -588,7 +590,8 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 											onChange={handleTradeCompanyChange}
 											loadOptions={loadCompanyOptions}
 											selectedLabel={
-												currentUser?.trade_company_detail?.name ?? companyLabelCache[field.value]
+												currentUser?.trade_company_detail?.name ??
+												companyLabelCache[field.value]
 											}
 											placeholder='Tanlang...'
 											searchPlaceholder='Tashkilot qidirish...'

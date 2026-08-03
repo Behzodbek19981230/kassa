@@ -52,7 +52,9 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 	const [logoFile, setLogoFile] = useState<File | null>(null);
-	const [logoPreview, setLogoPreview] = useState<string | null>(item?.logo ?? null);
+	const [logoPreview, setLogoPreview] = useState<string | null>(
+		import.meta.env.VITE_API_BASE_URL_WITHOUT_VERSION + (item?.logo ?? null),
+	);
 
 	const {
 		register,
@@ -191,14 +193,32 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 							</div>
 						</FormField>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Nomi' error={errors.name?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Nomi'
+								error={errors.name?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Input {...register('name')} />
 							</FormField>
-							<FormField label='Kodi' error={errors.code?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Kodi'
+								error={errors.code?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Input {...register('code')} />
 							</FormField>
 						</div>
-						<FormField label='Telefon' error={errors.phone?.message} required horizontal={false} className='mb-3'>
+						<FormField
+							label='Telefon'
+							error={errors.phone?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
 							<Controller
 								name='phone'
 								control={control}
@@ -214,7 +234,13 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 							/>
 						</FormField>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Viloyat' error={errors.region?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Viloyat'
+								error={errors.region?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='region'
 									control={control}
@@ -231,7 +257,13 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 									)}
 								/>
 							</FormField>
-							<FormField label='Tuman' error={errors.district?.message} required horizontal={false} className='mb-0'>
+							<FormField
+								label='Tuman'
+								error={errors.district?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='district'
 									control={control}
@@ -250,7 +282,13 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 								/>
 							</FormField>
 						</div>
-						<FormField label='Manzil' error={errors.address?.message} required horizontal={false} className='mb-3'>
+						<FormField
+							label='Manzil'
+							error={errors.address?.message}
+							required
+							horizontal={false}
+							className='mb-3'
+						>
 							<Textarea rows={2} {...register('address')} />
 						</FormField>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
@@ -280,7 +318,12 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 							>
 								<Input placeholder='https://instagram.com/...' {...register('instagram_url')} />
 							</FormField>
-							<FormField label='YouTube' error={errors.youtube_url?.message} horizontal={false} className='mb-0'>
+							<FormField
+								label='YouTube'
+								error={errors.youtube_url?.message}
+								horizontal={false}
+								className='mb-0'
+							>
 								<Input placeholder='https://youtube.com/...' {...register('youtube_url')} />
 							</FormField>
 						</div>

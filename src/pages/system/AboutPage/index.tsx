@@ -132,7 +132,7 @@ export default function AboutPage() {
 							)}
 
 							<div className='min-w-0 flex-1'>
-								<div className='text-xl font-semibold text-ca-nav-text'>{company.name}</div>
+								<div className='text-xl font-semibold '>{company.name}</div>
 								<div className='mt-1.5 flex flex-wrap items-center gap-2'>
 									{company.code && <span className='text-xs text-ca-text'>Kod: {company.code}</span>}
 									<Badge variant={company.is_active ? 'success' : 'danger'}>
