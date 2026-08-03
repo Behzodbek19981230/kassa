@@ -5,6 +5,7 @@ import type { CompanyListParams, CompanyPayload } from '@/services/company/compa
 const companyKeys = {
 	all: ['companies'] as const,
 	list: (params?: CompanyListParams) => ['companies', 'list', params] as const,
+	detail: (id: number) => ['companies', 'detail', id] as const,
 };
 
 export function useCompanyListQuery(params?: CompanyListParams, options?: { enabled?: boolean }) {
@@ -13,6 +14,14 @@ export function useCompanyListQuery(params?: CompanyListParams, options?: { enab
 		queryFn: () => companyService.list(params),
 		placeholderData: (prev) => prev,
 		enabled: options?.enabled,
+	});
+}
+
+export function useCompanyQuery(id?: number | null) {
+	return useQuery({
+		queryKey: companyKeys.detail(id ?? 0),
+		queryFn: () => companyService.get(id as number),
+		enabled: typeof id === 'number',
 	});
 }
 

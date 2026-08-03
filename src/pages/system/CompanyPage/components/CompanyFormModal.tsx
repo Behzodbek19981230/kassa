@@ -33,6 +33,10 @@ const companyFormSchema = z.object({
 	district: z.string().min(1, 'Tuman tanlanishi shart'),
 	address: z.string().min(1, 'Manzil kiritilishi shart'),
 	active: z.boolean(),
+	telegram_bot_username: z.string(),
+	telegram_channel_url: z.string(),
+	instagram_url: z.string(),
+	youtube_url: z.string(),
 });
 
 type CompanyFormValues = z.infer<typeof companyFormSchema>;
@@ -69,8 +73,24 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 						district: item.district ? String(item.district) : '',
 						address: item.address,
 						active: item.is_active,
+						telegram_bot_username: item.telegram_bot_username ?? '',
+						telegram_channel_url: item.telegram_channel_url ?? '',
+						instagram_url: item.instagram_url ?? '',
+						youtube_url: item.youtube_url ?? '',
 					}
-				: { name: '', code: '', phone: '+998', region: '', district: '', address: '', active: true },
+				: {
+						name: '',
+						code: '',
+						phone: '+998',
+						region: '',
+						district: '',
+						address: '',
+						active: true,
+						telegram_bot_username: '',
+						telegram_channel_url: '',
+						instagram_url: '',
+						youtube_url: '',
+					},
 	});
 
 	const regionValue = watch('region');
@@ -129,6 +149,10 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 			district: Number(values.district),
 			address: values.address.trim(),
 			is_active: values.active,
+			telegram_bot_username: values.telegram_bot_username.trim(),
+			telegram_channel_url: values.telegram_channel_url.trim(),
+			instagram_url: values.instagram_url.trim(),
+			youtube_url: values.youtube_url.trim(),
 		};
 
 		try {
@@ -229,6 +253,37 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 						<FormField label='Manzil' error={errors.address?.message} required horizontal={false} className='mb-3'>
 							<Textarea rows={2} {...register('address')} />
 						</FormField>
+						<div className='mb-3 grid grid-cols-2 gap-3'>
+							<FormField
+								label='Telegram bot'
+								error={errors.telegram_bot_username?.message}
+								horizontal={false}
+								className='mb-0'
+							>
+								<Input placeholder='@username' {...register('telegram_bot_username')} />
+							</FormField>
+							<FormField
+								label='Telegram kanal'
+								error={errors.telegram_channel_url?.message}
+								horizontal={false}
+								className='mb-0'
+							>
+								<Input placeholder='https://t.me/...' {...register('telegram_channel_url')} />
+							</FormField>
+						</div>
+						<div className='mb-3 grid grid-cols-2 gap-3'>
+							<FormField
+								label='Instagram'
+								error={errors.instagram_url?.message}
+								horizontal={false}
+								className='mb-0'
+							>
+								<Input placeholder='https://instagram.com/...' {...register('instagram_url')} />
+							</FormField>
+							<FormField label='YouTube' error={errors.youtube_url?.message} horizontal={false} className='mb-0'>
+								<Input placeholder='https://youtube.com/...' {...register('youtube_url')} />
+							</FormField>
+						</div>
 						<Controller
 							name='active'
 							control={control}

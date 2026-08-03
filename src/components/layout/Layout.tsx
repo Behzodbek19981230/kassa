@@ -59,7 +59,9 @@ export default function Layout() {
 					) : (
 						<div className='flex min-h-[70vh] flex-col items-center justify-center gap-3 text-center'>
 							<FaExclamationTriangle className='text-5xl text-ca-red' />
-							<div className='text-lg font-semibold text-ca-heading'>Dollar kursi o'zgarmagan</div>
+							<div className='text-lg font-semibold text-ca-heading'>
+								Bugungi dollar kursi yangilanmagan
+							</div>
 							<div className='max-w-md text-sm text-ca-text'>
 								Shuning uchun hech qanday vazifa qila olmaysiz. Adminga murojaat qiling.
 							</div>
@@ -74,7 +76,7 @@ export default function Layout() {
 				<ModalContent>
 					<ModalHeader>
 						<ModalTitle className='flex items-center gap-2 text-ca-red'>
-							<FaExclamationTriangle /> Dollar kursi o'zgarmagan
+							<FaExclamationTriangle /> Bugungi dollar kursi yangilanmagan
 						</ModalTitle>
 					</ModalHeader>
 					<ModalBody>

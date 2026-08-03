@@ -21,6 +21,7 @@ interface CompanyContextValue {
 	isManager: boolean;
 	/** Super Admin or Manager: sees the company selector and can browse other companies' data. */
 	isAdminOrManager: boolean;
+
 	/** The company the current user actually belongs to (their own trade_company). */
 	ownCompanyId: number | null;
 	/** Detail (name/logo) of the user's own trade_company, for display purposes. */

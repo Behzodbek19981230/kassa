@@ -9,6 +9,7 @@ import {
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
+	type ComboboxOption,
 	DatePicker,
 	FormField,
 	Input,
@@ -41,6 +42,8 @@ const GENDER_OPTIONS = [
 	{ value: 'male', label: 'Erkak' },
 	{ value: 'female', label: 'Ayol' },
 ];
+
+const MULTI_COMPANY_ROLE_NAMES = ['Super Admin', 'Manager'];
 
 function buildUserFormSchema(mode: 'create' | 'edit') {
 	return z
@@ -106,6 +109,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 	const [formError, setFormError] = useState('');
 	const [avatarFile, setAvatarFile] = useState<File | null>(null);
 	const [avatarPreview, setAvatarPreview] = useState<string | null>(item?.avatar ?? null);
+	const [roleLabel, setRoleLabel] = useState(item?.roles?.name ?? '');
 	const avatarInputRef = useRef<HTMLInputElement>(null);
 
 	const userQuery = useUserQuery(mode === 'edit' ? item?.id : undefined);
@@ -151,6 +155,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 		if (mode === 'edit' && userQuery.data) {
 			reset(userToFormValues(userQuery.data));
 			setAvatarPreview(userQuery.data.avatar ?? null);
+			setRoleLabel(userQuery.data.roles?.name ?? '');
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [userQuery.data]);
@@ -158,6 +163,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 	const regionValue = watch('region');
 	const companiesValue = watch('companies');
 	const tradeCompanyValue = watch('trade_company');
+	const isMultiCompanyRole = MULTI_COMPANY_ROLE_NAMES.includes(roleLabel);
 
 	const createMutation = useCreateUserMutation();
 	const updateMutation = useUpdateUserMutation();
@@ -244,6 +250,21 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 	const handleRegionChange = (value: string) => {
 		setValue('region', value);
 		setValue('district', '');
+	};
+
+	const handleRoleChange = (value: string, option: ComboboxOption | null) => {
+		setValue('role', value, { shouldValidate: true });
+		setRoleLabel(option?.label ?? '');
+		if (option && !MULTI_COMPANY_ROLE_NAMES.includes(option.label)) {
+			setValue('companies', tradeCompanyValue ? [tradeCompanyValue] : [], { shouldValidate: true });
+		}
+	};
+
+	const handleTradeCompanyChange = (value: string) => {
+		setValue('trade_company', value, { shouldValidate: true });
+		if (!isMultiCompanyRole) {
+			setValue('companies', value ? [value] : [], { shouldValidate: true });
+		}
 	};
 
 	const onSubmit = handleSubmit(async (values) => {
@@ -512,7 +533,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								render={({ field }) => (
 									<Combobox
 										value={field.value}
-										onChange={field.onChange}
+										onChange={handleRoleChange}
 										loadOptions={loadRoleOptions}
 										selectedLabel={currentUser?.roles?.name}
 										placeholder='Tanlang...'
@@ -522,22 +543,24 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								)}
 							/>
 						</FormField>
-						<FormField
-							label='Tashkilotlar'
-							error={errors.companies?.message}
-							required
-							horizontal={false}
-							className='mb-3'
-						>
-							<MultiCombobox
-								value={companiesValue}
-								onChange={(values) => setValue('companies', values, { shouldValidate: true })}
-								loadOptions={loadCompanyOptions}
-								selectedLabels={companyLabels}
-								placeholder='Tanlang...'
-								searchPlaceholder='Tashkilot qidirish...'
-							/>
-						</FormField>
+						{isMultiCompanyRole && (
+							<FormField
+								label='Tashkilotlar'
+								error={errors.companies?.message}
+								required
+								horizontal={false}
+								className='mb-3'
+							>
+								<MultiCombobox
+									value={companiesValue}
+									onChange={(values) => setValue('companies', values, { shouldValidate: true })}
+									loadOptions={loadCompanyOptions}
+									selectedLabels={companyLabels}
+									placeholder='Tanlang...'
+									searchPlaceholder='Tashkilot qidirish...'
+								/>
+							</FormField>
+						)}
 						<FormField
 							label='Asosiy tashkilot'
 							error={errors.trade_company?.message}
@@ -548,17 +571,31 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 							<Controller
 								name='trade_company'
 								control={control}
-								render={({ field }) => (
-									<Combobox
-										value={field.value}
-										onChange={field.onChange}
-										options={tradeCompanyOptions}
-										placeholder={companiesValue.length ? 'Tanlang...' : 'Avval tashkilot tanlang'}
-										searchPlaceholder='Tashkilot qidirish...'
-										disabled={companiesValue.length === 0}
-										clearable
-									/>
-								)}
+								render={({ field }) =>
+									isMultiCompanyRole ? (
+										<Combobox
+											value={field.value}
+											onChange={handleTradeCompanyChange}
+											options={tradeCompanyOptions}
+											placeholder={companiesValue.length ? 'Tanlang...' : 'Avval tashkilot tanlang'}
+											searchPlaceholder='Tashkilot qidirish...'
+											disabled={companiesValue.length === 0}
+											clearable
+										/>
+									) : (
+										<Combobox
+											value={field.value}
+											onChange={handleTradeCompanyChange}
+											loadOptions={loadCompanyOptions}
+											selectedLabel={
+												currentUser?.trade_company_detail?.name ?? companyLabelCache[field.value]
+											}
+											placeholder='Tanlang...'
+											searchPlaceholder='Tashkilot qidirish...'
+											clearable
+										/>
+									)
+								}
 							/>
 						</FormField>
 						<FormField

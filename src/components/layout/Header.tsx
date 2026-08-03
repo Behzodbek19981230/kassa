@@ -294,20 +294,24 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 											O'zgarishlar tarixi
 										</DropdownMenuItem>
 									)}
-									<DropdownMenuItem
-										onSelect={() => navigate('/system/expenses')}
-										className='flex items-center gap-2'
-									>
-										<FaReceipt className='text-ca-text' />
-										Xarajatlar
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										onSelect={() => navigate('/system/about')}
-										className='flex items-center gap-2'
-									>
-										<FaInfoCircle className='text-ca-text' />
-										Biz haqimizda
-									</DropdownMenuItem>
+									{isSuperAdmin && (
+										<DropdownMenuItem
+											onSelect={() => navigate('/system/expenses')}
+											className='flex items-center gap-2'
+										>
+											<FaReceipt className='text-ca-text' />
+											Xarajatlar
+										</DropdownMenuItem>
+									)}
+									{isSuperAdmin && (
+										<DropdownMenuItem
+											onSelect={() => navigate('/system/about')}
+											className='flex items-center gap-2'
+										>
+											<FaInfoCircle className='text-ca-text' />
+											Biz haqimizda
+										</DropdownMenuItem>
+									)}
 									<DropdownMenuSeparator className='my-1 h-px bg-ca-border' />
 									<DropdownMenuItem
 										onSelect={handleLogout}

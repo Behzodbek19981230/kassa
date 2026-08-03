@@ -55,19 +55,23 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				requiredPermission: 'canManageConsignor',
 			},
 			{ id: 'sklad-types', icon: 'warehouse', label: 'Skladlar', path: '/system/sklad-types' },
-			{ id: 'import-goods-history', icon: 'history', label: 'Import tovarlar tarixi', path: '#' },
-			{ id: 'inspections-history', icon: 'check-circle', label: 'Tekshirishlar tarixi', path: '#' },
 
 			{
 				id: 'users',
 				icon: 'users-cog',
 				label: 'Foydalanuvchilar',
 				path: '/system/users',
-				requiredPermission: 'isAdminOrManager',
+				requiredPermission: 'isSuperAdmin',
 			},
 			// { id: 'companies', icon: 'building', label: 'Tashkilotlar', path: '/system/companies' },
 			// { id: 'locations', icon: 'layer-group', label: 'Hududlar', path: '/system/locations' },
-			{ id: 'profit-loss', icon: 'chart-bar', label: 'Foyda va zarar', path: '#' },
+			{
+				id: 'profit-loss',
+				icon: 'chart-bar',
+				label: 'Foyda va zarar',
+				path: '#',
+				requiredPermission: 'isSuperAdmin',
+			},
 		],
 	},
 	{

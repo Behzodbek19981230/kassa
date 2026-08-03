@@ -31,6 +31,7 @@ export type SidebarIcon =
 /** Permission flags a menu item's visibility can be gated on; see src/utils/sidebarUtils.ts. */
 export interface SidebarMenuPermissions {
 	isAdminOrManager: boolean;
+	isSuperAdmin: boolean;
 	canManageConsignor: boolean;
 	canManageWarehouse: boolean;
 }

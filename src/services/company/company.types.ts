@@ -14,6 +14,10 @@ export interface Company {
   district_detail?: { id: number; name: string } | null
   address: string
   is_active: boolean
+  telegram_bot_username: string | null
+  telegram_channel_url: string | null
+  instagram_url: string | null
+  youtube_url: string | null
 }
 
 export interface CompanyPayload {
@@ -24,6 +28,10 @@ export interface CompanyPayload {
   district: number
   address: string
   is_active: boolean
+  telegram_bot_username?: string
+  telegram_channel_url?: string
+  instagram_url?: string
+  youtube_url?: string
 }
 
 export type CompanyListParams = ListParams
