@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { FaExclamationTriangle, FaExpand } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaExpand, FaUndo } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
 	Badge,
@@ -10,6 +10,7 @@ import {
 	PageHeader,
 	Panel,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import { useWarehouseTransferListQuery } from '@/services/warehouse-transfer/warehouse-transfer.queries';
@@ -17,6 +18,8 @@ import type {
 	WarehouseTransfer,
 	WarehouseTransferStatus,
 } from '@/services/warehouse-transfer/warehouse-transfer.types';
+import ReverseTransferModal from '@/pages/WarehouseTransferDetailPage/components/ReverseTransferModal';
+import EditTransferModal from '@/pages/WarehouseTransferHistoryPage/components/EditTransferModal';
 
 const STATUS_LABEL: Record<WarehouseTransferStatus, string> = {
 	completed: 'Bajarilgan',
@@ -37,11 +40,14 @@ const historyColumnHelper = createColumnHelper<WarehouseTransfer>();
 
 export default function WarehouseTransferHistoryPage() {
 	const navigate = useNavigate();
+	const { canWrite } = useCurrentCompany();
 
 	const [historyPagination, setHistoryPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [historyColumnFilters, setHistoryColumnFilters] = useState<ColumnFiltersState>([]);
 	const [dateFrom, setDateFrom] = useState('');
 	const [dateTo, setDateTo] = useState('');
+	const [reverseTransfer, setReverseTransfer] = useState<WarehouseTransfer | null>(null);
+	const [editTransfer, setEditTransfer] = useState<WarehouseTransfer | null>(null);
 
 	const { data: skladTypesData } = useSkladTypeListQuery({ limit: 100 });
 
@@ -122,21 +128,45 @@ export default function WarehouseTransferHistoryPage() {
 				header: 'Harakatlar',
 				meta: { align: 'right' },
 				enableColumnFilter: false,
-				size: 90,
+				size: 170,
 				cell: ({ row }) => (
-					<Button
-						type='button'
-						variant='info'
-						size='icon'
-						aria-label='Batafsil'
-						onClick={() => navigate(`/warehouse-transfer/${row.original.id}`)}
-					>
-						<FaExpand />
-					</Button>
+					<div className='flex justify-end gap-1.5'>
+						<Button
+							type='button'
+							variant='info'
+							size='icon'
+							aria-label='Batafsil'
+							onClick={() => navigate(`/warehouse-transfer/${row.original.id}`)}
+						>
+							<FaExpand />
+						</Button>
+						{canWrite && row.original.status === 'completed' && (
+							<Button
+								type='button'
+								variant='warning'
+								size='icon'
+								aria-label='Tahrirlash'
+								onClick={() => setEditTransfer(row.original)}
+							>
+								<FaEdit />
+							</Button>
+						)}
+						{canWrite && row.original.status === 'completed' && (
+							<Button
+								type='button'
+								variant='danger'
+								size='icon'
+								aria-label='Bekor qilish'
+								onClick={() => setReverseTransfer(row.original)}
+							>
+								<FaUndo />
+							</Button>
+						)}
+					</div>
 				),
 			}),
 		],
-		[skladTypeFilterOptions, navigate],
+		[skladTypeFilterOptions, navigate, canWrite],
 	);
 
 	return (
@@ -199,6 +229,26 @@ export default function WarehouseTransferHistoryPage() {
 					emptyIcon={isHistoryError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>
+
+			{reverseTransfer && (
+				<ReverseTransferModal
+					open={Boolean(reverseTransfer)}
+					setOpen={(open) => !open && setReverseTransfer(null)}
+					transfer={reverseTransfer}
+					onReversed={() => {
+						setReverseTransfer(null);
+						refetchHistory();
+					}}
+				/>
+			)}
+
+			{editTransfer && (
+				<EditTransferModal
+					open={Boolean(editTransfer)}
+					setOpen={(open) => !open && setEditTransfer(null)}
+					transfer={editTransfer}
+				/>
+			)}
 		</>
 	);
 }

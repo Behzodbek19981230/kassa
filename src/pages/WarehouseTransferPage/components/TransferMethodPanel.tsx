@@ -239,26 +239,44 @@ export default function TransferMethodPanel({
 
 					<div className={mode === 'spread' ? 'grid grid-cols-2 gap-3' : ''}>
 						<FormField label="O'tkazish miqdori" horizontal={false} className='mb-3'>
-							<Input
-								type='number'
-								inputMode='numeric'
-								min={0}
-								max={availableCount}
-								step='1'
-								value={sourceQuantity}
-								onChange={(e) => setSourceQuantity(e.target.value)}
-							/>
-						</FormField>
-						{mode === 'spread' && (
-							<FormField label='Qabul qilish soni' horizontal={false} className='mb-3'>
+							<div className='flex gap-2'>
 								<Input
 									type='number'
 									inputMode='numeric'
 									min={0}
+									max={availableCount}
 									step='1'
-									value={targetQuantity}
-									onChange={(e) => setTargetQuantity(e.target.value)}
+									value={sourceQuantity}
+									onChange={(e) => setSourceQuantity(e.target.value)}
+									className='flex-1'
 								/>
+								<Input
+									type='text'
+									value={sourceItem.type_detail?.name ?? ''}
+									disabled
+									className='w-20 text-center'
+								/>
+							</div>
+						</FormField>
+						{mode === 'spread' && (
+							<FormField label='Qabul qilish soni' horizontal={false} className='mb-3'>
+								<div className='flex gap-2'>
+									<Input
+										type='number'
+										inputMode='numeric'
+										min={0}
+										step='1'
+										value={targetQuantity}
+										onChange={(e) => setTargetQuantity(e.target.value)}
+										className='flex-1'
+									/>
+									<Input
+										type='text'
+										value={spreadTarget?.type_detail?.name ?? ''}
+										disabled
+										className='w-20 text-center'
+									/>
+								</div>
 							</FormField>
 						)}
 					</div>

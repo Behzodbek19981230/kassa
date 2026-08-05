@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FaExchangeAlt, FaExclamationTriangle, FaShoppingCart, FaStore, FaTrash, FaWarehouse } from 'react-icons/fa';
+import { useLocation } from 'react-router-dom';
 import {
 	Button,
 	Combobox,
@@ -33,12 +34,23 @@ import { useCreateWarehouseTransferMutation } from '@/services/warehouse-transfe
 import TransferMethodPanel from '@/pages/WarehouseTransferPage/components/TransferMethodPanel';
 import type { TransferCartRow } from '@/pages/WarehouseTransferPage/types';
 
+interface WarehouseTransferPageState {
+	fromTypeSkladId?: number;
+	toTypeSkladId?: number;
+}
+
 export default function WarehouseTransferPage() {
 	const { canWrite } = useCurrentCompany();
 	const { notify } = useNotification();
+	const location = useLocation();
+	const initialState = location.state as WarehouseTransferPageState | null;
 
-	const [fromTypeSkladId, setFromTypeSkladId] = useState('');
-	const [toTypeSkladId, setToTypeSkladId] = useState('');
+	const [fromTypeSkladId, setFromTypeSkladId] = useState(
+		initialState?.fromTypeSkladId ? String(initialState.fromTypeSkladId) : '',
+	);
+	const [toTypeSkladId, setToTypeSkladId] = useState(
+		initialState?.toTypeSkladId ? String(initialState.toTypeSkladId) : '',
+	);
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
 	const [selectedSourceItem, setSelectedSourceItem] = useState<Warehouse | null>(null);
