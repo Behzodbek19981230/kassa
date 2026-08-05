@@ -10,6 +10,7 @@ const warehouseTransferKeys = {
 	all: ['warehouse-transfer'] as const,
 	list: (params?: WarehouseTransferListParams) => ['warehouse-transfer', 'list', params] as const,
 	detail: (id: number) => ['warehouse-transfer', 'detail', id] as const,
+	dispatchList: (id: number) => ['warehouse-transfer', 'dispatch-list', id] as const,
 };
 
 export function useWarehouseTransferListQuery(params?: WarehouseTransferListParams) {
@@ -24,6 +25,14 @@ export function useWarehouseTransferQuery(id?: number) {
 	return useQuery({
 		queryKey: warehouseTransferKeys.detail(id ?? 0),
 		queryFn: () => warehouseTransferService.get(id as number),
+		enabled: typeof id === 'number',
+	});
+}
+
+export function useWarehouseTransferDispatchListQuery(id?: number) {
+	return useQuery({
+		queryKey: warehouseTransferKeys.dispatchList(id ?? 0),
+		queryFn: () => warehouseTransferService.dispatchList(id as number),
 		enabled: typeof id === 'number',
 	});
 }

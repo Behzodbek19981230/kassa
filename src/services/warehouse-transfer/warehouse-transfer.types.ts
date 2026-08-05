@@ -117,3 +117,26 @@ export interface WarehouseTransferListParams extends ListParams {
 	date_from?: string;
 	date_to?: string;
 }
+
+export interface WarehouseTransferDispatchRef {
+	id: number;
+	name: string;
+}
+
+export interface WarehouseTransferDispatchItem {
+	type_sklad: WarehouseTransferDispatchRef;
+	brand: WarehouseTransferDispatchRef;
+	product_category: WarehouseTransferDispatchRef;
+	transfer_quantity: number;
+	type: WarehouseTransferDispatchRef;
+	quantity_label: string;
+}
+
+export interface WarehouseTransferDispatchList {
+	id: number;
+	from_type_sklad: WarehouseTransferDispatchRef;
+	to_type_sklad: WarehouseTransferDispatchRef;
+	status: WarehouseTransferStatus;
+	items_count: number;
+	items: WarehouseTransferDispatchItem[];
+}

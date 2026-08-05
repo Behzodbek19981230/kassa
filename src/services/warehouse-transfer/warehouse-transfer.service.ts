@@ -6,6 +6,7 @@ import type {
 	WarehouseTransfer,
 	WarehouseTransferCreatePayload,
 	WarehouseTransferDetail,
+	WarehouseTransferDispatchList,
 	WarehouseTransferListParams,
 } from '@/services/warehouse-transfer/warehouse-transfer.types';
 
@@ -35,6 +36,16 @@ export const warehouseTransferService = {
 	},
 	print: async (id: number) => {
 		const { data } = await apiClient.get(`/warehouse-transfer/${id}/print/`, { responseType: 'blob' });
+		return data as Blob;
+	},
+	dispatchList: async (id: number) => {
+		const { data } = await apiClient.get<WarehouseTransferDispatchList>(`/warehouse-transfer/${id}/dispatch-list/`);
+		return data;
+	},
+	printDispatchList: async (id: number) => {
+		const { data } = await apiClient.get(`/warehouse-transfer/${id}/dispatch-list/print/`, {
+			responseType: 'blob',
+		});
 		return data as Blob;
 	},
 };
