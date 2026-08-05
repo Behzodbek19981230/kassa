@@ -52,7 +52,7 @@ export interface WarehouseTransferUserDetail {
 
 export interface WarehouseTransfer {
 	id: number;
-	cr_date: string;
+	created_time: string;
 	from_type_sklad: number;
 	from_type_sklad_detail?: WarehouseSkladTypeDetail | null;
 	to_type_sklad: number;
@@ -62,6 +62,16 @@ export interface WarehouseTransfer {
 	created_by_detail?: WarehouseTransferUserDetail | null;
 	status: WarehouseTransferStatus;
 	note?: string | null;
+	is_confirmed?: boolean;
+	confirmed_by?: number | null;
+	confirmed_by_detail?: WarehouseTransferUserDetail | null;
+	confirmed_at?: string | null;
+	confirmation_note?: string | null;
+}
+
+export interface WarehouseTransferConfirmationPayload {
+	is_confirmed: boolean;
+	confirmation_note?: string;
 }
 
 export interface WarehouseTransferWarehouseDetail {

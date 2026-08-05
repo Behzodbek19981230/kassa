@@ -1,11 +1,17 @@
 import { useMemo, useState } from 'react';
 import { FaExchangeAlt, FaExclamationTriangle, FaShoppingCart, FaStore, FaTrash, FaWarehouse } from 'react-icons/fa';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
 	Button,
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
+	Modal,
+	ModalBody,
+	ModalContent,
+	ModalFooter,
+	ModalHeader,
+	ModalTitle,
 	PageHeader,
 	Panel,
 	Select,
@@ -43,6 +49,7 @@ export default function WarehouseTransferPage() {
 	const { canWrite } = useCurrentCompany();
 	const { notify } = useNotification();
 	const location = useLocation();
+	const navigate = useNavigate();
 	const initialState = location.state as WarehouseTransferPageState | null;
 
 	const [fromTypeSkladId, setFromTypeSkladId] = useState(
@@ -55,6 +62,7 @@ export default function WarehouseTransferPage() {
 	const [categoryFilter, setCategoryFilter] = useState('');
 	const [selectedSourceItem, setSelectedSourceItem] = useState<Warehouse | null>(null);
 	const [cartRows, setCartRows] = useState<TransferCartRow[]>([]);
+	const [confirmOpen, setConfirmOpen] = useState(false);
 
 	const { data: skladTypesData } = useSkladTypeListQuery({ limit: 100 });
 	const skladTypes = skladTypesData?.results ?? [];
@@ -165,6 +173,8 @@ export default function WarehouseTransferPage() {
 			});
 			notify({ title: 'Transfer amalga oshirildi' });
 			setCartRows([]);
+			setConfirmOpen(false);
+			navigate('/warehouse-transfer/history', { replace: true });
 		} catch (err) {
 			notify({
 				title: 'Xatolik',
@@ -201,15 +211,13 @@ export default function WarehouseTransferPage() {
 									<SelectValue placeholder='Tanlang...' />
 								</SelectTrigger>
 								<SelectContent>
-									{skladTypes.map((t) => (
-										<SelectItem
-											key={t.id}
-											value={String(t.id)}
-											disabled={String(t.id) === toTypeSkladId}
-										>
-											{t.name}
-										</SelectItem>
-									))}
+									{skladTypes
+										.filter((t) => String(t.id) !== toTypeSkladId)
+										.map((t) => (
+											<SelectItem key={t.id} value={String(t.id)}>
+												{t.name}
+											</SelectItem>
+										))}
 								</SelectContent>
 							</Select>
 						</div>
@@ -224,20 +232,18 @@ export default function WarehouseTransferPage() {
 							<label className='mb-1 block text-xs font-semibold text-ca-heading'>
 								Qabul qilinadigan sklad
 							</label>
-							<Select value={toTypeSkladId} onValueChange={handleToChange}>
+							<Select value={toTypeSkladId} onValueChange={handleToChange} disabled={!fromTypeSkladId}>
 								<SelectTrigger>
 									<SelectValue placeholder='Tanlang...' />
 								</SelectTrigger>
 								<SelectContent>
-									{skladTypes.map((t) => (
-										<SelectItem
-											key={t.id}
-											value={String(t.id)}
-											disabled={String(t.id) === fromTypeSkladId}
-										>
-											{t.name}
-										</SelectItem>
-									))}
+									{skladTypes
+										.filter((t) => String(t.id) !== fromTypeSkladId)
+										.map((t) => (
+											<SelectItem key={t.id} value={String(t.id)}>
+												{t.name}
+											</SelectItem>
+										))}
 								</SelectContent>
 							</Select>
 						</div>
@@ -474,7 +480,7 @@ export default function WarehouseTransferPage() {
 									variant='warning'
 									className='flex-1'
 									disabled={createMutation.isPending}
-									onClick={handleSubmitTransfer}
+									onClick={() => setConfirmOpen(true)}
 								>
 									<FaExchangeAlt className='mr-1.5' />{' '}
 									{createMutation.isPending ? 'Yuborilmoqda...' : 'Transferni amalga oshirish'}
@@ -484,6 +490,34 @@ export default function WarehouseTransferPage() {
 					</Panel>
 				</div>
 			</div>
+
+			<Modal open={confirmOpen} onOpenChange={setConfirmOpen}>
+				<ModalContent>
+					<ModalHeader>
+						<ModalTitle>Ishonchingiz komilmi?</ModalTitle>
+					</ModalHeader>
+					<ModalBody>
+						<p>Transferni amalga oshirmoqchimisiz!</p>
+						<p className='mt-1 text-ca-text'>
+							Transferni o'zgartirish imkoni yo'q, o'chirib qayta qo'shishingiz mumkin.
+						</p>
+					</ModalBody>
+					<ModalFooter>
+						<Button type='button' variant='white' onClick={() => setConfirmOpen(false)}>
+							Bekor qilish
+						</Button>
+						<Button
+							type='button'
+							variant='warning'
+							disabled={createMutation.isPending}
+							onClick={handleSubmitTransfer}
+						>
+							<FaExchangeAlt className='mr-1.5' />{' '}
+							{createMutation.isPending ? 'Yuborilmoqda...' : 'Tasdiqlash'}
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
 		</>
 	);
 }

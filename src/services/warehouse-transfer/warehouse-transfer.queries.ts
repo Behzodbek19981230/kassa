@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { warehouseTransferService } from '@/services/warehouse-transfer/warehouse-transfer.service';
 import type {
 	ValidateTransferItemPayload,
+	WarehouseTransferConfirmationPayload,
 	WarehouseTransferCreatePayload,
 	WarehouseTransferListParams,
 } from '@/services/warehouse-transfer/warehouse-transfer.types';
@@ -61,6 +62,17 @@ export function useReverseWarehouseTransferMutation() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: warehouseTransferKeys.all });
 			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
+		},
+	});
+}
+
+export function useConfirmWarehouseTransferMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }: { id: number; payload: WarehouseTransferConfirmationPayload }) =>
+			warehouseTransferService.confirm(id, payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: warehouseTransferKeys.all });
 		},
 	});
 }

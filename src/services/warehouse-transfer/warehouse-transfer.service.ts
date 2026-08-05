@@ -4,6 +4,7 @@ import type {
 	ValidateTransferItemPayload,
 	ValidateTransferItemResponse,
 	WarehouseTransfer,
+	WarehouseTransferConfirmationPayload,
 	WarehouseTransferCreatePayload,
 	WarehouseTransferDetail,
 	WarehouseTransferDispatchList,
@@ -32,6 +33,10 @@ export const warehouseTransferService = {
 	},
 	reverse: async (id: number) => {
 		const { data } = await apiClient.post<WarehouseTransferDetail>(`/warehouse-transfer/${id}/reverse/`);
+		return data;
+	},
+	confirm: async (id: number, payload: WarehouseTransferConfirmationPayload) => {
+		const { data } = await apiClient.post<WarehouseTransfer>(`/warehouse-transfer/${id}/confirmation/`, payload);
 		return data;
 	},
 	print: async (id: number) => {

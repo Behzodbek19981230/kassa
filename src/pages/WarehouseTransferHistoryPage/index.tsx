@@ -23,7 +23,7 @@ export default function WarehouseTransferHistoryPage() {
 				onValueChange={(tab) => setSearchParams(tab === 'history' ? {} : { tab }, { replace: false })}
 				items={[
 					{ value: 'history', label: 'Transfer tarixi', content: <TransferHistoryTab /> },
-					{ value: 'warehouse-staff', label: 'Sklad xodimi', content: <WarehouseStaffTab /> },
+					{ value: 'warehouse-staff', label: 'Xodim', content: <WarehouseStaffTab /> },
 				]}
 			/>
 		</>

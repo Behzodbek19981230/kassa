@@ -105,7 +105,12 @@ export default function WarehouseTransferDetailPage() {
 				<div className='-mx-2.5 flex flex-wrap gap-y-3 text-xs'>
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-orange'>Sana:</span>{' '}
-						<span className='font-bold text-ca-orange'>{data.cr_date}</span>
+						<span className='font-bold text-ca-orange'>
+							{new Date(data.created_time).toLocaleString('uz-UZ', {
+								dateStyle: 'short',
+								timeStyle: 'short',
+							})}
+						</span>
 					</div>
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-heading'>Status:</span>{' '}
@@ -172,15 +177,17 @@ export default function WarehouseTransferDetailPage() {
 										<TableCell>{index + 1}</TableCell>
 										<TableCell>{MODE_LABEL[item.mode] ?? item.mode}</TableCell>
 										<TableCell className='font-semibold text-ca-red'>
-											{source.type_sklad_name} / {source.brand_name} / {source.product_category_name} /{' '}
-											{formatNumber(source.size)} / {source.type_name}
+											{source.type_sklad_name} / {source.brand_name} /{' '}
+											{source.product_category_name} / {formatNumber(source.size)} /{' '}
+											{source.type_name}
 										</TableCell>
 										<TableCell className='font-semibold text-ca-red'>
 											-{formatNumber(item.source_quantity)}
 										</TableCell>
 										<TableCell className='font-semibold text-ca-green'>
-											{target.type_sklad_name} / {target.brand_name} / {target.product_category_name} /{' '}
-											{formatNumber(target.size)} / {target.type_name}
+											{target.type_sklad_name} / {target.brand_name} /{' '}
+											{target.product_category_name} / {formatNumber(target.size)} /{' '}
+											{target.type_name}
 										</TableCell>
 										<TableCell className='font-semibold text-ca-green'>
 											+{formatNumber(item.target_quantity)}

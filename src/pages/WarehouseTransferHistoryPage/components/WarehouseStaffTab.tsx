@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useCallback, useMemo, useState } from 'react';
-import { FaExclamationTriangle, FaFilePdf, FaList } from 'react-icons/fa';
+import { FaCheck, FaExclamationTriangle, FaFilePdf, FaList } from 'react-icons/fa';
 import { Badge, Button, DataTable, DatePicker, Panel, useNotification } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
@@ -11,6 +11,7 @@ import type {
 	WarehouseTransfer,
 	WarehouseTransferStatus,
 } from '@/services/warehouse-transfer/warehouse-transfer.types';
+import ConfirmDispatchModal from '@/pages/WarehouseTransferHistoryPage/components/ConfirmDispatchModal';
 import DispatchListModal from '@/pages/WarehouseTransferHistoryPage/components/DispatchListModal';
 
 const STATUS_LABEL: Record<WarehouseTransferStatus, string> = {
@@ -36,6 +37,7 @@ export default function WarehouseStaffTab() {
 	const [dateTo, setDateTo] = useState('');
 	const [dispatchTransferId, setDispatchTransferId] = useState<number | null>(null);
 	const [printingId, setPrintingId] = useState<number | null>(null);
+	const [confirmTransfer, setConfirmTransfer] = useState<WarehouseTransfer | null>(null);
 
 	const { data: skladTypesData } = useSkladTypeListQuery({ limit: 100 });
 
@@ -86,10 +88,12 @@ export default function WarehouseStaffTab() {
 
 	const columns = useMemo(
 		() => [
-			staffColumnHelper.accessor('cr_date', {
+			staffColumnHelper.accessor('created_time', {
 				header: 'Sana',
 				size: 100,
 				enableColumnFilter: false,
+				cell: (info) =>
+					new Date(info.getValue()).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' }),
 			}),
 			staffColumnHelper.accessor('from_type_sklad', {
 				header: 'Qayerdan',
@@ -108,7 +112,9 @@ export default function WarehouseStaffTab() {
 			}),
 			staffColumnHelper.accessor('status', {
 				header: 'Status',
-				cell: (info) => <Badge variant={STATUS_VARIANT[info.getValue()]}>{STATUS_LABEL[info.getValue()]}</Badge>,
+				cell: (info) => (
+					<Badge variant={STATUS_VARIANT[info.getValue()]}>{STATUS_LABEL[info.getValue()]}</Badge>
+				),
 				meta: {
 					filterVariant: 'select',
 					filterOptions: [
@@ -138,6 +144,20 @@ export default function WarehouseStaffTab() {
 						</Button>
 						<Button
 							type='button'
+							variant='success'
+							size='icon'
+							aria-label={
+								row.original.is_confirmed
+									? 'Yuk chiqarilgani tasdiqlangan'
+									: 'Chiqarilganini tasdiqlash'
+							}
+							disabled={row.original.is_confirmed}
+							onClick={() => setConfirmTransfer(row.original)}
+						>
+							<FaCheck />
+						</Button>
+						<Button
+							type='button'
 							variant='warning'
 							size='icon'
 							aria-label='PDF chop qilish'
@@ -155,7 +175,7 @@ export default function WarehouseStaffTab() {
 
 	return (
 		<>
-			<Panel title='Sklad xodimi uchun tayyorlash ro‘yxati' onReload={() => refetch()}>
+			<Panel title='Xodim uchun tayyorlash ro‘yxati' onReload={() => refetch()}>
 				<div className='mb-4 flex flex-wrap items-end gap-3'>
 					<div>
 						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sanadan</label>
@@ -210,6 +230,15 @@ export default function WarehouseStaffTab() {
 					open={dispatchTransferId !== null}
 					setOpen={(open) => !open && setDispatchTransferId(null)}
 					transferId={dispatchTransferId}
+				/>
+			)}
+
+			{confirmTransfer && (
+				<ConfirmDispatchModal
+					open={confirmTransfer !== null}
+					setOpen={(open) => !open && setConfirmTransfer(null)}
+					transfer={confirmTransfer}
+					onConfirmed={() => setConfirmTransfer(null)}
 				/>
 			)}
 		</>

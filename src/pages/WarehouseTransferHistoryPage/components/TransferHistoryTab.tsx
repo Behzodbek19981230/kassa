@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaExpand, FaUndo } from 'react-icons/fa';
+import { FaExclamationTriangle, FaExpand, FaUndo } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { Badge, Button, DataTable, DatePicker, Panel } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
@@ -12,7 +12,6 @@ import type {
 	WarehouseTransferStatus,
 } from '@/services/warehouse-transfer/warehouse-transfer.types';
 import ReverseTransferModal from '@/pages/WarehouseTransferDetailPage/components/ReverseTransferModal';
-import EditTransferModal from '@/pages/WarehouseTransferHistoryPage/components/EditTransferModal';
 
 const STATUS_LABEL: Record<WarehouseTransferStatus, string> = {
 	completed: 'Bajarilgan',
@@ -40,7 +39,6 @@ export default function TransferHistoryTab() {
 	const [dateFrom, setDateFrom] = useState('');
 	const [dateTo, setDateTo] = useState('');
 	const [reverseTransfer, setReverseTransfer] = useState<WarehouseTransfer | null>(null);
-	const [editTransfer, setEditTransfer] = useState<WarehouseTransfer | null>(null);
 
 	const { data: skladTypesData } = useSkladTypeListQuery({ limit: 100 });
 
@@ -74,10 +72,12 @@ export default function TransferHistoryTab() {
 
 	const historyColumns = useMemo(
 		() => [
-			historyColumnHelper.accessor('cr_date', {
+			historyColumnHelper.accessor('created_time', {
 				header: 'Sana',
 				size: 100,
 				enableColumnFilter: false,
+				cell: (info) =>
+					new Date(info.getValue()).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' }),
 			}),
 			historyColumnHelper.accessor('from_type_sklad', {
 				header: 'Qayerdan',
@@ -105,7 +105,9 @@ export default function TransferHistoryTab() {
 			}),
 			historyColumnHelper.accessor('status', {
 				header: 'Status',
-				cell: (info) => <Badge variant={STATUS_VARIANT[info.getValue()]}>{STATUS_LABEL[info.getValue()]}</Badge>,
+				cell: (info) => (
+					<Badge variant={STATUS_VARIANT[info.getValue()]}>{STATUS_LABEL[info.getValue()]}</Badge>
+				),
 				meta: {
 					filterVariant: 'select',
 					filterOptions: [
@@ -115,6 +117,37 @@ export default function TransferHistoryTab() {
 					],
 					filterPlaceholder: 'Barchasi',
 				},
+			}),
+			historyColumnHelper.accessor('is_confirmed', {
+				header: 'Chiqarilishi tasdiqlangan',
+				enableColumnFilter: false,
+				cell: (info) => (
+					<Badge variant={info.getValue() ? 'success' : 'default'}>
+						{info.getValue() ? 'Tasdiqlangan' : 'Tasdiqlanmagan'}
+					</Badge>
+				),
+			}),
+			historyColumnHelper.display({
+				id: 'confirmed_by',
+				header: 'Kim tasdiqladi',
+				enableColumnFilter: false,
+				cell: ({ row }) => {
+					const u = row.original.confirmed_by_detail;
+					return u ? userLabel(u) : '';
+				},
+			}),
+			historyColumnHelper.accessor('confirmed_at', {
+				header: 'Tasdiqlangan vaqti',
+				enableColumnFilter: false,
+				cell: (info) => {
+					const value = info.getValue();
+					return value ? new Date(value).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' }) : '';
+				},
+			}),
+			historyColumnHelper.accessor('confirmation_note', {
+				header: 'Tasdiqlash izohi',
+				enableColumnFilter: false,
+				cell: (info) => info.getValue() ?? '',
 			}),
 			historyColumnHelper.display({
 				id: 'actions',
@@ -133,18 +166,7 @@ export default function TransferHistoryTab() {
 						>
 							<FaExpand />
 						</Button>
-						{canWrite && row.original.status === 'completed' && (
-							<Button
-								type='button'
-								variant='warning'
-								size='icon'
-								aria-label='Tahrirlash'
-								onClick={() => setEditTransfer(row.original)}
-							>
-								<FaEdit />
-							</Button>
-						)}
-						{canWrite && row.original.status === 'completed' && (
+						{canWrite && row.original.status === 'completed' && !row.original.is_confirmed && (
 							<Button
 								type='button'
 								variant='danger'
@@ -206,10 +228,14 @@ export default function TransferHistoryTab() {
 					enablePagination
 					enableGlobalFilter={false}
 					enableColumnFilters
+					enableColumnVisibility
+					columnVisibilityKey='warehouse-transfer-history'
 					enableSorting={false}
 					enableStriping
 					isLoading={isHistoryLoading || isHistoryFetching}
-					emptyMessage={isHistoryError ? getApiErrorMessage(historyError, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
+					emptyMessage={
+						isHistoryError ? getApiErrorMessage(historyError, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"
+					}
 					emptyIcon={isHistoryError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 				/>
 			</Panel>
@@ -223,14 +249,6 @@ export default function TransferHistoryTab() {
 						setReverseTransfer(null);
 						refetchHistory();
 					}}
-				/>
-			)}
-
-			{editTransfer && (
-				<EditTransferModal
-					open={Boolean(editTransfer)}
-					setOpen={(open) => !open && setEditTransfer(null)}
-					transfer={editTransfer}
 				/>
 			)}
 		</>
