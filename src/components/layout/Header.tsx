@@ -6,6 +6,7 @@ import {
 	FaCheck,
 	FaClock,
 	FaDollarSign,
+	FaExchangeAlt,
 	FaExclamationTriangle,
 	FaHistory,
 	FaInfoCircle,
@@ -198,7 +199,21 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 									aria-label='Telegram xabarnoma'
 								>
 									<FaPaperPlane />
-									<span className='hidden md:inline'>Telegram</span>
+									<span className='hidden md:inline'>Telegram xabarnoma</span>
+								</button>
+							</Tooltip>
+						</li>
+
+						<li>
+							<Tooltip side='bottom' content='Skladlararo transfer'>
+								<button
+									type='button'
+									onClick={() => navigate('/warehouse-transfer')}
+									className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+									aria-label='Skladlararo transfer'
+								>
+									<FaExchangeAlt />
+									<span className='hidden md:inline'>Skladlararo transfer</span>
 								</button>
 							</Tooltip>
 						</li>
