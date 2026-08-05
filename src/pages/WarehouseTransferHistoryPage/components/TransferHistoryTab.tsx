@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { FaExclamationTriangle, FaExpand, FaUndo } from 'react-icons/fa';
+import { FaExclamationTriangle, FaExpand, FaTrash, FaUndo } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { Badge, Button, DataTable, DatePicker, Panel } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
@@ -116,7 +116,7 @@ export default function TransferHistoryTab() {
 				enableColumnFilter: false,
 				cell: (info) => (
 					<Badge variant={info.getValue() ? 'success' : 'default'}>
-						{info.getValue() ? 'Jarayonda' : 'Tasdiqlanmagan'}
+						{info.getValue() ? 'Bajarildi' : 'Jarayonda'}
 					</Badge>
 				),
 			}),
@@ -169,7 +169,7 @@ export default function TransferHistoryTab() {
 								aria-label='Bekor qilish'
 								onClick={() => setReverseTransfer(row.original)}
 							>
-								<FaUndo />
+								<FaTrash />
 							</Button>
 						)}
 					</div>

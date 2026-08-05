@@ -14,6 +14,9 @@ import type {
 import ConfirmDispatchModal from '@/pages/WarehouseTransferHistoryPage/components/ConfirmDispatchModal';
 import DispatchListModal from '@/pages/WarehouseTransferHistoryPage/components/DispatchListModal';
 
+const userLabel = (u: { username: string; first_name: string; last_name: string }) =>
+	`${u.last_name} ${u.first_name}`.trim() || u.username;
+
 const staffColumnHelper = createColumnHelper<WarehouseTransfer>();
 
 export default function WarehouseStaffTab() {
@@ -105,7 +108,48 @@ export default function WarehouseStaffTab() {
 				size: 110,
 				enableColumnFilter: false,
 			}),
-
+			staffColumnHelper.display({
+				id: 'created_by',
+				header: 'Foydalanuvchi',
+				enableColumnFilter: false,
+				cell: ({ row }) => {
+					const u = row.original.created_by_detail;
+					return u ? userLabel(u) : '';
+				},
+			}),
+			staffColumnHelper.accessor('is_confirmed', {
+				header: 'Chiqarilishi tasdiqlangan',
+				enableColumnFilter: false,
+				cell: (info) => (
+					<Badge variant={info.getValue() ? 'success' : 'default'}>
+						{info.getValue() ? 'Bajarildi' : 'Jarayonda'}
+					</Badge>
+				),
+			}),
+			staffColumnHelper.display({
+				id: 'confirmed_by',
+				header: 'Kim tasdiqladi',
+				enableColumnFilter: false,
+				cell: ({ row }) => {
+					const u = row.original.confirmed_by_detail;
+					return u ? userLabel(u) : '';
+				},
+			}),
+			staffColumnHelper.accessor('confirmed_at', {
+				header: 'Tasdiqlangan vaqti',
+				enableColumnFilter: false,
+				cell: (info) => {
+					const value = info.getValue();
+					return value
+						? new Date(value).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' })
+						: '';
+				},
+			}),
+			staffColumnHelper.accessor('confirmation_note', {
+				header: 'Tasdiqlash izohi',
+				enableColumnFilter: false,
+				cell: (info) => info.getValue() ?? '',
+			}),
 			staffColumnHelper.display({
 				id: 'actions',
 				header: 'Harakatlar',
