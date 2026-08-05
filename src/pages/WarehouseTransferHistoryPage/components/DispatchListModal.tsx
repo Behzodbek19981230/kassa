@@ -22,19 +22,6 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { warehouseTransferService } from '@/services/warehouse-transfer/warehouse-transfer.service';
 import { useWarehouseTransferDispatchListQuery } from '@/services/warehouse-transfer/warehouse-transfer.queries';
-import type { WarehouseTransferStatus } from '@/services/warehouse-transfer/warehouse-transfer.types';
-
-const STATUS_LABEL: Record<WarehouseTransferStatus, string> = {
-	completed: 'Bajarilgan',
-	reversed: 'Bekor qilingan',
-	reverse: 'Bekor qilish transferi',
-};
-
-const STATUS_VARIANT: Record<WarehouseTransferStatus, 'success' | 'default' | 'warning'> = {
-	completed: 'success',
-	reversed: 'default',
-	reverse: 'warning',
-};
 
 interface DispatchListModalProps {
 	open: boolean;
@@ -91,8 +78,10 @@ export default function DispatchListModal({ open, setOpen, transferId }: Dispatc
 									<span className='font-bold text-ca-heading'>{data.to_type_sklad.name}</span>
 								</span>
 								<span className='text-xs'>
-									<span className='font-semibold text-ca-heading'>Status:</span>{' '}
-									<Badge variant={STATUS_VARIANT[data.status]}>{STATUS_LABEL[data.status]}</Badge>
+									<span className='font-semibold text-ca-heading'>Holati:</span>{' '}
+									<Badge variant={data.is_confirmed ? 'success' : 'default'}>
+										{data.is_confirmed ? 'Bajarildi' : 'Jarayonda'}
+									</Badge>
 								</span>
 							</div>
 

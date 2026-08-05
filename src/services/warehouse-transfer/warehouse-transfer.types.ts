@@ -148,6 +148,7 @@ export interface WarehouseTransferDispatchList {
 	from_type_sklad: WarehouseTransferDispatchRef;
 	to_type_sklad: WarehouseTransferDispatchRef;
 	status: WarehouseTransferStatus;
+	is_confirmed?: boolean;
 	items_count: number;
 	items: WarehouseTransferDispatchItem[];
 }

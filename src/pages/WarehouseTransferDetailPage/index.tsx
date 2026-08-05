@@ -17,20 +17,7 @@ import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { warehouseTransferService } from '@/services/warehouse-transfer/warehouse-transfer.service';
 import { useWarehouseTransferQuery } from '@/services/warehouse-transfer/warehouse-transfer.queries';
-import type { WarehouseTransferStatus } from '@/services/warehouse-transfer/warehouse-transfer.types';
 import ReverseTransferModal from '@/pages/WarehouseTransferDetailPage/components/ReverseTransferModal';
-
-const STATUS_LABEL: Record<WarehouseTransferStatus, string> = {
-	completed: 'Bajarilgan',
-	reversed: 'Bekor qilingan',
-	reverse: 'Bekor qilish transferi',
-};
-
-const STATUS_VARIANT: Record<WarehouseTransferStatus, 'success' | 'default' | 'warning'> = {
-	completed: 'success',
-	reversed: 'default',
-	reverse: 'warning',
-};
 
 const MODE_LABEL: Record<string, string> = {
 	same: "O'z holicha",
@@ -113,8 +100,10 @@ export default function WarehouseTransferDetailPage() {
 						</span>
 					</div>
 					<div className='w-full px-2.5 sm:w-1/2'>
-						<span className='font-semibold text-ca-heading'>Status:</span>{' '}
-						<Badge variant={STATUS_VARIANT[data.status]}>{STATUS_LABEL[data.status]}</Badge>
+						<span className='font-semibold text-ca-heading'>Holati:</span>{' '}
+						<Badge variant={data.is_confirmed ? 'success' : 'default'}>
+							{data.is_confirmed ? 'Bajarildi' : 'Jarayonda'}
+						</Badge>
 					</div>
 
 					<div className='w-full px-2.5 sm:w-1/2'>
