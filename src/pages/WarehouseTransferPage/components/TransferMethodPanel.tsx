@@ -1,6 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
-import { Button, Combobox, FormField, Input, Panel, RadioGroup } from '@/components/ui';
+import {
+	Button,
+	Combobox,
+	FormField,
+	Input,
+	Modal,
+	ModalBody,
+	ModalContent,
+	ModalFooter,
+	ModalHeader,
+	ModalTitle,
+	RadioGroup,
+} from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useWarehouseListQuery } from '@/services/warehouse/warehouse.queries';
@@ -112,7 +124,7 @@ export default function TransferMethodPanel({
 
 		const target = mode === 'same' ? sameTarget : spreadTarget;
 		if (!target) {
-			setError('Bu skladda bu tovar mavjud emas');
+			setError("Bu skladda bu tovar mavjud emas.Tavar va narxlarga o'tib qo'shib qoyishingiz mumkin");
 			return;
 		}
 
@@ -167,98 +179,111 @@ export default function TransferMethodPanel({
 		mode === 'spread' && !spreadModeQuery.isLoading && !spreadModeQuery.isFetching && spreadOptions.length === 0;
 
 	return (
-		<Panel title='Transfer usuli' className='mt-5' bodyClassName='pt-4'>
-			<div className='mb-4 rounded-[3px] bg-ca-silver p-3 text-xs'>
-				<div className='flex items-center justify-between'>
-					<span className='font-semibold text-ca-heading'>Tovar:</span>
-					<span className='truncate font-bold text-ca-red'>
-						{sourceItem.brand_detail?.name} / {sourceItem.product_category_detail?.name} /{' '}
-						{formatNumber(sourceItem.size)} / {sourceItem.type_detail?.name}
-					</span>
-				</div>
-				<div className='mt-1 flex items-center justify-between'>
-					<span className='font-semibold text-ca-heading'>Bor miqdor:</span>
-					<span className='font-bold text-ca-heading'>
-						{formatNumber(availableCount)} {sourceItem.type_detail?.name}
-					</span>
-				</div>
-			</div>
+		<Modal open onOpenChange={(nextOpen) => !nextOpen && onCancel()}>
+			<ModalContent>
+				<ModalHeader>
+					<ModalTitle>Transfer usuli</ModalTitle>
+				</ModalHeader>
+				<ModalBody>
+					<div className='mb-4 rounded-[3px] bg-ca-silver p-3 text-xs'>
+						<div className='flex items-center justify-between'>
+							<span className='font-semibold text-ca-heading'>Tovar:</span>
+							<span className='truncate font-bold text-ca-red'>
+								{sourceItem.brand_detail?.name} / {sourceItem.product_category_detail?.name} /{' '}
+								{formatNumber(sourceItem.size)} / {sourceItem.type_detail?.name}
+							</span>
+						</div>
+						<div className='mt-1 flex items-center justify-between'>
+							<span className='font-semibold text-ca-heading'>Bor miqdor:</span>
+							<span className='font-bold text-ca-heading'>
+								{formatNumber(availableCount)} {sourceItem.type_detail?.name}
+							</span>
+						</div>
+					</div>
 
-			<FormField label='Transfer usuli' horizontal={false} className='mb-3'>
-				<RadioGroup
-					name='transfer-mode'
-					value={mode}
-					onChange={handleModeChange}
-					options={[
-						{ value: 'same', label: "O'z holicha o'tkazish" },
-						{ value: 'spread', label: "Yoyib o'tkazish" },
-					]}
-					inline
-				/>
-			</FormField>
-
-			{mode === 'spread' && (
-				<FormField label='Qabul qilinadigan tovarni tanlash' horizontal={false} className='mb-3'>
-					<Combobox
-						value={spreadTargetKey}
-						onChange={setSpreadTargetKey}
-						options={spreadOptions.map(({ value, label }) => ({ value, label }))}
-						placeholder="Tovar nomi, brand, hajm yoki shakli bo'yicha qidirish..."
-						clearable
-					/>
-					{noSpreadOptions && <p className='mt-1 text-[11px] text-ca-red'>Bu skladda bu tovar mavjud emas</p>}
-				</FormField>
-			)}
-
-			{noSameTarget && <p className='mb-3 text-[11px] text-ca-red'>Bu skladda bu tovar mavjud emas</p>}
-
-			<div className={mode === 'spread' ? 'grid grid-cols-2 gap-3' : ''}>
-				<FormField label="O'tkazish miqdori" horizontal={false} className='mb-3'>
-					<Input
-						type='number'
-						inputMode='numeric'
-						min={0}
-						max={availableCount}
-						step='1'
-						value={sourceQuantity}
-						onChange={(e) => setSourceQuantity(e.target.value)}
-					/>
-				</FormField>
-				{mode === 'spread' && (
-					<FormField label='Qabul qilish soni' horizontal={false} className='mb-3'>
-						<Input
-							type='number'
-							inputMode='numeric'
-							min={0}
-							step='1'
-							value={targetQuantity}
-							onChange={(e) => setTargetQuantity(e.target.value)}
+					<FormField label='Transfer usuli' horizontal={false} className='mb-3'>
+						<RadioGroup
+							name='transfer-mode'
+							value={mode}
+							onChange={handleModeChange}
+							options={[
+								{ value: 'same', label: "O'z holicha o'tkazish" },
+								{ value: 'spread', label: "Yoyib o'tkazish" },
+							]}
+							inline
 						/>
 					</FormField>
-				)}
-			</div>
 
-			{error && (
-				<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
-					{error}
-				</div>
-			)}
+					{mode === 'spread' && (
+						<FormField label='Qabul qilinadigan tovarni tanlash' horizontal={false} className='mb-3'>
+							<Combobox
+								value={spreadTargetKey}
+								onChange={setSpreadTargetKey}
+								options={spreadOptions.map(({ value, label }) => ({ value, label }))}
+								placeholder="Tovar nomi, brand, hajm yoki shakli bo'yicha qidirish..."
+								clearable
+							/>
+							{noSpreadOptions && (
+								<p className='mt-1 text-[11px] text-ca-red'>
+									Bu skladda bu tovar mavjud emas.Tavar va narxlarga o'tib qo'shib qoyishingiz mumkin
+								</p>
+							)}
+						</FormField>
+					)}
 
-			<div className='flex gap-2'>
-				<Button type='button' variant='white' className='flex-1' onClick={onCancel}>
-					Bekor qilish
-				</Button>
-				<Button
-					type='button'
-					variant='warning'
-					className='flex-1'
-					disabled={validateMutation.isPending}
-					onClick={handleSubmit}
-				>
-					<FaShoppingCart className='mr-1.5' />{' '}
-					{validateMutation.isPending ? 'Tekshirilmoqda...' : 'Karzinkaga qoshish'}
-				</Button>
-			</div>
-		</Panel>
+					{noSameTarget && (
+						<p className='mb-3 text-[11px] text-ca-red'>
+							Bu skladda bu tovar mavjud emas.Tavar va narxlarga o'tib qo'shib qoyishingiz mumkin
+						</p>
+					)}
+
+					<div className={mode === 'spread' ? 'grid grid-cols-2 gap-3' : ''}>
+						<FormField label="O'tkazish miqdori" horizontal={false} className='mb-3'>
+							<Input
+								type='number'
+								inputMode='numeric'
+								min={0}
+								max={availableCount}
+								step='1'
+								value={sourceQuantity}
+								onChange={(e) => setSourceQuantity(e.target.value)}
+							/>
+						</FormField>
+						{mode === 'spread' && (
+							<FormField label='Qabul qilish soni' horizontal={false} className='mb-3'>
+								<Input
+									type='number'
+									inputMode='numeric'
+									min={0}
+									step='1'
+									value={targetQuantity}
+									onChange={(e) => setTargetQuantity(e.target.value)}
+								/>
+							</FormField>
+						)}
+					</div>
+
+					{error && (
+						<div className='rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+							{error}
+						</div>
+					)}
+				</ModalBody>
+				<ModalFooter>
+					<Button type='button' variant='white' onClick={onCancel}>
+						Bekor qilish
+					</Button>
+					<Button
+						type='button'
+						variant='warning'
+						disabled={validateMutation.isPending}
+						onClick={handleSubmit}
+					>
+						<FaShoppingCart className='mr-1.5' />{' '}
+						{validateMutation.isPending ? 'Tekshirilmoqda...' : 'Karzinkaga qoshish'}
+					</Button>
+				</ModalFooter>
+			</ModalContent>
+		</Modal>
 	);
 }

@@ -205,17 +205,35 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 						</li>
 
 						<li>
-							<Tooltip side='bottom' content='Skladlararo transfer'>
-								<button
-									type='button'
-									onClick={() => navigate('/warehouse-transfer')}
-									className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
-									aria-label='Skladlararo transfer'
-								>
-									<FaExchangeAlt />
-									<span className='hidden md:inline'>Skladlararo transfer</span>
-								</button>
-							</Tooltip>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<button
+										type='button'
+										className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+										aria-label='Skladlararo transfer'
+									>
+										<FaExchangeAlt />
+										<span className='hidden md:inline'>Skladlararo transfer</span>
+										<span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />
+									</button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent>
+									<DropdownMenuItem
+										onSelect={() => navigate('/warehouse-transfer')}
+										className='flex items-center gap-2'
+									>
+										<FaExchangeAlt className='text-ca-text' />
+										Skladlararo transfer
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onSelect={() => navigate('/warehouse-transfer/history')}
+										className='flex items-center gap-2'
+									>
+										<FaHistory className='text-ca-text' />
+										Transfer tarixi
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
 						</li>
 
 						{showCompanySelect && companies.length > 1 && (

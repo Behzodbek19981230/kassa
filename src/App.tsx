@@ -28,6 +28,7 @@ import VozvratOrderHistoryPage from '@/pages/VozvratOrderHistoryPage';
 import VozvratOrderHistoryDetailPage from '@/pages/VozvratOrderHistoryDetailPage';
 import VozvratOrderHistoryEditPage from '@/pages/VozvratOrderHistoryEditPage';
 import WarehouseTransferPage from '@/pages/WarehouseTransferPage';
+import WarehouseTransferHistoryPage from '@/pages/WarehouseTransferHistoryPage';
 import WarehouseTransferDetailPage from '@/pages/WarehouseTransferDetailPage';
 import WarehouseAccountPage from '@/pages/WarehouseAccountPage';
 import WarehouseAccountDetailPage from '@/pages/WarehouseAccountDetailPage';
@@ -67,6 +68,7 @@ export default function App() {
 					<Route path='vozvrat-order-history/:id' element={<VozvratOrderHistoryDetailPage />} />
 					<Route path='vozvrat-order-history/:id/edit' element={<VozvratOrderHistoryEditPage />} />
 					<Route path='warehouse-transfer' element={<WarehouseTransferPage />} />
+					<Route path='warehouse-transfer/history' element={<WarehouseTransferHistoryPage />} />
 					<Route path='warehouse-transfer/:id' element={<WarehouseTransferDetailPage />} />
 					<Route path='warehouse-report' element={<WarehouseAccountPage />} />
 					<Route path='warehouse-report/:id' element={<WarehouseAccountDetailPage />} />

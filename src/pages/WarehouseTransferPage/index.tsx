@@ -1,23 +1,10 @@
-import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
+import { FaExchangeAlt, FaExclamationTriangle, FaShoppingCart, FaStore, FaTrash, FaWarehouse } from 'react-icons/fa';
 import {
-	FaExchangeAlt,
-	FaExclamationTriangle,
-	FaExpand,
-	FaShoppingCart,
-	FaStore,
-	FaTrash,
-	FaWarehouse,
-} from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
-import {
-	Badge,
 	Button,
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
-	DataTable,
-	DatePicker,
 	PageHeader,
 	Panel,
 	Select,
@@ -42,36 +29,11 @@ import { productCategoryService } from '@/services/product-category/product-cate
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import { useWarehouseListQuery } from '@/services/warehouse/warehouse.queries';
 import type { Warehouse } from '@/services/warehouse/warehouse.types';
-import {
-	useCreateWarehouseTransferMutation,
-	useWarehouseTransferListQuery,
-} from '@/services/warehouse-transfer/warehouse-transfer.queries';
-import type {
-	WarehouseTransfer,
-	WarehouseTransferStatus,
-} from '@/services/warehouse-transfer/warehouse-transfer.types';
+import { useCreateWarehouseTransferMutation } from '@/services/warehouse-transfer/warehouse-transfer.queries';
 import TransferMethodPanel from '@/pages/WarehouseTransferPage/components/TransferMethodPanel';
 import type { TransferCartRow } from '@/pages/WarehouseTransferPage/types';
 
-const STATUS_LABEL: Record<WarehouseTransferStatus, string> = {
-	completed: 'Bajarilgan',
-	reversed: 'Bekor qilingan',
-	reverse: 'Bekor qilish transferi',
-};
-
-const STATUS_VARIANT: Record<WarehouseTransferStatus, 'success' | 'default' | 'warning'> = {
-	completed: 'success',
-	reversed: 'default',
-	reverse: 'warning',
-};
-
-const userLabel = (u: { username: string; first_name: string; last_name: string }) =>
-	`${u.last_name} ${u.first_name}`.trim() || u.username;
-
-const historyColumnHelper = createColumnHelper<WarehouseTransfer>();
-
 export default function WarehouseTransferPage() {
-	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
 	const { notify } = useNotification();
 
@@ -81,11 +43,6 @@ export default function WarehouseTransferPage() {
 	const [categoryFilter, setCategoryFilter] = useState('');
 	const [selectedSourceItem, setSelectedSourceItem] = useState<Warehouse | null>(null);
 	const [cartRows, setCartRows] = useState<TransferCartRow[]>([]);
-
-	const [historyPagination, setHistoryPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
-	const [historyColumnFilters, setHistoryColumnFilters] = useState<ColumnFiltersState>([]);
-	const [dateFrom, setDateFrom] = useState('');
-	const [dateTo, setDateTo] = useState('');
 
 	const { data: skladTypesData } = useSkladTypeListQuery({ limit: 100 });
 	const skladTypes = skladTypesData?.results ?? [];
@@ -101,6 +58,13 @@ export default function WarehouseTransferPage() {
 
 	function handleToChange(value: string) {
 		setToTypeSkladId(value);
+		setSelectedSourceItem(null);
+		setCartRows([]);
+	}
+
+	function handleSwapTypes() {
+		setFromTypeSkladId(toTypeSkladId);
+		setToTypeSkladId(fromTypeSkladId);
 		setSelectedSourceItem(null);
 		setCartRows([]);
 	}
@@ -190,106 +154,15 @@ export default function WarehouseTransferPage() {
 			notify({ title: 'Transfer amalga oshirildi' });
 			setCartRows([]);
 		} catch (err) {
-			notify({ title: 'Xatolik', text: getApiErrorMessage(err, 'Transferni amalga oshirishda xatolik yuz berdi') });
+			notify({
+				title: 'Xatolik',
+				text: getApiErrorMessage(err, 'Transferni amalga oshirishda xatolik yuz berdi'),
+			});
 		}
 	}
 
 	const totalSourceQty = cartRows.reduce((sum, row) => sum + row.source.quantity, 0);
 	const totalTargetQty = cartRows.reduce((sum, row) => sum + row.target.quantity, 0);
-
-	const skladTypeFilterOptions = useMemo(
-		() => (skladTypesData?.results ?? []).map((t) => ({ value: String(t.id), label: t.name })),
-		[skladTypesData],
-	);
-
-	const fromFilter = historyColumnFilters.find((f) => f.id === 'from_type_sklad')?.value as string | undefined;
-	const toFilter = historyColumnFilters.find((f) => f.id === 'to_type_sklad')?.value as string | undefined;
-	const statusFilter = historyColumnFilters.find((f) => f.id === 'status')?.value as string | undefined;
-
-	const {
-		data: historyData,
-		isLoading: isHistoryLoading,
-		isFetching: isHistoryFetching,
-		isError: isHistoryError,
-		error: historyError,
-		refetch: refetchHistory,
-	} = useWarehouseTransferListQuery({
-		page: historyPagination.pageIndex + 1,
-		limit: historyPagination.pageSize,
-		from_type_sklad: fromFilter ? Number(fromFilter) : undefined,
-		to_type_sklad: toFilter ? Number(toFilter) : undefined,
-		status: (statusFilter as WarehouseTransferStatus) || undefined,
-		date_from: dateFrom || undefined,
-		date_to: dateTo || undefined,
-	});
-	const historyResults = historyData?.results ?? [];
-	const historyMeta = historyData?.pagination;
-
-	const historyColumns = useMemo(
-		() => [
-			historyColumnHelper.accessor('cr_date', {
-				header: 'Sana',
-				size: 100,
-				enableColumnFilter: false,
-			}),
-			historyColumnHelper.accessor('from_type_sklad', {
-				header: 'Qayerdan',
-				cell: (info) => info.row.original.from_type_sklad_detail?.name ?? '',
-				meta: { filterVariant: 'select', filterOptions: skladTypeFilterOptions, filterPlaceholder: 'Barchasi' },
-			}),
-			historyColumnHelper.accessor('to_type_sklad', {
-				header: 'Qayerga',
-				cell: (info) => info.row.original.to_type_sklad_detail?.name ?? '',
-				meta: { filterVariant: 'select', filterOptions: skladTypeFilterOptions, filterPlaceholder: 'Barchasi' },
-			}),
-			historyColumnHelper.accessor('items_count', {
-				header: 'Tovarlar soni',
-				size: 110,
-				enableColumnFilter: false,
-			}),
-			historyColumnHelper.display({
-				id: 'created_by',
-				header: 'Foydalanuvchi',
-				enableColumnFilter: false,
-				cell: ({ row }) => {
-					const u = row.original.created_by_detail;
-					return u ? userLabel(u) : '';
-				},
-			}),
-			historyColumnHelper.accessor('status', {
-				header: 'Status',
-				cell: (info) => <Badge variant={STATUS_VARIANT[info.getValue()]}>{STATUS_LABEL[info.getValue()]}</Badge>,
-				meta: {
-					filterVariant: 'select',
-					filterOptions: [
-						{ value: 'completed', label: 'Bajarilgan' },
-						{ value: 'reversed', label: 'Bekor qilingan' },
-						{ value: 'reverse', label: 'Bekor qilish transferi' },
-					],
-					filterPlaceholder: 'Barchasi',
-				},
-			}),
-			historyColumnHelper.display({
-				id: 'actions',
-				header: 'Harakatlar',
-				meta: { align: 'right' },
-				enableColumnFilter: false,
-				size: 90,
-				cell: ({ row }) => (
-					<Button
-						type='button'
-						variant='info'
-						size='icon'
-						aria-label='Batafsil'
-						onClick={() => navigate(`/warehouse-transfer/${row.original.id}`)}
-					>
-						<FaExpand />
-					</Button>
-				),
-			}),
-		],
-		[skladTypeFilterOptions, navigate],
-	);
 
 	return (
 		<>
@@ -301,7 +174,7 @@ export default function WarehouseTransferPage() {
 				]}
 			/>
 
-			<div className='-mx-2.5 mb-0 flex flex-wrap'>
+			<div className='relative -mx-2.5 mb-0 flex flex-wrap'>
 				<div className='w-full px-2.5 pb-5 lg:w-1/2'>
 					<div className='flex items-center gap-3 rounded-[3px] bg-white p-4 shadow-sm'>
 						<span className='flex h-10 w-10 shrink-0 items-center justify-center rounded-[3px] bg-ca-theme/10 text-lg text-ca-theme'>
@@ -309,7 +182,7 @@ export default function WarehouseTransferPage() {
 						</span>
 						<div className='flex-1'>
 							<label className='mb-1 block text-xs font-semibold text-ca-heading'>
-								Transfer qilinadigan sklad type
+								Transfer qilinadigan sklad
 							</label>
 							<Select value={fromTypeSkladId} onValueChange={handleFromChange}>
 								<SelectTrigger>
@@ -317,7 +190,11 @@ export default function WarehouseTransferPage() {
 								</SelectTrigger>
 								<SelectContent>
 									{skladTypes.map((t) => (
-										<SelectItem key={t.id} value={String(t.id)}>
+										<SelectItem
+											key={t.id}
+											value={String(t.id)}
+											disabled={String(t.id) === toTypeSkladId}
+										>
 											{t.name}
 										</SelectItem>
 									))}
@@ -333,7 +210,7 @@ export default function WarehouseTransferPage() {
 						</span>
 						<div className='flex-1'>
 							<label className='mb-1 block text-xs font-semibold text-ca-heading'>
-								Qabul qilinadigan sklad type
+								Qabul qilinadigan sklad
 							</label>
 							<Select value={toTypeSkladId} onValueChange={handleToChange}>
 								<SelectTrigger>
@@ -341,7 +218,11 @@ export default function WarehouseTransferPage() {
 								</SelectTrigger>
 								<SelectContent>
 									{skladTypes.map((t) => (
-										<SelectItem key={t.id} value={String(t.id)}>
+										<SelectItem
+											key={t.id}
+											value={String(t.id)}
+											disabled={String(t.id) === fromTypeSkladId}
+										>
 											{t.name}
 										</SelectItem>
 									))}
@@ -350,6 +231,18 @@ export default function WarehouseTransferPage() {
 						</div>
 					</div>
 				</div>
+
+				<Button
+					type='button'
+					variant='theme'
+					size='icon'
+					onClick={handleSwapTypes}
+					disabled={!fromTypeSkladId && !toTypeSkladId}
+					aria-label='Sklad typelarni almashtirish'
+					className='absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-sm transition-transform hover:rotate-180'
+				>
+					<FaExchangeAlt />
+				</Button>
 			</div>
 
 			{sameSkladType && (
@@ -438,19 +331,23 @@ export default function WarehouseTransferPage() {
 											</TableCell>
 										</TableRow>
 									)}
-									{fromTypeSkladId && !isProductsLoading && !isProductsError && products.length === 0 && (
-										<TableRow>
-											<TableCell colSpan={6} className='text-center'>
-												Ma'lumot topilmadi
-											</TableCell>
-										</TableRow>
-									)}
+									{fromTypeSkladId &&
+										!isProductsLoading &&
+										!isProductsError &&
+										products.length === 0 && (
+											<TableRow>
+												<TableCell colSpan={6} className='text-center'>
+													Ma'lumot topilmadi
+												</TableCell>
+											</TableRow>
+										)}
 									{fromTypeSkladId &&
 										!isProductsLoading &&
 										!isProductsError &&
 										products.map((item, index) => {
 											const available = item.count - (reservedByWarehouseId.get(item.id) ?? 0);
-											const disabled = !canWrite || !toTypeSkladId || sameSkladType || available <= 0;
+											const disabled =
+												!canWrite || !toTypeSkladId || sameSkladType || available <= 0;
 											const isSelected = selectedSourceItem?.id === item.id;
 											return (
 												<TableRow
@@ -575,56 +472,6 @@ export default function WarehouseTransferPage() {
 					</Panel>
 				</div>
 			</div>
-
-			<Panel title='Transfer tarixi' onReload={() => refetchHistory()}>
-				<div className='mb-4 flex flex-wrap items-end gap-3'>
-					<div>
-						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sanadan</label>
-						<DatePicker value={dateFrom} onChange={setDateFrom} />
-					</div>
-					<div>
-						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sanagacha</label>
-						<DatePicker value={dateTo} onChange={setDateTo} />
-					</div>
-					{(dateFrom || dateTo) && (
-						<Button
-							type='button'
-							variant='default'
-							size='sm'
-							onClick={() => {
-								setDateFrom('');
-								setDateTo('');
-							}}
-						>
-							Tozalash
-						</Button>
-					)}
-				</div>
-
-				<DataTable
-					columns={historyColumns}
-					data={historyResults}
-					manualPagination
-					manualFiltering
-					pageCount={historyMeta?.lastPage ?? -1}
-					totalRows={historyMeta?.total}
-					pagination={historyPagination}
-					onPaginationChange={setHistoryPagination}
-					columnFilters={historyColumnFilters}
-					onColumnFiltersChange={(filters) => {
-						setHistoryColumnFilters(filters);
-						setHistoryPagination((p) => ({ ...p, pageIndex: 0 }));
-					}}
-					enablePagination
-					enableGlobalFilter={false}
-					enableColumnFilters
-					enableSorting={false}
-					enableStriping
-					isLoading={isHistoryLoading || isHistoryFetching}
-					emptyMessage={isHistoryError ? getApiErrorMessage(historyError, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
-					emptyIcon={isHistoryError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
-				/>
-			</Panel>
 		</>
 	);
 }
