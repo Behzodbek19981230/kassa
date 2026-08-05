@@ -72,6 +72,13 @@ export default function TransferHistoryTab() {
 
 	const historyColumns = useMemo(
 		() => [
+			historyColumnHelper.display({
+				id: 'index',
+				header: '#',
+				size: 50,
+				enableColumnFilter: false,
+				cell: ({ row }) => historyPagination.pageIndex * historyPagination.pageSize + row.index + 1,
+			}),
 			historyColumnHelper.accessor('created_time', {
 				header: 'Sana',
 				size: 100,
@@ -103,27 +110,13 @@ export default function TransferHistoryTab() {
 					return u ? userLabel(u) : '';
 				},
 			}),
-			historyColumnHelper.accessor('status', {
-				header: 'Status',
-				cell: (info) => (
-					<Badge variant={STATUS_VARIANT[info.getValue()]}>{STATUS_LABEL[info.getValue()]}</Badge>
-				),
-				meta: {
-					filterVariant: 'select',
-					filterOptions: [
-						{ value: 'completed', label: 'Bajarilgan' },
-						{ value: 'reversed', label: 'Bekor qilingan' },
-						{ value: 'reverse', label: 'Bekor qilish transferi' },
-					],
-					filterPlaceholder: 'Barchasi',
-				},
-			}),
+
 			historyColumnHelper.accessor('is_confirmed', {
 				header: 'Chiqarilishi tasdiqlangan',
 				enableColumnFilter: false,
 				cell: (info) => (
 					<Badge variant={info.getValue() ? 'success' : 'default'}>
-						{info.getValue() ? 'Tasdiqlangan' : 'Tasdiqlanmagan'}
+						{info.getValue() ? 'Jarayonda' : 'Tasdiqlanmagan'}
 					</Badge>
 				),
 			}),
@@ -141,7 +134,9 @@ export default function TransferHistoryTab() {
 				enableColumnFilter: false,
 				cell: (info) => {
 					const value = info.getValue();
-					return value ? new Date(value).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' }) : '';
+					return value
+						? new Date(value).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' })
+						: '';
 				},
 			}),
 			historyColumnHelper.accessor('confirmation_note', {
@@ -181,7 +176,7 @@ export default function TransferHistoryTab() {
 				),
 			}),
 		],
-		[skladTypeFilterOptions, navigate, canWrite],
+		[skladTypeFilterOptions, navigate, canWrite, historyPagination],
 	);
 
 	return (

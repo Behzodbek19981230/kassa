@@ -218,13 +218,19 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 									<button
 										type='button'
 										className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
-										aria-label='Skladlararo transfer'
+										aria-label={
+											unconfirmedTransfersCount > 0
+												? `Skladlararo transfer (${unconfirmedTransfersCount} ta tasdiqlanmagan)`
+												: 'Skladlararo transfer'
+										}
 									>
 										<FaExchangeAlt />
-										<span className='hidden md:inline'>
+										<span className='hidden items-center gap-1.5 md:inline-flex'>
 											Skladlararo transfer
 											{unconfirmedTransfersCount > 0 && (
-												<span className='text-ca-red'> ({unconfirmedTransfersCount})</span>
+												<Badge variant='danger' className='rounded-full'>
+													{unconfirmedTransfersCount}
+												</Badge>
 											)}
 										</span>
 										<span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />

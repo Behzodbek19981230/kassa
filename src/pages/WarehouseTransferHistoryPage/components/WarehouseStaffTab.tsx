@@ -14,18 +14,6 @@ import type {
 import ConfirmDispatchModal from '@/pages/WarehouseTransferHistoryPage/components/ConfirmDispatchModal';
 import DispatchListModal from '@/pages/WarehouseTransferHistoryPage/components/DispatchListModal';
 
-const STATUS_LABEL: Record<WarehouseTransferStatus, string> = {
-	completed: 'Bajarilgan',
-	reversed: 'Bekor qilingan',
-	reverse: 'Bekor qilish transferi',
-};
-
-const STATUS_VARIANT: Record<WarehouseTransferStatus, 'success' | 'default' | 'warning'> = {
-	completed: 'success',
-	reversed: 'default',
-	reverse: 'warning',
-};
-
 const staffColumnHelper = createColumnHelper<WarehouseTransfer>();
 
 export default function WarehouseStaffTab() {
@@ -88,6 +76,13 @@ export default function WarehouseStaffTab() {
 
 	const columns = useMemo(
 		() => [
+			staffColumnHelper.display({
+				id: 'index',
+				header: '#',
+				size: 50,
+				enableColumnFilter: false,
+				cell: ({ row }) => pagination.pageIndex * pagination.pageSize + row.index + 1,
+			}),
 			staffColumnHelper.accessor('created_time', {
 				header: 'Sana',
 				size: 100,
@@ -110,21 +105,7 @@ export default function WarehouseStaffTab() {
 				size: 110,
 				enableColumnFilter: false,
 			}),
-			staffColumnHelper.accessor('status', {
-				header: 'Status',
-				cell: (info) => (
-					<Badge variant={STATUS_VARIANT[info.getValue()]}>{STATUS_LABEL[info.getValue()]}</Badge>
-				),
-				meta: {
-					filterVariant: 'select',
-					filterOptions: [
-						{ value: 'completed', label: 'Bajarilgan' },
-						{ value: 'reversed', label: 'Bekor qilingan' },
-						{ value: 'reverse', label: 'Bekor qilish transferi' },
-					],
-					filterPlaceholder: 'Barchasi',
-				},
-			}),
+
 			staffColumnHelper.display({
 				id: 'actions',
 				header: 'Harakatlar',
@@ -172,7 +153,7 @@ export default function WarehouseStaffTab() {
 				),
 			}),
 		],
-		[skladTypeFilterOptions, printingId, handlePrint],
+		[skladTypeFilterOptions, printingId, handlePrint, pagination],
 	);
 
 	return (
@@ -219,6 +200,8 @@ export default function WarehouseStaffTab() {
 					enablePagination
 					enableGlobalFilter={false}
 					enableColumnFilters
+					enableColumnVisibility
+					columnVisibilityKey='warehouse-transfer-staff'
 					enableSorting={false}
 					enableStriping
 					isLoading={isLoading || isFetching}
