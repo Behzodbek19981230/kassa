@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 // import { useTheme } from '@/lib/theme';
 import { useLogoutMutation } from '@/services/auth/auth.queries';
 import { useUserInfoQuery } from '@/services/user/user.queries';
+import { useWarehouseTransferListQuery } from '@/services/warehouse-transfer/warehouse-transfer.queries';
 import {
 	Badge,
 	DropdownMenu,
@@ -84,6 +85,13 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
 	const [switchingCompanyId, setSwitchingCompanyId] = useState<number | null>(null);
 	const [rateModalOpen, setRateModalOpen] = useState(false);
+
+	const { data: unconfirmedTransfersData } = useWarehouseTransferListQuery({
+		status: 'completed',
+		is_confirmed: false,
+		limit: 1,
+	});
+	const unconfirmedTransfersCount = unconfirmedTransfersData?.pagination.total ?? 0;
 
 	const handleSelectCompany = async (id: number) => {
 		setSwitchingCompanyId(id);
@@ -213,7 +221,12 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 										aria-label='Skladlararo transfer'
 									>
 										<FaExchangeAlt />
-										<span className='hidden md:inline'>Skladlararo transfer</span>
+										<span className='hidden md:inline'>
+											Skladlararo transfer
+											{unconfirmedTransfersCount > 0 && (
+												<span className='text-ca-red'> ({unconfirmedTransfersCount})</span>
+											)}
+										</span>
 										<span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />
 									</button>
 								</DropdownMenuTrigger>

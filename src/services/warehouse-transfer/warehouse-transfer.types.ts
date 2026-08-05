@@ -126,6 +126,7 @@ export interface WarehouseTransferListParams extends ListParams {
 	status?: WarehouseTransferStatus;
 	date_from?: string;
 	date_to?: string;
+	is_confirmed?: boolean;
 }
 
 export interface WarehouseTransferDispatchRef {
