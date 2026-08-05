@@ -25,7 +25,7 @@ interface ConfirmDispatchModalProps {
 
 export default function ConfirmDispatchModal({ open, setOpen, transfer, onConfirmed }: ConfirmDispatchModalProps) {
 	const { notify } = useNotification();
-	const [note, setNote] = useState('Yuk tayyorlanib chiqib ketdi');
+	const [note, setNote] = useState('');
 	const confirmMutation = useConfirmWarehouseTransferMutation();
 
 	async function handleConfirm() {

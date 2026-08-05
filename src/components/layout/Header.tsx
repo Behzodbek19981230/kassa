@@ -86,11 +86,16 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 	const [switchingCompanyId, setSwitchingCompanyId] = useState<number | null>(null);
 	const [rateModalOpen, setRateModalOpen] = useState(false);
 
-	const { data: unconfirmedTransfersData } = useWarehouseTransferListQuery({
-		status: 'completed',
-		is_confirmed: false,
-		limit: 1,
-	});
+	const { data: unconfirmedTransfersData } = useWarehouseTransferListQuery(
+		{
+			is_confirmed: false,
+			limit: 1,
+		},
+		{
+			refetchInterval: 60 * 1000,
+			refetchOnWindowFocus: true,
+		},
+	);
 	const unconfirmedTransfersCount = unconfirmedTransfersData?.pagination.total ?? 0;
 
 	const handleSelectCompany = async (id: number) => {

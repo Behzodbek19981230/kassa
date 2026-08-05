@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { warehouseTransferService } from '@/services/warehouse-transfer/warehouse-transfer.service';
 import type {
 	ValidateTransferItemPayload,
@@ -14,11 +14,15 @@ const warehouseTransferKeys = {
 	dispatchList: (id: number) => ['warehouse-transfer', 'dispatch-list', id] as const,
 };
 
-export function useWarehouseTransferListQuery(params?: WarehouseTransferListParams) {
+export function useWarehouseTransferListQuery(
+	params?: WarehouseTransferListParams,
+	options?: Partial<UseQueryOptions<Awaited<ReturnType<typeof warehouseTransferService.list>>>>,
+) {
 	return useQuery({
 		queryKey: warehouseTransferKeys.list(params),
 		queryFn: () => warehouseTransferService.list(params),
 		placeholderData: (prev) => prev,
+		...options,
 	});
 }
 
