@@ -133,6 +133,21 @@ export default function WarehouseStaffTab() {
 				size: 130,
 				cell: ({ row }) => (
 					<div className='flex justify-end gap-1.5'>
+						{!row.original.is_confirmed && (
+							<Button
+								type='button'
+								variant='success'
+								size='icon'
+								aria-label={
+									row.original.is_confirmed
+										? 'Yuk chiqarilgani tasdiqlangan'
+										: 'Chiqarilganini tasdiqlash'
+								}
+								onClick={() => setConfirmTransfer(row.original)}
+							>
+								<FaCheck />
+							</Button>
+						)}
 						<Button
 							type='button'
 							variant='info'
@@ -142,20 +157,7 @@ export default function WarehouseStaffTab() {
 						>
 							<FaList />
 						</Button>
-						<Button
-							type='button'
-							variant='success'
-							size='icon'
-							aria-label={
-								row.original.is_confirmed
-									? 'Yuk chiqarilgani tasdiqlangan'
-									: 'Chiqarilganini tasdiqlash'
-							}
-							disabled={row.original.is_confirmed}
-							onClick={() => setConfirmTransfer(row.original)}
-						>
-							<FaCheck />
-						</Button>
+
 						<Button
 							type='button'
 							variant='warning'
