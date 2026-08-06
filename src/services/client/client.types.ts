@@ -93,4 +93,5 @@ export interface ClientListParams extends ListParams {
   created_by?: number
   is_profit_loss?: 0 | 1
   is_telegram_started?: 0 | 1
+  status?: string
 }

@@ -78,11 +78,6 @@ export default function WarehouseTransferDetailPage() {
 					<Button type='button' variant='warning' size='xs' disabled={isPrinting} onClick={handlePrint}>
 						<FaDownload className='mr-1.5' /> {isPrinting ? 'Yuklanmoqda...' : 'Chop qilish'}
 					</Button>
-					{canWrite && data.status === 'completed' && (
-						<Button type='button' variant='danger' size='xs' onClick={() => setReverseOpen(true)}>
-							<FaUndo className='mr-1.5' /> Bekor qilish
-						</Button>
-					)}
 				</div>
 			</div>
 

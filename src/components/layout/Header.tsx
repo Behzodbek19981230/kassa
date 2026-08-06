@@ -14,6 +14,7 @@ import {
 	FaPencilAlt,
 	FaReceipt,
 	FaSignOutAlt,
+	FaUser,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, getRefreshToken } from '@/lib/auth';
@@ -35,6 +36,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import ExchangeRateEditModal from '@/components/layout/ExchangeRateEditModal';
+import NewTelegramClientsModal from '@/components/layout/NewTelegramClientsModal';
 
 interface HeaderProps {
 	onToggleSidebar: () => void;
@@ -85,6 +87,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
 	const [switchingCompanyId, setSwitchingCompanyId] = useState<number | null>(null);
 	const [rateModalOpen, setRateModalOpen] = useState(false);
+	const [newClientsModalOpen, setNewClientsModalOpen] = useState(false);
 
 	const { data: unconfirmedTransfersData } = useWarehouseTransferListQuery(
 		{
@@ -202,6 +205,20 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 								{theme === 'dark' ? <FaSun /> : <FaMoon />}
 							</button>
 						</li> */}
+
+						<li>
+							<Tooltip side='bottom' content='Yangi klientlar'>
+								<button
+									type='button'
+									onClick={() => setNewClientsModalOpen(true)}
+									className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+									aria-label='Yangi klientlar'
+								>
+									<FaUser />
+									<span className='hidden md:inline'>Yangi klientlar</span>
+								</button>
+							</Tooltip>
+						</li>
 
 						<li>
 							<Tooltip side='bottom' content='Telegram xabarnoma'>
@@ -392,6 +409,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 					exchangeRate={exchangeRate}
 				/>
 			)}
+
+			<NewTelegramClientsModal open={newClientsModalOpen} setOpen={setNewClientsModalOpen} />
 		</>
 	);
 }

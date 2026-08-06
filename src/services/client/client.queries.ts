@@ -8,11 +8,12 @@ const clientKeys = {
   detail: (id: number) => ['clients', 'detail', id] as const,
 }
 
-export function useClientListQuery(params?: ClientListParams) {
+export function useClientListQuery(params?: ClientListParams, enabled = true) {
   return useQuery({
     queryKey: clientKeys.list(params),
     queryFn: () => clientService.list(params),
     placeholderData: (prev) => prev,
+    enabled,
   })
 }
 
@@ -36,6 +37,14 @@ export function useUpdateClientMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: ClientPayload }) => clientService.update(id, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: clientKeys.all }),
+  })
+}
+
+export function useUpdateClientStatusMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string }) => clientService.updateStatus(id, status),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: clientKeys.all }),
   })
 }

@@ -19,6 +19,10 @@ export const clientService = {
     const { data } = await apiClient.put<Client>(`/client/${id}/`, payload)
     return data
   },
+  updateStatus: async (id: number, status: string) => {
+    const { data } = await apiClient.patch<Client>(`/client/${id}/`, { status })
+    return data
+  },
   remove: async (id: number) => {
     await apiClient.delete(`/client/${id}/`)
   },

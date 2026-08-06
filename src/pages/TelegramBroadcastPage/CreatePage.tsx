@@ -30,6 +30,14 @@ import { warehouseService } from '@/services/warehouse/warehouse.service'
 
 const LARGE_BROADCAST_THRESHOLD = 50
 
+const CLIENT_STATUS_OPTIONS = [
+  { value: 'ordinary', label: 'Oddiy' },
+  { value: 'new_telegram', label: 'Yangi Telegram' },
+  { value: 'confirmed_telegram', label: 'Tasdiqlangan Telegram' },
+] as const
+
+type ClientStatus = (typeof CLIENT_STATUS_OPTIONS)[number]['value']
+
 function warehouseLabel(w: { brand_detail?: { name: string } | null; product_category_detail?: { name: string } | null; size: number }) {
   const parts = [w.brand_detail?.name, w.product_category_detail?.name].filter(Boolean)
   return `${parts.join(' ')} — ${w.size}`.trim()
@@ -40,6 +48,7 @@ export default function TelegramBroadcastCreatePage() {
   const { notify } = useNotification()
 
   const [postType, setPostType] = useState<'new' | 'existing'>('new')
+  const [clientStatus, setClientStatus] = useState<ClientStatus>('ordinary')
   const [clientIds, setClientIds] = useState<string[]>([])
   const [selectAllClients, setSelectAllClients] = useState(false)
   const [loadingAllClients, setLoadingAllClients] = useState(false)
@@ -56,7 +65,13 @@ export default function TelegramBroadcastCreatePage() {
   const isSubmitting = createMutation.isPending || createAllMutation.isPending
 
   const loadClientOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-    const result = await clientService.list({ search: search || undefined, page, limit: 20, is_telegram_started: 1 })
+    const result = await clientService.list({
+      search: search || undefined,
+      page,
+      limit: 20,
+      is_telegram_started: 1,
+      status: clientStatus,
+    })
     return {
       options: result.results.map((c) => ({ value: String(c.id), label: `${c.fio} — ${c.phone}` })),
       hasMore: result.pagination.currentPage < result.pagination.lastPage,
@@ -105,7 +120,7 @@ export default function TelegramBroadcastCreatePage() {
     }
     setLoadingAllClients(true)
     try {
-      const result = await clientService.list({ page: 1, limit: 1, is_telegram_started: 1 })
+      const result = await clientService.list({ page: 1, limit: 1, is_telegram_started: 1, status: clientStatus })
       setAllClientsCount(result.pagination.total)
     } catch {
       notify({ title: 'Mijozlar sonini yuklashda xatolik yuz berdi' })
@@ -113,6 +128,13 @@ export default function TelegramBroadcastCreatePage() {
     } finally {
       setLoadingAllClients(false)
     }
+  }
+
+  const handleClientStatusChange = (value: string) => {
+    setClientStatus(value as ClientStatus)
+    setClientIds([])
+    setSelectAllClients(false)
+    setAllClientsCount(0)
   }
 
   const clientCount = selectAllClients ? allClientsCount : clientIds.length
@@ -198,6 +220,16 @@ export default function TelegramBroadcastCreatePage() {
               {formError}
             </div>
           )}
+
+          <FormField label='Mijozlar statusi' horizontal={false}>
+            <RadioGroup
+              name='client-status'
+              value={clientStatus}
+              onChange={handleClientStatusChange}
+              inline
+              options={CLIENT_STATUS_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+            />
+          </FormField>
 
           <FormField label='Mijozlar tanlash' required horizontal={false}>
             <Checkbox
