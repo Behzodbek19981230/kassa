@@ -54,7 +54,15 @@ export default function NewTelegramClientsModal({ open, setOpen }: NewTelegramCl
 				<div className='flex justify-end'>
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<><FaCheck className='mr-1.5' /> Tasdiqlash</>, 'success', 'xs') }}
+						elementProps={{
+							...buttonProps(
+								<>
+									<FaCheck className='mr-1.5' /> Tasdiqlash
+								</>,
+								'success',
+								'xs',
+							),
+						}}
 						dialog={ConfirmClientModal}
 						dialogProps={{ item: row.original }}
 					/>
@@ -67,7 +75,7 @@ export default function NewTelegramClientsModal({ open, setOpen }: NewTelegramCl
 		<Modal open={open} onOpenChange={setOpen}>
 			<ModalContent className='max-w-[720px]'>
 				<ModalHeader>
-					<ModalTitle>Yangi klientlar</ModalTitle>
+					<ModalTitle>TelegramBot orqali ro'yxatdan o'tgan mijozlar</ModalTitle>
 				</ModalHeader>
 				<ModalBody>
 					<DataTable

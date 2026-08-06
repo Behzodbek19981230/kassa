@@ -215,7 +215,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 									aria-label='Yangi klientlar'
 								>
 									<FaUser />
-									<span className='hidden md:inline'>Yangi klientlar</span>
+									<span className='hidden md:inline'>Tasdiqlanmagan mijozlar</span>
 								</button>
 							</Tooltip>
 						</li>
