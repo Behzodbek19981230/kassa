@@ -106,6 +106,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 		try {
 			await setCompanyId(id);
 		} catch (err) {
+			console.log(err);
+
 			notify({ title: "Tashkilotni almashtirib bo'lmadi", text: getApiErrorMessage(err, 'Xatolik yuz berdi') });
 		} finally {
 			setSwitchingCompanyId(null);

@@ -68,7 +68,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 
 		if (isAdminOrManager && userInfo) {
 			const { region, district, role } = userInfo;
-			if (region == null || district == null || role == null) {
+			if (role == null) {
 				throw new Error("Foydalanuvchi ma'lumotlari to'liq emas: viloyat, tuman yoki rol tanlanmagan");
 			}
 			const payload: UserPayload = {
@@ -81,9 +81,9 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 				phone_number: userInfo.phone_number,
 				email: userInfo.email,
 				is_active: userInfo.is_active,
-				region,
-				district,
-				role,
+				region: region || 0,
+				district: district || 0,
+				role: role,
 				trade_company: userInfo.trade_company ?? undefined,
 				current_company: id,
 				companies: userInfo.companies,

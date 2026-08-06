@@ -65,13 +65,6 @@ export const sidebarMenu: SidebarMenuItem[] = [
 			},
 			// { id: 'companies', icon: 'building', label: 'Tashkilotlar', path: '/system/companies' },
 			// { id: 'locations', icon: 'layer-group', label: 'Hududlar', path: '/system/locations' },
-			{
-				id: 'profit-loss',
-				icon: 'chart-bar',
-				label: 'Foyda va zarar',
-				path: '#',
-				requiredPermission: 'isSuperAdmin',
-			},
 		],
 	},
 	{

@@ -55,7 +55,7 @@ function buildUserFormSchema(mode: 'create' | 'edit') {
 			gender: z.string().min(1, 'Jinsi tanlanishi shart'),
 			date_of_birthday: z.string().min(1, "Tug'ilgan sana kiritilishi shart"),
 			phone_number: z.string().regex(UZ_PHONE_REGEX, "Telefon raqami to'liq kiritilishi shart"),
-			email: z.string().min(1, 'Email kiritilishi shart').email("Email noto'g'ri kiritilgan"),
+			email: z.union([z.string().email("Email noto'g'ri kiritilgan"), z.literal('')]),
 			region: z.string().min(1, 'Viloyat tanlanishi shart'),
 			district: z.string().min(1, 'Tuman tanlanishi shart'),
 			role: z.string().min(1, 'Rol tanlanishi shart'),
@@ -460,7 +460,6 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 							<FormField
 								label='Email'
 								error={errors.email?.message}
-								required
 								horizontal={false}
 								className='mb-0'
 							>
