@@ -33,7 +33,7 @@ export default function NewTelegramClientsModal({ open, setOpen }: NewTelegramCl
 			page: pagination.pageIndex + 1,
 			limit: pagination.pageSize,
 		},
-		open,
+		{ enabled: open },
 	);
 
 	const results = data?.results ?? [];

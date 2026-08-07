@@ -22,6 +22,7 @@ import { useCurrentCompany } from '@/lib/company';
 import { cn } from '@/lib/utils';
 // import { useTheme } from '@/lib/theme';
 import { useLogoutMutation } from '@/services/auth/auth.queries';
+import { useClientListQuery } from '@/services/client/client.queries';
 import { useUserInfoQuery } from '@/services/user/user.queries';
 import { useWarehouseTransferListQuery } from '@/services/warehouse-transfer/warehouse-transfer.queries';
 import {
@@ -100,6 +101,18 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 		},
 	);
 	const unconfirmedTransfersCount = unconfirmedTransfersData?.pagination.total ?? 0;
+
+	const { data: unconfirmedClientsData } = useClientListQuery(
+		{
+			status: 'new_telegram',
+			limit: 1,
+		},
+		{
+			refetchInterval: 60 * 1000,
+			refetchOnWindowFocus: true,
+		},
+	);
+	const unconfirmedClientsCount = unconfirmedClientsData?.pagination.total ?? 0;
 
 	const handleSelectCompany = async (id: number) => {
 		setSwitchingCompanyId(id);
@@ -214,10 +227,21 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 									type='button'
 									onClick={() => setNewClientsModalOpen(true)}
 									className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
-									aria-label='Yangi klientlar'
+									aria-label={
+										unconfirmedClientsCount > 0
+											? `Tasdiqlanmagan mijozlar (${unconfirmedClientsCount} ta)`
+											: 'Tasdiqlanmagan mijozlar'
+									}
 								>
 									<FaUser />
-									<span className='hidden md:inline'>Tasdiqlanmagan mijozlar</span>
+									<span className='hidden items-center gap-1.5 md:inline-flex'>
+										Tasdiqlanmagan mijozlar
+										{unconfirmedClientsCount > 0 && (
+											<Badge variant='danger' className='rounded-full'>
+												{unconfirmedClientsCount}
+											</Badge>
+										)}
+									</span>
 								</button>
 							</Tooltip>
 						</li>

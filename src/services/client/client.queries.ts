@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query'
 import { clientService } from '@/services/client/client.service'
 import type { ClientListParams, ClientPayload } from '@/services/client/client.types'
 
@@ -8,12 +8,15 @@ const clientKeys = {
   detail: (id: number) => ['clients', 'detail', id] as const,
 }
 
-export function useClientListQuery(params?: ClientListParams, enabled = true) {
+export function useClientListQuery(
+  params?: ClientListParams,
+  options?: Partial<UseQueryOptions<Awaited<ReturnType<typeof clientService.list>>>>,
+) {
   return useQuery({
     queryKey: clientKeys.list(params),
     queryFn: () => clientService.list(params),
     placeholderData: (prev) => prev,
-    enabled,
+    ...options,
   })
 }
 
