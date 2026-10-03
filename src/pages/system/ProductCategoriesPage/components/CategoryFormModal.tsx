@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { FaPlus, FaTrash } from 'react-icons/fa';
@@ -85,6 +86,15 @@ export default function CategoryFormModal({ open, setOpen, mode, item, defaultBr
 	});
 
 	const brandValue = watch('brand');
+
+	// Brand may not be in the first page of the list, so load the selected one by id.
+	const selectedBrandId = Number(brandValue) || undefined;
+	const { data: selectedBrand } = useQuery({
+		queryKey: ['brand', 'detail', selectedBrandId],
+		queryFn: () => brandService.get(selectedBrandId!),
+		enabled: !!selectedBrandId && !brandNameById.has(selectedBrandId),
+	});
+	if (selectedBrand) brandNameById.set(selectedBrand.id, selectedBrand.name);
 
 	const [sizeRows, setSizeRows] = useState<SizeRowState[]>([{ ...emptySizeRow }]);
 	const [removedSizeIds, setRemovedSizeIds] = useState<number[]>([]);
