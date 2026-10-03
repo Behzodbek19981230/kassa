@@ -25,11 +25,13 @@ export default function ModelsPage() {
 
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const nameFilter = columnFilters.find((f) => f.id === 'name')?.value as string | undefined;
+	const sortingFilter = columnFilters.find((f) => f.id === 'sorting')?.value as string | undefined;
 
 	const { data, isLoading, isFetching, isError, error, refetch } = useBrandListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
+		sorting: sortingFilter && !Number.isNaN(Number(sortingFilter)) ? Number(sortingFilter) : undefined,
 		ordering,
 	});
 
@@ -37,7 +39,7 @@ export default function ModelsPage() {
 	const paginationMeta = data?.pagination;
 
 	const columns = [
-		columnHelper.accessor('sorting', { header: 'Tartibi', size: 100, enableColumnFilter: false }),
+		columnHelper.accessor('sorting', { header: 'Tartibi', size: 100 }),
 		columnHelper.accessor('name', { header: 'Nomi', meta: { align: 'left' } }),
 		columnHelper.display({
 			id: 'actions',

@@ -36,7 +36,6 @@ export default function ProductCategoriesPage() {
 
 	const { data: brandData } = useBrandListQuery({ limit: 100 });
 	const brands = brandData?.results ?? [];
-	const brandNameById = new Map(brands.map((b) => [b.id, b.name]));
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
@@ -62,11 +61,10 @@ export default function ProductCategoriesPage() {
 		columnHelper.accessor('brand', {
 			header: 'Model',
 			size: 220,
-			cell: (info) => brandNameById.get(info.getValue()) ?? info.getValue(),
+			cell: ({row}) =>row.original?.brand_detail?.name,
 			meta: {
 				filterVariant: 'select',
 				filterLoadOptions: loadBrandOptions,
-				filterSelectedLabel: (value) => brandNameById.get(Number(value)),
 				filterPlaceholder: 'Barcha modellar',
 			},
 		}),

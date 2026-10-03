@@ -11,6 +11,7 @@ export interface ProductCategory {
   created_by: number
   updated_by: number | null
   brand: number
+  brand_detail?: { id: number; name: string } | null
 }
 
 export interface ProductCategoryPayload {

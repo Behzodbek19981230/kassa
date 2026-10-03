@@ -21,6 +21,7 @@ export interface BrandPayload {
 
 export interface BrandListParams extends ListParams {
   type_sklad?: number
+  sorting?: number
 }
 
 export interface BrandNextSorting {
