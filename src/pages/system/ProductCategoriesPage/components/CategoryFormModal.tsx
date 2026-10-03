@@ -57,9 +57,10 @@ interface CategoryFormModalProps {
 	setOpen: (open: boolean) => void;
 	mode: 'create' | 'edit';
 	item?: ProductCategory;
+	defaultBrand?: string;
 }
 
-export default function CategoryFormModal({ open, setOpen, mode, item }: CategoryFormModalProps) {
+export default function CategoryFormModal({ open, setOpen, mode, item, defaultBrand }: CategoryFormModalProps) {
 	const { notify } = useNotification();
 
 	const { data: brandData } = useBrandListQuery({ limit: 100 });
@@ -80,7 +81,7 @@ export default function CategoryFormModal({ open, setOpen, mode, item }: Categor
 		defaultValues:
 			mode === 'edit' && item
 				? { name: item.name, sorting: String(item.sorting), brand: String(item.brand) }
-				: { name: '', sorting: '0', brand: '' },
+				: { name: '', sorting: '0', brand: defaultBrand ?? '' },
 	});
 
 	const brandValue = watch('brand');
@@ -98,6 +99,7 @@ export default function CategoryFormModal({ open, setOpen, mode, item }: Categor
 	const isSaving = createMutation.isPending || updateMutation.isPending;
 
 	useEffect(() => {
+		if (mode === 'create' && defaultBrand) void handleBrandChange(defaultBrand);
 		if (mode !== 'edit' || !item) return;
 		brandSizeService.list({ product_category: item.id }).then((existingSizes) => {
 			setSizeRows(

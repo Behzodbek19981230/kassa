@@ -127,7 +127,7 @@ export default function ProductCategoriesPage() {
 							element={(props) => <Button {...props} />}
 							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
 							dialog={CategoryFormModal}
-							dialogProps={{ mode: 'create' as const }}
+							dialogProps={{ mode: 'create' as const, defaultBrand: brandFilter || undefined }}
 						/>
 					)
 				}
