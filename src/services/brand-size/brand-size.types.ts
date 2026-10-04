@@ -10,6 +10,9 @@ export interface BrandSize {
   updated_by: number | null
   brand: number
   product_category: number
+  brand_detail?: { id: number; name: string } | null
+  product_category_detail?: { id: number; name: string } | null
+  type_detail?: { id: number; name: string } | null
 }
 
 export interface BrandSizePayload {

@@ -84,7 +84,8 @@ export default function ProductSizesTab() {
 	const columns = [
 		sizeColumnHelper.accessor('brand', {
 			header: 'Model',
-			cell: (info) => brandNameById.get(info.getValue()) ?? info.getValue(),
+			cell: (info) =>
+				info.row.original.brand_detail?.name ?? brandNameById.get(info.getValue()) ?? info.getValue(),
 			meta: {
 				filterVariant: 'select',
 				filterLoadOptions: loadBrandOptions,
@@ -94,7 +95,10 @@ export default function ProductSizesTab() {
 		}),
 		sizeColumnHelper.accessor('product_category', {
 			header: 'Mahsulot toifasi',
-			cell: (info) => categoryNameById.get(info.getValue()) ?? info.getValue(),
+			cell: (info) =>
+				info.row.original.product_category_detail?.name ??
+				categoryNameById.get(info.getValue()) ??
+				info.getValue(),
 			meta: {
 				filterVariant: 'select',
 				filterLoadOptions: loadCategoryFilterOptions,
@@ -105,7 +109,8 @@ export default function ProductSizesTab() {
 		sizeColumnHelper.accessor('size', { header: "O'lchami", size: 100, enableColumnFilter: false }),
 		sizeColumnHelper.accessor('type', {
 			header: 'Turi',
-			cell: (info) => typeNameById.get(info.getValue()) ?? info.getValue(),
+			cell: (info) =>
+				info.row.original.type_detail?.name ?? typeNameById.get(info.getValue()) ?? info.getValue(),
 			meta: {
 				filterVariant: 'select',
 				filterLoadOptions: loadTypeOptions,
