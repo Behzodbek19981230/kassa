@@ -670,7 +670,7 @@ export function DataTable<TData>({
 															'group-hover:bg-ca-table-hover',
 															enableBordered && 'border-x border-b border-ca-border',
 															!cell.column.columnDef.meta?.excludeRowHighlight && rowClassName,
-															row.getIsSelected() && 'bg-[#ffc]!',
+															row.getIsSelected() && 'bg-ca-selected-row!',
 														)}
 														style={
 															enableColumnResizing

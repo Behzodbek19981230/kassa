@@ -238,7 +238,7 @@ export default function WarehouseAccountEditPage() {
 			>
 				<form onSubmit={handleSubmit} noValidate>
 					{formError && (
-						<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+						<div className='mb-3 rounded border border-ca-danger-border bg-ca-danger-bg px-3 py-2 text-xs text-ca-red'>
 							{formError}
 						</div>
 					)}

@@ -64,7 +64,7 @@ export default function LoginPage() {
 					</div>
 
 					{formError && (
-						<div className='mb-5 flex items-center gap-2 rounded-lg border border-[#fecaca] bg-[#fef2f2] px-3 py-2.5 text-xs text-ca-red'>
+						<div className='mb-5 flex items-center gap-2 rounded-lg border border-ca-danger-border bg-ca-danger-bg px-3 py-2.5 text-xs text-ca-red'>
 							<FaExclamationCircle className='shrink-0' />
 							{formError}
 						</div>
@@ -78,7 +78,7 @@ export default function LoginPage() {
 									type='text'
 									placeholder='Login'
 									autoComplete='username'
-									className='h-11.5 w-full rounded-lg border border-ca-border bg-ca-silver pl-10 pr-3 text-sm text-ca-heading placeholder-ca-text/60 transition-colors focus:border-ca-theme focus:bg-white focus:outline-none focus:ring-4 focus:ring-ca-theme/10'
+									className='h-11.5 w-full rounded-lg border border-ca-border bg-ca-silver pl-10 pr-3 text-sm text-ca-heading placeholder-ca-text/60 transition-colors focus:border-ca-theme focus:bg-ca-silver-light focus:outline-none focus:ring-4 focus:ring-ca-theme/10'
 									{...register('username')}
 								/>
 							</div>
@@ -93,7 +93,7 @@ export default function LoginPage() {
 									type={showPassword ? 'text' : 'password'}
 									placeholder='Parol'
 									autoComplete='current-password'
-									className='h-11.5 w-full rounded-lg border border-ca-border bg-ca-silver pl-10 pr-10 text-sm text-ca-heading placeholder-ca-text/60 transition-colors focus:border-ca-theme focus:bg-white focus:outline-none focus:ring-4 focus:ring-ca-theme/10'
+									className='h-11.5 w-full rounded-lg border border-ca-border bg-ca-silver pl-10 pr-10 text-sm text-ca-heading placeholder-ca-text/60 transition-colors focus:border-ca-theme focus:bg-ca-silver-light focus:outline-none focus:ring-4 focus:ring-ca-theme/10'
 									{...register('password')}
 								/>
 								<button
@@ -114,7 +114,7 @@ export default function LoginPage() {
 								type='checkbox'
 								checked={remember}
 								onChange={(e) => setRemember(e.target.checked)}
-								className='h-4 w-4 rounded-sm border-ca-border bg-white accent-ca-theme'
+								className='h-4 w-4 rounded-sm border-ca-border bg-ca-silver-light accent-ca-theme'
 							/>
 							Meni eslab qol
 						</label>

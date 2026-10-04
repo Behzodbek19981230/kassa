@@ -174,9 +174,9 @@ export function Combobox({
 					type='button'
 					disabled={disabled}
 					className={cn(
-						'flex h-[34px] w-full items-center justify-between gap-2 rounded-[3px] border border-[#ccd0d4] bg-white px-3 text-xs text-ca-heading',
-						'focus:border-[#9fa2a5] focus:outline-none',
-						'disabled:cursor-not-allowed disabled:bg-[#e5e9ed] disabled:opacity-60',
+						'flex h-[34px] w-full items-center justify-between gap-2 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-3 text-xs text-ca-heading',
+						'focus:border-ca-field-border-strong focus:outline-none',
+						'disabled:cursor-not-allowed disabled:bg-ca-muted-2 disabled:opacity-60',
 						className,
 					)}
 				>
@@ -203,7 +203,7 @@ export function Combobox({
 					align='start'
 					sideOffset={4}
 					className={cn(
-						'z-[1070] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[3px] border border-ca-border bg-white text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
+						'z-[1070] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
 						contentClassName,
 					)}
 				>
@@ -229,7 +229,7 @@ export function Combobox({
 								onMouseEnter={() => setHighlighted(index)}
 								className={cn(
 									'flex cursor-pointer items-center justify-between rounded-[2px] px-2.5 py-1.5 text-ca-heading select-none',
-									(index === highlighted || option.value === value) && 'bg-[#edf0f5]',
+									(index === highlighted || option.value === value) && 'bg-ca-muted',
 								)}
 							>
 								<span className='truncate'>{option.label}</span>

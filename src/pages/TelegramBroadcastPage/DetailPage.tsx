@@ -222,7 +222,7 @@ export default function TelegramBroadcastDetailPage() {
           </div>
         }
       >
-        <div className='overflow-x-auto rounded-[3px] bg-white'>
+        <div className='overflow-x-auto rounded-[3px] bg-ca-silver-light'>
           <Table>
             <TableHeader>
               <TableRow>

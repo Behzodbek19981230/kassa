@@ -33,7 +33,7 @@ export function Accordion({
         <AccordionPrimitive.Item
           key={item.value}
           value={item.value}
-          className="mb-0 overflow-hidden rounded-[3px] border border-ca-border bg-white"
+          className="mb-0 overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light"
         >
           <AccordionPrimitive.Header>
             <AccordionPrimitive.Trigger className="group flex w-full items-center justify-between bg-ca-silver px-[15px] py-2.5 text-left text-xs font-semibold text-ca-heading hover:bg-ca-border/50">

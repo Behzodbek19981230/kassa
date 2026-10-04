@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
 	color-scheme: light;
 }
@@ -45,6 +47,15 @@
 	--color-ca-tab-bg: #e2e8f0;
 	--color-ca-table-stripe: #f8fafc;
 	--color-ca-table-hover: #eff6ff;
+
+	/* Fields & muted surfaces */
+	--color-ca-field-border: #ccd0d4;
+	--color-ca-field-border-strong: #9fa2a5;
+	--color-ca-muted: #edf0f5;
+	--color-ca-muted-2: #e5e9ed;
+	--color-ca-danger-bg: #fef2f2;
+	--color-ca-danger-border: #fecaca;
+	--color-ca-selected-row: #ffffcc;
 
 	/* Font */
 	--font-ca: 'Inter', 'Open Sans', sans-serif;
@@ -102,4 +113,37 @@
 	h6 {
 		@apply font-medium text-ca-heading;
 	}
+}
+
+.dark {
+	color-scheme: dark;
+
+	--color-ca-body: #0f172a;
+	--color-ca-header: #1e3a5f;
+
+	--color-ca-heading: #e2e8f0;
+	--color-ca-text: #94a3b8;
+
+	--color-ca-sidebar: #111c30;
+	--color-ca-sidebar-dark: #0b1324;
+	--color-ca-sidebar-hover: #1e293b;
+	--color-ca-sidebar-text: #cbd5e1;
+	--color-ca-sidebar-muted: #cbd5e1;
+	--color-ca-nav-header: #64748b;
+
+	--color-ca-silver: #162033;
+	--color-ca-silver-light: #1a2438;
+	--color-ca-border: #2b3a52;
+
+	--color-ca-tab-bg: #1e293b;
+	--color-ca-table-stripe: #131d30;
+	--color-ca-table-hover: #1b2a44;
+
+	--color-ca-field-border: #3a4a63;
+	--color-ca-field-border-strong: #5b6b85;
+	--color-ca-muted: #243049;
+	--color-ca-muted-2: #1e293b;
+	--color-ca-danger-bg: #3b1a1f;
+	--color-ca-danger-border: #7f2a33;
+	--color-ca-selected-row: #3a3a1c;
 }

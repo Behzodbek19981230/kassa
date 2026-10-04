@@ -16,10 +16,10 @@ const SelectTrigger = forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-[34px] w-full items-center justify-between gap-2 rounded-[3px] border border-[#ccd0d4] bg-white px-3 text-xs text-ca-heading',
-      'focus:border-[#9fa2a5] focus:outline-none',
+      'flex h-[34px] w-full items-center justify-between gap-2 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-3 text-xs text-ca-heading',
+      'focus:border-ca-field-border-strong focus:outline-none',
       'data-[placeholder]:text-ca-text',
-      'disabled:cursor-not-allowed disabled:bg-[#e5e9ed] disabled:opacity-60',
+      'disabled:cursor-not-allowed disabled:bg-ca-muted-2 disabled:opacity-60',
       className,
     )}
     {...props}
@@ -50,7 +50,7 @@ const SelectContent = forwardRef<
         position={position}
         sideOffset={4}
         className={cn(
-          'z-[1070] min-w-[8rem] overflow-hidden rounded-[3px] border border-ca-border bg-white text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
+          'z-[1070] min-w-[8rem] overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
           position === 'popper' &&
             'w-[var(--radix-select-trigger-width)] max-h-[var(--radix-select-content-available-height)]',
           className,
@@ -74,7 +74,7 @@ const SelectItem = forwardRef<
     ref={ref}
     className={cn(
       'relative flex cursor-pointer items-center rounded-[2px] py-1.5 pr-7 pl-2.5 text-ca-heading outline-none select-none',
-      'data-[highlighted]:bg-[#edf0f5]',
+      'data-[highlighted]:bg-ca-muted',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className,
     )}

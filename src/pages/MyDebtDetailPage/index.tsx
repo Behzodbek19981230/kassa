@@ -56,7 +56,7 @@ export default function MyDebtDetailPage() {
 			</div>
 
 			{debt && (
-				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
+				<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 					<h4 className='mb-4 text-sm font-semibold text-ca-heading'>Hisobot</h4>
 
 					<div className='divide-y divide-ca-border text-xs'>
@@ -72,7 +72,7 @@ export default function MyDebtDetailPage() {
 				</div>
 			)}
 
-			<div className='overflow-x-auto rounded-[3px] bg-white shadow-sm'>
+			<div className='overflow-x-auto rounded-[3px] bg-ca-silver-light shadow-sm'>
 				<Table>
 					<TableHeader>
 						<TableRow>

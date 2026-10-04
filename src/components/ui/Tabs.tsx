@@ -30,7 +30,7 @@ export function Tabs({ defaultValue, value, onValueChange, items, inverse = true
             value={item.value}
             className={cn(
               'mr-1.5 block cursor-pointer border-none px-[15px] py-2.5 text-xs leading-5 text-ca-heading outline-none',
-              'data-[state=active]:bg-white data-[state=inactive]:bg-transparent',
+              'data-[state=active]:bg-ca-silver-light data-[state=inactive]:bg-transparent',
               'data-[state=inactive]:hover:opacity-70',
             )}
           >
@@ -42,7 +42,7 @@ export function Tabs({ defaultValue, value, onValueChange, items, inverse = true
         <TabsPrimitive.Content
           key={item.value}
           value={item.value}
-          className="mb-5 rounded-b-[3px] bg-white p-[15px] outline-none"
+          className="mb-5 rounded-b-[3px] bg-ca-silver-light p-[15px] outline-none"
         >
           {item.content}
         </TabsPrimitive.Content>

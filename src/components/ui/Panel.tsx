@@ -29,7 +29,7 @@ export function Panel({
 	return (
 		<div
 			className={cn(
-				'mb-5 overflow-hidden rounded-[3px] bg-white shadow-none',
+				'mb-5 overflow-hidden rounded-[3px] bg-ca-silver-light shadow-none',
 				expanded && 'fixed inset-0 z-1040 m-0 overflow-y-auto rounded-none',
 				className,
 			)}
@@ -72,11 +72,11 @@ export function Panel({
 				<h4 className='order-1 flex-1 text-sm leading-5 font-normal text-ca-nav-text'>{title}</h4>
 			</div>
 			{toolbar && !collapsed && (
-				<div className='border-t border-ca-border bg-white px-[15px] py-[10px]'>{toolbar}</div>
+				<div className='border-t border-ca-border bg-ca-silver-light px-[15px] py-[10px]'>{toolbar}</div>
 			)}
 			{!collapsed && <div className={cn('p-[15px]', bodyClassName)}>{children}</div>}
 			{footer && !collapsed && (
-				<div className='border-t border-ca-border bg-white px-[15px] py-[14px]'>{footer}</div>
+				<div className='border-t border-ca-border bg-ca-silver-light px-[15px] py-[14px]'>{footer}</div>
 			)}
 		</div>
 	);

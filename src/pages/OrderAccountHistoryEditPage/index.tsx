@@ -205,9 +205,9 @@ export default function OrderAccountHistoryEditPage() {
 			</div>
 
 			<form onSubmit={onSubmit} noValidate>
-				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
+				<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 					{formError && (
-						<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+						<div className='mb-3 rounded border border-ca-danger-border bg-ca-danger-bg px-3 py-2 text-xs text-ca-red'>
 							{formError}
 						</div>
 					)}
@@ -252,7 +252,7 @@ export default function OrderAccountHistoryEditPage() {
 					</div>
 				</div>
 
-				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
+				<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 					{rows.map((row, index) => (
 						<WarehouseProductRow
 							key={row.key}
@@ -286,7 +286,7 @@ export default function OrderAccountHistoryEditPage() {
 					)}
 				</div>
 
-				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
+				<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 					<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-6'>
 						<FormField label='Jami summa dollarda ($)' horizontal={false} className='mb-0'>
 							<PriceInput value={formatNumber(item.all_summ_dollar, 2)} disabled />

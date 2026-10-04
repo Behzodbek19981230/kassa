@@ -224,9 +224,9 @@ export default function VozvratOrderHistoryEditPage() {
 			</div>
 
 			<form onSubmit={onSubmit} noValidate>
-				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
+				<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 					{formError && (
-						<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+						<div className='mb-3 rounded border border-ca-danger-border bg-ca-danger-bg px-3 py-2 text-xs text-ca-red'>
 							{formError}
 						</div>
 					)}
@@ -251,7 +251,7 @@ export default function VozvratOrderHistoryEditPage() {
 					</div>
 				</div>
 
-				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
+				<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 					{rows.map((row, index) => (
 						<VozvratProductRow
 							key={row.key}
@@ -284,7 +284,7 @@ export default function VozvratOrderHistoryEditPage() {
 					)}
 				</div>
 
-				<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
+				<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 					<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-4'>
 						<FormField label='Qaytgan mahsulot summasi ($)' horizontal={false} className='mb-0'>
 							<PriceInput value={formatNumber(item.product_summ_dollar, 2)} disabled />

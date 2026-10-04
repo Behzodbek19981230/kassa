@@ -28,7 +28,7 @@ function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCell
   return (
     <th
       className={cn(
-        'border-b-2 border-ca-border bg-white px-[15px] py-2.5 text-left font-semibold text-ca-heading',
+        'border-b-2 border-ca-border bg-ca-silver-light px-[15px] py-2.5 text-left font-semibold text-ca-heading',
         className,
       )}
       {...props}
@@ -40,7 +40,7 @@ function TableCell({ className, ...props }: React.TdHTMLAttributes<HTMLTableCell
   return (
     <td
       className={cn(
-        'border-t border-ca-border bg-white px-[15px] py-2.5 align-middle text-ca-text',
+        'border-t border-ca-border bg-ca-silver-light px-[15px] py-2.5 align-middle text-ca-text',
         className,
       )}
       {...props}

@@ -168,9 +168,9 @@ export function MultiCombobox({
           type="button"
           disabled={disabled}
           className={cn(
-            'flex min-h-[34px] w-full flex-wrap items-center gap-1 rounded-[3px] border border-[#ccd0d4] bg-white px-2 py-1 text-xs text-ca-heading',
-            'focus:border-[#9fa2a5] focus:outline-none',
-            'disabled:cursor-not-allowed disabled:bg-[#e5e9ed] disabled:opacity-60',
+            'flex min-h-[34px] w-full flex-wrap items-center gap-1 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-2 py-1 text-xs text-ca-heading',
+            'focus:border-ca-field-border-strong focus:outline-none',
+            'disabled:cursor-not-allowed disabled:bg-ca-muted-2 disabled:opacity-60',
             className,
           )}
         >
@@ -180,7 +180,7 @@ export function MultiCombobox({
             value.map((v) => (
               <span
                 key={v}
-                className="flex items-center gap-1 rounded-[2px] bg-[#edf0f5] px-1.5 py-0.5 text-ca-heading"
+                className="flex items-center gap-1 rounded-[2px] bg-ca-muted px-1.5 py-0.5 text-ca-heading"
               >
                 <span className="max-w-[140px] truncate">{labelFor(v)}</span>
                 <FaTimes
@@ -206,7 +206,7 @@ export function MultiCombobox({
           align="start"
           sideOffset={4}
           className={cn(
-            'z-[1070] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[3px] border border-ca-border bg-white text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
+            'z-[1070] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
             contentClassName,
           )}
         >
@@ -234,7 +234,7 @@ export function MultiCombobox({
                   onMouseEnter={() => setHighlighted(index)}
                   className={cn(
                     'flex cursor-pointer items-center justify-between rounded-[2px] px-2.5 py-1.5 text-ca-heading select-none',
-                    (index === highlighted || selected) && 'bg-[#edf0f5]',
+                    (index === highlighted || selected) && 'bg-ca-muted',
                   )}
                 >
                   <span className="truncate">{option.label}</span>

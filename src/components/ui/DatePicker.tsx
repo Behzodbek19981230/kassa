@@ -83,9 +83,9 @@ export function DatePicker({ value, onChange, placeholder = 'kk.oo.yyyy', disabl
       <PopoverPrimitive.Anchor asChild>
         <div
           className={cn(
-            'flex h-[34px] w-full items-center gap-2 rounded-[3px] border border-[#ccd0d4] bg-white px-3 text-xs text-ca-heading',
-            'focus-within:border-[#9fa2a5]',
-            disabled && 'cursor-not-allowed bg-[#e5e9ed] opacity-60',
+            'flex h-[34px] w-full items-center gap-2 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-3 text-xs text-ca-heading',
+            'focus-within:border-ca-field-border-strong',
+            disabled && 'cursor-not-allowed bg-ca-muted-2 opacity-60',
             className,
           )}
         >
@@ -121,7 +121,7 @@ export function DatePicker({ value, onChange, placeholder = 'kk.oo.yyyy', disabl
           ref={registerSurface}
           align='start'
           sideOffset={4}
-          className='z-[1070] overflow-hidden rounded-[3px] border border-ca-border bg-white p-2 text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]'
+          className='z-[1070] overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light p-2 text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]'
         >
           <DayPicker
             mode='single'
@@ -149,7 +149,7 @@ export function DatePicker({ value, onChange, placeholder = 'kk.oo.yyyy', disabl
               caption_label: 'hidden',
               dropdowns: 'flex items-center gap-1',
               dropdown_root: 'relative inline-flex',
-              dropdown: 'h-6 cursor-pointer rounded-[3px] border border-[#ccd0d4] bg-white pl-1 pr-0.5 text-xs text-ca-heading focus:border-[#9fa2a5] focus:outline-none',
+              dropdown: 'h-6 cursor-pointer rounded-[3px] border border-ca-field-border bg-ca-silver-light pl-1 pr-0.5 text-xs text-ca-heading focus:border-ca-field-border-strong focus:outline-none',
               nav: 'flex items-center justify-between absolute inset-x-0 top-0 px-1',
               button_previous: 'flex h-6 w-6 items-center justify-center rounded-[3px] text-ca-text hover:bg-ca-silver disabled:opacity-30',
               button_next: 'flex h-6 w-6 items-center justify-center rounded-[3px] text-ca-text hover:bg-ca-silver disabled:opacity-30',

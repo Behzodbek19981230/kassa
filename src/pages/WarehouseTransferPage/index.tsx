@@ -198,7 +198,7 @@ export default function WarehouseTransferPage() {
 
 			<div className='relative -mx-2.5 mb-0 flex flex-wrap'>
 				<div className='w-full px-2.5 pb-5 lg:w-1/2'>
-					<div className='flex items-center gap-3 rounded-[3px] bg-white p-4 shadow-sm'>
+					<div className='flex items-center gap-3 rounded-[3px] bg-ca-silver-light p-4 shadow-sm'>
 						<span className='flex h-10 w-10 shrink-0 items-center justify-center rounded-[3px] bg-ca-theme/10 text-lg text-ca-theme'>
 							<FaWarehouse />
 						</span>
@@ -224,7 +224,7 @@ export default function WarehouseTransferPage() {
 					</div>
 				</div>
 				<div className='w-full px-2.5 pb-5 lg:w-1/2'>
-					<div className='flex items-center gap-3 rounded-[3px] bg-white p-4 shadow-sm'>
+					<div className='flex items-center gap-3 rounded-[3px] bg-ca-silver-light p-4 shadow-sm'>
 						<span className='flex h-10 w-10 shrink-0 items-center justify-center rounded-[3px] bg-ca-theme/10 text-lg text-ca-theme'>
 							<FaStore />
 						</span>
@@ -264,7 +264,7 @@ export default function WarehouseTransferPage() {
 			</div>
 
 			{sameSkladType && (
-				<div className='mb-5 rounded-[3px] border border-[#fecaca] bg-[#fef2f2] px-4 py-2.5 text-xs text-ca-red'>
+				<div className='mb-5 rounded-[3px] border border-ca-danger-border bg-ca-danger-bg px-4 py-2.5 text-xs text-ca-red'>
 					<FaExclamationTriangle className='mr-1.5 inline' /> Manba va qabul qiluvchi sklad type bir xil
 					bo'lishi mumkin emas
 				</div>

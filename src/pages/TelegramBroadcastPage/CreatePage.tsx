@@ -216,7 +216,7 @@ export default function TelegramBroadcastCreatePage() {
       >
         <form onSubmit={handleSubmit} noValidate>
           {formError && (
-            <div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+            <div className='mb-3 rounded border border-ca-danger-border bg-ca-danger-bg px-3 py-2 text-xs text-ca-red'>
               {formError}
             </div>
           )}
@@ -239,7 +239,7 @@ export default function TelegramBroadcastCreatePage() {
               disabled={loadingAllClients}
             />
             {selectAllClients ? (
-              <div className='flex min-h-[34px] items-center gap-2 rounded-[3px] border border-[#ccd0d4] bg-ca-silver/40 px-2.5 py-1.5 text-xs text-ca-heading'>
+              <div className='flex min-h-[34px] items-center gap-2 rounded-[3px] border border-ca-field-border bg-ca-silver/40 px-2.5 py-1.5 text-xs text-ca-heading'>
                 {loadingAllClients ? (
                   <>
                     <FaSpinner className='animate-spin' /> Yuklanmoqda...

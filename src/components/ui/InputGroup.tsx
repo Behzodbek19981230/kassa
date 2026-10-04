@@ -12,7 +12,7 @@ export function InputGroup({ prepend, append, children, className }: InputGroupP
   return (
     <div className={cn('flex w-full', className)}>
       {prepend && (
-        <span className="flex items-center rounded-l-[3px] border border-r-0 border-[#ccd0d4] bg-[#e2e7eb] px-3 text-xs text-ca-heading">
+        <span className="flex items-center rounded-l-[3px] border border-r-0 border-ca-field-border bg-ca-muted-2 px-3 text-xs text-ca-heading">
           {prepend}
         </span>
       )}
@@ -26,7 +26,7 @@ export function InputGroup({ prepend, append, children, className }: InputGroupP
         {children}
       </div>
       {append && (
-        <span className="flex items-center rounded-r-[3px] border border-l-0 border-[#ccd0d4] bg-[#e2e7eb] px-3 text-xs text-ca-heading">
+        <span className="flex items-center rounded-r-[3px] border border-l-0 border-ca-field-border bg-ca-muted-2 px-3 text-xs text-ca-heading">
           {append}
         </span>
       )}

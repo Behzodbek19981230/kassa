@@ -80,7 +80,7 @@ function NotificationToast({
   return (
     <div
       className={cn(
-        'relative mb-2.5 w-[301px] overflow-hidden rounded-[3px] border border-ca-border border-l-4 border-l-ca-theme bg-white text-ca-heading shadow-[0_4px_12px_rgba(15,23,42,0.15)] transition-all duration-150',
+        'relative mb-2.5 w-[301px] overflow-hidden rounded-[3px] border border-ca-border border-l-4 border-l-ca-theme bg-ca-silver-light text-ca-heading shadow-[0_4px_12px_rgba(15,23,42,0.15)] transition-all duration-150',
         visible ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0',
       )}
     >

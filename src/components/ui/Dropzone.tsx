@@ -39,7 +39,7 @@ export function Dropzone({ onFilesChange, accept, maxFiles = 10, className }: Dr
       <div
         {...getRootProps()}
         className={cn(
-          'cursor-pointer rounded-[3px] border-2 border-dashed border-[#b6c2c9] bg-white p-10 text-center transition-colors',
+          'cursor-pointer rounded-[3px] border-2 border-dashed border-[#b6c2c9] bg-ca-silver-light p-10 text-center transition-colors',
           isDragActive && 'border-ca-theme bg-ca-theme/5',
         )}
       >

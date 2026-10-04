@@ -174,10 +174,10 @@ export default function WarehouseProductsPage() {
 				</div>
 
 				<div className='mb-4 flex flex-wrap gap-3'>
-					<div className='rounded-[3px] border-l-4 border-ca-orange bg-white px-4 py-2 text-xs shadow-[0_1px_3px_rgba(0,0,0,0.1)]'>
+					<div className='rounded-[3px] border-l-4 border-ca-orange bg-ca-silver-light px-4 py-2 text-xs shadow-[0_1px_3px_rgba(0,0,0,0.1)]'>
 						Barcha mahsulotlar soni: <span className='font-bold'>{formatNumber(totalCount)} ta</span>
 					</div>
-					<div className='rounded-[3px] border-l-4 border-ca-theme bg-white px-4 py-2 text-xs shadow-[0_1px_3px_rgba(0,0,0,0.1)]'>
+					<div className='rounded-[3px] border-l-4 border-ca-theme bg-ca-silver-light px-4 py-2 text-xs shadow-[0_1px_3px_rgba(0,0,0,0.1)]'>
 						Modellar soni: <span className='font-bold'>{formatNumber(modelCount)} ta</span>
 					</div>
 				</div>

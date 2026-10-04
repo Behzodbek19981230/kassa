@@ -109,7 +109,7 @@ const sizes = { xs: 'h-[5px]', sm: 'h-[10px]', md: 'h-4', lg: 'h-[30px]' }
 
 export function Progress({ value, variant = 'default', className, size = 'sm' }: ProgressProps) {
   return (
-    <div className={cn('w-full overflow-hidden rounded-[3px] bg-[#e2e7eb]', sizes[size], className)}>
+    <div className={cn('w-full overflow-hidden rounded-[3px] bg-ca-muted-2', sizes[size], className)}>
       <div
         className={cn('h-full rounded-[3px] transition-all', barColors[variant])}
         style={{ width: `${Math.min(100, Math.max(0, value))}%` }}

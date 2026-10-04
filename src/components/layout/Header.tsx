@@ -12,15 +12,17 @@ import {
 	FaInfoCircle,
 	FaPaperPlane,
 	FaPencilAlt,
+	FaMoon,
 	FaReceipt,
 	FaSignOutAlt,
+	FaSun,
 	FaUser,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, getRefreshToken } from '@/lib/auth';
 import { useCurrentCompany } from '@/lib/company';
 import { cn } from '@/lib/utils';
-// import { useTheme } from '@/lib/theme';
+import { useTheme } from '@/lib/theme';
 import { useLogoutMutation } from '@/services/auth/auth.queries';
 import { useClientListQuery } from '@/services/client/client.queries';
 import { useUserInfoQuery } from '@/services/user/user.queries';
@@ -69,7 +71,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 	const navigate = useNavigate();
 	const { data: user } = useUserInfoQuery();
 	const logoutMutation = useLogoutMutation();
-	// const { theme, toggleTheme } = useTheme();
+	const { theme, toggleTheme } = useTheme();
 	const now = useClock();
 	const {
 		companyId,
@@ -210,7 +212,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 					</div>
 
 					<ul className='ml-auto flex list-none items-center p-0'>
-						{/* <li>
+						<li>
 							<button
 								type='button'
 								onClick={toggleTheme}
@@ -219,7 +221,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 							>
 								{theme === 'dark' ? <FaSun /> : <FaMoon />}
 							</button>
-						</li> */}
+						</li>
 
 						<li>
 							<Tooltip side='bottom' content='Yangi klientlar'>

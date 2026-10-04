@@ -4,8 +4,8 @@ import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow }
 import { formatNumber } from '@/lib/number';
 import type { DashboardMonthlyItem } from '@/services/dashboard/dashboard.types';
 
-const GRID_COLOR = '#e2e8f0';
-const AXIS_TEXT_COLOR = '#64748b';
+const GRID_COLOR = 'var(--color-ca-border)';
+const AXIS_TEXT_COLOR = 'var(--color-ca-text)';
 
 const SERIES = [
 	{ key: 'order_all_product_sum', name: 'Mahsulot summasi', color: '#2a78d6' },
@@ -25,7 +25,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 	const rows = payload as { dataKey: string; value: number }[];
 
 	return (
-		<div className='rounded-[3px] border border-ca-border bg-white px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.12)]'>
+		<div className='rounded-[3px] border border-ca-border bg-ca-silver-light px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.12)]'>
 			<div className='mb-1.5 text-[11px] font-semibold text-ca-heading'>{label}</div>
 			<div className='flex flex-col gap-1'>
 				{SERIES.map((s) => {

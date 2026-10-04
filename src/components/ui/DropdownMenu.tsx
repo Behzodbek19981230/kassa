@@ -25,7 +25,7 @@ export function DropdownMenuContent({
         align={align}
         sideOffset={0}
         className={cn(
-          'z-50 min-w-[160px] overflow-hidden bg-white p-0 text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
+          'z-50 min-w-[160px] overflow-hidden bg-ca-silver-light p-0 text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',
           className,
         )}
@@ -45,7 +45,7 @@ export function DropdownMenuItem({
     <DropdownMenuPrimitive.Item
       className={cn(
         'cursor-pointer px-[15px] py-[5px] text-ca-heading outline-none',
-        'data-[highlighted]:bg-[#edf0f5]',
+        'data-[highlighted]:bg-ca-muted',
         className,
       )}
       {...props}
@@ -65,7 +65,7 @@ export function DropdownMenuLabel({
   children: ReactNode
 }) {
   return (
-    <div className={cn('bg-[#fafafa] px-5 py-2.5 text-xs font-normal text-ca-heading', className)}>
+    <div className={cn('bg-ca-silver px-5 py-2.5 text-xs font-normal text-ca-heading', className)}>
       {children}
     </div>
   )
@@ -106,7 +106,7 @@ export function DropdownMediaItem({
 }: MediaMenuItemProps) {
   return (
     <DropdownMenuPrimitive.Item
-      className="cursor-pointer border-b border-ca-border outline-none data-[highlighted]:bg-[#edf0f5]"
+      className="cursor-pointer border-b border-ca-border outline-none data-[highlighted]:bg-ca-muted"
       onSelect={onSelect}
     >
       <div className="flex px-5 py-2.5">
@@ -139,7 +139,7 @@ export const DropdownMenuLinkItem = forwardRef<
   <a
     ref={ref}
     className={cn(
-      'block px-[15px] py-[5px] text-ca-heading no-underline hover:bg-[#edf0f5]',
+      'block px-[15px] py-[5px] text-ca-heading no-underline hover:bg-ca-muted',
       className,
     )}
     {...props}

@@ -81,7 +81,7 @@ export default function WarehouseTransferDetailPage() {
 				</div>
 			</div>
 
-			<div className='mb-5 rounded-[3px] bg-white p-5 shadow-sm'>
+			<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 				<h4 className='mb-4 text-sm font-semibold text-ca-heading'>Hisobot</h4>
 
 				<div className='-mx-2.5 flex flex-wrap gap-y-3 text-xs'>
@@ -133,7 +133,7 @@ export default function WarehouseTransferDetailPage() {
 				</div>
 			</div>
 
-			<div className='overflow-x-auto rounded-[3px] bg-white shadow-sm'>
+			<div className='overflow-x-auto rounded-[3px] bg-ca-silver-light shadow-sm'>
 				<Table>
 					<TableHeader>
 						<TableRow>

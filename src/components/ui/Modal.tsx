@@ -37,7 +37,7 @@ export const ModalOverlay = forwardRef<
 ModalOverlay.displayName = Dialog.Overlay.displayName
 
 const contentVariants = cva(
-  'fixed left-1/2 top-1/2 z-[1060] w-[calc(100%-30px)] max-w-[600px] -translate-x-1/2 -translate-y-1/2 bg-white shadow-[0_5px_15px_rgba(0,0,0,0.3)] focus:outline-none',
+  'fixed left-1/2 top-1/2 z-[1060] w-[calc(100%-30px)] max-w-[600px] -translate-x-1/2 -translate-y-1/2 bg-ca-silver-light shadow-[0_5px_15px_rgba(0,0,0,0.3)] focus:outline-none',
   {
     variants: {
       variant: {
@@ -76,7 +76,7 @@ export const ModalContent = forwardRef<ElementRef<typeof Dialog.Content>, ModalC
         )}
         {showClose && (
           <Dialog.Close
-            className="absolute top-3 right-[15px] text-xl leading-none text-[#707478] opacity-80 transition-opacity hover:opacity-100 focus:outline-none"
+            className="absolute top-3 right-[15px] text-xl leading-none text-ca-text opacity-80 transition-opacity hover:opacity-100 focus:outline-none"
             aria-label="Close"
           >
             <FaTimes className="text-sm" />

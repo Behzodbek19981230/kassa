@@ -39,7 +39,7 @@ export function Checkbox({
         onCheckedChange={onCheckedChange}
         disabled={disabled}
         className={cn(
-          'flex h-4 w-4 shrink-0 items-center justify-center rounded-[2px] border border-[#ccd0d4] bg-white',
+          'flex h-4 w-4 shrink-0 items-center justify-center rounded-[2px] border border-ca-field-border bg-ca-silver-light',
           'data-[state=checked]:border-ca-green data-[state=checked]:bg-ca-green',
         )}
       >

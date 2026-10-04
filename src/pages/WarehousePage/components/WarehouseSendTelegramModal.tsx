@@ -105,7 +105,7 @@ export default function WarehouseSendTelegramModal({
 				<form onSubmit={handleSubmit} noValidate>
 					<ModalBody>
 						{formError && (
-							<div className='mb-3 rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+							<div className='mb-3 rounded border border-ca-danger-border bg-ca-danger-bg px-3 py-2 text-xs text-ca-red'>
 								{formError}
 							</div>
 						)}
@@ -129,7 +129,7 @@ export default function WarehouseSendTelegramModal({
 						</FormField>
 
 						{target === 'all' ? (
-							<div className='mb-3 flex min-h-[34px] items-center gap-2 rounded-[3px] border border-[#ccd0d4] bg-ca-silver/40 px-2.5 py-1.5 text-xs text-ca-heading'>
+							<div className='mb-3 flex min-h-[34px] items-center gap-2 rounded-[3px] border border-ca-field-border bg-ca-silver/40 px-2.5 py-1.5 text-xs text-ca-heading'>
 								{loadingCount ? (
 									<>
 										<FaSpinner className='animate-spin' /> Yuklanmoqda...

@@ -282,7 +282,7 @@ export default function TransferMethodPanel({
 					</div>
 
 					{error && (
-						<div className='rounded border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-xs text-ca-red'>
+						<div className='rounded border border-ca-danger-border bg-ca-danger-bg px-3 py-2 text-xs text-ca-red'>
 							{error}
 						</div>
 					)}

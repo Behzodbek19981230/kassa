@@ -36,7 +36,7 @@ export default function DashboardStatTiles({ cards, isLoading }: DashboardStatTi
 				const value = cards ? formatNumber(cards[tile.key]) : undefined;
 				return (
 					<div key={tile.key} className='w-full px-2.5 pb-5 sm:w-1/2 lg:w-1/4'>
-						<div className='flex h-full items-center gap-3 rounded-[3px] border border-ca-border bg-white p-4'>
+						<div className='flex h-full items-center gap-3 rounded-[3px] border border-ca-border bg-ca-silver-light p-4'>
 							<div
 								className={cn(
 									'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base',

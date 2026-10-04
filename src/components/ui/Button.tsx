@@ -13,7 +13,7 @@ const buttonVariants = cva(
         success: 'bg-ca-green text-white hover:bg-ca-theme-dark',
         warning: 'bg-ca-orange text-white hover:bg-[#c47d15]',
         danger: 'bg-ca-red text-white hover:bg-[#cc4946]',
-        white: 'border border-ca-border bg-white text-[#333] hover:bg-ca-border',
+        white: 'border border-ca-border bg-ca-silver-light text-ca-heading hover:bg-ca-border',
         inverse: 'bg-ca-panel-inverse text-white hover:bg-[#242a30]',
         theme: 'bg-ca-theme text-white hover:bg-ca-theme-dark',
         info: 'bg-ca-aqua text-white hover:bg-[#3a92ab]',
