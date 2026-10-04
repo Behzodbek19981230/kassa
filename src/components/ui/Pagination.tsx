@@ -58,7 +58,7 @@ export function Pagination({ page, totalPages, onPageChange, className, siblingC
           disabled={isFirst}
           onClick={() => onPageChange(1)}
           className="border-ca-border px-2"
-          aria-label="First page"
+          aria-label="Birinchi sahifa"
         >
           <FaAngleDoubleLeft className="text-[10px]" />
         </Button>
@@ -71,7 +71,7 @@ export function Pagination({ page, totalPages, onPageChange, className, siblingC
           disabled={isFirst}
           onClick={() => onPageChange(page - 1)}
           className="border-ca-border px-2"
-          aria-label="Previous page"
+          aria-label="Oldingi sahifa"
         >
           <FaChevronLeft className="text-[10px]" />
         </Button>
@@ -104,7 +104,7 @@ export function Pagination({ page, totalPages, onPageChange, className, siblingC
           disabled={isLast}
           onClick={() => onPageChange(page + 1)}
           className="border-ca-border px-2"
-          aria-label="Next page"
+          aria-label="Keyingi sahifa"
         >
           <FaChevronRight className="text-[10px]" />
         </Button>
@@ -117,7 +117,7 @@ export function Pagination({ page, totalPages, onPageChange, className, siblingC
           disabled={isLast}
           onClick={() => onPageChange(totalPages)}
           className="border-ca-border px-2"
-          aria-label="Last page"
+          aria-label="Oxirgi sahifa"
         >
           <FaAngleDoubleRight className="text-[10px]" />
         </Button>

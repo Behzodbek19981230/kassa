@@ -626,7 +626,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish
 						</Button>
-						<Button type='submit' variant='success' disabled={isSaving}>
+						<Button type='submit' variant='success' loading={isSaving}>
 							Saqlash
 						</Button>
 					</ModalFooter>

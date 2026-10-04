@@ -50,7 +50,7 @@ export default function ClearImportCartConfirmModal({
 					<Button variant='white' onClick={() => setOpen(false)}>
 						Yo'q
 					</Button>
-					<Button variant='danger' onClick={handleClear} disabled={clearCartMutation.isPending}>
+					<Button variant='danger' onClick={handleClear} loading={clearCartMutation.isPending}>
 						Ha, tozalash
 					</Button>
 				</ModalFooter>

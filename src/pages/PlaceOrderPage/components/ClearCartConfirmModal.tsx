@@ -45,7 +45,7 @@ export default function ClearCartConfirmModal({ open, setOpen, companyId, client
 					<Button variant='white' onClick={() => setOpen(false)}>
 						Yo'q
 					</Button>
-					<Button variant='danger' onClick={handleClear} disabled={clearCartMutation.isPending}>
+					<Button variant='danger' onClick={handleClear} loading={clearCartMutation.isPending}>
 						Ha, tozalash
 					</Button>
 				</ModalFooter>

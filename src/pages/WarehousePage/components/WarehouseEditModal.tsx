@@ -304,7 +304,7 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 					<Button type='button' variant='white' onClick={() => setOpen(false)}>
 						Yopish
 					</Button>
-					<Button type='button' variant='primary' onClick={handleSubmit} disabled={updateMutation.isPending}>
+					<Button type='button' variant='primary' onClick={handleSubmit} loading={updateMutation.isPending}>
 						Saqlash
 					</Button>
 				</ModalFooter>

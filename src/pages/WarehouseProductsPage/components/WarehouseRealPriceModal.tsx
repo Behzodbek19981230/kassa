@@ -62,7 +62,7 @@ export default function WarehouseRealPriceModal({ open, setOpen, item }: Warehou
 					<Button type='button' variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button type='button' variant='primary' onClick={handleSubmit} disabled={editMutation.isPending}>
+					<Button type='button' variant='primary' onClick={handleSubmit} loading={editMutation.isPending}>
 						Saqlash
 					</Button>
 				</ModalFooter>

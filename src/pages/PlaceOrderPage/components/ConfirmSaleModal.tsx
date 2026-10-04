@@ -297,7 +297,7 @@ export default function ConfirmSaleModal({
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish
 						</Button>
-						<Button type='submit' variant='danger' disabled={confirmSaleMutation.isPending}>
+						<Button type='submit' variant='danger' loading={confirmSaleMutation.isPending}>
 							<FaCashRegister className='mr-1.5' /> Sotishni tasdiqlash
 						</Button>
 					</ModalFooter>

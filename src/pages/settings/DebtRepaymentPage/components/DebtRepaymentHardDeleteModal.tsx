@@ -54,7 +54,7 @@ export default function DebtRepaymentHardDeleteModal({
 					<Button type='button' variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button type='button' variant='danger' onClick={handleConfirm} disabled={hardDeleteMutation.isPending}>
+					<Button type='button' variant='danger' onClick={handleConfirm} loading={hardDeleteMutation.isPending}>
 						Batamom o'chirish
 					</Button>
 				</ModalFooter>

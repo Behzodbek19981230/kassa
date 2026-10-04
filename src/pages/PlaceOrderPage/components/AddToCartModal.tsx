@@ -293,7 +293,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish
 						</Button>
-						<Button type='submit' variant='danger' disabled={createMutation.isPending}>
+						<Button type='submit' variant='danger' loading={createMutation.isPending}>
 							<FaCartPlus className='mr-1.5' /> Buyurtmaga qo'shish
 						</Button>
 					</ModalFooter>

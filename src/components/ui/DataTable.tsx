@@ -164,7 +164,7 @@ interface DataTableProps<TData> {
 export function DataTable<TData>({
 	columns,
 	data,
-	searchPlaceholder = 'Search...',
+	searchPlaceholder = 'Qidirish...',
 	pageSizeOptions = [10, 25, 50],
 	className,
 	enableSorting = true,
@@ -184,7 +184,7 @@ export function DataTable<TData>({
 	renderExpandedRow,
 	getRowClassName,
 	exportFileName = 'table-export.csv',
-	emptyMessage = 'No data available',
+	emptyMessage = "Ma'lumot topilmadi",
 	emptyIcon = <FcDeleteDatabase className='text-4xl text-ca-border' />,
 	isLoading = false,
 	skeletonRows,
@@ -380,7 +380,7 @@ export function DataTable<TData>({
 		const { headers, rows } = getExportData();
 		const win = window.open('', '_blank');
 		if (!win) return;
-		win.document.write(`<!doctype html><html><head><title>Print</title>
+		win.document.write(`<!doctype html><html><head><title>Chop etish</title>
       <style>
         body { font-family: sans-serif; padding: 20px; }
         table { width: 100%; border-collapse: collapse; }
@@ -456,20 +456,20 @@ export function DataTable<TData>({
 						</>
 					)}
 					{enableRowSelection && selectedCount > 0 && (
-						<span className='text-ca-theme'>{selectedCount} row(s) selected</span>
+						<span className='text-ca-theme'>{selectedCount} ta qator tanlandi</span>
 					)}
 				</div>
 				<div className='flex flex-wrap items-center gap-2 text-xs'>
 					{enableExport && (
 						<div className='flex gap-1'>
 							<Button type='button' variant='white' size='sm' onClick={handleCopy}>
-								<FaCopy className='mr-1.5' /> Copy
+								<FaCopy className='mr-1.5' /> Nusxalash
 							</Button>
 							<Button type='button' variant='white' size='sm' onClick={handleExportCsv}>
 								<FaFileCsv className='mr-1.5' /> CSV
 							</Button>
 							<Button type='button' variant='white' size='sm' onClick={handlePrint}>
-								<FaPrint className='mr-1.5' /> Print
+								<FaPrint className='mr-1.5' /> Chop etish
 							</Button>
 						</div>
 					)}
@@ -477,12 +477,12 @@ export function DataTable<TData>({
 						<div className='flex gap-1'>
 							{enableExportPdf && (
 								<Button type='button' variant='warning' size='sm' onClick={handleExportPdf}>
-									<FaFilePdf className='mr-1.5' /> Export PDF
+									<FaFilePdf className='mr-1.5' /> PDF yuklash
 								</Button>
 							)}
 							{enableExportExcel && (
 								<Button type='button' variant='info' size='sm' onClick={handleExportExcel}>
-									<FaFileExcel className='mr-1.5' /> Export Excel
+									<FaFileExcel className='mr-1.5' /> Excel yuklash
 								</Button>
 							)}
 						</div>
@@ -515,7 +515,7 @@ export function DataTable<TData>({
 					)}
 					{enableGlobalFilter && (
 						<>
-							<label htmlFor='datatable-search'>Search:</label>
+							<label htmlFor='datatable-search'>Qidirish:</label>
 							<Input
 								id='datatable-search'
 								type='search'
@@ -630,7 +630,7 @@ export function DataTable<TData>({
 															header.column.setFilterValue(e.target.value);
 															table.setPageIndex(0);
 														}}
-														placeholder='Filter...'
+														placeholder='Filtr...'
 														className='h-[26px] text-[11px]'
 													/>
 												)
@@ -713,7 +713,7 @@ export function DataTable<TData>({
 			{enablePagination && (
 				<div className='mt-2.5 flex flex-wrap items-center justify-between gap-3 text-xs'>
 					<div>
-						Showing {start} to {end} of {totalCount} entries
+						{totalCount} tadan {start} dan {end} gacha ko'rsatilmoqda
 					</div>
 					<Pagination
 						page={pageIndex + 1}
@@ -756,7 +756,7 @@ export function createExpandColumn<TData>(): ColumnDef<TData, unknown> {
 				type='button'
 				onClick={row.getToggleExpandedHandler()}
 				className='flex h-5 w-5 items-center justify-center text-ca-text hover:text-ca-heading'
-				aria-label={row.getIsExpanded() ? 'Collapse row' : 'Expand row'}
+				aria-label={row.getIsExpanded() ? "Qatorni yig'ish" : 'Qatorni yozish'}
 			>
 				{row.getIsExpanded() ? (
 					<FaChevronDown className='text-[10px]' />

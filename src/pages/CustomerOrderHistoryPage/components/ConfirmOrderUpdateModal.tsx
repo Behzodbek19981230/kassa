@@ -47,7 +47,7 @@ export default function ConfirmOrderUpdateModal({ open, setOpen, id }: ConfirmOr
 						type='button'
 						variant='danger'
 						onClick={handleConfirm}
-						disabled={updateStatusMutation.isPending}
+						loading={updateStatusMutation.isPending}
 					>
 						Tasdiqlash
 					</Button>

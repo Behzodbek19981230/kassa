@@ -388,7 +388,7 @@ export default function OrderAccountHistoryEditPage() {
 						/>
 					</div>
 
-					<Button type='submit' variant='info' className='w-full' disabled={isSaving}>
+					<Button type='submit' variant='info' className='w-full' loading={isSaving}>
 						<FaSave className='mr-1.5' /> O'zgartirish
 					</Button>
 				</div>

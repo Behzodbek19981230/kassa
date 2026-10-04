@@ -46,7 +46,7 @@ export default function DeleteBroadcastModal({ open, setOpen, jobId }: DeleteBro
           <Button variant='white' onClick={() => setOpen(false)}>
             Bekor qilish
           </Button>
-          <Button variant='danger' onClick={handleDelete} disabled={deleteMutation.isPending}>
+          <Button variant='danger' onClick={handleDelete} loading={deleteMutation.isPending}>
             Ha, o'chirish
           </Button>
         </ModalFooter>

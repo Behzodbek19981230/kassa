@@ -294,7 +294,7 @@ export default function TransferMethodPanel({
 					<Button
 						type='button'
 						variant='warning'
-						disabled={validateMutation.isPending}
+						loading={validateMutation.isPending}
 						onClick={handleSubmit}
 					>
 						<FaShoppingCart className='mr-1.5' />{' '}

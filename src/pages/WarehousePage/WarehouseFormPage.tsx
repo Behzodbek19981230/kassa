@@ -241,7 +241,8 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 						type='submit'
 						variant='theme'
 						className='h-11 w-full text-sm'
-						disabled={isSaving || hasDuplicate}
+						loading={isSaving}
+						disabled={hasDuplicate}
 					>
 						{mode === 'edit' ? 'Saqlash' : "Qo'shish"}
 					</Button>

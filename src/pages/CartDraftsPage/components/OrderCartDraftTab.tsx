@@ -268,7 +268,7 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 						<Button variant='white' onClick={() => setGroupToDelete(null)}>
 							Yo'q
 						</Button>
-						<Button variant='danger' onClick={handleConfirmGroupDelete} disabled={clearGroupMutation.isPending}>
+						<Button variant='danger' onClick={handleConfirmGroupDelete} loading={clearGroupMutation.isPending}>
 							Ha, o'chirish
 						</Button>
 					</ModalFooter>

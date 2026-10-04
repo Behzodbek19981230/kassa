@@ -79,7 +79,7 @@ export default function EditGivenCountModal({ open, setOpen, item, orderId }: Ed
 					<Button type='button' variant='default' onClick={() => setOpen(false)}>
 						Yopish
 					</Button>
-					<Button type='button' variant='theme' onClick={handleSubmit} disabled={updateMutation.isPending}>
+					<Button type='button' variant='theme' onClick={handleSubmit} loading={updateMutation.isPending}>
 						O'zgartirish
 					</Button>
 				</ModalFooter>

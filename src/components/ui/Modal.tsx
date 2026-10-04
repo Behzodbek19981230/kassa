@@ -113,7 +113,7 @@ export function ModalBody({ className, ...props }: HTMLAttributes<HTMLDivElement
 export function ModalFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('flex flex-wrap items-center justify-end gap-2 border-t border-ca-border px-[15px] py-[14px]', className)}
+      className={cn('flex flex-wrap items-center justify-end gap-2 [&>:first-child:not(:only-child)]:mr-auto border-t border-ca-border px-[15px] py-[14px]', className)}
       {...props}
     />
   )

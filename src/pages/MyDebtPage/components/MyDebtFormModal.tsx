@@ -160,7 +160,7 @@ export default function MyDebtFormModal({ open, setOpen }: MyDebtFormModalProps)
 						<Button type='button' variant='default' onClick={() => handleOpenChange(false)}>
 							Yopish
 						</Button>
-						<Button type='submit' variant='theme' disabled={createMutation.isPending}>
+						<Button type='submit' variant='theme' loading={createMutation.isPending}>
 							O'zgartirish
 						</Button>
 					</ModalFooter>

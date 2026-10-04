@@ -155,7 +155,7 @@ export default function MyDebtHistoryEditModal({ open, setOpen, item }: MyDebtHi
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish
 						</Button>
-						<Button type='submit' variant='success' disabled={updateMutation.isPending}>
+						<Button type='submit' variant='success' loading={updateMutation.isPending}>
 							Saqlash
 						</Button>
 					</ModalFooter>

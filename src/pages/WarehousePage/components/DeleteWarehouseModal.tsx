@@ -44,7 +44,7 @@ export default function DeleteWarehouseModal({ open, setOpen, item }: DeleteWare
 					<Button variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button variant='danger' onClick={handleDelete} disabled={deleteMutation.isPending}>
+					<Button variant='danger' onClick={handleDelete} loading={deleteMutation.isPending}>
 						O'chirish
 					</Button>
 				</ModalFooter>

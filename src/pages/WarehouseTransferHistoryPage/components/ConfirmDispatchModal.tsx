@@ -65,7 +65,7 @@ export default function ConfirmDispatchModal({ open, setOpen, transfer, onConfir
 					<Button
 						type='button'
 						variant='success'
-						disabled={confirmMutation.isPending}
+						loading={confirmMutation.isPending}
 						onClick={handleConfirm}
 					>
 						<FaCheck className='mr-1.5' /> {confirmMutation.isPending ? 'Tasdiqlanmoqda...' : 'Tasdiqlash'}

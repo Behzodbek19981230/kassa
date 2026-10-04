@@ -48,7 +48,7 @@ export default function ConfirmClientModal({ open, setOpen, item }: ConfirmClien
 					<Button variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button variant='success' onClick={handleConfirm} disabled={updateStatusMutation.isPending}>
+					<Button variant='success' onClick={handleConfirm} loading={updateStatusMutation.isPending}>
 						Ha, tasdiqlash
 					</Button>
 				</ModalFooter>

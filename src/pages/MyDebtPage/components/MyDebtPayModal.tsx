@@ -157,7 +157,7 @@ export default function MyDebtPayModal({
 						<Button type='button' variant='white' onClick={() => handleOpenChange(false)}>
 							Bekor qilish
 						</Button>
-						<Button type='submit' variant='success' disabled={payMutation.isPending}>
+						<Button type='submit' variant='success' loading={payMutation.isPending}>
 							To'lash
 						</Button>
 					</ModalFooter>

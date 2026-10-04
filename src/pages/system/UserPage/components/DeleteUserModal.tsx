@@ -44,7 +44,7 @@ export default function DeleteUserModal({ open, setOpen, item }: DeleteUserModal
 					<Button variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button variant='danger' onClick={handleDelete} disabled={deleteMutation.isPending}>
+					<Button variant='danger' onClick={handleDelete} loading={deleteMutation.isPending}>
 						O'chirish
 					</Button>
 				</ModalFooter>

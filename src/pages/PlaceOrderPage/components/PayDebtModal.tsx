@@ -206,7 +206,7 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish
 						</Button>
-						<Button type='submit' variant='success' disabled={payDebtMutation.isPending}>
+						<Button type='submit' variant='success' loading={payDebtMutation.isPending}>
 							Saqlash
 						</Button>
 					</ModalFooter>

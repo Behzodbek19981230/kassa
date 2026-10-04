@@ -52,7 +52,7 @@ export default function OrderReturnModal({ open, setOpen, id, clientName }: Orde
 					<Button type='button' variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button type='button' variant='success' onClick={handleConfirm} disabled={returnMutation.isPending}>
+					<Button type='button' variant='success' onClick={handleConfirm} loading={returnMutation.isPending}>
 						Qayta tiklash
 					</Button>
 				</ModalFooter>

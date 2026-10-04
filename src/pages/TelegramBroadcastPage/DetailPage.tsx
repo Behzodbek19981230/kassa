@@ -192,7 +192,7 @@ export default function TelegramBroadcastDetailPage() {
                   variant='warning'
                   size='sm'
                   onClick={handleRetryDelete}
-                  disabled={retryDeleteMutation.isPending}
+                  loading={retryDeleteMutation.isPending}
                 >
                   <FaRedo className='mr-1.5' /> O'chmay qolganlarni qayta o'chirish
                 </Button>

@@ -314,7 +314,7 @@ export default function WarehouseAccountEditPage() {
 						</div>
 					</div>
 
-					<Button type='submit' variant='theme' className='mt-4 h-11 w-full text-sm' disabled={isSaving}>
+					<Button type='submit' variant='theme' className='mt-4 h-11 w-full text-sm' loading={isSaving}>
 						O'zgartirish
 					</Button>
 				</form>

@@ -52,7 +52,7 @@ export default function ReverseTransferModal({ open, setOpen, transfer, onRevers
 					<Button type='button' variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button type='button' variant='danger' disabled={reverseMutation.isPending} onClick={handleReverse}>
+					<Button type='button' variant='danger' loading={reverseMutation.isPending} onClick={handleReverse}>
 						{reverseMutation.isPending ? 'Bekor qilinmoqda...' : 'Tasdiqlash'}
 					</Button>
 				</ModalFooter>

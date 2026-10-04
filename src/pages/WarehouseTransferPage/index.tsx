@@ -479,7 +479,7 @@ export default function WarehouseTransferPage() {
 									type='button'
 									variant='warning'
 									className='flex-1'
-									disabled={createMutation.isPending}
+									loading={createMutation.isPending}
 									onClick={() => setConfirmOpen(true)}
 								>
 									<FaExchangeAlt className='mr-1.5' />{' '}
@@ -509,7 +509,7 @@ export default function WarehouseTransferPage() {
 						<Button
 							type='button'
 							variant='warning'
-							disabled={createMutation.isPending}
+							loading={createMutation.isPending}
 							onClick={handleSubmitTransfer}
 						>
 							<FaExchangeAlt className='mr-1.5' />{' '}

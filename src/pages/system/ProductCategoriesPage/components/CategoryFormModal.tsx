@@ -320,7 +320,7 @@ export default function CategoryFormModal({ open, setOpen, mode, item, defaultBr
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Yopish
 						</Button>
-						<Button type='submit' variant='primary' disabled={isSaving}>
+						<Button type='submit' variant='primary' loading={isSaving}>
 							Saqlash
 						</Button>
 					</ModalFooter>

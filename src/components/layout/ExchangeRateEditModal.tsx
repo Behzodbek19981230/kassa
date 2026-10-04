@@ -132,7 +132,7 @@ export default function ExchangeRateEditModal({ open, setOpen, companyId, exchan
 							<Button variant='white' onClick={() => resetAndClose(false)}>
 								Bekor qilish
 							</Button>
-							<Button variant='success' onClick={handleSubmit} disabled={saveMutation.isPending}>
+							<Button variant='success' onClick={handleSubmit} loading={saveMutation.isPending}>
 								Saqlash
 							</Button>
 						</ModalFooter>

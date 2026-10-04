@@ -444,7 +444,7 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish
 						</Button>
-						<Button type='submit' variant='success' disabled={isSaving}>
+						<Button type='submit' variant='success' loading={isSaving}>
 							Saqlash
 						</Button>
 					</ModalFooter>

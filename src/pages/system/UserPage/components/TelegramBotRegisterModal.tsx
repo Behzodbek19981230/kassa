@@ -158,7 +158,7 @@ export default function TelegramBotRegisterModal({ open, setOpen, item }: Telegr
 					<Button variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button variant='theme' onClick={handleSave} disabled={registerMutation.isPending}>
+					<Button variant='theme' onClick={handleSave} loading={registerMutation.isPending}>
 						Saqlash
 					</Button>
 				</ModalFooter>

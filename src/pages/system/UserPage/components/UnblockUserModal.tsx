@@ -53,7 +53,7 @@ export default function UnblockUserModal({ open, setOpen, item }: UnblockUserMod
 					<Button variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button variant='danger' onClick={handleUnblock} disabled={unblockMutation.isPending}>
+					<Button variant='danger' onClick={handleUnblock} loading={unblockMutation.isPending}>
 						Blokdan chiqarish
 					</Button>
 				</ModalFooter>

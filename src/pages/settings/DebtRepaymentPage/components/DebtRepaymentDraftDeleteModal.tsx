@@ -59,7 +59,7 @@ export default function DebtRepaymentDraftDeleteModal({
 					<Button type='button' variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button type='button' variant='danger' onClick={handleConfirm} disabled={draftDeleteMutation.isPending}>
+					<Button type='button' variant='danger' onClick={handleConfirm} loading={draftDeleteMutation.isPending}>
 						Draftga olish
 					</Button>
 				</ModalFooter>

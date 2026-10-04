@@ -230,7 +230,7 @@ export default function ConfirmImportModal({
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish
 						</Button>
-						<Button type='submit' variant='danger' disabled={confirmImportMutation.isPending}>
+						<Button type='submit' variant='danger' loading={confirmImportMutation.isPending}>
 							<FaCashRegister className='mr-1.5' /> Importni tasdiqlash
 						</Button>
 					</ModalFooter>
