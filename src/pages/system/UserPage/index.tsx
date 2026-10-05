@@ -69,12 +69,40 @@ export default function UserPage() {
 		}),
 		columnHelper.accessor('phone_number', { header: 'Telefon', size: 160, enableColumnFilter: false }),
 		columnHelper.accessor('email', { header: 'Email', enableColumnFilter: false }),
+		columnHelper.accessor((row) => row.roles?.name ?? '', {
+			id: 'role',
+			header: 'Rol',
+			enableColumnFilter: false,
+			cell: (info) => info.getValue() || '—',
+		}),
+		columnHelper.accessor((row) => (row.companies_detail ?? []).map((c) => c.name).join(', '), {
+			id: 'companies',
+			header: 'Tashkilot',
+			meta: { align: 'left' },
+			enableColumnFilter: false,
+			cell: (info) => info.getValue() || '—',
+		}),
+		columnHelper.accessor((row) => row.trade_company_detail?.name ?? '', {
+			id: 'trade_company',
+			header: 'Asosiy tashkilot',
+			meta: { align: 'left' },
+			enableColumnFilter: false,
+			cell: (info) => info.getValue() || '—',
+		}),
 		columnHelper.accessor('is_active', {
 			header: 'Holati',
 			size: 100,
 			enableColumnFilter: false,
 			cell: (info) => (
 				<Badge variant={info.getValue() ? 'success' : 'danger'}>{info.getValue() ? 'Faol' : 'Nofaol'}</Badge>
+			),
+		}),
+		columnHelper.accessor('is_send_bot', {
+			header: 'Bot xabarnoma',
+			size: 120,
+			enableColumnFilter: false,
+			cell: (info) => (
+				<Badge variant={info.getValue() ? 'success' : 'default'}>{info.getValue() ? 'Ha' : "Yo'q"}</Badge>
 			),
 		}),
 		columnHelper.accessor('is_login_blocked', {
