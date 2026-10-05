@@ -48,13 +48,13 @@ export default function LoginPage() {
 	});
 
 	return (
-		<div className='relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-[#245a94] via-ca-theme to-[#5fb3e8] px-4 py-16'>
+		<div className='relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-[#245a94] via-ca-theme to-[#5fb3e8] dark:from-[#0b1324] dark:via-[#13253f] dark:to-[#1e3a5f] px-4 py-16'>
 			<div className='pointer-events-none absolute -top-24 -left-24 h-80 w-80 rounded-full bg-white/10 blur-3xl' />
 			<div className='pointer-events-none absolute -right-16 top-1/3 h-72 w-72 rounded-full bg-ca-theme-dark/30 blur-3xl' />
 			<div className='pointer-events-none absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-white/5 blur-3xl' />
 
 			<div className='relative w-full max-w-105'>
-				<div className='rounded-2xl border border-white/40 bg-white/95 px-8 py-9 shadow-[0_20px_50px_rgba(15,23,42,0.3)] backdrop-blur-sm'>
+				<div className='rounded-2xl border border-white/40 bg-white/95 dark:border-ca-border dark:bg-ca-sidebar/95 px-8 py-9 shadow-[0_20px_50px_rgba(15,23,42,0.3)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-sm'>
 					<div className='my-0 flex w-full justify-center'>
 						<img src='/logo.png' alt='Logo' className='h-16 w-full object-cover' />
 					</div>
