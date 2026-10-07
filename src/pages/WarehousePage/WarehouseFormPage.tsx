@@ -11,6 +11,7 @@ import WarehouseProductRow, {
 } from '@/pages/WarehousePage/components/WarehouseProductRow';
 import {
 	useCreateWarehouseMutation,
+	useEditWarehouseRealPriceMutation,
 	useUpdateWarehouseMutation,
 	useWarehouseQuery,
 } from '@/services/warehouse/warehouse.queries';
@@ -43,7 +44,8 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 
 	const createMutation = useCreateWarehouseMutation();
 	const updateMutation = useUpdateWarehouseMutation();
-	const isSaving = createMutation.isPending || updateMutation.isPending;
+	const editRealPriceMutation = useEditWarehouseRealPriceMutation();
+	const isSaving = createMutation.isPending || updateMutation.isPending || editRealPriceMutation.isPending;
 
 	const company = (mode === 'edit' ? warehouseQuery.data?.company : undefined) ?? companyId ?? undefined;
 	const hasDuplicate = Object.values(duplicateRowKeys).some(Boolean);
@@ -145,6 +147,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 					comment: comment || undefined,
 				};
 				await updateMutation.mutateAsync({ id: warehouseId, payload });
+				await editRealPriceMutation.mutateAsync({ id: warehouseId, payload: { real_price: payload.real_price ?? 0 } });
 				notify({ title: 'Tovar yangilandi' });
 			} else {
 				for (const row of rows) {
@@ -166,7 +169,9 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 						all_my_total_debt: 0,
 						comment: comment || undefined,
 					};
-					await createMutation.mutateAsync(payload);
+					const created = await createMutation.mutateAsync(payload);
+					// Backend create endpoint ignores real_price, so set it explicitly
+					await editRealPriceMutation.mutateAsync({ id: created.id, payload: { real_price: payload.real_price ?? 0 } });
 				}
 				notify({ title: "Tovar(lar) qo'shildi" });
 			}
