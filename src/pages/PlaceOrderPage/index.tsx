@@ -232,9 +232,9 @@ export default function PlaceOrderPage() {
 							</div>
 						</div>
 
-						<div className='overflow-x-auto'>
+						<div className='max-h-[calc(100vh-320px)] min-h-[300px] overflow-auto'>
 							<Table>
-								<TableHeader>
+								<TableHeader className='sticky top-0 z-10'>
 									<TableRow>
 										<TableHead className='bg-ca-theme text-white'>#</TableHead>
 										<TableHead className='bg-ca-theme text-white'>Model</TableHead>
