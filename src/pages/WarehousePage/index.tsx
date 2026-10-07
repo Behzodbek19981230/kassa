@@ -1,21 +1,21 @@
 import {
-	createColumnHelper,
-	type ColumnFiltersState,
-	type PaginationState,
-	type SortingState,
+   createColumnHelper,
+   type ColumnFiltersState,
+   type PaginationState,
+   type SortingState,
 } from '@tanstack/react-table';
 import { useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaImages, FaTelegramPlane, FaTrash } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import {
-	Button,
-	buttonProps,
-	buttonVariants,
-	type ComboboxLoadParams,
-	type ComboboxLoadResult,
-	DataTable,
-	PageHeader,
-	Panel,
+   Button,
+   buttonProps,
+   buttonVariants,
+   type ComboboxLoadParams,
+   type ComboboxLoadResult,
+   DataTable,
+   PageHeader,
+   Panel,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
@@ -40,195 +40,196 @@ import type { Warehouse } from '@/services/warehouse/warehouse.types';
 const columnHelper = createColumnHelper<Warehouse>();
 
 export default function WarehousePage() {
-	const { canWrite } = useCurrentCompany();
-	const { canManageWarehouse } = usePermissions();
-	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
-	const [sorting, setSorting] = useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-	const [onlyConfirmed, setOnlyConfirmed] = useState(false);
+   const { canWrite } = useCurrentCompany();
+   const { canManageWarehouse } = usePermissions();
+   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+   const [sorting, setSorting] = useState<SortingState>([]);
+   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+   const [onlyConfirmed, setOnlyConfirmed] = useState(false);
 
-	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
-	const brandFilter = columnFilters.find((f) => f.id === 'brand')?.value as string | undefined;
-	const categoryFilter = columnFilters.find((f) => f.id === 'product_category')?.value as string | undefined;
-	const typeFilter = columnFilters.find((f) => f.id === 'type')?.value as string | undefined;
-	const skladTypeFilter = columnFilters.find((f) => f.id === 'type_sklad')?.value as string | undefined;
+   const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
+   const brandFilter = columnFilters.find((f) => f.id === 'brand')?.value as string | undefined;
+   const categoryFilter = columnFilters.find((f) => f.id === 'product_category')?.value as string | undefined;
+   const typeFilter = columnFilters.find((f) => f.id === 'type')?.value as string | undefined;
+   const skladTypeFilter = columnFilters.find((f) => f.id === 'type_sklad')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, error, refetch } = useWarehouseListQuery({
-		page: pagination.pageIndex + 1,
-		limit: pagination.pageSize,
-		brand: brandFilter ? Number(brandFilter) : undefined,
-		product_category: categoryFilter ? Number(categoryFilter) : undefined,
-		type: typeFilter ? Number(typeFilter) : undefined,
-		type_sklad: skladTypeFilter ? Number(skladTypeFilter) : undefined,
-		status_count: onlyConfirmed ? true : undefined,
-		ordering,
-	});
+   const { data, isLoading, isFetching, isError, error, refetch } = useWarehouseListQuery({
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      brand: brandFilter ? Number(brandFilter) : undefined,
+      product_category: categoryFilter ? Number(categoryFilter) : undefined,
+      type: typeFilter ? Number(typeFilter) : undefined,
+      type_sklad: skladTypeFilter ? Number(skladTypeFilter) : undefined,
+      status_count: onlyConfirmed ? true : undefined,
+      ordering,
+   });
 
-	const results = data?.results ?? [];
-	const paginationMeta = data?.pagination;
+   const results = data?.results ?? [];
+   const paginationMeta = data?.pagination;
 
-	const { data: brandData } = useBrandListQuery({ limit: 100 });
-	const brandNameById = new Map((brandData?.results ?? []).map((b) => [b.id, b.name]));
+   const { data: brandData } = useBrandListQuery({ limit: 100 });
+   const brandNameById = new Map((brandData?.results ?? []).map((b) => [b.id, b.name]));
 
-	const { data: categoryData } = useProductCategoryListQuery({ limit: 100 });
-	const categoryNameById = new Map((categoryData?.results ?? []).map((c) => [c.id, c.name]));
+   const { data: categoryData } = useProductCategoryListQuery({ limit: 100 });
+   const categoryNameById = new Map((categoryData?.results ?? []).map((c) => [c.id, c.name]));
 
-	const { data: typeData } = useBrandSizeTypeListQuery({ limit: 100 });
-	const typeNameById = new Map((typeData?.results ?? []).map((t) => [t.id, t.name]));
+   const { data: typeData } = useBrandSizeTypeListQuery({ limit: 100 });
+   const typeNameById = new Map((typeData?.results ?? []).map((t) => [t.id, t.name]));
 
-	const { data: skladTypeData } = useSkladTypeListQuery({ limit: 100 });
-	const skladTypeNameById = new Map((skladTypeData?.results ?? []).map((s) => [s.id, s.name]));
 
-	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.map((b) => ({ value: String(b.id), label: b.name })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
 
-	const loadCategoryOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await productCategoryService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
+   const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+      const result = await brandService.list({ search: search || undefined, page, limit: 20 });
+      return {
+         options: result.results.map((b) => ({ value: String(b.id), label: b.name })),
+         hasMore: result.pagination.currentPage < result.pagination.lastPage,
+      };
+   };
 
-	const loadTypeOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await brandSizeTypeService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.filter((t) => t.status).map((t) => ({ value: String(t.id), label: t.name })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
+   const loadCategoryOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+      const result = await productCategoryService.list({ search: search || undefined, page, limit: 20 });
+      return {
+         options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
+         hasMore: result.pagination.currentPage < result.pagination.lastPage,
+      };
+   };
 
-	const loadSkladTypeOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await skladTypeService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.map((s) => ({ value: String(s.id), label: s.name })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
+   const loadTypeOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+      const result = await brandSizeTypeService.list({ search: search || undefined, page, limit: 20 });
+      return {
+         options: result.results.filter((t) => t.status).map((t) => ({ value: String(t.id), label: t.name })),
+         hasMore: result.pagination.currentPage < result.pagination.lastPage,
+      };
+   };
 
-	const columns = [
-		columnHelper.display({
-			id: 'index',
-			header: '#',
-			size: 50,
-			enableSorting: false,
-			enableColumnFilter: false,
-			cell: ({ row }) => pagination.pageIndex * pagination.pageSize + row.index + 1,
-		}),
-		columnHelper.accessor('type_sklad', {
-			header: 'Sklad',
-			cell: (info) => {
-				const value = info.getValue();
-				return value ? (skladTypeNameById.get(value) ?? value) : '';
-			},
-			meta: {
-				filterVariant: 'select',
-				filterLoadOptions: loadSkladTypeOptions,
-				filterSelectedLabel: (value) => skladTypeNameById.get(Number(value)),
-				filterPlaceholder: 'Barchasi',
-			},
-		}),
-		columnHelper.accessor('brand', {
-			header: 'Model',
-			cell: (info) => brandNameById.get(info.getValue()) ?? info.getValue(),
-			meta: {
-				filterVariant: 'select',
-				filterLoadOptions: loadBrandOptions,
-				filterSelectedLabel: (value) => brandNameById.get(Number(value)),
-				filterPlaceholder: 'Barchasi',
-			},
-		}),
-		columnHelper.accessor('product_category', {
-			header: 'Nomi',
-			cell: (info) => categoryNameById.get(info.getValue()) ?? info.getValue(),
-			meta: {
-				filterVariant: 'select',
-				filterLoadOptions: loadCategoryOptions,
-				filterSelectedLabel: (value) => categoryNameById.get(Number(value)),
-				filterPlaceholder: 'Barchasi',
-			},
-		}),
-		columnHelper.accessor('size', {
-			header: "O'lchami",
-			size: 100,
-			enableColumnFilter: false,
-			cell: (info) => formatNumber(info.getValue()),
-		}),
-		columnHelper.accessor('type', {
-			header: 'Tip',
-			cell: (info) => {
-				const value = info.getValue();
-				return value ? (typeNameById.get(value) ?? value) : '';
-			},
-			meta: {
-				filterVariant: 'select',
-				filterLoadOptions: loadTypeOptions,
-				filterSelectedLabel: (value) => typeNameById.get(Number(value)),
-				filterPlaceholder: 'Barchasi',
-			},
-		}),
+   const loadSkladTypeOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+      const result = await skladTypeService.list({ search: search || undefined, page, limit: 20 });
+      return {
+         options: result.results.map((s) => ({ value: String(s.id), label: s.name })),
+         hasMore: result.pagination.currentPage < result.pagination.lastPage,
+      };
+   };
 
-		columnHelper.accessor('count', {
-			header: 'Soni',
-			size: 90,
-			enableColumnFilter: false,
-			cell: (info) => formatNumber(info.getValue()),
-		}),
+   const columns = [
+      columnHelper.display({
+         id: 'index',
+         header: '#',
+         size: 50,
+         enableSorting: false,
+         enableColumnFilter: false,
+         cell: ({ row }) => pagination.pageIndex * pagination.pageSize + row.index + 1,
+      }),
+      columnHelper.accessor('type_sklad', {
+         header: 'Sklad',
+         cell: (info) => {
+            return info.row.original.type_sklad_detail?.name;
+         },
+         meta: {
+            filterVariant: 'select',
+            filterLoadOptions: loadSkladTypeOptions,
+            filterPlaceholder: 'Barchasi',
+         },
+      }),
+      columnHelper.accessor('brand', {
+         header: 'Model',
+         cell: (info) => info.row.original.brand_detail?.name ?? brandNameById.get(info.getValue()) ?? info.getValue(),
+         meta: {
+            filterVariant: 'select',
+            filterLoadOptions: loadBrandOptions,
+            filterSelectedLabel: (value) => brandNameById.get(Number(value)),
+            filterPlaceholder: 'Barchasi',
+         },
+      }),
+      columnHelper.accessor('product_category', {
+         header: 'Nomi',
+         cell: (info) =>
+            info.row.original.product_category_detail?.name ?? categoryNameById.get(info.getValue()) ?? info.getValue(),
+         meta: {
+            filterVariant: 'select',
+            filterLoadOptions: loadCategoryOptions,
+            filterSelectedLabel: (value) => categoryNameById.get(Number(value)),
+            filterPlaceholder: 'Barchasi',
+         },
+      }),
+      columnHelper.accessor('size', {
+         header: "O'lchami",
+         size: 100,
+         enableColumnFilter: false,
+         cell: (info) => formatNumber(info.getValue()),
+      }),
+      columnHelper.accessor('type', {
+         header: 'Tip',
+         cell: (info) => {
+            const value = info.getValue();
+            return value ? (info.row.original.type_detail?.name ?? typeNameById.get(value) ?? value) : '';
+         },
+         meta: {
+            filterVariant: 'select',
+            filterLoadOptions: loadTypeOptions,
+            filterSelectedLabel: (value) => typeNameById.get(Number(value)),
+            filterPlaceholder: 'Barchasi',
+         },
+      }),
 
-		columnHelper.accessor('price', {
-			header: 'Haqiqiy Narxi ($)',
-			size: 130,
-			enableColumnFilter: false,
-			cell: (info) => formatNumber(info.getValue(), 2),
-		}),
-		columnHelper.accessor('worker_price', {
-			header: 'Ishchi Uchun Narx ($)',
-			size: 150,
-			enableColumnFilter: false,
-			cell: (info) => formatNumber(info.getValue(), 2),
-		}),
-		columnHelper.accessor('cr_date', { header: 'Sana', size: 110, enableColumnFilter: false }),
-		columnHelper.accessor('status_count', {
-			header: 'Mahsulotlar sanalganligi',
-			size: 160,
+      columnHelper.accessor('count', {
+         header: 'Soni',
+         size: 90,
+         enableColumnFilter: false,
+         cell: (info) => formatNumber(info.getValue()),
+      }),
 
-			enableColumnFilter: false,
-			cell: (info) => (
-				<span className={info.getValue() ? 'font-semibold text-ca-theme' : 'font-semibold text-ca-orange'}>
-					{info.getValue() ? 'Tasdiqlangan' : 'Tasdiqlanmagan'}
-				</span>
-			),
-		}),
-		columnHelper.display({
-			id: 'actions',
-			header: 'Harakatlar',
-			meta: { align: 'right' },
-			enableSorting: false,
-			enableColumnFilter: false,
-			size: 210,
-			cell: ({ row }) => {
-				const item = row.original;
-				const productLabel = [brandNameById.get(item.brand), categoryNameById.get(item.product_category)]
-					.filter(Boolean)
-					.join(' ');
+      columnHelper.accessor('real_price', {
+         header: 'Haqiqiy Narxi ($)',
+         size: 130,
+         enableColumnFilter: false,
+         cell: (info) => formatNumber(info.getValue(), 2),
+      }),
+      columnHelper.accessor('worker_price', {
+         header: 'Ishchi Uchun Narx ($)',
+         size: 150,
+         enableColumnFilter: false,
+         cell: (info) => formatNumber(info.getValue(), 2),
+      }),
+      columnHelper.accessor('cr_date', { header: 'Sana', size: 110, enableColumnFilter: false }),
+      columnHelper.accessor('status_count', {
+         header: 'Mahsulotlar sanalganligi',
+         size: 160,
 
-				return (
-					<div className='flex justify-end gap-1'>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{
-								...buttonProps(<FaTelegramPlane />, 'success', 'icon'),
-								'aria-label': 'Telegramga yuborish',
-							}}
-							dialog={WarehouseSendTelegramModal}
-							dialogProps={{ item, productLabel: productLabel || `#${item.id}` }}
-						/>
-						{/* <OpenDialogButton
+         enableColumnFilter: false,
+         cell: (info) => (
+            <span className={info.getValue() ? 'font-semibold text-ca-theme' : 'font-semibold text-ca-orange'}>
+               {info.getValue() ? 'Tasdiqlangan' : 'Tasdiqlanmagan'}
+            </span>
+         ),
+      }),
+      columnHelper.display({
+         id: 'actions',
+         header: 'Harakatlar',
+         meta: { align: 'right' },
+         enableSorting: false,
+         enableColumnFilter: false,
+         size: 210,
+         cell: ({ row }) => {
+            const item = row.original;
+            const productLabel = [
+               item.brand_detail?.name ?? brandNameById.get(item.brand),
+               item.product_category_detail?.name ?? categoryNameById.get(item.product_category),
+            ]
+               .filter(Boolean)
+               .join(' ');
+
+            return (
+               <div className='flex justify-end gap-1'>
+                  <OpenDialogButton
+                     element={(props) => <Button {...props} />}
+                     elementProps={{
+                        ...buttonProps(<FaTelegramPlane />, 'success', 'icon'),
+                        'aria-label': 'Telegramga yuborish',
+                     }}
+                     dialog={WarehouseSendTelegramModal}
+                     dialogProps={{ item, productLabel: productLabel || `#${item.id}` }}
+                  />
+                  {/* <OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
 								...buttonProps(<FaDollarSign />, 'warning', 'icon'),
@@ -238,114 +239,114 @@ export default function WarehousePage() {
 							dialog={WarehousePaymentModal}
 							dialogProps={{ item }}
 						/> */}
-						{canWrite && canManageWarehouse && (
-							<OpenDialogButton
-								element={(props) => <Button {...props} />}
-								elementProps={{
-									...buttonProps(<FaImages />, 'theme', 'icon'),
-									'aria-label': 'Rasmlar',
-								}}
-								dialog={WarehouseImagesModal}
-								dialogProps={{ item }}
-							/>
-						)}
-						{canWrite && canManageWarehouse && (
-							<OpenDialogButton
-								element={(props) => <Button {...props} />}
-								elementProps={{
-									...buttonProps(<FaEdit />, 'info', 'icon'),
-									'aria-label': 'Tahrirlash',
-								}}
-								dialog={WarehouseEditModal}
-								dialogProps={{ item }}
-							/>
-						)}
-						{canWrite && canManageWarehouse && (
-							<OpenDialogButton
-								element={(props) => <Button {...props} />}
-								elementProps={{
-									...buttonProps(<FaTrash />, 'danger', 'icon'),
-									'aria-label': "O'chirish",
-								}}
-								dialog={DeleteWarehouseModal}
-								dialogProps={{ item }}
-							/>
-						)}
-					</div>
-				);
-			},
-		}),
-	];
+                  {canWrite && canManageWarehouse && (
+                     <OpenDialogButton
+                        element={(props) => <Button {...props} />}
+                        elementProps={{
+                           ...buttonProps(<FaImages />, 'theme', 'icon'),
+                           'aria-label': 'Rasmlar',
+                        }}
+                        dialog={WarehouseImagesModal}
+                        dialogProps={{ item }}
+                     />
+                  )}
+                  {canWrite && canManageWarehouse && (
+                     <OpenDialogButton
+                        element={(props) => <Button {...props} />}
+                        elementProps={{
+                           ...buttonProps(<FaEdit />, 'info', 'icon'),
+                           'aria-label': 'Tahrirlash',
+                        }}
+                        dialog={WarehouseEditModal}
+                        dialogProps={{ item }}
+                     />
+                  )}
+                  {canWrite && canManageWarehouse && (
+                     <OpenDialogButton
+                        element={(props) => <Button {...props} />}
+                        elementProps={{
+                           ...buttonProps(<FaTrash />, 'danger', 'icon'),
+                           'aria-label': "O'chirish",
+                        }}
+                        dialog={DeleteWarehouseModal}
+                        dialogProps={{ item }}
+                     />
+                  )}
+               </div>
+            );
+         },
+      }),
+   ];
 
-	return (
-		<>
-			<PageHeader
-				title='Tovarlar va Narxlar'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Tovarlar va Narxlar', active: true },
-				]}
-			/>
+   return (
+      <>
+         <PageHeader
+            title='Tovarlar va Narxlar'
+            breadcrumb={[
+               { label: 'Asosiy', path: '/' },
+               { label: 'Tovarlar va Narxlar', active: true },
+            ]}
+         />
 
-			<Panel
-				title="Ro'yxat"
-				actions={
-					<>
-						<Button
-							type='button'
-							variant={onlyConfirmed ? 'success' : 'warning'}
-							size='xs'
-							onClick={() => {
-								setOnlyConfirmed((v) => !v);
-								setPagination((p) => ({ ...p, pageIndex: 0 }));
-							}}
-						>
-							Tekshirildi {onlyConfirmed && '✓'}
-						</Button>
-						{canWrite && canManageWarehouse && (
-							<Link
-								to='/warehouse-prices/create'
-								className={buttonVariants({ variant: 'info', size: 'xs' })}
-							>
-								Qo'shish +
-							</Link>
-						)}
-					</>
-				}
-				onReload={() => {
-					refetch();
-				}}
-			>
-				<DataTable
-					columns={columns}
-					data={results}
-					getRowClassName={(row) => (row.count <= 0 ? 'bg-red-100' : undefined)}
-					manualPagination
-					manualSorting
-					manualFiltering
-					pageCount={paginationMeta?.lastPage ?? -1}
-					totalRows={paginationMeta?.total}
-					pagination={pagination}
-					onPaginationChange={setPagination}
-					sorting={sorting}
-					onSortingChange={setSorting}
-					columnFilters={columnFilters}
-					onColumnFiltersChange={(filters) => {
-						setColumnFilters(filters);
-						setPagination((p) => ({ ...p, pageIndex: 0 }));
-					}}
-					enablePagination
-					enableGlobalFilter={false}
-					enableColumnFilters
-					enableColumnVisibility
-					columnVisibilityKey='warehouse'
-					enableSorting
-					enableStriping
-					isLoading={isLoading || isFetching}
-					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
-					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
-				/>
-			</Panel>
-		</>
-	);
+         <Panel
+            title="Ro'yxat"
+            actions={
+               <>
+                  <Button
+                     type='button'
+                     variant={onlyConfirmed ? 'success' : 'warning'}
+                     size='xs'
+                     onClick={() => {
+                        setOnlyConfirmed((v) => !v);
+                        setPagination((p) => ({ ...p, pageIndex: 0 }));
+                     }}
+                  >
+                     Tekshirildi {onlyConfirmed && '✓'}
+                  </Button>
+                  {canWrite && canManageWarehouse && (
+                     <Link
+                        to='/warehouse-prices/create'
+                        className={buttonVariants({ variant: 'info', size: 'xs' })}
+                     >
+                        Qo'shish +
+                     </Link>
+                  )}
+               </>
+            }
+            onReload={() => {
+               refetch();
+            }}
+         >
+            <DataTable
+               columns={columns}
+               data={results}
+               getRowClassName={(row) => (row.count <= 0 ? 'bg-red-100 dark:bg-red-950/50' : undefined)}
+               manualPagination
+               manualSorting
+               manualFiltering
+               pageCount={paginationMeta?.lastPage ?? -1}
+               totalRows={paginationMeta?.total}
+               pagination={pagination}
+               onPaginationChange={setPagination}
+               sorting={sorting}
+               onSortingChange={setSorting}
+               columnFilters={columnFilters}
+               onColumnFiltersChange={(filters) => {
+                  setColumnFilters(filters);
+                  setPagination((p) => ({ ...p, pageIndex: 0 }));
+               }}
+               enablePagination
+               enableGlobalFilter={false}
+               enableColumnFilters
+               enableColumnVisibility
+               columnVisibilityKey='warehouse'
+               enableSorting
+               enableStriping
+               isLoading={isLoading || isFetching}
+               emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
+               emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
+            />
+         </Panel>
+      </>
+   );
 }

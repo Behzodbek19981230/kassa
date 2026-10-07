@@ -228,7 +228,7 @@ export default function WarehouseProductsPage() {
 									return (
 										<Fragment key={group.brand.id}>
 											<TableRow>
-												<TableCell colSpan={10} className='bg-cyan-100 font-bold text-ca-red'>
+												<TableCell colSpan={10} className='bg-cyan-100 font-bold text-ca-red dark:bg-cyan-950/60 dark:text-red-400'>
 													{group.brand.name}
 												</TableCell>
 											</TableRow>
@@ -292,18 +292,18 @@ export default function WarehouseProductsPage() {
 								})}
 							{!isLoading && !isError && brandGroups.length > 0 && (
 								<TableRow className='bg-ca-heading'>
-									<TableCell className='bg-ca-heading text-white' />
-									<TableCell className='bg-ca-heading text-white' />
-									<TableCell className='bg-ca-heading text-white' />
-									<TableCell className='bg-ca-heading text-white' />
-									<TableCell className='bg-ca-heading text-white' />
-									<TableCell className='bg-ca-heading font-semibold text-white'>Jami:</TableCell>
-									<TableCell className='bg-ca-heading text-white' />
-									<TableCell className='bg-ca-heading font-semibold text-white'>
+									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
+									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
+									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
+									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
+									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
+									<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>Jami:</TableCell>
+									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
+									<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
 										{formatNumber(totalCount)}
 									</TableCell>
-									<TableCell className='bg-ca-heading text-white' />
-									<TableCell className='bg-ca-heading font-semibold text-white'>
+									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
+									<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
 										{formatNumber(totalSum, 2)} $
 									</TableCell>
 								</TableRow>
