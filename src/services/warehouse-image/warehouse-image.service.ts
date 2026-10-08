@@ -22,6 +22,10 @@ export const warehouseImageService = {
     )
     return data
   },
+  update: async (id: number, payload: Partial<Pick<WarehouseImage, 'number' | 'is_main'>>) => {
+    const { data } = await apiClient.patch<WarehouseImage>(`/warehouse-image/${id}/`, payload)
+    return data
+  },
   remove: async (id: number) => {
     await apiClient.delete(`/warehouse-image/${id}/`)
   },

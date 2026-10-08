@@ -1,6 +1,14 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { FaCloudUploadAlt, FaImages, FaSpinner, FaTrash } from 'react-icons/fa';
+import {
+	FaChevronLeft,
+	FaChevronRight,
+	FaCloudUploadAlt,
+	FaImages,
+	FaSpinner,
+	FaStar,
+	FaTrash,
+} from 'react-icons/fa';
 import Lightbox from 'yet-another-react-lightbox';
 import Fullscreen from 'yet-another-react-lightbox/plugins/fullscreen';
 import Slideshow from 'yet-another-react-lightbox/plugins/slideshow';
@@ -13,14 +21,24 @@ import { cn } from '@/lib/utils';
 import {
 	useCreateWarehouseImageMutation,
 	useDeleteWarehouseImageMutation,
+	useSetMainWarehouseImageMutation,
+	useUpdateWarehouseImageNumbersMutation,
 	useWarehouseImageListQuery,
 } from '@/services/warehouse-image/warehouse-image.queries';
+import type { WarehouseImage } from '@/services/warehouse-image/warehouse-image.types';
 import type { Warehouse } from '@/services/warehouse/warehouse.types';
 
 interface WarehouseImagesModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	item: Warehouse;
+}
+
+// Images without a number keep the order the API returned them in.
+function sortByNumber(list: WarehouseImage[]): WarehouseImage[] {
+	return [...list].sort(
+		(a, b) => (a.number ?? Number.MAX_SAFE_INTEGER) - (b.number ?? Number.MAX_SAFE_INTEGER),
+	);
 }
 
 export default function WarehouseImagesModal({ open, setOpen, item }: WarehouseImagesModalProps) {
@@ -30,11 +48,14 @@ export default function WarehouseImagesModal({ open, setOpen, item }: WarehouseI
 	const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
 	const { data, isLoading, isFetching } = useWarehouseImageListQuery({ warehouse: item.id, limit: 100 });
-	const images = data?.results ?? [];
+	const images = useMemo(() => sortByNumber(data?.results ?? []), [data]);
 	const slides = images.map((img) => ({ src: img.image }));
 
 	const createMutation = useCreateWarehouseImageMutation();
 	const deleteMutation = useDeleteWarehouseImageMutation();
+	const reorderMutation = useUpdateWarehouseImageNumbersMutation();
+	const setMainMutation = useSetMainWarehouseImageMutation();
+	const isSaving = reorderMutation.isPending || setMainMutation.isPending;
 
 	const uploadFiles = useCallback(
 		async (files: File[]) => {
@@ -69,6 +90,37 @@ export default function WarehouseImagesModal({ open, setOpen, item }: WarehouseI
 			notify({ title: "O'chirishda xatolik yuz berdi" });
 		} finally {
 			setDeletingId(null);
+		}
+	};
+
+	// Moves one image by one place. Only images whose position changed are sent, each with its new 1-based number.
+	const moveImage = async (index: number, direction: -1 | 1) => {
+		const target = index + direction;
+		if (target < 0 || target >= images.length) return;
+
+		const reordered = [...images];
+		[reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+
+		const currentNumber = new Map(images.map((img, pos) => [img.id, img.number ?? pos + 1]));
+		const changes = reordered.flatMap((img, pos) =>
+			currentNumber.get(img.id) === pos + 1 ? [] : [{ id: img.id, number: pos + 1 }],
+		);
+
+		try {
+			await reorderMutation.mutateAsync(changes);
+		} catch {
+			notify({ title: 'Rasm tartibini saqlashda xatolik yuz berdi' });
+		}
+	};
+
+	// Makes one image the main one. The previous main image is unmarked by the same mutation.
+	const setMain = async (img: WarehouseImage) => {
+		const previousMain = images.find((other) => other.is_main);
+		try {
+			await setMainMutation.mutateAsync({ id: img.id, previousMainId: previousMain?.id });
+			notify({ title: 'Asosiy rasm belgilandi' });
+		} catch {
+			notify({ title: 'Asosiy rasmni saqlashda xatolik yuz berdi' });
 		}
 	};
 
@@ -124,6 +176,16 @@ export default function WarehouseImagesModal({ open, setOpen, item }: WarehouseI
 										className='h-full w-full cursor-zoom-in object-cover transition-transform duration-200 group-hover:scale-105'
 									/>
 									<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100' />
+									<div className='absolute left-2 top-2 flex gap-1'>
+										<span className='rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white'>
+											{idx + 1}
+										</span>
+										{img.is_main && (
+											<span className='flex items-center gap-1 rounded bg-ca-theme px-1.5 py-0.5 text-[10px] font-semibold text-white'>
+												<FaStar className='text-[8px]' /> Asosiy
+											</span>
+										)}
+									</div>
 									<button
 										type='button'
 										aria-label="O'chirish"
@@ -137,6 +199,39 @@ export default function WarehouseImagesModal({ open, setOpen, item }: WarehouseI
 											<FaTrash className='text-xs' />
 										)}
 									</button>
+									<div className='absolute inset-x-0 bottom-2 flex justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100'>
+										<button
+											type='button'
+											aria-label='Chapga surish'
+											disabled={idx === 0 || isSaving}
+											onClick={() => moveImage(idx, -1)}
+											className='flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-ca-heading shadow transition-colors hover:bg-white disabled:opacity-30'
+										>
+											<FaChevronLeft className='text-xs' />
+										</button>
+										<button
+											type='button'
+											aria-label={img.is_main ? 'Asosiy rasm' : 'Asosiy qilish'}
+											title={img.is_main ? 'Asosiy rasm' : 'Asosiy qilish'}
+											disabled={img.is_main || isSaving}
+											onClick={() => setMain(img)}
+											className={cn(
+												'flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow transition-colors hover:bg-white disabled:opacity-100',
+												img.is_main ? 'text-amber-500' : 'text-ca-text',
+											)}
+										>
+											<FaStar className='text-xs' />
+										</button>
+										<button
+											type='button'
+											aria-label="O'ngga surish"
+											disabled={idx === images.length - 1 || isSaving}
+											onClick={() => moveImage(idx, 1)}
+											className='flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-ca-heading shadow transition-colors hover:bg-white disabled:opacity-30'
+										>
+											<FaChevronRight className='text-xs' />
+										</button>
+									</div>
 								</div>
 							))}
 						</div>
