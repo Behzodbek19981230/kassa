@@ -3,7 +3,7 @@ import { FaExclamationTriangle } from 'react-icons/fa';
 import {
 	Button,
 	Combobox,
-	DateTimePicker,
+	DatePicker,
 	PageHeader,
 	Panel,
 	Table,
@@ -247,7 +247,7 @@ export default function ChinaDispatchPage() {
 							</div>
 							<div>
 								<label className='mb-1 block text-xs font-semibold text-ca-heading'>Yuk chiqish vaqti:</label>
-								<DateTimePicker value={dispatchValue} onChange={setDispatchInput} />
+								<DatePicker showTime value={dispatchValue} onChange={setDispatchInput} />
 							</div>
 						</div>
 

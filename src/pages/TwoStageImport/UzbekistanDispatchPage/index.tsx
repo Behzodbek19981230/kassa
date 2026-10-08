@@ -3,7 +3,7 @@ import { FaExclamationTriangle } from 'react-icons/fa';
 import {
 	Button,
 	Combobox,
-	DateTimePicker,
+	DatePicker,
 	PageHeader,
 	Panel,
 	Table,
@@ -243,7 +243,7 @@ export default function UzbekistanDispatchPage() {
 							<label className='mb-1 block text-xs font-semibold text-ca-heading'>
 								Jo'natish sanasi va vaqti: <span className='text-ca-red'>*</span>
 							</label>
-							<DateTimePicker value={dispatchValue} onChange={setDispatchInput} />
+							<DatePicker showTime value={dispatchValue} onChange={setDispatchInput} />
 						</div>
 
 						<div className={SCROLL_AREA_CLASS}>
