@@ -26,7 +26,8 @@ export type SidebarIcon =
 	| 'info-circle'
 	| 'users'
 	| 'settings'
-	| 'paper-plane';
+	| 'paper-plane'
+	| 'globe';
 
 /** Permission flags a menu item's visibility can be gated on; see src/utils/sidebarUtils.ts. */
 export interface SidebarMenuPermissions {

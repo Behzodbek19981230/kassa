@@ -21,6 +21,38 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		requiredPermission: 'canManageWarehouse',
 	},
 	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '/import' },
+	{
+		id: 'two-stage-import',
+		icon: 'shipping-fast',
+		label: 'Ikki bosqichli import',
+		children: [
+			{
+				id: 'two-stage-china-dispatch',
+				icon: 'truck',
+				label: 'Xitoydan yuk chiqarish',
+				path: '/two-stage-import/china-dispatch',
+			},
+			{ id: 'two-stage-orders', icon: 'history', label: 'Import buyurtmalar', path: '/two-stage-import/orders' },
+			{
+				id: 'two-stage-transit-stock',
+				icon: 'warehouse',
+				label: 'Tranzit logistika skladi',
+				path: '/two-stage-import/transit-stock',
+			},
+			{
+				id: 'two-stage-transit-dispatch',
+				icon: 'shipping-fast',
+				label: "O'zbekistonga yuk chiqarish",
+				path: '/two-stage-import/transit-dispatch',
+			},
+			{
+				id: 'two-stage-uzbekistan-in-road',
+				icon: 'truck',
+				label: "O'zbekistonga yo'ldagi buyurtmalar",
+				path: '/two-stage-import/uzbekistan-in-road',
+			},
+		],
+	},
 	{ id: 'warehouse-report', icon: 'warehouse', label: 'Omborxona hisobi', path: '/warehouse-report' },
 	{
 		id: 'my-debts',
@@ -55,6 +87,19 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				requiredPermission: 'canManageConsignor',
 			},
 			{ id: 'sklad-types', icon: 'warehouse', label: 'Skladlar', path: '/system/sklad-types' },
+			{ id: 'countries', icon: 'globe', label: 'Davlatlar', path: '/system/countries' },
+			{
+				id: 'logistics-companies',
+				icon: 'shipping-fast',
+				label: 'Logistika firmalari',
+				path: '/system/logistics-companies',
+			},
+			{
+				id: 'logistics-warehouses',
+				icon: 'warehouse',
+				label: 'Logistika skladlari',
+				path: '/system/logistics-warehouses',
+			},
 
 			{
 				id: 'users',

@@ -15,6 +15,7 @@ import {
 	FaExclamationTriangle,
 	FaFileInvoice,
 	FaFolderOpen,
+	FaGlobe,
 	FaHistory,
 	FaInfoCircle,
 	FaLayerGroup,
@@ -77,6 +78,7 @@ const iconMap: Record<SidebarIcon, ReactNode> = {
 	users: <FaUsers />,
 	settings: <FaCogs />,
 	'paper-plane': <FaPaperPlane />,
+	globe: <FaGlobe />,
 };
 
 function SubMenuBullet({ active }: { active: boolean }) {

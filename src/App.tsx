@@ -12,6 +12,9 @@ import UserPage from '@/pages/system/UserPage';
 import CompanyPage from '@/pages/system/CompanyPage';
 import LocationPage from '@/pages/system/LocationPage';
 import SkladTypePage from '@/pages/system/SkladTypePage';
+import CountryPage from '@/pages/system/CountryPage';
+import LogisticsCompanyPage from '@/pages/system/LogisticsCompanyPage';
+import LogisticsWarehousePage from '@/pages/system/LogisticsWarehousePage';
 import WarehousePage from '@/pages/WarehousePage';
 import WarehouseFormPage from '@/pages/WarehousePage/WarehouseFormPage';
 import WarehouseProductsPage from '@/pages/WarehouseProductsPage';
@@ -44,6 +47,11 @@ import DebtRepaymentDraftPage from '@/pages/settings/DebtRepaymentDraftPage';
 import TelegramBroadcastPage from '@/pages/TelegramBroadcastPage';
 import TelegramBroadcastCreatePage from '@/pages/TelegramBroadcastPage/CreatePage';
 import TelegramBroadcastDetailPage from '@/pages/TelegramBroadcastPage/DetailPage';
+import ChinaDispatchPage from '@/pages/TwoStageImport/ChinaDispatchPage';
+import ImportOrdersPage from '@/pages/TwoStageImport/ImportOrdersPage';
+import TransitStockPage from '@/pages/TwoStageImport/TransitStockPage';
+import UzbekistanDispatchPage from '@/pages/TwoStageImport/UzbekistanDispatchPage';
+import UzbekistanInRoadPage from '@/pages/TwoStageImport/UzbekistanInRoadPage';
 
 export default function App() {
 	return (
@@ -57,6 +65,11 @@ export default function App() {
 					<Route path='warehouse-products' element={<WarehouseProductsPage />} />
 					<Route path='place-order' element={<PlaceOrderPage />} />
 					<Route path='import' element={<ImportPage />} />
+					<Route path='two-stage-import/china-dispatch' element={<ChinaDispatchPage />} />
+					<Route path='two-stage-import/orders' element={<ImportOrdersPage />} />
+					<Route path='two-stage-import/transit-stock' element={<TransitStockPage />} />
+					<Route path='two-stage-import/transit-dispatch' element={<UzbekistanDispatchPage />} />
+					<Route path='two-stage-import/uzbekistan-in-road' element={<UzbekistanInRoadPage />} />
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
 					<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
 					<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
@@ -86,6 +99,9 @@ export default function App() {
 					<Route path='system/companies' element={<CompanyPage />} />
 					<Route path='system/locations' element={<LocationPage />} />
 					<Route path='system/sklad-types' element={<SkladTypePage />} />
+					<Route path='system/countries' element={<CountryPage />} />
+					<Route path='system/logistics-companies' element={<LogisticsCompanyPage />} />
+					<Route path='system/logistics-warehouses' element={<LogisticsWarehousePage />} />
 					<Route path='warehouse-prices' element={<WarehousePage />} />
 					<Route path='warehouse-prices/create' element={<WarehouseFormPage mode='create' />} />
 					<Route path='warehouse-prices/:id/edit' element={<WarehouseFormPage mode='edit' />} />

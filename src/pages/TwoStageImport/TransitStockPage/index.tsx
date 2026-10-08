@@ -1,0 +1,314 @@
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+	FaBoxes,
+	FaBoxOpen,
+	FaExclamationTriangle,
+	FaMoneyBillWave,
+	FaShoppingCart,
+	FaTruck,
+	FaWarehouse,
+} from 'react-icons/fa';
+import {
+	Button,
+	Combobox,
+	PageHeader,
+	Panel,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
+import { formatNumber } from '@/lib/number';
+import { useImportCartQuery, useTransitStockQuery } from '@/services/two-stage-import/two-stage-import.queries';
+import type { TransitStockItem } from '@/services/two-stage-import/two-stage-import.types';
+import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
+import {
+	createLogisticsWarehouseLoader,
+	loadBrandOptions,
+	createCategoryLoader,
+	loadCountryOptions,
+	logisticsWarehouseLabel,
+} from '@/pages/TwoStageImport/options';
+import {
+	useLogisticsWarehouseListQuery,
+	useLogisticsWarehouseQuery,
+} from '@/services/logistics-warehouse/logistics-warehouse.queries';
+import { useWarehouseCatalog } from '@/pages/TwoStageImport/useWarehouseCatalog';
+import AddToUzCartModal from '@/pages/TwoStageImport/components/AddToUzCartModal';
+import StatCard from '@/pages/TwoStageImport/components/StatCard';
+import {
+	SCROLL_AREA_CLASS,
+	SCROLL_BODY_CLASS,
+	SCROLL_PANEL_CLASS,
+	formatTashkentDate,
+	nowTashkentLocal,
+	toApiDateTime,
+} from '@/pages/TwoStageImport/utils';
+
+export default function TransitStockPage() {
+	const navigate = useNavigate();
+	const { canWrite } = useCurrentCompany();
+	const { byId } = useWarehouseCatalog();
+
+	const [countryFilter, setCountryFilter] = useState('');
+	const [logisticsFilter, setLogisticsFilter] = useState('');
+	const [brandFilter, setBrandFilter] = useState('');
+	const [categoryFilter, setCategoryFilter] = useState('');
+	const [selected, setSelected] = useState<{ stock: TransitStockItem; product: WarehouseAllListItem } | null>(null);
+	const [defaultDispatch] = useState(nowTashkentLocal);
+
+	const countryId = countryFilter ? Number(countryFilter) : undefined;
+	const loadWarehouseOptions = useMemo(() => createLogisticsWarehouseLoader(countryId), [countryId]);
+	const loadCategoryOptions = useMemo(
+		() => createCategoryLoader(brandFilter ? Number(brandFilter) : undefined),
+		[brandFilter],
+	);
+
+	const stockQuery = useTransitStockQuery(logisticsFilter ? Number(logisticsFilter) : undefined);
+	const { data: selectedWarehouse } = useLogisticsWarehouseQuery(logisticsFilter ? Number(logisticsFilter) : undefined);
+
+	// Transit stock rows carry no country, so "Davlat" keeps the stock of warehouses that belong to it.
+	const countryWarehousesQuery = useLogisticsWarehouseListQuery(
+		{ country: countryId, limit: 200 },
+		Boolean(countryId),
+	);
+	const countryWarehouseIds = countryId
+		? new Set((countryWarehousesQuery.data?.results ?? []).map((w) => w.id))
+		: null;
+
+	const cartQuery = useImportCartQuery('TRANSIT_TO_UZBEKISTAN');
+	const dispatchDatetime = cartQuery.data?.cart
+		? cartQuery.data.cart.dispatch_datetime
+		: toApiDateTime(defaultDispatch);
+
+	const rows = (stockQuery.data ?? []).flatMap((stock) => {
+		if (countryWarehouseIds && !countryWarehouseIds.has(stock.logistics_warehouse)) return [];
+		const product = byId.get(stock.warehouse);
+		if (brandFilter && product?.brand_id !== Number(brandFilter)) return [];
+		if (categoryFilter && product?.product_category_id !== Number(categoryFilter)) return [];
+		return [{ stock, product }];
+	});
+
+	const totals = rows.reduce(
+		(acc, { stock }) => ({
+			quantity: acc.quantity + stock.quantity,
+			reserved: acc.reserved + stock.reserved_quantity,
+			available: acc.available + stock.available_quantity,
+			value: acc.value + stock.quantity * Number(stock.current_price_dollar),
+		}),
+		{ quantity: 0, reserved: 0, available: 0, value: 0 },
+	);
+
+	function clearFilters() {
+		setCountryFilter('');
+		setLogisticsFilter('');
+		setBrandFilter('');
+		setCategoryFilter('');
+	}
+
+	return (
+		<>
+			<PageHeader
+				title='Tranzit logistika skladi'
+				breadcrumb={[
+					{ label: 'Asosiy', path: '/' },
+					{ label: 'Ikki bosqichli import' },
+					{ label: 'Tranzit logistika skladi', active: true },
+				]}
+			/>
+
+			<Panel
+				title='Tranzit logistika skladi'
+				className={SCROLL_PANEL_CLASS}
+				bodyClassName={SCROLL_BODY_CLASS}
+				onReload={() => stockQuery.refetch()}
+				actions={
+					canWrite && (
+						<Button
+							type='button'
+							variant='danger'
+							size='xs'
+							onClick={() => navigate('/two-stage-import/transit-dispatch')}
+						>
+							<FaTruck className='mr-1.5' /> O'zbekistonga yuk chiqarish
+						</Button>
+					)
+				}
+			>
+				<div className='-mx-2.5 flex flex-wrap'>
+					<StatCard icon={<FaBoxes />} label='Jami mahsulot' value={`${formatNumber(totals.quantity)} dona`} />
+					<StatCard
+						icon={<FaBoxOpen />}
+						label='Band qilingan'
+						value={`${formatNumber(totals.reserved)} dona`}
+						accent='warning'
+					/>
+					<StatCard
+						icon={<FaWarehouse />}
+						label='Mavjud'
+						value={`${formatNumber(totals.available)} dona`}
+						accent='success'
+					/>
+					<StatCard
+						icon={<FaMoneyBillWave />}
+						label='Jami qiymat'
+						value={`${formatNumber(totals.value, 2)} $`}
+						accent='danger'
+					/>
+				</div>
+
+				<div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
+					<div className='w-full px-2.5 sm:w-1/2 xl:w-1/4'>
+						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Davlat:</label>
+						<Combobox
+							value={countryFilter}
+							onChange={(value) => {
+								setCountryFilter(value);
+								setLogisticsFilter('');
+							}}
+							loadOptions={loadCountryOptions}
+							placeholder='Barchasi'
+							clearable
+						/>
+					</div>
+					<div className='w-full px-2.5 sm:w-1/2 xl:w-1/4'>
+						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Logistika skladi:</label>
+						<Combobox
+							value={logisticsFilter}
+							onChange={(value) => setLogisticsFilter(value)}
+							loadOptions={loadWarehouseOptions}
+							selectedLabel={selectedWarehouse ? logisticsWarehouseLabel(selectedWarehouse) : undefined}
+							placeholder='Barchasi'
+							clearable
+						/>
+					</div>
+					<div className='w-full px-2.5 sm:w-1/2 xl:w-1/4'>
+						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Modelni tanlang:</label>
+						<Combobox
+							value={brandFilter}
+							onChange={(value) => {
+								setBrandFilter(value);
+								setCategoryFilter('');
+							}}
+							loadOptions={loadBrandOptions}
+							placeholder='Modelni tanlang'
+							clearable
+						/>
+					</div>
+					<div className='w-full px-2.5 sm:w-1/2 xl:w-1/4'>
+						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Kategoriya:</label>
+						<div className='flex gap-2'>
+							<div className='flex-1'>
+								<Combobox
+									value={categoryFilter}
+									onChange={(value) => setCategoryFilter(value)}
+									loadOptions={loadCategoryOptions}
+									placeholder='Kategoriyani tanlang'
+									clearable
+								/>
+							</div>
+							<Button
+								type='button'
+								variant='default'
+								size='sm'
+								disabled={!countryFilter && !logisticsFilter && !brandFilter && !categoryFilter}
+								onClick={clearFilters}
+							>
+								Tozalash
+							</Button>
+						</div>
+					</div>
+				</div>
+
+				<div className={SCROLL_AREA_CLASS}>
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead className='bg-ca-theme text-white'>#</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Model</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
+								<TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Jami soni</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Band</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Mavjud</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Narxi (¥)</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Oxirgi kirim</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Harakatlar</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{stockQuery.isLoading && (
+								<TableRow>
+									<TableCell colSpan={12} className='text-center'>
+										Yuklanmoqda...
+									</TableCell>
+								</TableRow>
+							)}
+							{!stockQuery.isLoading && stockQuery.isError && (
+								<TableRow>
+									<TableCell colSpan={12} className='text-center text-ca-red'>
+										<FaExclamationTriangle className='mr-1.5 inline' />{' '}
+										{getApiErrorMessage(stockQuery.error, 'Xatolik yuz berdi')}
+									</TableCell>
+								</TableRow>
+							)}
+							{!stockQuery.isLoading && !stockQuery.isError && rows.length === 0 && (
+								<TableRow>
+									<TableCell colSpan={12} className='text-center'>
+										Ma'lumot topilmadi
+									</TableCell>
+								</TableRow>
+							)}
+							{rows.map(({ stock, product }, index) => (
+								<TableRow key={stock.id}>
+									<TableCell>{index + 1}</TableCell>
+									<TableCell>{product?.brand_name ?? '-'}</TableCell>
+									<TableCell>{product?.product_category_name ?? '-'}</TableCell>
+									<TableCell>{formatNumber(product?.size ?? '')}</TableCell>
+									<TableCell>{product?.type_name ?? ''}</TableCell>
+									<TableCell>{formatNumber(stock.quantity)}</TableCell>
+									<TableCell>{formatNumber(stock.reserved_quantity)}</TableCell>
+									<TableCell className='font-semibold text-ca-green'>
+										{formatNumber(stock.available_quantity)}
+									</TableCell>
+									<TableCell>{formatNumber(stock.current_price_yuan, 0)} ¥</TableCell>
+									<TableCell className='font-semibold'>{formatNumber(stock.current_price_dollar, 2)} $</TableCell>
+									<TableCell>{formatTashkentDate(stock.last_arrival_at)}</TableCell>
+									<TableCell>
+										{canWrite && product && stock.available_quantity > 0 && (
+											<Button
+												type='button'
+												variant='danger'
+												size='xs'
+												onClick={() => setSelected({ stock, product })}
+											>
+												<FaShoppingCart className='mr-1.5' /> Savatchaga
+											</Button>
+										)}
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
+				</div>
+			</Panel>
+
+			{selected && (
+				<AddToUzCartModal
+					open
+					setOpen={(open) => !open && setSelected(null)}
+					stock={selected.stock}
+					product={selected.product}
+					dispatchDatetime={dispatchDatetime}
+				/>
+			)}
+		</>
+	);
+}
