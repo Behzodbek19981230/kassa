@@ -42,9 +42,17 @@ interface LogisticsWarehouseFormModalProps {
 	setOpen: (open: boolean) => void;
 	mode: 'create' | 'edit';
 	item?: LogisticsWarehouse;
+	/** Set when the warehouse is added from a company's own list. The company is then fixed and not picked here. */
+	presetLogisticsCompany?: { id: number; name: string };
 }
 
-export default function LogisticsWarehouseFormModal({ open, setOpen, mode, item }: LogisticsWarehouseFormModalProps) {
+export default function LogisticsWarehouseFormModal({
+	open,
+	setOpen,
+	mode,
+	item,
+	presetLogisticsCompany,
+}: LogisticsWarehouseFormModalProps) {
 	const { notify } = useNotification();
 	const { companyId } = useCurrentCompany();
 	const [formError, setFormError] = useState('');
@@ -60,7 +68,9 @@ export default function LogisticsWarehouseFormModal({ open, setOpen, mode, item 
 		defaultValues: {
 			name: mode === 'edit' && item ? item.name : '',
 			country: mode === 'edit' && item?.country ? String(item.country) : '',
-			logisticsCompany: mode === 'edit' && item?.logistics_company ? String(item.logistics_company) : '',
+			logisticsCompany: String(
+				presetLogisticsCompany?.id ?? (mode === 'edit' && item?.logistics_company ? item.logistics_company : ''),
+			),
 		},
 	});
 
@@ -145,19 +155,23 @@ export default function LogisticsWarehouseFormModal({ open, setOpen, mode, item 
 							horizontal={false}
 							className='mb-3'
 						>
-							<Controller
-								name='logisticsCompany'
-								control={control}
-								render={({ field }) => (
-									<Combobox
-										value={field.value}
-										onChange={(v) => field.onChange(v)}
-										loadOptions={loadLogisticsCompanyOptions}
-										selectedLabel={selectedLogisticsCompany?.name}
-										placeholder='Logistika firmasini tanlang'
-									/>
-								)}
-							/>
+							{presetLogisticsCompany ? (
+								<Input value={presetLogisticsCompany.name} disabled readOnly />
+							) : (
+								<Controller
+									name='logisticsCompany'
+									control={control}
+									render={({ field }) => (
+										<Combobox
+											value={field.value}
+											onChange={(v) => field.onChange(v)}
+											loadOptions={loadLogisticsCompanyOptions}
+											selectedLabel={selectedLogisticsCompany?.name}
+											placeholder='Logistika firmasini tanlang'
+										/>
+									)}
+								/>
+							)}
 						</FormField>
 					</ModalBody>
 					<ModalFooter>

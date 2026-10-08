@@ -22,9 +22,9 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
+import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
-import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useCreateOrderCartMutation } from '@/services/order-cart/order-cart.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
@@ -54,8 +54,9 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 
-	const { data: usdRate } = useCurrencyRateQuery('USD');
-	const rate = usdRate?.rate ?? 0;
+	// Today's rate set for the company, the same one the header shows.
+	const { exchangeRate } = useCurrentCompany();
+	const rate = Number(exchangeRate?.dollar ?? 0);
 
 	const locationOptions = useMemo(() => {
 		const seen = new Map<string, { value: string; label: string; row: WarehouseAllListItem }>();

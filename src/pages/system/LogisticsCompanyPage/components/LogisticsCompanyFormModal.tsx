@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import {
 	Button,
+	Combobox,
 	FormField,
 	Input,
 	Modal,
@@ -12,17 +13,28 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalTitle,
+	Textarea,
 	useNotification,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
+import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
+import { useCountryQuery } from '@/services/country/country.queries';
 import {
 	useCreateLogisticsCompanyMutation,
 	useUpdateLogisticsCompanyMutation,
 } from '@/services/logistics-company/logistics-company.queries';
 import type { LogisticsCompany, LogisticsCompanyPayload } from '@/services/logistics-company/logistics-company.types';
+import { loadCountryOptions } from '@/pages/TwoStageImport/options';
 
 const logisticsCompanyFormSchema = z.object({
 	name: z.string().trim().min(1, 'Nomi kiritilishi shart'),
+	country: z.string().min(1, 'Davlatni tanlang'),
+	// Optional, but a phone number that has been started must be complete.
+	phone: z
+		.string()
+		.refine((value) => value === '' || UZ_PHONE_REGEX.test(value), "Telefon raqami to'liq kiritilishi kerak"),
+	contactPerson: z.string(),
+	address: z.string(),
 });
 
 type LogisticsCompanyFormValues = z.infer<typeof logisticsCompanyFormSchema>;
@@ -40,12 +52,23 @@ export default function LogisticsCompanyFormModal({ open, setOpen, mode, item }:
 
 	const {
 		register,
+		control,
 		handleSubmit,
+		watch,
 		formState: { errors },
 	} = useForm<LogisticsCompanyFormValues>({
 		resolver: zodResolver(logisticsCompanyFormSchema),
-		defaultValues: { name: mode === 'edit' && item ? item.name : '' },
+		defaultValues: {
+			name: mode === 'edit' && item ? item.name : '',
+			country: mode === 'edit' && item?.country ? String(item.country) : '',
+			phone: mode === 'edit' && item?.phone ? item.phone : '',
+			contactPerson: mode === 'edit' && item?.contact_person ? item.contact_person : '',
+			address: mode === 'edit' && item?.address ? item.address : '',
+		},
 	});
+
+	const countryValue = watch('country');
+	const { data: selectedCountry } = useCountryQuery(countryValue ? Number(countryValue) : undefined);
 
 	const createMutation = useCreateLogisticsCompanyMutation();
 	const updateMutation = useUpdateLogisticsCompanyMutation();
@@ -53,7 +76,13 @@ export default function LogisticsCompanyFormModal({ open, setOpen, mode, item }:
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
-		const payload: LogisticsCompanyPayload = { name: values.name.trim() };
+		const payload: LogisticsCompanyPayload = {
+			name: values.name.trim(),
+			country: Number(values.country),
+			phone: values.phone.trim(),
+			contact_person: values.contactPerson.trim(),
+			address: values.address.trim(),
+		};
 
 		try {
 			if (mode === 'edit' && item) {
@@ -71,7 +100,7 @@ export default function LogisticsCompanyFormModal({ open, setOpen, mode, item }:
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
-			<ModalContent>
+			<ModalContent className='max-w-xl'>
 				<ModalHeader>
 					<ModalTitle>
 						{mode === 'edit' ? 'Logistika firmasini tahrirlash' : "Logistika firmasi qo'shish"}
@@ -86,6 +115,46 @@ export default function LogisticsCompanyFormModal({ open, setOpen, mode, item }:
 						)}
 						<FormField label='Nomi' error={errors.name?.message} required horizontal={false} className='mb-3'>
 							<Input {...register('name')} placeholder='Masalan: Silk Road Cargo' />
+						</FormField>
+						<FormField label='Davlat' error={errors.country?.message} required horizontal={false} className='mb-3'>
+							<Controller
+								name='country'
+								control={control}
+								render={({ field }) => (
+									<Combobox
+										value={field.value}
+										onChange={(v) => field.onChange(v)}
+										loadOptions={loadCountryOptions}
+										selectedLabel={selectedCountry?.name}
+										placeholder='Davlatni tanlang'
+									/>
+								)}
+							/>
+						</FormField>
+						<FormField label='Telefon' error={errors.phone?.message} horizontal={false} className='mb-3'>
+							<Controller
+								name='phone'
+								control={control}
+								render={({ field }) => (
+									<Input
+										inputMode='numeric'
+										placeholder='+998 XX XXX XX XX'
+										value={field.value}
+										onChange={(e) => {
+											const formatted = formatUzPhone(e.target.value);
+											// Clearing the field leaves the mask's bare prefix, which means "no phone".
+											field.onChange(formatted === '+998' ? '' : formatted);
+										}}
+										onBlur={field.onBlur}
+									/>
+								)}
+							/>
+						</FormField>
+						<FormField label='Kontakt shaxs' error={errors.contactPerson?.message} horizontal={false} className='mb-3'>
+							<Input {...register('contactPerson')} placeholder='Masalan: Aliyev Ali' />
+						</FormField>
+						<FormField label='Manzil' error={errors.address?.message} horizontal={false} className='mb-3'>
+							<Textarea rows={3} {...register('address')} />
 						</FormField>
 					</ModalBody>
 					<ModalFooter>

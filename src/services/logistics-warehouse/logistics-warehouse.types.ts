@@ -23,4 +23,6 @@ export interface LogisticsWarehousePayload {
 
 export interface LogisticsWarehouseListParams extends ListParams {
 	country?: number;
+	/** Only the warehouses of this logistics company. The filter name is assumed; the guide does not list it. */
+	logistics_company?: number;
 }
