@@ -1,5 +1,4 @@
 import { FaImage } from 'react-icons/fa';
-import { useWarehouseImageListQuery } from '@/services/warehouse-image/warehouse-image.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
 interface WarehouseProductThumbnailProps {
@@ -7,9 +6,10 @@ interface WarehouseProductThumbnailProps {
 	onClick: () => void;
 }
 
+// The thumbnail shows the image already in the product list, so the table makes no request per row.
+// The full gallery is requested only after a click, when WarehouseProductImagesModal mounts.
 export default function WarehouseProductThumbnail({ item, onClick }: WarehouseProductThumbnailProps) {
-	const { data } = useWarehouseImageListQuery({ warehouse: item.id, limit: 100 });
-	const thumbnailSrc = data?.results[0]?.image ?? item.image;
+	const thumbnailSrc = item.image;
 
 	return (
 		<button

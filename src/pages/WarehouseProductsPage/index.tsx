@@ -15,6 +15,7 @@ import {
 	TableRow,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { SCROLL_AREA_CLASS, SCROLL_BODY_CLASS, SCROLL_PANEL_CLASS } from '@/lib/layout';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { brandService } from '@/services/brand/brand.service';
@@ -130,7 +131,12 @@ export default function WarehouseProductsPage() {
 				]}
 			/>
 
-			<Panel title="Ombordagi barcha mahsulotlar ro'yxati" onReload={() => refetch()}>
+			<Panel
+				title="Ombordagi barcha mahsulotlar ro'yxati"
+				onReload={() => refetch()}
+				className={SCROLL_PANEL_CLASS}
+				bodyClassName={SCROLL_BODY_CLASS}
+			>
 				<div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Modelni tanlang:</label>
@@ -182,7 +188,7 @@ export default function WarehouseProductsPage() {
 					</div>
 				</div>
 
-				<div className='overflow-x-auto'>
+				<div className={SCROLL_AREA_CLASS}>
 					<Table>
 						<TableHeader>
 							<TableRow>

@@ -3,12 +3,7 @@ import type { BadgeProps } from '@/components/ui/Badge';
 import type { ComboboxOption } from '@/components/ui';
 import type { ImportOrderStatus, ImportStage } from '@/services/two-stage-import/two-stage-import.types';
 
-// Layout for pages where the table scrolls inside its panel instead of the whole page.
-// On desktop each panel is as tall as the viewport below the header; on small screens panels stack.
-export const SCROLL_PANEL_CLASS = 'mb-0 flex h-full flex-col lg:h-[calc(100vh-10rem)]';
-export const SCROLL_BODY_CLASS = 'flex min-h-0 flex-1 flex-col';
-export const SCROLL_AREA_CLASS =
-	'min-h-0 flex-1 overflow-auto max-h-[60vh] lg:max-h-none [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10';
+export { SCROLL_AREA_CLASS, SCROLL_BODY_CLASS, SCROLL_PANEL_CLASS } from '@/lib/layout';
 
 export const STAGE_LABELS: Record<ImportStage, string> = {
 	CHINA_TO_TRANSIT: 'Xitoy → Tranzit sklad',
