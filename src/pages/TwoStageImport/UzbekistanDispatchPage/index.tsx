@@ -245,8 +245,8 @@ export default function UzbekistanDispatchPage() {
                   className={SCROLL_PANEL_CLASS}
                   bodyClassName={SCROLL_BODY_CLASS}
                >
-                  <div className='-mx-2.5 mb-3 flex flex-wrap gap-y-3'>
-                     <div className='w-full px-2.5 sm:w-1/2'>
+                  <div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
+                     <div className='w-full px-2.5 sm:w-1/3'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                            Logistika: <span className='text-ca-red'>*</span>
                         </label>
@@ -264,7 +264,7 @@ export default function UzbekistanDispatchPage() {
                            <p className='mt-1 text-xs text-ca-red'>{headerErrors.logisticsCompany}</p>
                         )}
                      </div>
-                     <div className='w-full px-2.5 sm:w-1/2'>
+                     <div className='w-full px-2.5 sm:w-1/3'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                            Logistika skladi: <span className='text-ca-red'>*</span>
                         </label>
@@ -281,14 +281,13 @@ export default function UzbekistanDispatchPage() {
                            <p className='mt-1 text-xs text-ca-red'>{headerErrors.logisticsWarehouse}</p>
                         )}
                      </div>
-                  </div>
-
-                  <div className='mb-4'>
-                     <label className='mb-1 block text-xs font-semibold text-ca-heading'>
-                        Jo'natish sanasi va vaqti: <span className='text-ca-red'>*</span>
-                     </label>
-                     <DatePicker value={dispatchValue} onChange={setDispatchInput} />
-                     {headerErrors.dispatch && <p className='mt-1 text-xs text-ca-red'>{headerErrors.dispatch}</p>}
+                     <div className='w-full px-2.5 sm:w-1/3'>
+                        <label className='mb-1 block text-xs font-semibold text-ca-heading'>
+                           Jo'natish sanasi va vaqti: <span className='text-ca-red'>*</span>
+                        </label>
+                        <DatePicker value={dispatchValue} onChange={setDispatchInput} />
+                        {headerErrors.dispatch && <p className='mt-1 text-xs text-ca-red'>{headerErrors.dispatch}</p>}
+                     </div>
                   </div>
 
                   <div className={SCROLL_AREA_CLASS}>
@@ -351,7 +350,7 @@ export default function UzbekistanDispatchPage() {
                      {summary && cartItems.length > 0 && (
                         <div className='mt-4 flex flex-wrap items-center justify-around gap-3 rounded-[3px] border border-ca-border bg-ca-silver px-4 py-3 text-sm'>
                            <span className='text-ca-heading'>
-                              Jami: <span className='font-bold'>{formatNumber(summary.total_quantity)} dona</span>
+                              Jami: <span className='font-bold'>{formatNumber(summary.total_quantity)} </span>
                            </span>
                            <span className='font-bold text-ca-heading'>{formatNumber(summary.total_yuan, 0)} ¥</span>
                            <span className='font-bold text-ca-green'>{formatNumber(summary.total_dollar, 2)} $</span>

@@ -53,7 +53,7 @@ export default function UzbekistanInRoadPage() {
          >
             <div className='-mx-2.5 flex flex-wrap'>
                <StatCard icon={<FaTruck />} label="Yo'lda" value={formatNumber(orders.length)} accent='warning' />
-               <StatCard icon={<FaBoxes />} label='Jami soni' value={`${formatNumber(totals.quantity)} dona`} />
+               <StatCard icon={<FaBoxes />} label='Jami soni' value={`${formatNumber(totals.quantity)} `} />
                <StatCard
                   icon={<FaMoneyBillWave />}
                   label='Jami qiymat ($)'

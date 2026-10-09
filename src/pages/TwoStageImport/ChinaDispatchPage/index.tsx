@@ -325,7 +325,7 @@ export default function ChinaDispatchPage() {
                   {summary && cartItems.length > 0 && (
                      <div className='mt-4 flex flex-wrap items-center justify-around gap-3 rounded-[3px] border border-ca-border bg-ca-silver px-4 py-3 text-sm'>
                         <span className='text-ca-heading'>
-                           Jami: <span className='font-bold'>{formatNumber(summary.total_quantity)} dona</span>
+                           Jami: <span className='font-bold'>{formatNumber(summary.total_quantity)} </span>
                         </span>
                         <span className='font-bold text-ca-heading'>{formatNumber(summary.total_yuan, 0)} ¥</span>
                         <span className='font-bold text-ca-green'>{formatNumber(summary.total_dollar, 2)} $</span>

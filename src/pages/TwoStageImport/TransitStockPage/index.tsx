@@ -124,17 +124,17 @@ export default function TransitStockPage() {
             }
          >
             <div className='-mx-2.5 flex flex-wrap'>
-               <StatCard icon={<FaBoxes />} label='Jami mahsulot' value={`${formatNumber(totals.quantity)} dona`} />
+               <StatCard icon={<FaBoxes />} label='Jami mahsulot' value={`${formatNumber(totals.quantity)} `} />
                <StatCard
                   icon={<FaBoxOpen />}
                   label='Band qilingan'
-                  value={`${formatNumber(totals.reserved)} dona`}
+                  value={`${formatNumber(totals.reserved)} `}
                   accent='warning'
                />
                <StatCard
                   icon={<FaWarehouse />}
                   label='Mavjud'
-                  value={`${formatNumber(totals.available)} dona`}
+                  value={`${formatNumber(totals.available)} `}
                   accent='success'
                />
                <StatCard

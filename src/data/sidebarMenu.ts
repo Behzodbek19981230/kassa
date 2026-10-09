@@ -26,13 +26,13 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		icon: 'shipping-fast',
 		label: 'Logistika',
 		children: [
+			{ id: 'two-stage-orders', icon: 'history', label: 'Logistika tarixi', path: '/two-stage-import/orders' },
 			{
 				id: 'two-stage-china-dispatch',
 				icon: 'truck',
 				label: 'Xitoydan yuk chiqarish',
 				path: '/two-stage-import/china-dispatch',
 			},
-			{ id: 'two-stage-orders', icon: 'history', label: 'Import buyurtmalar', path: '/two-stage-import/orders' },
 			{
 				id: 'two-stage-transit-stock',
 				icon: 'warehouse',
@@ -94,13 +94,6 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				label: 'Logistika firmalari',
 				path: '/system/logistics-companies',
 			},
-			{
-				id: 'logistics-warehouses',
-				icon: 'warehouse',
-				label: 'Logistika skladlari',
-				path: '/system/logistics-warehouses',
-			},
-
 			{
 				id: 'users',
 				icon: 'users-cog',
