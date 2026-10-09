@@ -70,7 +70,7 @@ export default function AddToChinaCartModal({
    } = useForm<AddToChinaCartFormValues>({
       resolver: zodResolver(addToChinaCartSchema),
       defaultValues: {
-         typeQuantity: '1',
+         typeQuantity: '',
          quantity: '',
          priceYuan: '',
          priceDollar: '',
