@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
-import { Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
+import { Badge, Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -70,6 +70,44 @@ export default function LogisticsWarehousePage() {
 				row.original.logistics_company_name ??
 				logisticsCompanyNames.get(row.original.logistics_company ?? -1) ??
 				'-',
+		}),
+		columnHelper.accessor('phone', {
+			header: 'Telefon',
+			meta: { align: 'left' },
+			enableSorting: false,
+			enableColumnFilter: false,
+			cell: (info) => info.getValue() || '-',
+		}),
+		columnHelper.accessor('contact_person', {
+			header: 'Kontakt shaxs',
+			meta: { align: 'left' },
+			enableSorting: false,
+			enableColumnFilter: false,
+			cell: (info) => info.getValue() || '-',
+		}),
+		columnHelper.accessor('address', {
+			header: 'Manzil',
+			meta: { align: 'left' },
+			enableSorting: false,
+			enableColumnFilter: false,
+			cell: (info) => (
+				<span className='block max-w-55 truncate' title={info.getValue() ?? undefined}>
+					{info.getValue() || '-'}
+				</span>
+			),
+		}),
+		columnHelper.display({
+			id: 'is-active',
+			header: 'Holati',
+			meta: { align: 'left' },
+			enableSorting: false,
+			enableColumnFilter: false,
+			cell: ({ row }) =>
+				row.original.is_active === false ? (
+					<Badge variant='default'>Nofaol</Badge>
+				) : (
+					<Badge variant='success'>Faol</Badge>
+				),
 		}),
 		columnHelper.display({
 			id: 'actions',

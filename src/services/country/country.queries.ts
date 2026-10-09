@@ -28,7 +28,9 @@ export function useCreateCountryMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: CountryPayload) => countryService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: countryKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: countryKeys.all });
+		},
 	});
 }
 
@@ -36,7 +38,9 @@ export function useUpdateCountryMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: CountryPayload }) => countryService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: countryKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: countryKeys.all });
+		},
 	});
 }
 
@@ -44,6 +48,8 @@ export function useDeleteCountryMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => countryService.remove(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: countryKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: countryKeys.all });
+		},
 	});
 }

@@ -28,7 +28,9 @@ export function useCreateRegionMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: RegionPayload) => regionService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: regionKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: regionKeys.all });
+		},
 	});
 }
 
@@ -36,7 +38,9 @@ export function useUpdateRegionMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: RegionPayload }) => regionService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: regionKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: regionKeys.all });
+		},
 	});
 }
 
@@ -44,6 +48,8 @@ export function useDeleteRegionMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => regionService.remove(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: regionKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: regionKeys.all });
+		},
 	});
 }

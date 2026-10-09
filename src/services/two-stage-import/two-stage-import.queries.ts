@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { twoStageImportService } from '@/services/two-stage-import/two-stage-import.service';
 import type {
 	CancelOrderPayload,
@@ -22,10 +22,24 @@ const twoStageKeys = {
 	uzbekistanInRoad: ['two-stage-import', 'uzbekistan-in-road'] as const,
 };
 
+const CHINA_PRODUCTS_PAGE_SIZE = 50;
+
 export function useChinaProductsQuery(params?: ChinaProductsParams) {
-	return useQuery({
+	return useInfiniteQuery({
 		queryKey: twoStageKeys.chinaProducts(params),
-		queryFn: () => twoStageImportService.getChinaProducts(params),
+		queryFn: async ({ pageParam }) => {
+			const data = await twoStageImportService.getChinaProducts({
+				...params,
+				page: pageParam,
+				limit: CHINA_PRODUCTS_PAGE_SIZE,
+			});
+			// A plain array means the backend sent the whole list in one response, so there is no next page.
+			if (Array.isArray(data)) return { results: data, nextPage: undefined };
+			const { currentPage, lastPage } = data.pagination;
+			return { results: data.results, nextPage: currentPage < lastPage ? currentPage + 1 : undefined };
+		},
+		initialPageParam: 1,
+		getNextPageParam: (lastPage) => lastPage.nextPage,
 	});
 }
 
@@ -59,13 +73,31 @@ export function useUzbekistanInRoadQuery() {
 
 function useInvalidateTwoStageImport() {
 	const queryClient = useQueryClient();
-	return () => queryClient.invalidateQueries({ queryKey: twoStageKeys.all });
+	return () => {
+		queryClient.invalidateQueries({ queryKey: twoStageKeys.all });
+	};
 }
 
 export function useAddCartItemMutation() {
 	const invalidate = useInvalidateTwoStageImport();
 	return useMutation({
 		mutationFn: (payload: CartItemPayload) => twoStageImportService.addCartItem(payload),
+		onSuccess: invalidate,
+	});
+}
+
+export function useDeleteCartItemMutation() {
+	const invalidate = useInvalidateTwoStageImport();
+	return useMutation({
+		mutationFn: (id: number) => twoStageImportService.removeCartItem(id),
+		onSuccess: invalidate,
+	});
+}
+
+export function useClearCartMutation() {
+	const invalidate = useInvalidateTwoStageImport();
+	return useMutation({
+		mutationFn: (stage: ImportStage) => twoStageImportService.clearCart(stage),
 		onSuccess: invalidate,
 	});
 }

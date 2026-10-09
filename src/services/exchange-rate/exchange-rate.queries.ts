@@ -25,6 +25,8 @@ export function useSaveExchangeRateMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id?: number; payload: ExchangeRatePayload }) =>
 			id ? exchangeRateService.update(id, payload) : exchangeRateService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: exchangeRateKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: exchangeRateKeys.all });
+		},
 	});
 }

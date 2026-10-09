@@ -463,14 +463,14 @@ export default function PlaceOrderPage() {
 											);
 										})}
 									{clientId && !isCartLoading && cartItems.length > 0 && (
-										<TableRow className='bg-ca-heading'>
-											<TableCell className='bg-ca-heading text-white' colSpan={7}>
+										<TableRow className='bg-ca-heading dark:bg-ca-header'>
+											<TableCell className='bg-ca-heading dark:bg-ca-header text-white' colSpan={7}>
 												Jami
 											</TableCell>
-											<TableCell className='bg-ca-heading font-semibold text-white'>
+											<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
 												{formatNumber(cartTotalCount)}
 											</TableCell>
-											<TableCell className='bg-ca-heading font-semibold text-white'>
+											<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
 												{formatNumber(cartTotalSum, 2)} $
 												{rate > 0 && (
 													<span className='ml-1 font-normal text-white/70'>
@@ -478,7 +478,7 @@ export default function PlaceOrderPage() {
 													</span>
 												)}
 											</TableCell>
-											<TableCell className='bg-ca-heading text-white' />
+											<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
 										</TableRow>
 									)}
 								</TableBody>

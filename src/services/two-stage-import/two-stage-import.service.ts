@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/client';
+import type { PaginatedResponse } from '@/services/api/types';
 import type {
 	CancelOrderPayload,
 	CartItemPayload,
@@ -20,7 +21,9 @@ const BASE_PATH = '/design';
 
 export const twoStageImportService = {
 	getChinaProducts: async (params?: ChinaProductsParams) => {
-		const { data } = await apiClient.get<ChinaProduct[]>(`${BASE_PATH}/china-products/`, { params });
+		const { data } = await apiClient.get<ChinaProduct[] | PaginatedResponse<ChinaProduct>>(`${BASE_PATH}/china-products/`, {
+			params,
+		});
 		return data;
 	},
 	getCart: async (stage: ImportStage) => {
@@ -30,6 +33,12 @@ export const twoStageImportService = {
 	addCartItem: async (payload: CartItemPayload) => {
 		const { data } = await apiClient.post<ImportCartResponse>(`${BASE_PATH}/cart/item/`, payload);
 		return data;
+	},
+	removeCartItem: async (id: number) => {
+		await apiClient.delete(`${BASE_PATH}/cart/item-delete/${id}/`);
+	},
+	clearCart: async (stage: ImportStage) => {
+		await apiClient.delete(`${BASE_PATH}/cart/clear/`, { data: { stage } });
 	},
 	chinaDispatch: async (payload: ChinaDispatchPayload) => {
 		const { data } = await apiClient.post<ChinaDispatchResponse>(`${BASE_PATH}/china-dispatch/`, payload);

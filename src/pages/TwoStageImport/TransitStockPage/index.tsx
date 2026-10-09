@@ -5,7 +5,6 @@ import {
 	FaBoxOpen,
 	FaExclamationTriangle,
 	FaMoneyBillWave,
-	FaShoppingCart,
 	FaTruck,
 	FaWarehouse,
 } from 'react-icons/fa';
@@ -240,20 +239,19 @@ export default function TransitStockPage() {
 								<TableHead className='bg-ca-theme text-white'>Narxi (¥)</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Oxirgi kirim</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Harakatlar</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{stockQuery.isLoading && (
 								<TableRow>
-									<TableCell colSpan={12} className='text-center'>
+									<TableCell colSpan={11} className='text-center'>
 										Yuklanmoqda...
 									</TableCell>
 								</TableRow>
 							)}
 							{!stockQuery.isLoading && stockQuery.isError && (
 								<TableRow>
-									<TableCell colSpan={12} className='text-center text-ca-red'>
+									<TableCell colSpan={11} className='text-center text-ca-red'>
 										<FaExclamationTriangle className='mr-1.5 inline' />{' '}
 										{getApiErrorMessage(stockQuery.error, 'Xatolik yuz berdi')}
 									</TableCell>
@@ -261,13 +259,13 @@ export default function TransitStockPage() {
 							)}
 							{!stockQuery.isLoading && !stockQuery.isError && rows.length === 0 && (
 								<TableRow>
-									<TableCell colSpan={12} className='text-center'>
+									<TableCell colSpan={11} className='text-center'>
 										Ma'lumot topilmadi
 									</TableCell>
 								</TableRow>
 							)}
 							{rows.map(({ stock, product }, index) => (
-								<TableRow key={stock.id}>
+								<TableRow key={stock.id} onClick={() => canWrite && product && stock.available_quantity > 0 && setSelected({ stock, product })} className={canWrite && product && stock.available_quantity > 0 ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}>
 									<TableCell>{index + 1}</TableCell>
 									<TableCell>{product?.brand_name ?? '-'}</TableCell>
 									<TableCell>{product?.product_category_name ?? '-'}</TableCell>
@@ -281,18 +279,6 @@ export default function TransitStockPage() {
 									<TableCell>{formatNumber(stock.current_price_yuan, 0)} ¥</TableCell>
 									<TableCell className='font-semibold'>{formatNumber(stock.current_price_dollar, 2)} $</TableCell>
 									<TableCell>{formatTashkentDate(stock.last_arrival_at)}</TableCell>
-									<TableCell>
-										{canWrite && product && stock.available_quantity > 0 && (
-											<Button
-												type='button'
-												variant='danger'
-												size='xs'
-												onClick={() => setSelected({ stock, product })}
-											>
-												<FaShoppingCart className='mr-1.5' /> Savatchaga
-											</Button>
-										)}
-									</TableCell>
 								</TableRow>
 							))}
 						</TableBody>

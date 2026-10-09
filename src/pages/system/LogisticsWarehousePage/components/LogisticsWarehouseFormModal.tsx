@@ -13,10 +13,13 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalTitle,
+	Switch,
+	Textarea,
 	useNotification,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
+import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
 import { useCountryQuery } from '@/services/country/country.queries';
 import { useLogisticsCompanyQuery } from '@/services/logistics-company/logistics-company.queries';
 import {
@@ -33,6 +36,13 @@ const logisticsWarehouseFormSchema = z.object({
 	name: z.string().trim().min(1, 'Nomi kiritilishi shart'),
 	country: z.string().min(1, 'Davlatni tanlang'),
 	logisticsCompany: z.string().min(1, 'Logistika firmasini tanlang'),
+	// Optional, but a phone number that has been started must be complete.
+	phone: z
+		.string()
+		.refine((value) => value === '' || UZ_PHONE_REGEX.test(value), "Telefon raqami to'liq kiritilishi kerak"),
+	contactPerson: z.string(),
+	address: z.string(),
+	isActive: z.boolean(),
 });
 
 type LogisticsWarehouseFormValues = z.infer<typeof logisticsWarehouseFormSchema>;
@@ -71,6 +81,10 @@ export default function LogisticsWarehouseFormModal({
 			logisticsCompany: String(
 				presetLogisticsCompany?.id ?? (mode === 'edit' && item?.logistics_company ? item.logistics_company : ''),
 			),
+			phone: mode === 'edit' && item?.phone ? item.phone : '',
+			contactPerson: mode === 'edit' && item?.contact_person ? item.contact_person : '',
+			address: mode === 'edit' && item?.address ? item.address : '',
+			isActive: mode === 'edit' && item ? (item.is_active ?? true) : true,
 		},
 	});
 
@@ -81,6 +95,8 @@ export default function LogisticsWarehouseFormModal({
 	const { data: selectedLogisticsCompany } = useLogisticsCompanyQuery(
 		logisticsCompanyValue ? Number(logisticsCompanyValue) : undefined,
 	);
+
+	const isActiveValue = watch('isActive');
 
 	const createMutation = useCreateLogisticsWarehouseMutation();
 	const updateMutation = useUpdateLogisticsWarehouseMutation();
@@ -99,6 +115,10 @@ export default function LogisticsWarehouseFormModal({
 			country: Number(values.country),
 			company,
 			logistics_company: Number(values.logisticsCompany),
+			phone: values.phone.trim(),
+			address: values.address.trim(),
+			contact_person: values.contactPerson.trim(),
+			is_active: values.isActive,
 		};
 
 		try {
@@ -117,7 +137,7 @@ export default function LogisticsWarehouseFormModal({
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
-			<ModalContent>
+			<ModalContent className='max-w-xl'>
 				<ModalHeader>
 					<ModalTitle>
 						{mode === 'edit' ? 'Logistika skladini tahrirlash' : "Logistika skladi qo'shish"}
@@ -172,6 +192,43 @@ export default function LogisticsWarehouseFormModal({
 									)}
 								/>
 							)}
+						</FormField>
+						<FormField label='Telefon' error={errors.phone?.message} horizontal={false} className='mb-3'>
+							<Controller
+								name='phone'
+								control={control}
+								render={({ field }) => (
+									<Input
+										inputMode='numeric'
+										placeholder='+998 XX XXX XX XX'
+										value={field.value}
+										onChange={(e) => {
+											const formatted = formatUzPhone(e.target.value);
+											// Clearing the field leaves the mask's bare prefix, which means "no phone".
+											field.onChange(formatted === '+998' ? '' : formatted);
+										}}
+										onBlur={field.onBlur}
+									/>
+								)}
+							/>
+						</FormField>
+						<FormField label='Kontakt shaxs' error={errors.contactPerson?.message} horizontal={false} className='mb-3'>
+							<Input {...register('contactPerson')} placeholder='Masalan: Aliyev Ali' />
+						</FormField>
+						<FormField label='Manzil' error={errors.address?.message} horizontal={false} className='mb-3'>
+							<Textarea rows={3} {...register('address')} />
+						</FormField>
+						<FormField label='Holati' error={errors.isActive?.message} horizontal={false} className='mb-0'>
+							<Controller
+								name='isActive'
+								control={control}
+								render={({ field }) => (
+									<div className='flex items-center gap-2'>
+										<Switch id='logistics-warehouse-active' checked={field.value} onCheckedChange={field.onChange} />
+										<span className='text-xs text-ca-text'>{isActiveValue ? 'Faol' : 'Nofaol'}</span>
+									</div>
+								)}
+							/>
 						</FormField>
 					</ModalBody>
 					<ModalFooter>

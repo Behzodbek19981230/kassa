@@ -32,7 +32,9 @@ export function useCreateLogisticsWarehouseMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: LogisticsWarehousePayload) => logisticsWarehouseService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: logisticsWarehouseKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: logisticsWarehouseKeys.all });
+		},
 	});
 }
 
@@ -41,7 +43,9 @@ export function useUpdateLogisticsWarehouseMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: LogisticsWarehousePayload }) =>
 			logisticsWarehouseService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: logisticsWarehouseKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: logisticsWarehouseKeys.all });
+		},
 	});
 }
 
@@ -49,6 +53,8 @@ export function useDeleteLogisticsWarehouseMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => logisticsWarehouseService.remove(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: logisticsWarehouseKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: logisticsWarehouseKeys.all });
+		},
 	});
 }

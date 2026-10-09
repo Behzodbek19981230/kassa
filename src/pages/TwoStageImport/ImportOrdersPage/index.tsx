@@ -48,6 +48,13 @@ type OrderAction = { kind: 'arrival' | 'receipt' | 'cancel'; order: ImportOrderL
 
 const loadWarehouseOptions = createLogisticsWarehouseLoader();
 
+// The step a row opens. An order in transit opens its next step. A draft opens the cancel dialog.
+function primaryAction(order: ImportOrderListItem): OrderAction | null {
+	if (order.status === 'DRAFT') return { kind: 'cancel', order };
+	if (order.status !== 'IN_ROAD') return null;
+	return order.stage === 'CHINA_TO_TRANSIT' ? { kind: 'arrival', order } : { kind: 'receipt', order };
+}
+
 export default function ImportOrdersPage() {
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
@@ -169,20 +176,19 @@ export default function ImportOrdersPage() {
 								<TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Fura</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Holati</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Harakatlar</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{ordersQuery.isLoading && (
 								<TableRow>
-									<TableCell colSpan={10} className='text-center'>
+									<TableCell colSpan={9} className='text-center'>
 										Yuklanmoqda...
 									</TableCell>
 								</TableRow>
 							)}
 							{!ordersQuery.isLoading && ordersQuery.isError && (
 								<TableRow>
-									<TableCell colSpan={10} className='text-center text-ca-red'>
+									<TableCell colSpan={9} className='text-center text-ca-red'>
 										<FaExclamationTriangle className='mr-1.5 inline' />{' '}
 										{getApiErrorMessage(ordersQuery.error, 'Xatolik yuz berdi')}
 									</TableCell>
@@ -190,13 +196,13 @@ export default function ImportOrdersPage() {
 							)}
 							{!ordersQuery.isLoading && !ordersQuery.isError && orders.length === 0 && (
 								<TableRow>
-									<TableCell colSpan={10} className='text-center'>
+									<TableCell colSpan={9} className='text-center'>
 										Ma'lumot topilmadi
 									</TableCell>
 								</TableRow>
 							)}
 							{orders.map((order, index) => (
-								<TableRow key={order.id}>
+								<TableRow key={order.id} onClick={() => { const next = primaryAction(order); if (canWrite && next) setAction(next); }} className={canWrite && primaryAction(order) ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}>
 									<TableCell>{index + 1}</TableCell>
 									<TableCell className='font-semibold text-ca-heading'>
 										{order.import_number ?? order.order_number}
@@ -212,40 +218,6 @@ export default function ImportOrdersPage() {
 									<TableCell>
 										<Badge variant={ORDER_STATUS_VARIANTS[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
 									</TableCell>
-									<TableCell>
-										<div className='flex flex-wrap gap-1.5'>
-											{canWrite && order.stage === 'CHINA_TO_TRANSIT' && order.status === 'IN_ROAD' && (
-												<Button
-													type='button'
-													variant='success'
-													size='xs'
-													onClick={() => setAction({ kind: 'arrival', order })}
-												>
-													Yetib keldi
-												</Button>
-											)}
-											{canWrite && order.stage === 'TRANSIT_TO_UZBEKISTAN' && order.status === 'IN_ROAD' && (
-												<Button
-													type='button'
-													variant='danger'
-													size='xs'
-													onClick={() => setAction({ kind: 'receipt', order })}
-												>
-													Qabul qilish
-												</Button>
-											)}
-											{canWrite && (order.status === 'DRAFT' || order.status === 'IN_ROAD') && (
-												<Button
-													type='button'
-													variant='white'
-													size='xs'
-													onClick={() => setAction({ kind: 'cancel', order })}
-												>
-													Bekor qilish
-												</Button>
-											)}
-										</div>
-									</TableCell>
 								</TableRow>
 							))}
 						</TableBody>
@@ -254,9 +226,19 @@ export default function ImportOrdersPage() {
 			</Panel>
 
 			{action?.kind === 'arrival' && (
-				<TransitArrivalModal open setOpen={closeAction} order={action.order} />
+				<TransitArrivalModal
+					open
+					setOpen={closeAction}
+					order={action.order}
+					onCancelOrder={() => setAction({ kind: 'cancel', order: action.order })}
+				/>
 			)}
-			{action?.kind === 'receipt' && <LocalReceiptModal open setOpen={closeAction} order={action.order} />}
+			{action?.kind === 'receipt' && <LocalReceiptModal
+				open
+				setOpen={closeAction}
+				order={action.order}
+				onCancelOrder={() => setAction({ kind: 'cancel', order: action.order })}
+			/>}
 			{action?.kind === 'cancel' && <CancelOrderModal open setOpen={closeAction} order={action.order} />}
 		</>
 	);

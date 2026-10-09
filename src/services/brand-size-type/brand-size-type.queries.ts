@@ -22,7 +22,9 @@ export function useCreateBrandSizeTypeMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: BrandSizeTypePayload) => brandSizeTypeService.create(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: brandSizeTypeKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: brandSizeTypeKeys.all })
+    },
   })
 }
 
@@ -31,7 +33,9 @@ export function useUpdateBrandSizeTypeMutation() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: BrandSizeTypePayload }) =>
       brandSizeTypeService.update(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: brandSizeTypeKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: brandSizeTypeKeys.all })
+    },
   })
 }
 
@@ -39,6 +43,8 @@ export function useDeleteBrandSizeTypeMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => brandSizeTypeService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: brandSizeTypeKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: brandSizeTypeKeys.all })
+    },
   })
 }

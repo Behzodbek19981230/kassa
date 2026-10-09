@@ -21,7 +21,9 @@ export function useCreateWarehouseImageMutation() {
   return useMutation({
     mutationFn: ({ warehouseId, image }: { warehouseId: number; image: File }) =>
       warehouseImageService.create(warehouseId, image),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: warehouseImageKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: warehouseImageKeys.all })
+    },
   })
 }
 
@@ -30,7 +32,9 @@ export function useUpdateWarehouseImageNumbersMutation() {
   return useMutation({
     mutationFn: (changes: WarehouseImageNumberChange[]) =>
       Promise.all(changes.map(({ id, number }) => warehouseImageService.update(id, { number }))),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: warehouseImageKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: warehouseImageKeys.all })
+    },
   })
 }
 
@@ -44,7 +48,9 @@ export function useSetMainWarehouseImageMutation() {
       }
       return warehouseImageService.update(id, { is_main: true })
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: warehouseImageKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: warehouseImageKeys.all })
+    },
   })
 }
 
@@ -52,6 +58,8 @@ export function useDeleteWarehouseImageMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => warehouseImageService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: warehouseImageKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: warehouseImageKeys.all })
+    },
   })
 }

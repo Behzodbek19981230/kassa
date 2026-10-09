@@ -177,20 +177,19 @@ export default function UzbekistanDispatchPage() {
 										<TableHead className='bg-ca-theme text-white'>Mavjud</TableHead>
 										<TableHead className='bg-ca-theme text-white'>Narxi (¥)</TableHead>
 										<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Amal</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{stockQuery.isLoading && (
 										<TableRow>
-											<TableCell colSpan={9} className='text-center'>
+											<TableCell colSpan={8} className='text-center'>
 												Yuklanmoqda...
 											</TableCell>
 										</TableRow>
 									)}
 									{!stockQuery.isLoading && stockQuery.isError && (
 										<TableRow>
-											<TableCell colSpan={9} className='text-center text-ca-red'>
+											<TableCell colSpan={8} className='text-center text-ca-red'>
 												<FaExclamationTriangle className='mr-1.5 inline' />{' '}
 												{getApiErrorMessage(stockQuery.error, 'Xatolik yuz berdi')}
 											</TableCell>
@@ -198,13 +197,13 @@ export default function UzbekistanDispatchPage() {
 									)}
 									{!stockQuery.isLoading && !stockQuery.isError && rows.length === 0 && (
 										<TableRow>
-											<TableCell colSpan={9} className='text-center'>
+											<TableCell colSpan={8} className='text-center'>
 												Ma'lumot topilmadi
 											</TableCell>
 										</TableRow>
 									)}
 									{rows.map(({ stock, product }, index) => (
-										<TableRow key={stock.id} className='bg-red-50'>
+										<TableRow key={stock.id} onClick={() => canWrite && product && stock.available_quantity > 0 && setSelected({ stock, product })} className={canWrite && product && stock.available_quantity > 0 ? 'cursor-pointer bg-red-50 hover:bg-red-100' : 'bg-red-50 opacity-60'}>
 											<TableCell>{index + 1}</TableCell>
 											<TableCell>{product?.brand_name ?? '-'}</TableCell>
 											<TableCell>{product?.product_category_name ?? '-'}</TableCell>
@@ -213,17 +212,6 @@ export default function UzbekistanDispatchPage() {
 											<TableCell className='font-semibold'>{formatNumber(stock.available_quantity)}</TableCell>
 											<TableCell>{formatNumber(stock.current_price_yuan, 0)}</TableCell>
 											<TableCell>{formatNumber(stock.current_price_dollar, 2)}</TableCell>
-											<TableCell>
-												<Button
-													type='button'
-													variant='danger'
-													size='xs'
-													disabled={!canWrite || !product || stock.available_quantity <= 0}
-													onClick={() => product && setSelected({ stock, product })}
-												>
-													Tanlash
-												</Button>
-											</TableCell>
 										</TableRow>
 									))}
 								</TableBody>

@@ -34,7 +34,9 @@ export function useCreateOrderCartMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: OrderCartPayload) => orderCartService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderCartKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
+		},
 	});
 }
 
@@ -43,7 +45,9 @@ export function useUpdateOrderCartMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: OrderCartPayload }) =>
 			orderCartService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderCartKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
+		},
 	});
 }
 
@@ -51,7 +55,9 @@ export function useDeleteOrderCartMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => orderCartService.remove(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderCartKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
+		},
 	});
 }
 
@@ -59,7 +65,9 @@ export function useClearOrderCartMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: ClearOrderCartPayload) => orderCartService.clear(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderCartKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
+		},
 	});
 }
 

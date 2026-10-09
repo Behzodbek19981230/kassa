@@ -31,7 +31,9 @@ export function useCreateLogisticsCompanyMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: LogisticsCompanyPayload) => logisticsCompanyService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: logisticsCompanyKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: logisticsCompanyKeys.all });
+		},
 	});
 }
 
@@ -40,7 +42,9 @@ export function useUpdateLogisticsCompanyMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: LogisticsCompanyPayload }) =>
 			logisticsCompanyService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: logisticsCompanyKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: logisticsCompanyKeys.all });
+		},
 	});
 }
 
@@ -48,6 +52,8 @@ export function useDeleteLogisticsCompanyMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => logisticsCompanyService.remove(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: logisticsCompanyKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: logisticsCompanyKeys.all });
+		},
 	});
 }

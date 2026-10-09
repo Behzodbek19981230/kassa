@@ -19,7 +19,9 @@ export function useCreateSkladTypeMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: SkladTypePayload) => skladTypeService.create(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: skladTypeKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: skladTypeKeys.all })
+    },
   })
 }
 
@@ -27,7 +29,9 @@ export function useUpdateSkladTypeMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: SkladTypePayload }) => skladTypeService.update(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: skladTypeKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: skladTypeKeys.all })
+    },
   })
 }
 
@@ -35,6 +39,8 @@ export function useDeleteSkladTypeMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => skladTypeService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: skladTypeKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: skladTypeKeys.all })
+    },
   })
 }

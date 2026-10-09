@@ -191,18 +191,18 @@ export default function VozvratOrderHistoryDetailPage() {
 								</Fragment>
 							))
 						)}
-						<TableRow className='bg-ca-heading'>
-							<TableCell className='bg-ca-heading text-white' colSpan={6}>
+						<TableRow className='bg-ca-heading dark:bg-ca-header'>
+							<TableCell className='bg-ca-heading dark:bg-ca-header text-white' colSpan={6}>
 								Jami:
 							</TableCell>
-							<TableCell className='bg-ca-heading font-semibold text-white'>{products.totals.count}</TableCell>
-							<TableCell className='bg-ca-heading font-semibold text-white'>
+							<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>{products.totals.count}</TableCell>
+							<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
 								{formatNumber(products.totals.price_total, 2)}
 							</TableCell>
-							<TableCell className='bg-ca-heading font-semibold text-white'>
+							<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
 								{formatNumber(products.totals.real_price_total, 2)}
 							</TableCell>
-							<TableCell className='bg-ca-heading font-semibold text-white'>
+							<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
 								{formatNumber(products.totals.profit_total, 2)}
 							</TableCell>
 						</TableRow>

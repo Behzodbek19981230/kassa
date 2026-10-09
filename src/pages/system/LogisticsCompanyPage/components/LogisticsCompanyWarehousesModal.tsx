@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
+	Badge,
 	Button,
 	buttonProps,
 	Modal,
@@ -48,9 +49,11 @@ export default function LogisticsCompanyWarehousesModal({ open, setOpen, company
 		[countriesData],
 	);
 
+	const columnCount = 7;
+
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
-			<ModalContent className='max-w-3xl'>
+			<ModalContent className='max-w-4xl'>
 				<ModalHeader>
 					<ModalTitle>{company.name} — skladlar</ModalTitle>
 					<p className='mt-0.5 text-[11px] font-normal text-ca-text'>{warehouses.length} ta sklad</p>
@@ -73,26 +76,29 @@ export default function LogisticsCompanyWarehousesModal({ open, setOpen, company
 								<TableHead className='bg-ca-theme text-white'>#</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Davlat</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Telefon</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Kontakt shaxs</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Holati</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Harakatlar</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{isLoading || isFetching ? (
 								<TableRow>
-									<TableCell colSpan={4} className='text-center'>
+									<TableCell colSpan={columnCount} className='text-center'>
 										Yuklanmoqda...
 									</TableCell>
 								</TableRow>
 							) : isError ? (
 								<TableRow>
-									<TableCell colSpan={4} className='text-center text-ca-red'>
+									<TableCell colSpan={columnCount} className='text-center text-ca-red'>
 										<FaExclamationTriangle className='mr-1.5 inline' />
 										{getApiErrorMessage(error, 'Xatolik yuz berdi')}
 									</TableCell>
 								</TableRow>
 							) : warehouses.length === 0 ? (
 								<TableRow>
-									<TableCell colSpan={4} className='text-center'>
+									<TableCell colSpan={columnCount} className='text-center'>
 										Bu firmada hali sklad yo'q
 									</TableCell>
 								</TableRow>
@@ -103,6 +109,15 @@ export default function LogisticsCompanyWarehousesModal({ open, setOpen, company
 										<TableCell>{warehouse.name}</TableCell>
 										<TableCell>
 											{warehouse.country_name ?? countryNames.get(warehouse.country ?? -1) ?? '-'}
+										</TableCell>
+										<TableCell>{warehouse.phone || '-'}</TableCell>
+										<TableCell>{warehouse.contact_person || '-'}</TableCell>
+										<TableCell>
+											{warehouse.is_active === false ? (
+												<Badge variant='default'>Nofaol</Badge>
+											) : (
+												<Badge variant='success'>Faol</Badge>
+											)}
 										</TableCell>
 										<TableCell>
 											{canWrite && (

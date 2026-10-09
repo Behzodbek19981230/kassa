@@ -19,7 +19,9 @@ export function useCreateBrandMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: BrandPayload) => brandService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: brandKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: brandKeys.all });
+		},
 	});
 }
 
@@ -27,7 +29,9 @@ export function useUpdateBrandMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: BrandPayload }) => brandService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: brandKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: brandKeys.all });
+		},
 	});
 }
 
@@ -35,6 +39,8 @@ export function useDeleteBrandMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => brandService.remove(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: brandKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: brandKeys.all });
+		},
 	});
 }

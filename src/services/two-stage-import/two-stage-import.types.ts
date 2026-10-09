@@ -57,6 +57,8 @@ export interface ChinaProductsParams {
 	type?: number;
 	type_sklad?: number;
 	size?: string;
+	page?: number;
+	limit?: number;
 }
 
 export interface ChinaCartItemPayload {

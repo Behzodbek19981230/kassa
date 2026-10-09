@@ -28,7 +28,9 @@ export function useCreateDistrictMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: DistrictPayload) => districtService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: districtKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: districtKeys.all });
+		},
 	});
 }
 
@@ -36,7 +38,9 @@ export function useUpdateDistrictMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: DistrictPayload }) => districtService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: districtKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: districtKeys.all });
+		},
 	});
 }
 
@@ -44,6 +48,8 @@ export function useDeleteDistrictMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => districtService.remove(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: districtKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: districtKeys.all });
+		},
 	});
 }

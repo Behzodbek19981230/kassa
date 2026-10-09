@@ -41,9 +41,11 @@ interface LocalReceiptModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	order: ImportOrderListItem;
+	/** Opens the cancel dialog for this order from inside the step. */
+	onCancelOrder?: () => void;
 }
 
-export default function LocalReceiptModal({ open, setOpen, order }: LocalReceiptModalProps) {
+export default function LocalReceiptModal({ open, setOpen, order, onCancelOrder }: LocalReceiptModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 
@@ -194,6 +196,11 @@ export default function LocalReceiptModal({ open, setOpen, order }: LocalReceipt
 						</div>
 					</ModalBody>
 					<ModalFooter>
+						{onCancelOrder && (
+							<Button type='button' variant='white' className='mr-auto text-ca-red' onClick={onCancelOrder}>
+								Buyurtmani bekor qilish
+							</Button>
+						)}
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish
 						</Button>

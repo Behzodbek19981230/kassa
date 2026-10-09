@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { type UIEvent, useMemo, useState } from 'react';
+import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
 	Button,
+	buttonProps,
 	Combobox,
 	DatePicker,
 	PageHeader,
@@ -12,22 +13,23 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
+	useNotification,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useConsignorQuery } from '@/services/consignor/consignor.queries';
-import { useChinaProductsQuery, useImportCartQuery } from '@/services/two-stage-import/two-stage-import.queries';
-import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import {
-	createCategoryLoader,
-	loadBrandOptions,
-	loadConsignorOptions,
-	loadSizeTypeOptions,
-} from '@/pages/TwoStageImport/options';
+	useChinaProductsQuery,
+	useDeleteCartItemMutation,
+	useImportCartQuery,
+} from '@/services/two-stage-import/two-stage-import.queries';
+import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
+import { createCategoryLoader, loadBrandOptions, loadConsignorOptions } from '@/pages/TwoStageImport/options';
 import { useWarehouseCatalog } from '@/pages/TwoStageImport/useWarehouseCatalog';
 import AddToChinaCartModal from '@/pages/TwoStageImport/components/AddToChinaCartModal';
 import ChinaDispatchConfirmModal from '@/pages/TwoStageImport/components/ChinaDispatchConfirmModal';
+import ClearImportCartConfirmModal from '@/pages/TwoStageImport/components/ClearImportCartConfirmModal';
 import {
 	SCROLL_AREA_CLASS,
 	SCROLL_BODY_CLASS,
@@ -41,33 +43,31 @@ const STAGE = 'CHINA_TO_TRANSIT' as const;
 
 export default function ChinaDispatchPage() {
 	const { canWrite } = useCurrentCompany();
-	const { byId, sizes } = useWarehouseCatalog();
+	const { byId } = useWarehouseCatalog();
+	const { notify } = useNotification();
 
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
-	const [sizeFilter, setSizeFilter] = useState('');
-	const [typeFilter, setTypeFilter] = useState('');
 	const [consignorInput, setConsignorInput] = useState('');
 	const [dispatchInput, setDispatchInput] = useState('');
 	const [defaultDispatch] = useState(nowTashkentLocal);
 	const [selectedProduct, setSelectedProduct] = useState<WarehouseAllListItem | null>(null);
 	const [confirmOpen, setConfirmOpen] = useState(false);
+	const [clearCartOpen, setClearCartOpen] = useState(false);
 
 	const brandId = brandFilter ? Number(brandFilter) : undefined;
 	const loadCategoryOptions = useMemo(() => createCategoryLoader(brandId), [brandId]);
 
-	const sizeOptions = useMemo(() => sizes.map((size) => ({ value: String(size), label: formatNumber(size) })), [sizes]);
-
 	const productsQuery = useChinaProductsQuery({
 		brand: brandId,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
-		size: sizeFilter || undefined,
-		type: typeFilter ? Number(typeFilter) : undefined,
 	});
-	const products = (productsQuery.data ?? []).flatMap((p) => {
-		const row = byId.get(p.id);
-		return row ? [row] : [];
-	});
+	const products = (productsQuery.data?.pages ?? []).flatMap((page) =>
+		page.results.flatMap((p) => {
+			const row = byId.get(p.id);
+			return row ? [row] : [];
+		}),
+	);
 
 	const cartQuery = useImportCartQuery(STAGE);
 	const cart = cartQuery.data?.cart ?? null;
@@ -80,12 +80,29 @@ export default function ChinaDispatchPage() {
 	const canPick = canWrite && Boolean(consignorValue) && Boolean(dispatchValue);
 
 	const { data: selectedConsignor } = useConsignorQuery(consignorValue ? Number(consignorValue) : undefined);
+	const deleteCartItemMutation = useDeleteCartItemMutation();
+
+	function handleRemoveCartItem(id: number) {
+		deleteCartItemMutation.mutate(id, {
+			onError: (err) =>
+				notify({ title: "O'chirishda xatolik", text: getApiErrorMessage(err, "Mahsulotni savatdan o'chirib bo'lmadi") }),
+		});
+	}
+
+	function handleProductsScroll(e: UIEvent<HTMLDivElement>) {
+		const el = e.currentTarget;
+		if (
+			productsQuery.hasNextPage &&
+			!productsQuery.isFetchingNextPage &&
+			el.scrollTop + el.clientHeight >= el.scrollHeight - 40
+		) {
+			productsQuery.fetchNextPage();
+		}
+	}
 
 	function clearFilters() {
 		setBrandFilter('');
 		setCategoryFilter('');
-		setSizeFilter('');
-		setTypeFilter('');
 	}
 
 	return (
@@ -131,42 +148,20 @@ export default function ChinaDispatchPage() {
 									clearable
 								/>
 							</div>
-							<div className='w-full px-2.5 sm:w-1/2'>
-								<label className='mb-1 block text-xs font-semibold text-ca-heading'>O'lcham:</label>
-								<Combobox
-									value={sizeFilter}
-									onChange={(value) => setSizeFilter(value)}
-									options={sizeOptions}
-									placeholder='Barchasi'
-									clearable
-								/>
-							</div>
-							<div className='w-full px-2.5 sm:w-1/2'>
-								<label className='mb-1 block text-xs font-semibold text-ca-heading'>Tip:</label>
-								<div className='flex gap-2'>
-									<div className='flex-1'>
-										<Combobox
-											value={typeFilter}
-											onChange={(value) => setTypeFilter(value)}
-											loadOptions={loadSizeTypeOptions}
-											placeholder='Barchasi'
-											clearable
-										/>
-									</div>
-									<Button
-										type='button'
-										variant='default'
-										size='sm'
-										disabled={!brandFilter && !categoryFilter && !sizeFilter && !typeFilter}
-										onClick={clearFilters}
-									>
-										Tozalash
-									</Button>
-								</div>
+							<div className='flex w-full justify-end px-2.5'>
+								<Button
+									type='button'
+									variant='default'
+									size='sm'
+									disabled={!brandFilter && !categoryFilter}
+									onClick={clearFilters}
+								>
+									Tozalash
+								</Button>
 							</div>
 						</div>
 
-						<div className={SCROLL_AREA_CLASS}>
+						<div className={SCROLL_AREA_CLASS} onScroll={handleProductsScroll}>
 							<Table>
 								<TableHeader>
 									<TableRow>
@@ -175,20 +170,19 @@ export default function ChinaDispatchPage() {
 										<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
 										<TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
 										<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Amal</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{productsQuery.isLoading && (
 										<TableRow>
-											<TableCell colSpan={6} className='text-center'>
+											<TableCell colSpan={5} className='text-center'>
 												Yuklanmoqda...
 											</TableCell>
 										</TableRow>
 									)}
 									{productsQuery.isError && (
 										<TableRow>
-											<TableCell colSpan={6} className='text-center text-ca-red'>
+											<TableCell colSpan={5} className='text-center text-ca-red'>
 												<FaExclamationTriangle className='mr-1.5 inline' />{' '}
 												{getApiErrorMessage(productsQuery.error, 'Xatolik yuz berdi')}
 											</TableCell>
@@ -196,31 +190,27 @@ export default function ChinaDispatchPage() {
 									)}
 									{!productsQuery.isLoading && !productsQuery.isError && products.length === 0 && (
 										<TableRow>
-											<TableCell colSpan={6} className='text-center'>
+											<TableCell colSpan={5} className='text-center'>
 												Ma'lumot topilmadi
 											</TableCell>
 										</TableRow>
 									)}
 									{products.map((row, index) => (
-										<TableRow key={row.id} className='bg-red-50'>
+										<TableRow key={row.id} onClick={() => canPick && setSelectedProduct(row)} className={canPick ? 'cursor-pointer bg-red-50 hover:bg-red-100' : 'cursor-not-allowed bg-red-50 opacity-60'}>
 											<TableCell>{index + 1}</TableCell>
 											<TableCell>{row.brand_name}</TableCell>
 											<TableCell>{row.product_category_name}</TableCell>
 											<TableCell>{formatNumber(row.size)}</TableCell>
 											<TableCell>{row.type_name ?? ''}</TableCell>
-											<TableCell>
-												<Button
-													type='button'
-													variant='danger'
-													size='xs'
-													disabled={!canPick}
-													onClick={() => setSelectedProduct(row)}
-												>
-													Tanlash
-												</Button>
-											</TableCell>
 										</TableRow>
 									))}
+									{productsQuery.isFetchingNextPage && (
+										<TableRow>
+											<TableCell colSpan={5} className='text-center'>
+												Yuklanmoqda...
+											</TableCell>
+										</TableRow>
+									)}
 								</TableBody>
 							</Table>
 						</div>
@@ -265,19 +255,20 @@ export default function ChinaDispatchPage() {
 										<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
 										<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
 										<TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>
+										<TableHead className='bg-ca-theme text-white' />
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{cartQuery.isLoading && (
 										<TableRow>
-											<TableCell colSpan={10} className='text-center'>
+											<TableCell colSpan={11} className='text-center'>
 												Yuklanmoqda...
 											</TableCell>
 										</TableRow>
 									)}
 									{!cartQuery.isLoading && cartItems.length === 0 && (
 										<TableRow>
-											<TableCell colSpan={10} className='text-center'>
+											<TableCell colSpan={11} className='text-center'>
 												Import savati bo'sh
 											</TableCell>
 										</TableRow>
@@ -298,12 +289,37 @@ export default function ChinaDispatchPage() {
 												</TableCell>
 												<TableCell>{formatNumber(item.quantity)}</TableCell>
 												<TableCell className='font-semibold'>{formatNumber(item.total_dollar, 2)} $</TableCell>
+												<TableCell>
+													{canWrite && (
+														<Button
+															type='button'
+															{...buttonProps(<FaTrash />, 'danger', 'icon')}
+															aria-label="O'chirish"
+															disabled={deleteCartItemMutation.isPending}
+															onClick={() => handleRemoveCartItem(item.id)}
+														/>
+													)}
+												</TableCell>
 											</TableRow>
 										);
 									})}
 								</TableBody>
 							</Table>
 						</div>
+
+						{canWrite && (
+							<div className='mt-4 flex justify-end'>
+								<Button
+									type='button'
+									variant='default'
+									size='sm'
+									disabled={cartItems.length === 0}
+									onClick={() => setClearCartOpen(true)}
+								>
+									Savatni tozalash
+								</Button>
+							</div>
+						)}
 
 						{summary && cartItems.length > 0 && (
 							<div className='mt-4 flex flex-wrap items-center justify-around gap-3 rounded-[3px] border border-ca-border bg-ca-silver px-4 py-3 text-sm'>
@@ -341,6 +357,10 @@ export default function ChinaDispatchPage() {
 					consignorId={Number(consignorValue)}
 					dispatchDatetime={toApiDateTime(dispatchValue)}
 				/>
+			)}
+
+			{clearCartOpen && (
+				<ClearImportCartConfirmModal open={clearCartOpen} setOpen={setClearCartOpen} stage={STAGE} />
 			)}
 
 			{confirmOpen && cart && summary && (

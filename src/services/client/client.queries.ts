@@ -32,7 +32,9 @@ export function useCreateClientMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: ClientPayload) => clientService.create(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: clientKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: clientKeys.all })
+    },
   })
 }
 
@@ -40,7 +42,9 @@ export function useUpdateClientMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: ClientPayload }) => clientService.update(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: clientKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: clientKeys.all })
+    },
   })
 }
 
@@ -48,7 +52,9 @@ export function useUpdateClientStatusMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => clientService.updateStatus(id, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: clientKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: clientKeys.all })
+    },
   })
 }
 
@@ -56,6 +62,8 @@ export function useDeleteClientMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => clientService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: clientKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: clientKeys.all })
+    },
   })
 }

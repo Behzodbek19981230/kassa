@@ -297,7 +297,7 @@ export default function WarehouseProductsPage() {
 									);
 								})}
 							{!isLoading && !isError && brandGroups.length > 0 && (
-								<TableRow className='bg-ca-heading'>
+								<TableRow className='bg-ca-heading dark:bg-ca-header'>
 									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
 									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
 									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />

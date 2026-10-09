@@ -44,7 +44,9 @@ export function useCreateWarehouseMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: WarehousePayload) => warehouseService.create(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: warehouseKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
+    },
   })
 }
 
@@ -52,7 +54,9 @@ export function useUpdateWarehouseMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: WarehousePayload }) => warehouseService.update(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: warehouseKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
+    },
   })
 }
 
@@ -60,7 +64,9 @@ export function useDeleteWarehouseMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => warehouseService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: warehouseKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
+    },
   })
 }
 
@@ -69,6 +75,8 @@ export function useEditWarehouseRealPriceMutation() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: WarehouseEditRealPricePayload }) =>
       warehouseService.editRealPrice(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: warehouseKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
+    },
   })
 }

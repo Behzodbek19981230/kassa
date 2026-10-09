@@ -28,6 +28,8 @@ export function useUpdateSkladMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: SkladUpdatePayload }) => skladService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: skladKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: skladKeys.all });
+		},
 	});
 }

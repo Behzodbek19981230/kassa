@@ -19,7 +19,9 @@ export function useCreateExpenseMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: ExpensePayload) => expenseService.create(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: expenseKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+    },
   })
 }
 
@@ -27,7 +29,9 @@ export function useUpdateExpenseMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: ExpensePayload }) => expenseService.update(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: expenseKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+    },
   })
 }
 
@@ -35,6 +39,8 @@ export function useDeleteExpenseMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => expenseService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: expenseKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+    },
   })
 }

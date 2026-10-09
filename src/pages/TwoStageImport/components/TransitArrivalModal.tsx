@@ -37,9 +37,11 @@ interface TransitArrivalModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	order: ImportOrderListItem;
+	/** Opens the cancel dialog for this order from inside the step. */
+	onCancelOrder?: () => void;
 }
 
-export default function TransitArrivalModal({ open, setOpen, order }: TransitArrivalModalProps) {
+export default function TransitArrivalModal({ open, setOpen, order, onCancelOrder }: TransitArrivalModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 
@@ -171,6 +173,11 @@ export default function TransitArrivalModal({ open, setOpen, order }: TransitArr
 						</div>
 					</ModalBody>
 					<ModalFooter>
+						{onCancelOrder && (
+							<Button type='button' variant='white' className='mr-auto text-ca-red' onClick={onCancelOrder}>
+								Buyurtmani bekor qilish
+							</Button>
+						)}
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish
 						</Button>

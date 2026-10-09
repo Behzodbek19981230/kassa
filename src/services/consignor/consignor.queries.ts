@@ -28,7 +28,9 @@ export function useCreateConsignorMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: ConsignorPayload) => consignorService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: consignorKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: consignorKeys.all });
+		},
 	});
 }
 
@@ -36,7 +38,9 @@ export function useUpdateConsignorMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: ConsignorPayload }) => consignorService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: consignorKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: consignorKeys.all });
+		},
 	});
 }
 
@@ -44,6 +48,8 @@ export function useDeleteConsignorMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => consignorService.remove(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: consignorKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: consignorKeys.all });
+		},
 	});
 }

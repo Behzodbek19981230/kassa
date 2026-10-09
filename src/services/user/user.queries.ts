@@ -39,7 +39,9 @@ export function useCreateUserMutation() {
   return useMutation({
     mutationFn: ({ payload, avatar }: { payload: UserPayload; avatar?: File | null }) =>
       userService.create(payload, avatar),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
   })
 }
 
@@ -48,7 +50,9 @@ export function useUpdateUserMutation() {
   return useMutation({
     mutationFn: ({ id, payload, avatar }: { id: number; payload: UserPayload; avatar?: File | null }) =>
       userService.update(id, payload, avatar),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
   })
 }
 
@@ -56,7 +60,9 @@ export function useDeleteUserMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => userService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
   })
 }
 
@@ -64,7 +70,9 @@ export function useUnblockUserMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => userService.unblock(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
   })
 }
 
@@ -73,6 +81,8 @@ export function useRegisterTelegramBotMutation() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: UserTelegramBotRegisterPayload }) =>
       userService.registerTelegramBot(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
   })
 }

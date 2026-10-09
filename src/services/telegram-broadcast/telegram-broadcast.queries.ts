@@ -37,7 +37,9 @@ export function useCreateTelegramBroadcastMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: TelegramBroadcastCreatePayload) => telegramBroadcastService.create(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all })
+    },
   })
 }
 
@@ -45,7 +47,9 @@ export function useCreateAllTelegramBroadcastMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: TelegramBroadcastCreateAllPayload) => telegramBroadcastService.createAll(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all })
+    },
   })
 }
 
@@ -53,7 +57,9 @@ export function useDeleteTelegramBroadcastMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => telegramBroadcastService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all })
+    },
   })
 }
 
@@ -61,7 +67,9 @@ export function useRetryDeleteTelegramBroadcastMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => telegramBroadcastService.retryDelete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all })
+    },
   })
 }
 
@@ -69,6 +77,8 @@ export function useRetryDeleteTelegramBroadcastDeliveryMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (deliveryId: number) => telegramBroadcastService.retryDeleteDelivery(deliveryId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: telegramBroadcastKeys.all })
+    },
   })
 }

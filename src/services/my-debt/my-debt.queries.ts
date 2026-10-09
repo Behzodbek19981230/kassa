@@ -20,7 +20,9 @@ export function useCreateMyDebtMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: MyDebtPayload) => myDebtService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: myDebtKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: myDebtKeys.all });
+		},
 	});
 }
 

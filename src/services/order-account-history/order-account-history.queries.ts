@@ -93,7 +93,9 @@ export function useUpdateOrderAccountHistoryMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: OrderAccountHistoryUpdatePayload }) =>
 			orderAccountHistoryService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all });
+		},
 	});
 }
 
@@ -102,7 +104,9 @@ export function useUpdateOrderAccountHistoryStatusMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: OrderAccountHistoryUpdateStatusPayload }) =>
 			orderAccountHistoryService.updateStatus(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all });
+		},
 	});
 }
 
@@ -111,7 +115,9 @@ export function useUpdateSaleOrderAccountHistoryMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: OrderAccountHistoryUpdateSalePayload }) =>
 			orderAccountHistoryService.updateSale(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all });
+		},
 	});
 }
 

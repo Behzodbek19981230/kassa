@@ -65,7 +65,9 @@ export function useUpdateVozvratOrderMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: VozvratOrderUpdatePayload }) =>
 			vozvratService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vozvrat'] }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['vozvrat'] });
+		},
 	});
 }
 
@@ -86,6 +88,8 @@ export function useDeleteVozvratOrderMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => vozvratService.remove(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vozvrat'] }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['vozvrat'] });
+		},
 	});
 }

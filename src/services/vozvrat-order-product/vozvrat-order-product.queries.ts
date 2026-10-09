@@ -6,7 +6,9 @@ export function useCreateVozvratOrderProductMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: VozvratOrderProductCreatePayload) => vozvratOrderProductService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vozvrat'] }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['vozvrat'] });
+		},
 	});
 }
 
@@ -15,7 +17,9 @@ export function useUpdateVozvratOrderProductMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: VozvratOrderProductCreatePayload }) =>
 			vozvratOrderProductService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vozvrat'] }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['vozvrat'] });
+		},
 	});
 }
 
@@ -23,6 +27,8 @@ export function useDeleteVozvratOrderProductMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => vozvratOrderProductService.remove(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vozvrat'] }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['vozvrat'] });
+		},
 	});
 }

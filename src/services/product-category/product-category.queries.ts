@@ -22,7 +22,9 @@ export function useCreateProductCategoryMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: ProductCategoryPayload) => productCategoryService.create(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: productCategoryKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+    },
   })
 }
 
@@ -31,7 +33,9 @@ export function useUpdateProductCategoryMutation() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: ProductCategoryPayload }) =>
       productCategoryService.update(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: productCategoryKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+    },
   })
 }
 
@@ -39,6 +43,8 @@ export function useDeleteProductCategoryMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => productCategoryService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: productCategoryKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+    },
   })
 }

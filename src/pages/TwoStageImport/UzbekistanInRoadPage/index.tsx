@@ -1,22 +1,12 @@
 import { useState } from 'react';
 import { FaBoxes, FaExclamationTriangle, FaMoneyBillWave, FaTruck } from 'react-icons/fa';
-import {
-	Badge,
-	Button,
-	PageHeader,
-	Panel,
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from '@/components/ui';
+import { Badge, PageHeader, Panel, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useUzbekistanInRoadQuery } from '@/services/two-stage-import/two-stage-import.queries';
 import type { ImportOrderListItem } from '@/services/two-stage-import/two-stage-import.types';
+import CancelOrderModal from '@/pages/TwoStageImport/components/CancelOrderModal';
 import LocalReceiptModal from '@/pages/TwoStageImport/components/LocalReceiptModal';
 import StatCard from '@/pages/TwoStageImport/components/StatCard';
 import {
@@ -32,7 +22,9 @@ export default function UzbekistanInRoadPage() {
 	const { canWrite } = useCurrentCompany();
 	const inRoadQuery = useUzbekistanInRoadQuery();
 	const orders = inRoadQuery.data ?? [];
+	// Clicking a row opens the receipt step. Cancelling is offered inside that step.
 	const [receiptOrder, setReceiptOrder] = useState<ImportOrderListItem | null>(null);
+	const [cancelOrder, setCancelOrder] = useState<ImportOrderListItem | null>(null);
 
 	const totals = orders.reduce(
 		(acc, order) => ({
@@ -54,11 +46,11 @@ export default function UzbekistanInRoadPage() {
 			/>
 
 			<Panel
-					title="O'zbekistonga yo'ldagi buyurtmalar"
-					onReload={() => inRoadQuery.refetch()}
-					className={SCROLL_PANEL_CLASS}
-					bodyClassName={SCROLL_BODY_CLASS}
-				>
+				title="O'zbekistonga yo'ldagi buyurtmalar"
+				onReload={() => inRoadQuery.refetch()}
+				className={SCROLL_PANEL_CLASS}
+				bodyClassName={SCROLL_BODY_CLASS}
+			>
 				<div className='-mx-2.5 flex flex-wrap'>
 					<StatCard icon={<FaTruck />} label="Yo'lda" value={formatNumber(orders.length)} accent='warning' />
 					<StatCard icon={<FaBoxes />} label='Jami soni' value={`${formatNumber(totals.quantity)} dona`} />
@@ -84,20 +76,19 @@ export default function UzbekistanInRoadPage() {
 								<TableHead className='bg-ca-theme text-white'>Fura</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Telefon</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Holati</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Harakatlar</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{inRoadQuery.isLoading && (
 								<TableRow>
-									<TableCell colSpan={11} className='text-center'>
+									<TableCell colSpan={10} className='text-center'>
 										Yuklanmoqda...
 									</TableCell>
 								</TableRow>
 							)}
 							{!inRoadQuery.isLoading && inRoadQuery.isError && (
 								<TableRow>
-									<TableCell colSpan={11} className='text-center text-ca-red'>
+									<TableCell colSpan={10} className='text-center text-ca-red'>
 										<FaExclamationTriangle className='mr-1.5 inline' />{' '}
 										{getApiErrorMessage(inRoadQuery.error, 'Xatolik yuz berdi')}
 									</TableCell>
@@ -105,13 +96,17 @@ export default function UzbekistanInRoadPage() {
 							)}
 							{!inRoadQuery.isLoading && !inRoadQuery.isError && orders.length === 0 && (
 								<TableRow>
-									<TableCell colSpan={11} className='text-center'>
+									<TableCell colSpan={10} className='text-center'>
 										Ma'lumot topilmadi
 									</TableCell>
 								</TableRow>
 							)}
 							{orders.map((order, index) => (
-								<TableRow key={order.id}>
+								<TableRow
+									key={order.id}
+									onClick={() => canWrite && setReceiptOrder(order)}
+									className={canWrite ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}
+								>
 									<TableCell>{index + 1}</TableCell>
 									<TableCell className='font-semibold text-ca-heading'>{order.order_number}</TableCell>
 									<TableCell>{formatTashkentDate(order.dispatch_datetime)}</TableCell>
@@ -124,13 +119,6 @@ export default function UzbekistanInRoadPage() {
 									<TableCell>
 										<Badge variant={ORDER_STATUS_VARIANTS[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
 									</TableCell>
-									<TableCell>
-										{canWrite && (
-											<Button type='button' variant='danger' size='xs' onClick={() => setReceiptOrder(order)}>
-												<FaTruck className='mr-1.5' /> Qabul qilish
-											</Button>
-										)}
-									</TableCell>
 								</TableRow>
 							))}
 						</TableBody>
@@ -139,7 +127,18 @@ export default function UzbekistanInRoadPage() {
 			</Panel>
 
 			{receiptOrder && (
-				<LocalReceiptModal open setOpen={(open) => !open && setReceiptOrder(null)} order={receiptOrder} />
+				<LocalReceiptModal
+					open
+					setOpen={(open) => !open && setReceiptOrder(null)}
+					order={receiptOrder}
+					onCancelOrder={() => {
+						setCancelOrder(receiptOrder);
+						setReceiptOrder(null);
+					}}
+				/>
+			)}
+			{cancelOrder && (
+				<CancelOrderModal open setOpen={(open) => !open && setCancelOrder(null)} order={cancelOrder} />
 			)}
 		</>
 	);

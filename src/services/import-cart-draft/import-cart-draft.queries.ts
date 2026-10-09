@@ -24,7 +24,9 @@ export function useCreateImportCartDraftMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: ImportCartDraftPayload) => importCartDraftService.create(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all });
+		},
 	});
 }
 
@@ -33,7 +35,9 @@ export function useUpdateImportCartDraftMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: ImportCartDraftPayload }) =>
 			importCartDraftService.update(id, payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all });
+		},
 	});
 }
 
@@ -41,7 +45,9 @@ export function useDeleteImportCartDraftMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => importCartDraftService.remove(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all });
+		},
 	});
 }
 
@@ -49,7 +55,9 @@ export function useClearImportCartMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload: ClearImportCartPayload) => importCartDraftService.clear(payload),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all });
+		},
 	});
 }
 
