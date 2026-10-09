@@ -31,7 +31,7 @@ import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types'
 export interface ImportProductVariant {
 	brandName: string;
 	categoryName: string;
-	size: number;
+	size: string;
 	typeName: string | null;
 	rows: WarehouseAllListItem[];
 }

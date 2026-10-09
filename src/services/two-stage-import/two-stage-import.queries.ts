@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { parseListPage } from '@/services/api/list-page';
 import { twoStageImportService } from '@/services/two-stage-import/two-stage-import.service';
 import type {
 	CancelOrderPayload,
@@ -33,10 +34,7 @@ export function useChinaProductsQuery(params?: ChinaProductsParams) {
 				page: pageParam,
 				limit: CHINA_PRODUCTS_PAGE_SIZE,
 			});
-			// A plain array means the backend sent the whole list in one response, so there is no next page.
-			if (Array.isArray(data)) return { results: data, nextPage: undefined };
-			const { currentPage, lastPage } = data.pagination;
-			return { results: data.results, nextPage: currentPage < lastPage ? currentPage + 1 : undefined };
+			return parseListPage(data, pageParam);
 		},
 		initialPageParam: 1,
 		getNextPageParam: (lastPage) => lastPage.nextPage,

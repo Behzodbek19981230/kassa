@@ -83,27 +83,21 @@ export interface WarehouseListParams extends ListParams {
   status_count?: boolean
 }
 
+// Shape of one warehouse row in `warehouse/all-list/` and `design/china-products/`. Decimals arrive as strings.
 export interface WarehouseAllListItem {
   id: number
   company_id: number
   brand_id: number
+  brand_name: string
   product_category_id: number
-  size: number
-  count: number
-  cr_date: string
-  price: number
-  real_price: number
-  all_sum_dollar: number
-  all_discount_amount: number
-  all_my_total_debt: number
-  status_count: boolean
-  worker_price: number
+  product_category_name: string
   type_sklad_id: number | null
   type_sklad_name: string | null
-  brand_name: string
-  product_category_name: string
   type_id: number | null
   type_name: string | null
+  size: string
+  count: number
+  real_price: string
   image: string | null
 }
 

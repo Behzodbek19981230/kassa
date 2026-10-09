@@ -31,17 +31,12 @@ import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types'
 export interface ProductVariant {
 	brandName: string;
 	categoryName: string;
-	size: number;
+	size: string;
 	typeName: string | null;
 	rows: WarehouseAllListItem[];
 }
 
 const DEFAULT_LOCATION_LABEL = 'Dokon';
-
-// The price a location starts from: the worker price of its warehouse row, in dollars.
-function workerPriceOf(row?: WarehouseAllListItem): string {
-	return row ? Number(row.worker_price).toFixed(2) : '';
-}
 
 interface AddToCartModalProps {
 	open: boolean;
@@ -121,7 +116,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 			joy: locationOptions[0]?.value ?? '',
 			count: '0',
 			priceSom: '',
-			priceDollar: workerPriceOf(locationOptions[0]?.row),
+			priceDollar: '',
 		},
 	});
 
@@ -141,14 +136,6 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	function handlePriceDollarChange(value: string) {
 		setValue('priceDollar', value, { shouldValidate: true });
 		setValue('priceSom', rate > 0 && value ? (Number(value) * rate).toFixed(0) : '');
-	}
-
-	// Fills the price from a location's worker price. The som price follows the dollar amount at the current rate.
-	function applyWorkerPrice(row?: WarehouseAllListItem) {
-		const dollar = workerPriceOf(row);
-		if (!dollar) return;
-		setValue('priceDollar', dollar, { shouldValidate: true });
-		setValue('priceSom', rate > 0 ? (Number(dollar) * rate).toFixed(0) : '');
 	}
 
 	// The rate loads after the modal opens, so the som price is filled in once it is known.
@@ -225,10 +212,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 								render={({ field }) => (
 									<Select
 										value={field.value}
-										onValueChange={(value) => {
-											field.onChange(value);
-											applyWorkerPrice(locationOptions.find((option) => option.value === value)?.row);
-										}}
+										onValueChange={(value) => field.onChange(value)}
 									>
 										<SelectTrigger>
 											<SelectValue placeholder='Tanlang...' />

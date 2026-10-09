@@ -24,9 +24,9 @@ import {
 	useDeleteCartItemMutation,
 	useImportCartQuery,
 } from '@/services/two-stage-import/two-stage-import.queries';
+import { useWarehouseDetailQueries } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import { createCategoryLoader, loadBrandOptions, loadConsignorOptions } from '@/pages/TwoStageImport/options';
-import { useWarehouseCatalog } from '@/pages/TwoStageImport/useWarehouseCatalog';
 import AddToChinaCartModal from '@/pages/TwoStageImport/components/AddToChinaCartModal';
 import ChinaDispatchConfirmModal from '@/pages/TwoStageImport/components/ChinaDispatchConfirmModal';
 import ClearImportCartConfirmModal from '@/pages/TwoStageImport/components/ClearImportCartConfirmModal';
@@ -43,7 +43,6 @@ const STAGE = 'CHINA_TO_TRANSIT' as const;
 
 export default function ChinaDispatchPage() {
 	const { canWrite } = useCurrentCompany();
-	const { byId } = useWarehouseCatalog();
 	const { notify } = useNotification();
 
 	const [brandFilter, setBrandFilter] = useState('');
@@ -63,16 +62,18 @@ export default function ChinaDispatchPage() {
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
 	const products = (productsQuery.data?.pages ?? []).flatMap((page) =>
-		page.results.flatMap((p) => {
-			const row = byId.get(p.id);
-			return row ? [row] : [];
-		}),
+		page.results.flatMap((group) => group.product_categories.flatMap((category) => category.warehouses)),
 	);
 
 	const cartQuery = useImportCartQuery(STAGE);
 	const cart = cartQuery.data?.cart ?? null;
 	const cartItems = cartQuery.data?.items ?? [];
 	const summary = cartQuery.data?.summary;
+
+	// Cart items only carry a warehouse id, so their names come from the detail of each id.
+	const cartWarehouseIds = [...new Set(cartItems.flatMap((item) => (item.warehouse != null ? [item.warehouse] : [])))];
+	const cartWarehouseQueries = useWarehouseDetailQueries(cartWarehouseIds);
+	const cartWarehouseById = new Map(cartWarehouseIds.map((id, index) => [id, cartWarehouseQueries[index]?.data] as const));
 
 	// The cart keeps the consignor and dispatch time of the open import, so they are prefilled from it.
 	const consignorValue = consignorInput || (cart?.consignor ? String(cart.consignor) : '');
@@ -274,14 +275,14 @@ export default function ChinaDispatchPage() {
 										</TableRow>
 									)}
 									{cartItems.map((item, index) => {
-										const row = item.warehouse != null ? byId.get(item.warehouse) : undefined;
+										const row = item.warehouse != null ? cartWarehouseById.get(item.warehouse) : undefined;
 										return (
 											<TableRow key={item.id} className='bg-red-50'>
 												<TableCell>{index + 1}</TableCell>
-												<TableCell>{row?.brand_name ?? '-'}</TableCell>
-												<TableCell>{row?.product_category_name ?? '-'}</TableCell>
+												<TableCell>{row?.brand_detail?.name ?? '-'}</TableCell>
+												<TableCell>{row?.product_category_detail?.name ?? '-'}</TableCell>
 												<TableCell>{formatNumber(row?.size ?? '')}</TableCell>
-												<TableCell>{row?.type_name ?? ''}</TableCell>
+												<TableCell>{row?.type_detail?.name ?? ''}</TableCell>
 												<TableCell>{formatNumber(item.type_quantity, 2)}</TableCell>
 												<TableCell>{formatNumber(item.unit_price_yuan, 0)}</TableCell>
 												<TableCell className='font-semibold text-ca-green'>

@@ -1,11 +1,11 @@
 import { apiClient } from '@/services/api/client';
-import type { PaginatedResponse } from '@/services/api/types';
+import type { ListResponse } from '@/services/api/list-page';
+import type { WarehouseAllListBrandGroup } from '@/services/warehouse/warehouse.types';
 import type {
 	CancelOrderPayload,
 	CartItemPayload,
 	ChinaDispatchPayload,
 	ChinaDispatchResponse,
-	ChinaProduct,
 	ChinaProductsParams,
 	ImportCartResponse,
 	ImportOrderListItem,
@@ -21,7 +21,7 @@ const BASE_PATH = '/design';
 
 export const twoStageImportService = {
 	getChinaProducts: async (params?: ChinaProductsParams) => {
-		const { data } = await apiClient.get<ChinaProduct[] | PaginatedResponse<ChinaProduct>>(`${BASE_PATH}/china-products/`, {
+		const { data } = await apiClient.get<WarehouseAllListBrandGroup[] | ListResponse<WarehouseAllListBrandGroup>>(`${BASE_PATH}/china-products/`, {
 			params,
 		});
 		return data;

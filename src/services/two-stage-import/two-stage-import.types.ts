@@ -39,18 +39,6 @@ export interface ImportCartResponse {
 	summary: ImportCartSummary;
 }
 
-/** Warehouse row returned by `design/china-products/` (names are resolved from the warehouse catalog). */
-export interface ChinaProduct {
-	id: number;
-	brand: number;
-	product_category: number;
-	type_sklad: number | null;
-	size: string;
-	count: number;
-	real_price: string;
-	type: number | null;
-}
-
 export interface ChinaProductsParams {
 	brand?: number;
 	product_category?: number;

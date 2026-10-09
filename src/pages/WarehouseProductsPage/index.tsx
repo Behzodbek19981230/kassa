@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, type UIEvent, useMemo, useState } from 'react';
 import { FaExclamationTriangle, FaFileExport } from 'react-icons/fa';
 import {
 	Button,
@@ -20,7 +20,7 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { brandService } from '@/services/brand/brand.service';
 import { productCategoryService } from '@/services/product-category/product-category.service';
-import { useWarehouseAllListQuery } from '@/services/warehouse/warehouse.queries';
+import { useWarehouseAllListInfiniteQuery } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import WarehouseProductImagesModal from '@/pages/WarehouseProductsPage/components/WarehouseProductImagesModal';
 import WarehouseProductThumbnail from '@/pages/WarehouseProductsPage/components/WarehouseProductThumbnail';
@@ -33,11 +33,28 @@ export default function WarehouseProductsPage() {
 	const [imagesItem, setImagesItem] = useState<WarehouseAllListItem | null>(null);
 	const [realPriceItem, setRealPriceItem] = useState<WarehouseAllListItem | null>(null);
 
-	const { data, isLoading, isFetching, isError, error, refetch } = useWarehouseAllListQuery({
+	const {
+		data,
+		isLoading,
+		isFetching,
+		isFetchingNextPage,
+		hasNextPage,
+		fetchNextPage,
+		isError,
+		error,
+		refetch,
+	} = useWarehouseAllListInfiniteQuery({
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
 	const groups = data ?? [];
+
+	function handleScroll(e: UIEvent<HTMLDivElement>) {
+		const el = e.currentTarget;
+		if (hasNextPage && !isFetchingNextPage && el.scrollTop + el.clientHeight >= el.scrollHeight - 40) {
+			fetchNextPage();
+		}
+	}
 
 	const brandGroups = useMemo(() => {
 		return groups
@@ -49,7 +66,7 @@ export default function WarehouseProductsPage() {
 	}, [groups]);
 
 	const totalCount = brandGroups.reduce((sum, g) => sum + g.items.reduce((s, w) => s + w.count, 0), 0);
-	const totalSum = brandGroups.reduce((sum, g) => sum + g.items.reduce((s, w) => s + w.price * w.count, 0), 0);
+	const totalSum = brandGroups.reduce((sum, g) => sum + g.items.reduce((s, w) => s + Number(w.real_price) * w.count, 0), 0);
 	const modelCount = brandGroups.length;
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
@@ -97,12 +114,12 @@ export default function WarehouseProductsPage() {
 					item.type_name ?? '',
 					item.type_sklad_name ?? '',
 					item.count,
-					item.price,
-					item.price * item.count,
+					Number(item.real_price),
+					Number(item.real_price) * item.count,
 				]);
 			});
 			const groupCount = group.items.reduce((s, w) => s + w.count, 0);
-			const groupSum = group.items.reduce((s, w) => s + w.price * w.count, 0);
+			const groupSum = group.items.reduce((s, w) => s + Number(w.real_price) * w.count, 0);
 			worksheet.addRow(['', '', '', '', '', 'Jami:', groupCount, '', groupSum]);
 		});
 		worksheet.addRow(['', '', '', '', '', 'Jami:', totalCount, '', totalSum]);
@@ -188,7 +205,7 @@ export default function WarehouseProductsPage() {
 					</div>
 				</div>
 
-				<div className={SCROLL_AREA_CLASS}>
+				<div className={SCROLL_AREA_CLASS} onScroll={handleScroll}>
 					<Table>
 						<TableHeader>
 							<TableRow>
@@ -205,7 +222,7 @@ export default function WarehouseProductsPage() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{(isLoading || isFetching) && (
+							{(isLoading || (isFetching && !isFetchingNextPage)) && (
 								<TableRow>
 									<TableCell colSpan={10} className='text-center'>
 										Yuklanmoqda...
@@ -230,7 +247,7 @@ export default function WarehouseProductsPage() {
 								!isError &&
 								brandGroups.map((group) => {
 									const groupCount = group.items.reduce((s, w) => s + w.count, 0);
-									const groupSum = group.items.reduce((s, w) => s + w.real_price * w.count, 0);
+									const groupSum = group.items.reduce((s, w) => s + Number(w.real_price) * w.count, 0);
 									return (
 										<Fragment key={group.brand.id}>
 											<TableRow>
@@ -272,7 +289,7 @@ export default function WarehouseProductsPage() {
 															)}
 														</TableCell>
 														<TableCell className='font-semibold'>
-															{formatNumber(item.real_price * item.count, 2)} $
+															{formatNumber(Number(item.real_price) * item.count, 2)} $
 														</TableCell>
 													</TableRow>
 												);
@@ -296,7 +313,14 @@ export default function WarehouseProductsPage() {
 										</Fragment>
 									);
 								})}
-							{!isLoading && !isError && brandGroups.length > 0 && (
+							{isFetchingNextPage && (
+									<TableRow>
+										<TableCell colSpan={10} className='text-center'>
+											Yuklanmoqda...
+										</TableCell>
+									</TableRow>
+								)}
+								{!isLoading && !isError && brandGroups.length > 0 && (
 								<TableRow className='bg-ca-heading dark:bg-ca-header'>
 									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
 									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />

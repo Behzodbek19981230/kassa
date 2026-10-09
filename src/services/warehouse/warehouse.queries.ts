@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { warehouseService } from '@/services/warehouse/warehouse.service'
+import { type InfiniteData, useInfiniteQuery, useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { mergeBrandGroups, warehouseService } from '@/services/warehouse/warehouse.service'
 import type {
   WarehouseAllListParams,
   WarehouseEditRealPricePayload,
@@ -11,6 +11,7 @@ const warehouseKeys = {
   all: ['warehouse'] as const,
   list: (params?: WarehouseListParams) => ['warehouse', 'list', params] as const,
   allList: (params?: WarehouseAllListParams) => ['warehouse', 'all-list', params] as const,
+  allListInfinite: (params?: WarehouseAllListParams) => ['warehouse', 'all-list', 'infinite', params] as const,
   detail: (id: number) => ['warehouse', 'detail', id] as const,
 }
 
@@ -29,6 +30,34 @@ export function useWarehouseAllListQuery(params?: WarehouseAllListParams, enable
     queryFn: () => warehouseService.allList(params),
     placeholderData: (prev) => prev,
     enabled,
+  })
+}
+
+type AllListPage = Awaited<ReturnType<typeof warehouseService.allListPage>>
+
+// Every loaded page holds some brand groups, so they are merged before the table renders them.
+const selectBrandGroups = (data: InfiniteData<AllListPage>) =>
+  mergeBrandGroups(data.pages.flatMap((page) => page.results))
+
+// Loads the warehouse list 50 rows at a time; call fetchNextPage when the table is scrolled to the bottom.
+export function useWarehouseAllListInfiniteQuery(params?: WarehouseAllListParams) {
+  return useInfiniteQuery({
+    queryKey: warehouseKeys.allListInfinite(params),
+    queryFn: ({ pageParam }) => warehouseService.allListPage(params, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    select: selectBrandGroups,
+    placeholderData: (prev) => prev,
+  })
+}
+
+// Detail rows for the given warehouse ids, for places that only receive an id (e.g. cart items).
+export function useWarehouseDetailQueries(ids: number[]) {
+  return useQueries({
+    queries: ids.map((id) => ({
+      queryKey: warehouseKeys.detail(id),
+      queryFn: () => warehouseService.get(id),
+    })),
   })
 }
 

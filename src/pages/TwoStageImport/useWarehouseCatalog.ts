@@ -11,20 +11,17 @@ export function useWarehouseCatalog() {
 
 	return useMemo(() => {
 		const byId = new Map<number, WarehouseAllListItem>();
-		const sizes = new Set<number>();
 
 		for (const brand of data ?? []) {
 			for (const category of brand.product_categories) {
 				for (const row of category.warehouses) {
 					byId.set(row.id, row);
-					sizes.add(row.size);
 				}
 			}
 		}
 
 		return {
 			byId,
-			sizes: Array.from(sizes).sort((a, b) => a - b),
 			isLoading,
 		};
 	}, [data, isLoading]);
