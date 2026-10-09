@@ -490,6 +490,16 @@ export default function PlaceOrderPage() {
 							</Table>
 						</div>
 
+						{clientId && !isCartLoading && cartItems.length > 0 && (
+							<div className='mt-4 flex flex-wrap items-center justify-around gap-3 rounded-[3px] border border-ca-border bg-ca-silver px-4 py-3 text-sm'>
+								<span className='text-ca-heading'>
+									Jami: <span className='font-bold'>{formatNumber(cartTotalCount)} dona</span>
+								</span>
+								<span className='font-bold text-ca-green'>{formatNumber(cartTotalSum, 2)} $</span>
+								{rate > 0 && <span className='font-bold text-ca-heading'>{formatNumber(cartTotalSum * rate, 0)} so'm</span>}
+							</div>
+						)}
+
 						{canWrite && (
 							<div className='mt-4 flex gap-2'>
 								<Button
