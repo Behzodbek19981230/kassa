@@ -63,7 +63,6 @@ export interface ChinaCartItemPayload {
 export interface UzbekistanCartItemPayload {
 	stage: 'TRANSIT_TO_UZBEKISTAN';
 	source_logistics_warehouse: number;
-	two_stage_import: number;
 	dispatch_datetime: string;
 	import_warehouse: number;
 	quantity: number;
@@ -162,6 +161,9 @@ export interface ImportOrderListItem {
 	weight_kg?: string | null;
 	volume_m3?: string | null;
 	note?: string | null;
+	/** Ready-made labels from the backend: the consignor (China leg) or source warehouse (Uzbekistan leg), and "from → to". */
+	sender_name?: string | null;
+	direction_name?: string | null;
 	two_stage_import_detail?: {
 		id: number;
 		import_number: string;

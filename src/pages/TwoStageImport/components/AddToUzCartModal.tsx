@@ -1,11 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { FaCartPlus } from 'react-icons/fa';
 import { z } from 'zod';
 import {
 	Button,
-	Combobox,
 	FormField,
 	InputGroup,
 	Modal,
@@ -19,11 +18,7 @@ import {
 import { Input } from '@/components/ui/Input';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
-import {
-	useAddCartItemMutation,
-	useImportCartQuery,
-	useImportOrdersQuery,
-} from '@/services/two-stage-import/two-stage-import.queries';
+import { useAddCartItemMutation } from '@/services/two-stage-import/two-stage-import.queries';
 import type { TransitStockItem } from '@/services/two-stage-import/two-stage-import.types';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
@@ -37,7 +32,6 @@ interface AddToUzCartModalProps {
 }
 
 interface AddToUzCartFormValues {
-	twoStageImport: string;
 	quantity: string;
 }
 
@@ -50,33 +44,10 @@ export default function AddToUzCartModal({ open, setOpen, stock, product, dispat
 	const categoryName = stock.warehouse_detail?.product_category_name ?? product?.product_category_name;
 	const typeName = stock.warehouse_detail?.type_name ?? product?.type_name;
 
-	// Transit stock is pooled per logistics warehouse, but a cart item must name the import it ships.
-	// Once the cart holds an import, every later item goes under that same one.
-	const cartQuery = useImportCartQuery('TRANSIT_TO_UZBEKISTAN');
-	const cartImportId = cartQuery.data?.cart?.two_stage_import ?? null;
-
-	const ordersQuery = useImportOrdersQuery({
-		stage: 'CHINA_TO_TRANSIT',
-		destination_logistics_warehouse: stock.logistics_warehouse,
-	});
-
-	const importOptions = useMemo(() => {
-		const options = new Map<number, string>();
-		for (const order of ordersQuery.data ?? []) {
-			const detail = order.two_stage_import_detail;
-			if (!detail) continue;
-			if (order.destination_logistics_warehouse !== stock.logistics_warehouse) continue;
-			if (order.status !== 'ARRIVED' && order.status !== 'RECEIVED') continue;
-			options.set(detail.id, detail.import_number);
-		}
-		return Array.from(options, ([value, label]) => ({ value: String(value), label }));
-	}, [ordersQuery.data, stock.logistics_warehouse]);
-
 	// Quantity is limited to what is still free in transit, so the form checks it before the API does.
 	const schema = useMemo(
 		() =>
 			z.object({
-				twoStageImport: z.string().min(1, 'Importni tanlang'),
 				quantity: z
 					.string()
 					.trim()
@@ -95,22 +66,11 @@ export default function AddToUzCartModal({ open, setOpen, stock, product, dispat
 		control,
 		handleSubmit,
 		watch,
-		setValue,
-		getValues,
 		formState: { errors },
 	} = useForm<AddToUzCartFormValues>({
 		resolver: zodResolver(schema),
-		defaultValues: { twoStageImport: cartImportId != null ? String(cartImportId) : '', quantity: '' },
+		defaultValues: { quantity: '' },
 	});
-
-	// Data can arrive after the form mounts: lock to the cart's import, or pick the only option.
-	useEffect(() => {
-		if (cartImportId != null) {
-			setValue('twoStageImport', String(cartImportId));
-		} else if (importOptions.length === 1 && !getValues('twoStageImport')) {
-			setValue('twoStageImport', importOptions[0].value);
-		}
-	}, [cartImportId, importOptions, setValue, getValues]);
 
 	const quantity = Number(watch('quantity')) || 0;
 
@@ -122,7 +82,6 @@ export default function AddToUzCartModal({ open, setOpen, stock, product, dispat
 			await addToCartMutation.mutateAsync({
 				stage: 'TRANSIT_TO_UZBEKISTAN',
 				source_logistics_warehouse: stock.logistics_warehouse,
-				two_stage_import: Number(values.twoStageImport),
 				dispatch_datetime: dispatchDatetime,
 				import_warehouse: stock.id,
 				quantity: Number(values.quantity),
@@ -174,23 +133,6 @@ export default function AddToUzCartModal({ open, setOpen, stock, product, dispat
 								<span className='font-bold text-ca-heading'>{formatNumber(available)}</span>
 							</div>
 						</div>
-
-						<FormField label='Import' error={errors.twoStageImport?.message} required horizontal={false} className='mb-3'>
-							<Controller
-								name='twoStageImport'
-								control={control}
-								render={({ field }) => (
-									<Combobox
-										value={field.value}
-										onChange={(value) => field.onChange(value)}
-										options={importOptions}
-										disabled={cartImportId != null}
-										placeholder={ordersQuery.isLoading ? 'Yuklanmoqda...' : 'Importni tanlang'}
-										emptyText='Bu omborga yetib kelgan import topilmadi'
-									/>
-								)}
-							/>
-						</FormField>
 
 						<FormField label='Soni' error={errors.quantity?.message} required horizontal={false} className='mb-3'>
 							<Controller

@@ -209,10 +209,8 @@ export default function ImportOrdersPage() {
                               {order.two_stage_import_detail?.import_number ?? order.order_number}
                            </TableCell>
                            <TableCell>{formatTashkentDate(order.order_datetime)}</TableCell>
-                           <TableCell>{order.consignor_detail?.name ?? '-'}</TableCell>
-                           <TableCell>
-                              {order.source_logistics_warehouse_detail?.name ?? '-'} → {order.destination_logistics_warehouse_detail?.name ?? '-'}
-                           </TableCell>
+                           <TableCell>{order.sender_name || '-'}</TableCell>
+                           <TableCell>{order.direction_name || '-'}</TableCell>
                            <TableCell>{formatNumber(order.total_quantity ?? 0)}</TableCell>
                            <TableCell className='font-semibold'>{formatNumber(order.total_dollar ?? 0, 2)} $</TableCell>
                            <TableCell>{order.truck_number ?? '-'}</TableCell>
