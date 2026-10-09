@@ -21,7 +21,6 @@ import {
 } from '@/components/ui';
 import { clientService } from '@/services/client/client.service';
 import { useClientQuery } from '@/services/client/client.queries';
-import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useCurrentCompany } from '@/lib/company';
 import {
 	useCreateDebtRepaymentMutation,
@@ -89,12 +88,12 @@ export default function DebtRepaymentFormModal({
 }: DebtRepaymentFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
-	const { companyId } = useCurrentCompany();
+	const { companyId, exchangeRate: companyExchangeRate } = useCurrentCompany();
 
 	const repaymentQuery = useDebtRepaymentQuery(mode === 'edit' ? item?.id : undefined);
 	const currentItem = repaymentQuery.data ?? item;
 
-	const { data: usdRate } = useCurrencyRateQuery('USD');
+	const companyRate = Number(companyExchangeRate?.dollar ?? 0);
 
 	const {
 		control,
@@ -141,11 +140,11 @@ export default function DebtRepaymentFormModal({
 	const workerLabel = workerDetailQuery.data ? userLabel(workerDetailQuery.data) : undefined;
 
 	useEffect(() => {
-		if (mode === 'create' && usdRate) {
-			setValue('exchange_rate', String(usdRate.rate));
+		if (mode === 'create' && companyRate > 0) {
+			setValue('exchange_rate', String(companyRate));
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [mode, usdRate]);
+	}, [mode, companyRate]);
 
 	const sumSom = watch('sum_som');
 	const summDollar = watch('summ_dollar');
@@ -197,7 +196,7 @@ export default function DebtRepaymentFormModal({
 			is_worker: Number(values.is_worker),
 			date: values.date,
 			text: values.text?.trim() ?? '',
-			exchange_rate: Number(values.exchange_rate) || usdRate?.rate || 0,
+			exchange_rate: Number(values.exchange_rate) || companyRate || 0,
 			discount_amount: Number(values.discount_amount) || 0,
 			sum_som: Number(values.sum_som) || 0,
 			summ_dollar: Number(values.summ_dollar) || 0,
@@ -240,9 +239,9 @@ export default function DebtRepaymentFormModal({
 								{formError}
 							</div>
 						)}
-						{usdRate && (
+						{companyRate > 0 && (
 							<div className='mb-4 rounded border border-ca-theme/30 bg-ca-theme/5 px-4 py-2 text-center text-sm font-semibold text-ca-theme'>
-								Joriy dollar kursi: {usdRate.rate.toLocaleString('ru-RU')} so'm
+								Joriy dollar kursi: {companyRate.toLocaleString('ru-RU')} so'm
 							</div>
 						)}
 						<div className='mb-3 grid grid-cols-2 gap-3'>

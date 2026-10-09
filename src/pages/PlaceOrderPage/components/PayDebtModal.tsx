@@ -19,7 +19,7 @@ import {
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber, roundMoney } from '@/lib/number';
 import { useClientQuery } from '@/services/client/client.queries';
-import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
+import { useCurrentCompany } from '@/lib/company';
 import { usePayDebtMutation } from '@/services/order-account-history/order-account-history.queries';
 
 const payDebtFormSchema = z.object({
@@ -48,8 +48,8 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 	const [formError, setFormError] = useState('');
 
 	const { data: client } = useClientQuery(clientId);
-	const { data: usdRate } = useCurrencyRateQuery('USD');
-	const rate = usdRate?.rate ?? 0;
+	const { exchangeRate } = useCurrentCompany();
+	const rate = Number(exchangeRate?.dollar ?? 0);
 
 	const {
 		control,

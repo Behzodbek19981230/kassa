@@ -24,7 +24,6 @@ import { cn } from '@/lib/utils';
 import { brandService } from '@/services/brand/brand.service';
 import { useClientQuery } from '@/services/client/client.queries';
 import { clientService } from '@/services/client/client.service';
-import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useDeleteOrderCartMutation, useOrderCartListQuery } from '@/services/order-cart/order-cart.queries';
 import type { ConfirmSaleSummary } from '@/services/order-cart/order-cart.types';
 import { productCategoryService } from '@/services/product-category/product-category.service';
@@ -149,8 +148,8 @@ export default function PlaceOrderPage() {
 		setCategoryFilter('');
 	}
 
-	const { data: usdRate } = useCurrencyRateQuery('USD');
-	const rate = usdRate?.rate ?? 0;
+	const { exchangeRate } = useCurrentCompany();
+	const rate = Number(exchangeRate?.dollar ?? 0);
 
 	const { data: selectedClient } = useClientQuery(clientId ? Number(clientId) : undefined);
 

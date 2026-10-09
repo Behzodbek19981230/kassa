@@ -23,7 +23,7 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber, roundMoney } from '@/lib/number';
 import { useConfirmSaleMutation } from '@/services/order-cart/order-cart.queries';
 import type { ConfirmSaleSummary } from '@/services/order-cart/order-cart.types';
-import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
+import { useCurrentCompany } from '@/lib/company';
 
 const confirmSaleFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
@@ -64,8 +64,8 @@ export default function ConfirmSaleModal({
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 
-	const { data: usdRate } = useCurrencyRateQuery('USD');
-	const rate = usdRate?.rate ?? 0;
+	const { exchangeRate } = useCurrentCompany();
+	const rate = Number(exchangeRate?.dollar ?? 0);
 
 	const {
 		control,

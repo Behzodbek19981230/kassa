@@ -20,7 +20,7 @@ import {
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
-import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
+import { useCurrentCompany } from '@/lib/company';
 import { useConfirmImportMutation } from '@/services/import-cart-draft/import-cart-draft.queries';
 
 const confirmImportFormSchema = z.object({
@@ -56,8 +56,8 @@ export default function ConfirmImportModal({
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 
-	const { data: usdRate } = useCurrencyRateQuery('USD');
-	const rate = usdRate?.rate ?? 0;
+	const { exchangeRate } = useCurrentCompany();
+	const rate = Number(exchangeRate?.dollar ?? 0);
 
 	const {
 		control,

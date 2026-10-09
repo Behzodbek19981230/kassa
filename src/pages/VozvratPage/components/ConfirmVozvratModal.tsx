@@ -18,7 +18,6 @@ import {
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber, roundMoney } from '@/lib/number';
-import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useVozvratConfirmMutation } from '@/services/vozvrat/vozvrat.queries';
 import type { VozvratCartItemInput } from '@/services/vozvrat/vozvrat.types';
 
@@ -59,8 +58,7 @@ export default function ConfirmVozvratModal({
 }: ConfirmVozvratModalProps) {
 	const [formError, setFormError] = useState('');
 
-	const { data: usdRate } = useCurrencyRateQuery('USD');
-	const rate = usdRate?.rate || exchangeRate;
+	const rate = exchangeRate;
 
 	const { control, register, handleSubmit, watch } = useForm<ConfirmVozvratFormValues>({
 		resolver: zodResolver(confirmVozvratFormSchema),

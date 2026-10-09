@@ -24,7 +24,7 @@ import {
 import { Input } from '@/components/ui/Input';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
-import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
+import { useCurrentCompany } from '@/lib/company';
 import { useCreateImportCartDraftMutation } from '@/services/import-cart-draft/import-cart-draft.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
@@ -56,8 +56,8 @@ export default function AddToImportCartModal({
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 
-	const { data: usdRate } = useCurrencyRateQuery('USD');
-	const rate = usdRate?.rate ?? 0;
+	const { exchangeRate } = useCurrentCompany();
+	const rate = Number(exchangeRate?.dollar ?? 0);
 
 	const locationOptions = useMemo(() => {
 		const seen = new Map<string, { value: string; label: string; row: WarehouseAllListItem }>();

@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/Input';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
-import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
+import { useCurrentCompany } from '@/lib/company';
 import { useChinaDispatchMutation } from '@/services/two-stage-import/two-stage-import.queries';
 import type { ImportCart, ImportCartSummary } from '@/services/two-stage-import/two-stage-import.types';
 import { useLogisticsCompanyQuery } from '@/services/logistics-company/logistics-company.queries';
@@ -59,8 +59,8 @@ export default function ChinaDispatchConfirmModal({ open, setOpen, cart, summary
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 
-	const { data: usdRate } = useCurrencyRateQuery('USD');
-	const rate = usdRate?.rate ?? 0;
+	const { exchangeRate } = useCurrentCompany();
+	const rate = Number(exchangeRate?.dollar ?? 0);
 
 	const {
 		control,
