@@ -112,7 +112,7 @@ export default function ChinaDispatchPage() {
             title='Xitoydan yuk chiqarish'
             breadcrumb={[
                { label: 'Asosiy', path: '/' },
-               { label: 'Ikki bosqichli import' },
+               { label: 'Logistika' },
                { label: 'Xitoydan yuk chiqarish', active: true },
             ]}
          />

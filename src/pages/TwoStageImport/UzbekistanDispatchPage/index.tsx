@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
    Button,
+   buttonProps,
    Combobox,
    DatePicker,
    PageHeader,
@@ -12,17 +13,21 @@ import {
    TableHead,
    TableHeader,
    TableRow,
+   useNotification,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import {
+   useDeleteCartItemMutation,
    useImportCartQuery,
    useTransitStockQuery,
 } from '@/services/two-stage-import/two-stage-import.queries';
+import { useWarehouseDetailQueries } from '@/services/warehouse/warehouse.queries';
 import type { ImportCartItem, TransitStockItem } from '@/services/two-stage-import/two-stage-import.types';
 import { createCategoryLoader, loadBrandOptions } from '@/pages/TwoStageImport/options';
 import AddToUzCartModal from '@/pages/TwoStageImport/components/AddToUzCartModal';
+import ClearImportCartConfirmModal from '@/pages/TwoStageImport/components/ClearImportCartConfirmModal';
 import UzbekistanDispatchForm from '@/pages/TwoStageImport/components/UzbekistanDispatchForm';
 import {
    SCROLL_AREA_CLASS,
@@ -37,6 +42,7 @@ const STAGE = 'TRANSIT_TO_UZBEKISTAN' as const;
 
 export default function UzbekistanDispatchPage() {
    const { canWrite } = useCurrentCompany();
+   const { notify } = useNotification();
 
    const [logisticsFilter, setLogisticsFilter] = useState('');
    const [brandFilter, setBrandFilter] = useState('');
@@ -45,6 +51,7 @@ export default function UzbekistanDispatchPage() {
    const [defaultDispatch] = useState(nowTashkentLocal);
    const [selected, setSelected] = useState<TransitStockItem | null>(null);
    const [dispatchOpen, setDispatchOpen] = useState(false);
+   const [clearCartOpen, setClearCartOpen] = useState(false);
 
    const logisticsId = logisticsFilter ? Number(logisticsFilter) : undefined;
    const loadCategoryOptions = useMemo(
@@ -61,7 +68,21 @@ export default function UzbekistanDispatchPage() {
 
    const dispatchValue = dispatchInput || (cart ? fromApiDateTime(cart.dispatch_datetime) : defaultDispatch);
 
+   // Transit stock carries only brand/category/type ids, so the names come from each warehouse's detail.
+   const stockWarehouseIds = [...new Set((stockQuery.data ?? []).map((s) => s.warehouse))];
+   const stockWarehouseQueries = useWarehouseDetailQueries(stockWarehouseIds);
+   const warehouseById = new Map(stockWarehouseIds.map((id, index) => [id, stockWarehouseQueries[index]?.data] as const));
+
    const stockById = useMemo(() => new Map((stockQuery.data ?? []).map((s) => [s.id, s])), [stockQuery.data]);
+
+   const deleteCartItemMutation = useDeleteCartItemMutation();
+
+   function handleRemoveCartItem(id: number) {
+      deleteCartItemMutation.mutate(id, {
+         onError: (err) =>
+            notify({ title: "O'chirishda xatolik", text: getApiErrorMessage(err, "Mahsulotni savatdan o'chirib bo'lmadi") }),
+      });
+   }
 
    function stockForCartItem(item: ImportCartItem) {
       return item.import_warehouse != null ? stockById.get(item.import_warehouse) : undefined;
@@ -94,7 +115,7 @@ export default function UzbekistanDispatchPage() {
             title="O'zbekistonga yuk chiqarish"
             breadcrumb={[
                { label: 'Asosiy', path: '/' },
-               { label: 'Ikki bosqichli import' },
+               { label: 'Logistika' },
                { label: "Tranzit skladdan O'zbekistonga yuk chiqarish", active: true },
             ]}
          />
@@ -161,23 +182,25 @@ export default function UzbekistanDispatchPage() {
                         <TableHeader>
                            <TableRow>
                               <TableHead className='bg-ca-theme text-white'>#</TableHead>
+                              <TableHead className='bg-ca-theme text-white'>Model</TableHead>
+                              <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
                               <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
+                              <TableHead className='bg-ca-theme text-white'>Tip</TableHead>
                               <TableHead className='bg-ca-theme text-white'>Mavjud</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Narxi (¥)</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
+                              <TableHead className='bg-ca-theme text-white'>Narxi (¥ / $)</TableHead>
                            </TableRow>
                         </TableHeader>
                         <TableBody>
                            {stockQuery.isLoading && (
                               <TableRow>
-                                 <TableCell colSpan={5} className='text-center'>
+                                 <TableCell colSpan={7} className='text-center'>
                                     Yuklanmoqda...
                                  </TableCell>
                               </TableRow>
                            )}
                            {!stockQuery.isLoading && stockQuery.isError && (
                               <TableRow>
-                                 <TableCell colSpan={5} className='text-center text-ca-red'>
+                                 <TableCell colSpan={7} className='text-center text-ca-red'>
                                     <FaExclamationTriangle className='mr-1.5 inline' />{' '}
                                     {getApiErrorMessage(stockQuery.error, 'Xatolik yuz berdi')}
                                  </TableCell>
@@ -185,20 +208,28 @@ export default function UzbekistanDispatchPage() {
                            )}
                            {!stockQuery.isLoading && !stockQuery.isError && rows.length === 0 && (
                               <TableRow>
-                                 <TableCell colSpan={5} className='text-center'>
+                                 <TableCell colSpan={7} className='text-center'>
                                     Ma'lumot topilmadi
                                  </TableCell>
                               </TableRow>
                            )}
-                           {rows.map((stock, index) => (
-                              <TableRow key={stock.id} onClick={() => canWrite && stock.available_quantity > 0 && setSelected(stock)} className={canWrite && stock.available_quantity > 0 ? 'cursor-pointer bg-red-50 hover:bg-red-100' : 'bg-red-50 opacity-60'}>
-                                 <TableCell>{index + 1}</TableCell>
-                                 <TableCell>{formatNumber(stock.warehouse_detail?.size ?? '')}</TableCell>
-                                 <TableCell className='font-semibold'>{formatNumber(stock.available_quantity)}</TableCell>
-                                 <TableCell>{formatNumber(stock.current_price_yuan, 0)}</TableCell>
-                                 <TableCell>{formatNumber(stock.current_price_dollar, 2)}</TableCell>
-                              </TableRow>
-                           ))}
+                           {rows.map((stock, index) => {
+                              const product = warehouseById.get(stock.warehouse);
+                              return (
+                                 <TableRow key={stock.id} onClick={() => canWrite && stock.available_quantity > 0 && setSelected(stock)} className={canWrite && stock.available_quantity > 0 ? 'cursor-pointer bg-red-50 hover:bg-red-100' : 'bg-red-50 opacity-60'}>
+                                    <TableCell>{index + 1}</TableCell>
+                                    <TableCell>{product?.brand_detail?.name ?? '-'}</TableCell>
+                                    <TableCell>{product?.product_category_detail?.name ?? '-'}</TableCell>
+                                    <TableCell>{formatNumber(stock.warehouse_detail?.size ?? '')}</TableCell>
+                                    <TableCell>{product?.type_detail?.name ?? '-'}</TableCell>
+                                    <TableCell className='font-semibold'>{formatNumber(stock.available_quantity)}</TableCell>
+                                    <TableCell className='whitespace-nowrap'>
+                                       {formatNumber(stock.current_price_yuan, 0)} ¥ /{' '}
+                                       <span className='font-semibold text-ca-green'>{formatNumber(stock.current_price_dollar, 2)} $</span>
+                                    </TableCell>
+                                 </TableRow>
+                              );
+                           })}
                         </TableBody>
                      </Table>
                   </div>
@@ -230,19 +261,20 @@ export default function UzbekistanDispatchPage() {
                               <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
                               <TableHead className='bg-ca-theme text-white'>Jami (¥)</TableHead>
                               <TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>
+                              <TableHead className='bg-ca-theme text-white' />
                            </TableRow>
                         </TableHeader>
                         <TableBody>
                            {cartQuery.isLoading && (
                               <TableRow>
-                                 <TableCell colSpan={7} className='text-center'>
+                                 <TableCell colSpan={8} className='text-center'>
                                     Yuklanmoqda...
                                  </TableCell>
                               </TableRow>
                            )}
                            {!cartQuery.isLoading && cartItems.length === 0 && (
                               <TableRow>
-                                 <TableCell colSpan={7} className='text-center'>
+                                 <TableCell colSpan={8} className='text-center'>
                                     Jo'natish savati bo'sh
                                  </TableCell>
                               </TableRow>
@@ -258,6 +290,17 @@ export default function UzbekistanDispatchPage() {
                                     <TableCell>{formatNumber(item.unit_price_dollar, 2)}</TableCell>
                                     <TableCell>{formatNumber(item.total_yuan, 0)}</TableCell>
                                     <TableCell className='font-semibold'>{formatNumber(item.total_dollar, 2)}</TableCell>
+                                    <TableCell>
+                                       {canWrite && (
+                                          <Button
+                                             type='button'
+                                             {...buttonProps(<FaTrash />, 'danger', 'icon')}
+                                             aria-label="O'chirish"
+                                             disabled={deleteCartItemMutation.isPending}
+                                             onClick={() => handleRemoveCartItem(item.id)}
+                                          />
+                                       )}
+                                    </TableCell>
                                  </TableRow>
                               );
                            })}
@@ -274,18 +317,30 @@ export default function UzbekistanDispatchPage() {
                         </div>
                      )}
 
-                     <div className='mt-5 border-t border-ca-border pt-4'>
-                        <Button
-                           type='button'
-                           variant='danger'
-                           size='lg'
-                           className='w-full'
-                           disabled={cartItems.length === 0 || !cart}
-                           onClick={() => setDispatchOpen(true)}
-                        >
-                           Davom etish
-                        </Button>
-                     </div>
+                     {canWrite && (
+                        <div className='mt-5 flex gap-2 border-t border-ca-border pt-4'>
+                           <Button
+                              type='button'
+                              variant='default'
+                              size='lg'
+                              className='flex-1'
+                              disabled={cartItems.length === 0}
+                              onClick={() => setClearCartOpen(true)}
+                           >
+                              Savatni tozalash
+                           </Button>
+                           <Button
+                              type='button'
+                              variant='danger'
+                              size='lg'
+                              className='flex-1'
+                              disabled={cartItems.length === 0 || !cart}
+                              onClick={() => setDispatchOpen(true)}
+                           >
+                              Davom etish
+                           </Button>
+                        </div>
+                     )}
                   </div>
                </Panel>
             </div>
@@ -298,6 +353,10 @@ export default function UzbekistanDispatchPage() {
                cartId={cart?.id}
                disabled={cartItems.length === 0}
             />
+         )}
+
+         {clearCartOpen && (
+            <ClearImportCartConfirmModal open={clearCartOpen} setOpen={setClearCartOpen} stage={STAGE} />
          )}
 
          {selected && (

@@ -63,6 +63,7 @@ export interface ChinaCartItemPayload {
 export interface UzbekistanCartItemPayload {
 	stage: 'TRANSIT_TO_UZBEKISTAN';
 	source_logistics_warehouse: number;
+	two_stage_import: number;
 	dispatch_datetime: string;
 	import_warehouse: number;
 	quantity: number;

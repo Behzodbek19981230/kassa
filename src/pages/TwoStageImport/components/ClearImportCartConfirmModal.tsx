@@ -39,7 +39,10 @@ export default function ClearImportCartConfirmModal({ open, setOpen, stage }: Cl
 					<ModalTitle>Bekor qilishni tasdiqlang</ModalTitle>
 				</ModalHeader>
 				<ModalBody>
-					<p>Import savatchasidagi barcha mahsulotlarni o'chirmoqchimisiz?</p>
+					<p>
+						{stage === 'TRANSIT_TO_UZBEKISTAN' ? "O'zbekistonga jo'natish savatchasidagi" : 'Import savatchasidagi'} barcha
+						mahsulotlarni o'chirmoqchimisiz?
+					</p>
 				</ModalBody>
 				<ModalFooter>
 					<Button variant='white' onClick={() => setOpen(false)}>

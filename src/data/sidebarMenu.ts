@@ -24,7 +24,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 	{
 		id: 'two-stage-import',
 		icon: 'shipping-fast',
-		label: 'Ikki bosqichli import',
+		label: 'Logistika',
 		children: [
 			{
 				id: 'two-stage-china-dispatch',

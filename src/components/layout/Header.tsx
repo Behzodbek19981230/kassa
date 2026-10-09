@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { getApiErrorMessage } from '@/lib/errors';
 import {
 	FaBuilding,
@@ -14,11 +14,15 @@ import {
 	FaPencilAlt,
 	FaMoon,
 	FaReceipt,
+	FaShippingFast,
 	FaSignOutAlt,
 	FaSun,
+	FaTruck,
 	FaUser,
+	FaWarehouse,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { sidebarMenu } from '@/data/sidebarMenu';
 import { clearSession, getRefreshToken } from '@/lib/auth';
 import { useCurrentCompany } from '@/lib/company';
 import { cn } from '@/lib/utils';
@@ -40,6 +44,17 @@ import {
 } from '@/components/ui';
 import ExchangeRateEditModal from '@/components/layout/ExchangeRateEditModal';
 import NewTelegramClientsModal from '@/components/layout/NewTelegramClientsModal';
+import type { SidebarIcon } from '@/types';
+
+// The header reuses the sidebar's Logistika group, so both menus list the same pages.
+const logisticsMenu = sidebarMenu.find((item) => item.id === 'two-stage-import');
+
+const logisticsIcons: Partial<Record<SidebarIcon, ReactNode>> = {
+	truck: <FaTruck className='text-ca-text' />,
+	history: <FaHistory className='text-ca-text' />,
+	warehouse: <FaWarehouse className='text-ca-text' />,
+	'shipping-fast': <FaShippingFast className='text-ca-text' />,
+};
 
 interface HeaderProps {
 	onToggleSidebar: () => void;
@@ -261,6 +276,36 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 								</button>
 							</Tooltip>
 						</li>
+
+						{logisticsMenu?.children && (
+							<li>
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<button
+											type='button'
+											className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+											aria-label={logisticsMenu.label}
+										>
+											<FaShippingFast />
+											<span className='hidden md:inline'>{logisticsMenu.label}</span>
+											<span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />
+										</button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent>
+										{logisticsMenu.children.map((item) => (
+											<DropdownMenuItem
+												key={item.id}
+												onSelect={() => item.path && navigate(item.path)}
+												className='flex items-center gap-2'
+											>
+												{item.icon && logisticsIcons[item.icon]}
+												{item.label}
+											</DropdownMenuItem>
+										))}
+									</DropdownMenuContent>
+								</DropdownMenu>
+							</li>
+						)}
 
 						<li>
 							<DropdownMenu>
