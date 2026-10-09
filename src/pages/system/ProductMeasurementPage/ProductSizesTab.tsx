@@ -63,7 +63,8 @@ export default function ProductSizesTab() {
 	};
 
 	const loadCategoryFilterOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await productCategoryService.list({ search: search || undefined, page, limit: 20 });
+		if (!brandFilter) return { options: [], hasMore: false };
+		const result = await productCategoryService.list({ search: search || undefined, page, limit: 20, brand: Number(brandFilter) });
 		return {
 			options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
@@ -102,8 +103,9 @@ export default function ProductSizesTab() {
 			meta: {
 				filterVariant: 'select',
 				filterLoadOptions: loadCategoryFilterOptions,
+				filterDisabled: !brandFilter,
 				filterSelectedLabel: (value) => categoryNameById.get(Number(value)),
-				filterPlaceholder: 'Barcha toifalar',
+				filterPlaceholder: brandFilter ? 'Barcha toifalar' : 'Avval modelni tanlang',
 			},
 		}),
 		sizeColumnHelper.accessor('size', { header: "O'lchami", size: 100, enableColumnFilter: false }),
@@ -188,7 +190,9 @@ export default function ProductSizesTab() {
 					onPaginationChange={setPagination}
 					columnFilters={columnFilters}
 					onColumnFiltersChange={(filters) => {
-						setColumnFilters(filters);
+						// A category only makes sense within its model, so changing the model resets it.
+						const nextBrand = filters.find((f) => f.id === 'brand')?.value as string | undefined;
+						setColumnFilters(nextBrand === brandFilter ? filters : filters.filter((f) => f.id !== 'product_category'));
 						setPagination((p) => ({ ...p, pageIndex: 0 }));
 					}}
 					enableGlobalFilter={false}

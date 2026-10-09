@@ -87,7 +87,8 @@ export default function WarehousePage() {
    };
 
    const loadCategoryOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-      const result = await productCategoryService.list({ search: search || undefined, page, limit: 20 });
+      if (!brandFilter) return { options: [], hasMore: false };
+      const result = await productCategoryService.list({ search: search || undefined, page, limit: 20, brand: Number(brandFilter) });
       return {
          options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
          hasMore: result.pagination.currentPage < result.pagination.lastPage,
@@ -147,8 +148,9 @@ export default function WarehousePage() {
          meta: {
             filterVariant: 'select',
             filterLoadOptions: loadCategoryOptions,
+            filterDisabled: !brandFilter,
             filterSelectedLabel: (value) => categoryNameById.get(Number(value)),
-            filterPlaceholder: 'Barchasi',
+            filterPlaceholder: brandFilter ? 'Barchasi' : 'Avval modelni tanlang',
          },
       }),
       columnHelper.accessor('size', {
@@ -332,7 +334,9 @@ export default function WarehousePage() {
                onSortingChange={setSorting}
                columnFilters={columnFilters}
                onColumnFiltersChange={(filters) => {
-                  setColumnFilters(filters);
+                  // A category only makes sense within its model, so changing the model resets it.
+                  const nextBrand = filters.find((f) => f.id === 'brand')?.value as string | undefined;
+                  setColumnFilters(nextBrand === brandFilter ? filters : filters.filter((f) => f.id !== 'product_category'));
                   setPagination((p) => ({ ...p, pageIndex: 0 }));
                }}
                enablePagination

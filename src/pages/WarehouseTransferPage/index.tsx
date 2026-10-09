@@ -297,7 +297,8 @@ export default function WarehouseTransferPage() {
 											value={categoryFilter}
 											onChange={setCategoryFilter}
 											loadOptions={loadCategoryOptions}
-											placeholder='Kategoriyani tanlang'
+											disabled={!brandFilter}
+											placeholder={brandFilter ? 'Kategoriyani tanlang' : 'Avval modelni tanlang'}
 											clearable
 										/>
 									</div>

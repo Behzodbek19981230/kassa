@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, type UIEvent, useMemo, useState } from 'react';
 import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
 	Button,
@@ -29,7 +29,7 @@ import {
 } from '@/services/import-cart-draft/import-cart-draft.queries';
 import { useMyDebtListQuery } from '@/services/my-debt/my-debt.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
-import { useWarehouseAllListQuery } from '@/services/warehouse/warehouse.queries';
+import { useWarehouseAllListInfiniteQuery } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListBrandGroup, WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import ConsignorFormModal from '@/pages/system/ConsignorPage/components/ConsignorFormModal';
 import MyDebtPayModal from '@/pages/MyDebtPage/components/MyDebtPayModal';
@@ -90,26 +90,39 @@ export default function ImportPage() {
 	const [confirmImportOpen, setConfirmImportOpen] = useState(false);
 	const [clearCartOpen, setClearCartOpen] = useState(false);
 
-	// Unfiltered catalog, kept separate so cart rows added before a filter change can
-	// still resolve their product info even once they fall outside the active filter.
-	const { data: catalogData } = useWarehouseAllListQuery({});
-	const catalogGroups = catalogData ?? [];
-
-	const { data, isLoading, isFetching, isError, error, refetch } = useWarehouseAllListQuery({
+	const {
+		data,
+		isLoading,
+		isFetching,
+		isFetchingNextPage,
+		hasNextPage,
+		fetchNextPage,
+		isError,
+		error,
+		refetch,
+	} = useWarehouseAllListInfiniteQuery({
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
 	const groups = data ?? [];
 
+	function handleScroll(e: UIEvent<HTMLDivElement>) {
+		const el = e.currentTarget;
+		if (hasNextPage && !isFetchingNextPage && el.scrollTop + el.clientHeight >= el.scrollHeight - 40) {
+			fetchNextPage();
+		}
+	}
+
+	// Only the pages loaded so far; cart rows outside them fall back to their own warehouse_detail.
 	const warehouseById = useMemo(() => {
 		const map = new Map<number, WarehouseAllListItem>();
-		for (const g of catalogGroups) {
+		for (const g of groups) {
 			for (const pc of g.product_categories) {
 				for (const row of pc.warehouses) map.set(row.id, row);
 			}
 		}
 		return map;
-	}, [catalogGroups]);
+	}, [groups]);
 
 	const brandVariants = useMemo(() => buildBrandVariants(groups).filter((b) => b.variants.length > 0), [groups]);
 
@@ -215,7 +228,8 @@ export default function ImportPage() {
 											value={categoryFilter}
 											onChange={(value) => setCategoryFilter(value)}
 											loadOptions={loadCategoryOptions}
-											placeholder='Kategoriyani tanlang'
+											disabled={!brandFilter}
+											placeholder={brandFilter ? 'Kategoriyani tanlang' : 'Avval modelni tanlang'}
 											clearable
 										/>
 									</div>
@@ -232,9 +246,9 @@ export default function ImportPage() {
 							</div>
 						</div>
 
-						<div className='overflow-x-auto'>
+						<div className='max-h-[calc(100vh-320px)] min-h-[300px] overflow-auto' onScroll={handleScroll}>
 							<Table>
-								<TableHeader>
+								<TableHeader className='sticky top-0 z-10'>
 									<TableRow>
 										<TableHead className='bg-ca-theme text-white'>#</TableHead>
 										<TableHead className='bg-ca-theme text-white'>Model</TableHead>
@@ -245,7 +259,7 @@ export default function ImportPage() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{(isLoading || isFetching) && (
+									{(isLoading || (isFetching && !isFetchingNextPage)) && (
 										<TableRow>
 											<TableCell colSpan={6} className='text-center'>
 												Yuklanmoqda...
@@ -313,6 +327,13 @@ export default function ImportPage() {
 												</Fragment>
 											);
 										})}
+								{isFetchingNextPage && (
+									<TableRow>
+										<TableCell colSpan={6} className='text-center'>
+											Yuklanmoqda...
+										</TableCell>
+									</TableRow>
+								)}
 								</TableBody>
 							</Table>
 						</div>

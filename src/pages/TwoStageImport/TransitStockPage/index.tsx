@@ -191,7 +191,8 @@ export default function TransitStockPage() {
                            value={categoryFilter}
                            onChange={(value) => setCategoryFilter(value)}
                            loadOptions={loadCategoryOptions}
-                           placeholder='Kategoriyani tanlang'
+                           disabled={!brandFilter}
+                           placeholder={brandFilter ? 'Kategoriyani tanlang' : 'Avval modelni tanlang'}
                            clearable
                         />
                      </div>

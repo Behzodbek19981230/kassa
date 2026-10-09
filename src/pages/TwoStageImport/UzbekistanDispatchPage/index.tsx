@@ -24,7 +24,12 @@ import {
    useTransitStockQuery,
 } from '@/services/two-stage-import/two-stage-import.queries';
 import type { ImportCartItem, TransitStockItem } from '@/services/two-stage-import/two-stage-import.types';
-import { createCategoryLoader, loadBrandOptions } from '@/pages/TwoStageImport/options';
+import {
+   createCategoryLoader,
+   createLogisticsWarehouseLoader,
+   loadBrandOptions,
+   loadLogisticsCompanyOptions,
+} from '@/pages/TwoStageImport/options';
 import AddToUzCartModal from '@/pages/TwoStageImport/components/AddToUzCartModal';
 import ClearImportCartConfirmModal from '@/pages/TwoStageImport/components/ClearImportCartConfirmModal';
 import UzbekistanDispatchForm from '@/pages/TwoStageImport/components/UzbekistanDispatchForm';
@@ -43,7 +48,8 @@ export default function UzbekistanDispatchPage() {
    const { canWrite } = useCurrentCompany();
    const { notify } = useNotification();
 
-   const [logisticsFilter, setLogisticsFilter] = useState('');
+   const [logisticsCompany, setLogisticsCompany] = useState('');
+   const [logisticsWarehouse, setLogisticsWarehouse] = useState('');
    const [brandFilter, setBrandFilter] = useState('');
    const [categoryFilter, setCategoryFilter] = useState('');
    const [dispatchInput, setDispatchInput] = useState('');
@@ -51,8 +57,14 @@ export default function UzbekistanDispatchPage() {
    const [selected, setSelected] = useState<TransitStockItem | null>(null);
    const [dispatchOpen, setDispatchOpen] = useState(false);
    const [clearCartOpen, setClearCartOpen] = useState(false);
+   // Required-field errors on the cart panel only show after "Davom etish" was pressed once.
+   const [submitAttempted, setSubmitAttempted] = useState(false);
 
-   const logisticsId = logisticsFilter ? Number(logisticsFilter) : undefined;
+   const logisticsWarehouseId = logisticsWarehouse ? Number(logisticsWarehouse) : undefined;
+   const loadLogisticsWarehouseOptions = useMemo(
+      () => createLogisticsWarehouseLoader(undefined, logisticsCompany ? Number(logisticsCompany) : undefined),
+      [logisticsCompany],
+   );
    const loadCategoryOptions = useMemo(
       () => createCategoryLoader(brandFilter ? Number(brandFilter) : undefined),
       [brandFilter],
@@ -82,23 +94,27 @@ export default function UzbekistanDispatchPage() {
       return item.import_warehouse != null ? stockById.get(item.import_warehouse) : undefined;
    }
 
-   const logisticsOptions = useMemo(() => {
-      const names = new Map<number, string>();
-      for (const stock of stockQuery.data ?? []) {
-         if (stock.logistics_warehouse_detail) names.set(stock.logistics_warehouse, stock.logistics_warehouse_detail.name);
-      }
-      return Array.from(names, ([value, label]) => ({ value: String(value), label }));
-   }, [stockQuery.data]);
-
+   // Nothing is listed until a logistics warehouse is chosen on the right.
    const rows = (stockQuery.data ?? []).filter((stock) => {
-      if (logisticsId && stock.logistics_warehouse !== logisticsId) return false;
+      if (!logisticsWarehouseId || stock.logistics_warehouse !== logisticsWarehouseId) return false;
       if (brandFilter && stock.warehouse_detail?.brand !== Number(brandFilter)) return false;
       if (categoryFilter && stock.warehouse_detail?.product_category !== Number(categoryFilter)) return false;
       return true;
    });
 
+   const headerErrors = {
+      logisticsCompany: submitAttempted && !logisticsCompany ? 'Logistikani tanlang' : '',
+      logisticsWarehouse: submitAttempted && !logisticsWarehouse ? 'Logistika skladini tanlang' : '',
+      dispatch: submitAttempted && !dispatchValue ? "Jo'natish sanasini tanlang" : '',
+   };
+
+   function handleContinue() {
+      setSubmitAttempted(true);
+      if (!logisticsCompany || !logisticsWarehouse || !dispatchValue) return;
+      setDispatchOpen(true);
+   }
+
    function clearFilters() {
-      setLogisticsFilter('');
       setBrandFilter('');
       setCategoryFilter('');
    }
@@ -124,16 +140,6 @@ export default function UzbekistanDispatchPage() {
                >
                   <div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
                      <div className='w-full px-2.5 sm:w-1/2'>
-                        <label className='mb-1 block text-xs font-semibold text-ca-heading'>Logistika ombori:</label>
-                        <Combobox
-                           value={logisticsFilter}
-                           onChange={(value) => setLogisticsFilter(value)}
-                           options={logisticsOptions}
-                           placeholder='Barchasi'
-                           clearable
-                        />
-                     </div>
-                     <div className='w-full px-2.5 sm:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>Modelni tanlang:</label>
                         <Combobox
                            value={brandFilter}
@@ -151,10 +157,12 @@ export default function UzbekistanDispatchPage() {
                         <div className='flex gap-2'>
                            <div className='flex-1'>
                               <Combobox
+                                 key={brandFilter}
                                  value={categoryFilter}
                                  onChange={(value) => setCategoryFilter(value)}
                                  loadOptions={loadCategoryOptions}
-                                 placeholder='Kategoriyani tanlang'
+                                 disabled={!brandFilter}
+                                 placeholder={brandFilter ? 'Kategoriyani tanlang' : 'Avval modelni tanlang'}
                                  clearable
                               />
                            </div>
@@ -162,7 +170,7 @@ export default function UzbekistanDispatchPage() {
                               type='button'
                               variant='default'
                               size='sm'
-                              disabled={!logisticsFilter && !brandFilter && !categoryFilter}
+                              disabled={!brandFilter && !categoryFilter}
                               onClick={clearFilters}
                            >
                               Tozalash
@@ -203,7 +211,7 @@ export default function UzbekistanDispatchPage() {
                            {!stockQuery.isLoading && !stockQuery.isError && rows.length === 0 && (
                               <TableRow>
                                  <TableCell colSpan={7} className='text-center'>
-                                    Ma'lumot topilmadi
+                                    {logisticsWarehouseId ? "Ma'lumot topilmadi" : 'Avval logistika va skladni tanlang'}
                                  </TableCell>
                               </TableRow>
                            )}
@@ -237,11 +245,50 @@ export default function UzbekistanDispatchPage() {
                   className={SCROLL_PANEL_CLASS}
                   bodyClassName={SCROLL_BODY_CLASS}
                >
+                  <div className='-mx-2.5 mb-3 flex flex-wrap gap-y-3'>
+                     <div className='w-full px-2.5 sm:w-1/2'>
+                        <label className='mb-1 block text-xs font-semibold text-ca-heading'>
+                           Logistika: <span className='text-ca-red'>*</span>
+                        </label>
+                        <Combobox
+                           value={logisticsCompany}
+                           onChange={(value) => {
+                              setLogisticsCompany(value);
+                              setLogisticsWarehouse('');
+                           }}
+                           loadOptions={loadLogisticsCompanyOptions}
+                           placeholder='Logistikani tanlang'
+                           clearable
+                        />
+                        {headerErrors.logisticsCompany && (
+                           <p className='mt-1 text-xs text-ca-red'>{headerErrors.logisticsCompany}</p>
+                        )}
+                     </div>
+                     <div className='w-full px-2.5 sm:w-1/2'>
+                        <label className='mb-1 block text-xs font-semibold text-ca-heading'>
+                           Logistika skladi: <span className='text-ca-red'>*</span>
+                        </label>
+                        <Combobox
+                           key={logisticsCompany}
+                           value={logisticsWarehouse}
+                           onChange={(value) => setLogisticsWarehouse(value)}
+                           loadOptions={loadLogisticsWarehouseOptions}
+                           disabled={!logisticsCompany}
+                           placeholder={logisticsCompany ? 'Skladni tanlang' : 'Avval logistikani tanlang'}
+                           clearable
+                        />
+                        {headerErrors.logisticsWarehouse && (
+                           <p className='mt-1 text-xs text-ca-red'>{headerErrors.logisticsWarehouse}</p>
+                        )}
+                     </div>
+                  </div>
+
                   <div className='mb-4'>
                      <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                         Jo'natish sanasi va vaqti: <span className='text-ca-red'>*</span>
                      </label>
                      <DatePicker value={dispatchValue} onChange={setDispatchInput} />
+                     {headerErrors.dispatch && <p className='mt-1 text-xs text-ca-red'>{headerErrors.dispatch}</p>}
                   </div>
 
                   <div className={SCROLL_AREA_CLASS}>
@@ -329,7 +376,7 @@ export default function UzbekistanDispatchPage() {
                               size='lg'
                               className='flex-1'
                               disabled={cartItems.length === 0 || !cart}
-                              onClick={() => setDispatchOpen(true)}
+                              onClick={handleContinue}
                            >
                               Davom etish
                            </Button>

@@ -29,6 +29,8 @@ declare module '@tanstack/react-table' {
 		/** Resolves the label for the current filter value when it isn't among the loaded options yet. */
 		filterSelectedLabel?: (value: string) => string | undefined;
 		filterPlaceholder?: string;
+		/** Disables the column's filter input, e.g. until a filter it depends on is set. */
+		filterDisabled?: boolean;
 		/**
 		 * Computes a grouping key per row for this column. Consecutive rows (in
 		 * current render order) sharing the same key have their cells merged into
@@ -620,6 +622,7 @@ export function DataTable<TData>({
 															header.column.columnDef.meta?.filterPlaceholder ??
 															'Barchasi'
 														}
+														disabled={header.column.columnDef.meta?.filterDisabled}
 														searchPlaceholder='Qidirish...'
 														className='h-[26px] text-[11px]'
 													/>
