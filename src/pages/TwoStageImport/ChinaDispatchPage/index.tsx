@@ -247,7 +247,11 @@ export default function ChinaDispatchPage() {
                      </div>
                      <div>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>Yuk chiqish vaqti:</label>
-                        <DatePicker showTime value={dispatchValue} onChange={setDispatchInput} />
+                        {/* Only the date is picked; the time stays as the default / cart value. */}
+                        <DatePicker
+                           value={dispatchValue}
+                           onChange={(date) => setDispatchInput(date ? `${date}T${dispatchValue.slice(11, 16)}` : '')}
+                        />
                      </div>
                   </div>
 
