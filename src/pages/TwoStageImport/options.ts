@@ -63,10 +63,10 @@ export const loadLogisticsCompanyOptions = async ({ search, page }: ComboboxLoad
 		label: c.name,
 	}));
 
-export function createLogisticsWarehouseLoader(countryId?: number) {
+export function createLogisticsWarehouseLoader(countryId?: number, logisticsCompanyId?: number) {
 	return async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> =>
 		toLoadResult(
-			await logisticsWarehouseService.list({ search: search || undefined, page, limit: 20, country: countryId }),
+			await logisticsWarehouseService.list({ search: search || undefined, page, limit: 20, country: countryId, logistics_company: logisticsCompanyId }),
 			(w) => ({ value: String(w.id), label: logisticsWarehouseLabel(w) }),
 		);
 }
