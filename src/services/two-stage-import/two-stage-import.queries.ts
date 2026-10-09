@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { parseListPage } from '@/services/api/list-page';
+import { mergeBrandGroups } from '@/services/warehouse/warehouse.service';
 import { twoStageImportService } from '@/services/two-stage-import/two-stage-import.service';
 import type {
 	CancelOrderPayload,
@@ -38,6 +39,8 @@ export function useChinaProductsQuery(params?: ChinaProductsParams) {
 		},
 		initialPageParam: 1,
 		getNextPageParam: (lastPage) => lastPage.nextPage,
+		// A brand can appear on several pages, so its groups are merged into one before rendering.
+		select: (data) => mergeBrandGroups(data.pages.flatMap((page) => page.results)),
 	});
 }
 

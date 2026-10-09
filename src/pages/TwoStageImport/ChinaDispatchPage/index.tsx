@@ -1,4 +1,4 @@
-import { type UIEvent, useMemo, useState } from 'react';
+import { Fragment, type UIEvent, useMemo, useState } from 'react';
 import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
 	Button,
@@ -61,9 +61,9 @@ export default function ChinaDispatchPage() {
 		brand: brandId,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
-	const products = (productsQuery.data?.pages ?? []).flatMap((page) =>
-		page.results.flatMap((group) => group.product_categories.flatMap((category) => category.warehouses)),
-	);
+	const productGroups = productsQuery.data ?? [];
+	const products = productGroups.flatMap((group) => group.product_categories.flatMap((category) => category.warehouses));
+	const rowNumbers = new Map(products.map((row, index) => [row.id, index + 1]));
 
 	const cartQuery = useImportCartQuery(STAGE);
 	const cart = cartQuery.data?.cart ?? null;
@@ -125,8 +125,8 @@ export default function ChinaDispatchPage() {
 						className={SCROLL_PANEL_CLASS}
 						bodyClassName={SCROLL_BODY_CLASS}
 					>
-						<div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
-							<div className='w-full px-2.5 sm:w-1/2'>
+						<div className='-mx-2.5 mb-4 flex flex-wrap items-end gap-y-3'>
+							<div className='w-full px-2.5 sm:w-1/3'>
 								<label className='mb-1 block text-xs font-semibold text-ca-heading'>Modelni tanlang:</label>
 								<Combobox
 									value={brandFilter}
@@ -139,7 +139,7 @@ export default function ChinaDispatchPage() {
 									clearable
 								/>
 							</div>
-							<div className='w-full px-2.5 sm:w-1/2'>
+							<div className='w-full px-2.5 sm:w-1/3'>
 								<label className='mb-1 block text-xs font-semibold text-ca-heading'>Kategoriya:</label>
 								<Combobox
 									value={categoryFilter}
@@ -149,7 +149,7 @@ export default function ChinaDispatchPage() {
 									clearable
 								/>
 							</div>
-							<div className='flex w-full justify-end px-2.5'>
+							<div className='w-full px-2.5 sm:w-auto'>
 								<Button
 									type='button'
 									variant='default'
@@ -196,15 +196,26 @@ export default function ChinaDispatchPage() {
 											</TableCell>
 										</TableRow>
 									)}
-									{products.map((row, index) => (
-										<TableRow key={row.id} onClick={() => canPick && setSelectedProduct(row)} className={canPick ? 'cursor-pointer bg-red-50 hover:bg-red-100' : 'cursor-not-allowed bg-red-50 opacity-60'}>
-											<TableCell>{index + 1}</TableCell>
+									{productGroups.map((group) => (
+											<Fragment key={group.brand.id}>
+												<TableRow>
+													<TableCell colSpan={5} className='bg-cyan-100 font-bold text-ca-red dark:bg-cyan-950/60 dark:text-red-400'>
+														{group.brand.name}
+													</TableCell>
+												</TableRow>
+												{group.product_categories
+													.flatMap((category) => category.warehouses)
+													.map((row) => (
+														<TableRow key={row.id} onClick={() => canPick && setSelectedProduct(row)} className={canPick ? 'cursor-pointer bg-red-50 hover:bg-red-100' : 'cursor-not-allowed bg-red-50 opacity-60'}>
+																<TableCell>{rowNumbers.get(row.id)}</TableCell>
 											<TableCell>{row.brand_name}</TableCell>
 											<TableCell>{row.product_category_name}</TableCell>
 											<TableCell>{formatNumber(row.size)}</TableCell>
 											<TableCell>{row.type_name ?? ''}</TableCell>
 										</TableRow>
-									))}
+													))}
+											</Fragment>
+										))}
 									{productsQuery.isFetchingNextPage && (
 										<TableRow>
 											<TableCell colSpan={5} className='text-center'>
@@ -308,20 +319,6 @@ export default function ChinaDispatchPage() {
 							</Table>
 						</div>
 
-						{canWrite && (
-							<div className='mt-4 flex justify-end'>
-								<Button
-									type='button'
-									variant='default'
-									size='sm'
-									disabled={cartItems.length === 0}
-									onClick={() => setClearCartOpen(true)}
-								>
-									Savatni tozalash
-								</Button>
-							</div>
-						)}
-
 						{summary && cartItems.length > 0 && (
 							<div className='mt-4 flex flex-wrap items-center justify-around gap-3 rounded-[3px] border border-ca-border bg-ca-silver px-4 py-3 text-sm'>
 								<span className='text-ca-heading'>
@@ -333,12 +330,22 @@ export default function ChinaDispatchPage() {
 						)}
 
 						{canWrite && (
-							<div className='mt-4'>
+							<div className='mt-4 flex gap-2'>
+								<Button
+									type='button'
+									variant='default'
+									size='lg'
+									className='flex-1'
+									disabled={cartItems.length === 0}
+									onClick={() => setClearCartOpen(true)}
+								>
+									Savatni tozalash
+								</Button>
 								<Button
 									type='button'
 									variant='danger'
 									size='lg'
-									className='w-full'
+									className='flex-1'
 									disabled={!cart || cartItems.length === 0}
 									onClick={() => setConfirmOpen(true)}
 								>
