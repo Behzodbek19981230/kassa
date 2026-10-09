@@ -26,7 +26,7 @@ interface AddToUzCartModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	stock: TransitStockItem;
-	product: WarehouseAllListItem;
+	product?: WarehouseAllListItem;
 	/** API format, e.g. "2026-10-14T09:00:00+05:00". */
 	dispatchDatetime: string;
 }
@@ -105,22 +105,28 @@ export default function AddToUzCartModal({ open, setOpen, stock, product, dispat
 						)}
 
 						<div className='mb-4 flex flex-col gap-2 rounded-[3px] bg-ca-silver p-3 text-xs'>
-							<div className='flex items-center justify-between'>
-								<span className='font-semibold text-ca-heading'>Model:</span>
-								<span className='truncate font-bold text-ca-red'>{product.brand_name}</span>
-							</div>
-							<div className='flex items-center justify-between'>
-								<span className='font-semibold text-ca-heading'>Nomi:</span>
-								<span className='truncate font-bold text-ca-red'>{product.product_category_name}</span>
-							</div>
+							{product && (
+								<div className='flex items-center justify-between'>
+										<span className='font-semibold text-ca-heading'>Model:</span>
+										<span className='font-bold text-ca-red'>{product.brand_name}</span>
+									</div>
+							)}
+							{product && (
+								<div className='flex items-center justify-between'>
+										<span className='font-semibold text-ca-heading'>Nomi:</span>
+										<span className='font-bold text-ca-red'>{product.product_category_name}</span>
+									</div>
+							)}
 							<div className='flex items-center justify-between'>
 								<span className='font-semibold text-ca-heading'>O'lchami:</span>
-								<span className='font-bold text-ca-red'>{formatNumber(product.size)}</span>
+								<span className='font-bold text-ca-red'>{formatNumber(stock.warehouse_detail?.size ?? product?.size ?? '')}</span>
 							</div>
-							<div className='flex items-center justify-between'>
-								<span className='font-semibold text-ca-heading'>Tip:</span>
-								<span className='font-bold text-ca-red'>{product.type_name ?? '-'}</span>
-							</div>
+							{product && (
+								<div className='flex items-center justify-between'>
+										<span className='font-semibold text-ca-heading'>Tip:</span>
+										<span className='font-bold text-ca-red'>{product.type_name ?? '-'}</span>
+									</div>
+							)}
 							<div className='flex items-center justify-between'>
 								<span className='font-semibold text-ca-heading'>Mavjud:</span>
 								<span className='font-bold text-ca-heading'>{formatNumber(available)}</span>
@@ -132,7 +138,7 @@ export default function AddToUzCartModal({ open, setOpen, stock, product, dispat
 								name='quantity'
 								control={control}
 								render={({ field }) => (
-									<InputGroup append={product.type_name ?? 'Dona'}>
+									<InputGroup append={product?.type_name ?? 'Dona'}>
 										<Input
 											type='number'
 											inputMode='numeric'

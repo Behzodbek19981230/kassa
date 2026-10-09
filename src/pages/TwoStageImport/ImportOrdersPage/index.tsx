@@ -205,12 +205,12 @@ export default function ImportOrdersPage() {
 								<TableRow key={order.id} onClick={() => { const next = primaryAction(order); if (canWrite && next) setAction(next); }} className={canWrite && primaryAction(order) ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}>
 									<TableCell>{index + 1}</TableCell>
 									<TableCell className='font-semibold text-ca-heading'>
-										{order.import_number ?? order.order_number}
+										{order.two_stage_import_detail?.import_number ?? order.order_number}
 									</TableCell>
-									<TableCell>{formatTashkentDate(order.dispatch_datetime)}</TableCell>
-									<TableCell>{order.consignor_name ?? '-'}</TableCell>
+									<TableCell>{formatTashkentDate(order.order_datetime)}</TableCell>
+									<TableCell>{order.consignor_detail?.name ?? '-'}</TableCell>
 									<TableCell>
-										{order.source_name ?? '-'} → {order.destination_name ?? '-'}
+										{order.source_logistics_warehouse_detail?.name ?? '-'} → {order.destination_logistics_warehouse_detail?.name ?? '-'}
 									</TableCell>
 									<TableCell>{formatNumber(order.total_quantity ?? 0)}</TableCell>
 									<TableCell className='font-semibold'>{formatNumber(order.total_dollar ?? 0, 2)} $</TableCell>

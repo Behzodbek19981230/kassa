@@ -25,7 +25,6 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useImportCartQuery, useTransitStockQuery } from '@/services/two-stage-import/two-stage-import.queries';
 import type { TransitStockItem } from '@/services/two-stage-import/two-stage-import.types';
-import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import {
 	createLogisticsWarehouseLoader,
 	loadBrandOptions,
@@ -33,11 +32,7 @@ import {
 	loadCountryOptions,
 	logisticsWarehouseLabel,
 } from '@/pages/TwoStageImport/options';
-import {
-	useLogisticsWarehouseListQuery,
-	useLogisticsWarehouseQuery,
-} from '@/services/logistics-warehouse/logistics-warehouse.queries';
-import { useWarehouseCatalog } from '@/pages/TwoStageImport/useWarehouseCatalog';
+import { useLogisticsWarehouseQuery } from '@/services/logistics-warehouse/logistics-warehouse.queries';
 import AddToUzCartModal from '@/pages/TwoStageImport/components/AddToUzCartModal';
 import StatCard from '@/pages/TwoStageImport/components/StatCard';
 import {
@@ -52,13 +47,12 @@ import {
 export default function TransitStockPage() {
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
-	const { byId } = useWarehouseCatalog();
 
 	const [countryFilter, setCountryFilter] = useState('');
 	const [logisticsFilter, setLogisticsFilter] = useState('');
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
-	const [selected, setSelected] = useState<{ stock: TransitStockItem; product: WarehouseAllListItem } | null>(null);
+	const [selected, setSelected] = useState<TransitStockItem | null>(null);
 	const [defaultDispatch] = useState(nowTashkentLocal);
 
 	const countryId = countryFilter ? Number(countryFilter) : undefined;
@@ -71,30 +65,20 @@ export default function TransitStockPage() {
 	const stockQuery = useTransitStockQuery(logisticsFilter ? Number(logisticsFilter) : undefined);
 	const { data: selectedWarehouse } = useLogisticsWarehouseQuery(logisticsFilter ? Number(logisticsFilter) : undefined);
 
-	// Transit stock rows carry no country, so "Davlat" keeps the stock of warehouses that belong to it.
-	const countryWarehousesQuery = useLogisticsWarehouseListQuery(
-		{ country: countryId, limit: 200 },
-		Boolean(countryId),
-	);
-	const countryWarehouseIds = countryId
-		? new Set((countryWarehousesQuery.data?.results ?? []).map((w) => w.id))
-		: null;
-
 	const cartQuery = useImportCartQuery('TRANSIT_TO_UZBEKISTAN');
 	const dispatchDatetime = cartQuery.data?.cart
 		? cartQuery.data.cart.dispatch_datetime
 		: toApiDateTime(defaultDispatch);
 
-	const rows = (stockQuery.data ?? []).flatMap((stock) => {
-		if (countryWarehouseIds && !countryWarehouseIds.has(stock.logistics_warehouse)) return [];
-		const product = byId.get(stock.warehouse);
-		if (brandFilter && product?.brand_id !== Number(brandFilter)) return [];
-		if (categoryFilter && product?.product_category_id !== Number(categoryFilter)) return [];
-		return [{ stock, product }];
+	const rows = (stockQuery.data ?? []).filter((stock) => {
+		if (countryId && stock.logistics_warehouse_detail?.country !== countryId) return false;
+		if (brandFilter && stock.warehouse_detail?.brand !== Number(brandFilter)) return false;
+		if (categoryFilter && stock.warehouse_detail?.product_category !== Number(categoryFilter)) return false;
+		return true;
 	});
 
 	const totals = rows.reduce(
-		(acc, { stock }) => ({
+		(acc, stock) => ({
 			quantity: acc.quantity + stock.quantity,
 			reserved: acc.reserved + stock.reserved_quantity,
 			available: acc.available + stock.available_quantity,
@@ -229,10 +213,7 @@ export default function TransitStockPage() {
 						<TableHeader>
 							<TableRow>
 								<TableHead className='bg-ca-theme text-white'>#</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Model</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
 								<TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Jami soni</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Band</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Mavjud</TableHead>
@@ -244,14 +225,14 @@ export default function TransitStockPage() {
 						<TableBody>
 							{stockQuery.isLoading && (
 								<TableRow>
-									<TableCell colSpan={11} className='text-center'>
+									<TableCell colSpan={8} className='text-center'>
 										Yuklanmoqda...
 									</TableCell>
 								</TableRow>
 							)}
 							{!stockQuery.isLoading && stockQuery.isError && (
 								<TableRow>
-									<TableCell colSpan={11} className='text-center text-ca-red'>
+									<TableCell colSpan={8} className='text-center text-ca-red'>
 										<FaExclamationTriangle className='mr-1.5 inline' />{' '}
 										{getApiErrorMessage(stockQuery.error, 'Xatolik yuz berdi')}
 									</TableCell>
@@ -259,18 +240,15 @@ export default function TransitStockPage() {
 							)}
 							{!stockQuery.isLoading && !stockQuery.isError && rows.length === 0 && (
 								<TableRow>
-									<TableCell colSpan={11} className='text-center'>
+									<TableCell colSpan={8} className='text-center'>
 										Ma'lumot topilmadi
 									</TableCell>
 								</TableRow>
 							)}
-							{rows.map(({ stock, product }, index) => (
-								<TableRow key={stock.id} onClick={() => canWrite && product && stock.available_quantity > 0 && setSelected({ stock, product })} className={canWrite && product && stock.available_quantity > 0 ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}>
+							{rows.map((stock, index) => (
+								<TableRow key={stock.id} onClick={() => canWrite && stock.available_quantity > 0 && setSelected(stock)} className={canWrite && stock.available_quantity > 0 ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}>
 									<TableCell>{index + 1}</TableCell>
-									<TableCell>{product?.brand_name ?? '-'}</TableCell>
-									<TableCell>{product?.product_category_name ?? '-'}</TableCell>
-									<TableCell>{formatNumber(product?.size ?? '')}</TableCell>
-									<TableCell>{product?.type_name ?? ''}</TableCell>
+									<TableCell>{formatNumber(stock.warehouse_detail?.size ?? '')}</TableCell>
 									<TableCell>{formatNumber(stock.quantity)}</TableCell>
 									<TableCell>{formatNumber(stock.reserved_quantity)}</TableCell>
 									<TableCell className='font-semibold text-ca-green'>
@@ -290,8 +268,7 @@ export default function TransitStockPage() {
 				<AddToUzCartModal
 					open
 					setOpen={(open) => !open && setSelected(null)}
-					stock={selected.stock}
-					product={selected.product}
+					stock={selected}
 					dispatchDatetime={dispatchDatetime}
 				/>
 			)}

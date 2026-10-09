@@ -93,7 +93,7 @@ export default function LocalReceiptModal({ open, setOpen, order, onCancelOrder 
 		}
 	});
 
-	const destinationLabel = order.destination_type_sklad_name ?? order.destination_name ?? '-';
+	const destinationLabel = order.destination_type_sklad_detail?.name ?? order.destination_logistics_warehouse_detail?.name ?? '-';
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
@@ -117,7 +117,7 @@ export default function LocalReceiptModal({ open, setOpen, order, onCancelOrder 
 							<div className='sm:col-span-2'>
 								<div className='text-ca-text'>Yo'nalish</div>
 								<div className='font-bold text-ca-red'>
-									{order.source_name ?? '-'} → {destinationLabel}
+									{order.source_logistics_warehouse_detail?.name ?? '-'} → {destinationLabel}
 								</div>
 							</div>
 							<div>

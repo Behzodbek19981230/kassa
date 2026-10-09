@@ -109,9 +109,9 @@ export default function UzbekistanInRoadPage() {
 								>
 									<TableCell>{index + 1}</TableCell>
 									<TableCell className='font-semibold text-ca-heading'>{order.order_number}</TableCell>
-									<TableCell>{formatTashkentDate(order.dispatch_datetime)}</TableCell>
-									<TableCell>{order.source_name ?? '-'}</TableCell>
-									<TableCell>{order.destination_type_sklad_name ?? order.destination_name ?? '-'}</TableCell>
+									<TableCell>{formatTashkentDate(order.order_datetime)}</TableCell>
+									<TableCell>{order.source_logistics_warehouse_detail?.name ?? '-'}</TableCell>
+									<TableCell>{order.destination_type_sklad_detail?.name ?? order.destination_logistics_warehouse_detail?.name ?? '-'}</TableCell>
 									<TableCell>{formatNumber(order.total_quantity ?? 0)}</TableCell>
 									<TableCell className='font-semibold'>{formatNumber(order.total_dollar ?? 0, 2)} $</TableCell>
 									<TableCell>{order.truck_number ?? '-'}</TableCell>

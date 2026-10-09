@@ -98,11 +98,11 @@ export default function TransitArrivalModal({ open, setOpen, order, onCancelOrde
 						<div className='mb-4 grid grid-cols-2 gap-x-4 gap-y-3 rounded-[3px] bg-ca-silver p-3 text-xs sm:grid-cols-4'>
 							<div>
 								<div className='text-ca-text'>Import raqami</div>
-								<div className='font-bold text-ca-red'>{order.import_number ?? order.order_number}</div>
+								<div className='font-bold text-ca-red'>{order.two_stage_import_detail?.import_number ?? order.order_number}</div>
 							</div>
 							<div>
 								<div className='text-ca-text'>Yuk jo'natuvchi</div>
-								<div className='font-bold text-ca-red'>{order.consignor_name ?? '-'}</div>
+								<div className='font-bold text-ca-red'>{order.consignor_detail?.name ?? '-'}</div>
 							</div>
 							<div>
 								<div className='text-ca-text'>Soni</div>
@@ -115,7 +115,7 @@ export default function TransitArrivalModal({ open, setOpen, order, onCancelOrde
 							<div className='sm:col-span-2'>
 								<div className='text-ca-text'>Yo'nalish</div>
 								<div className='font-bold text-ca-red'>
-									{order.source_name ?? '-'} → {order.destination_name ?? '-'}
+									{order.source_logistics_warehouse_detail?.name ?? '-'} → {order.destination_logistics_warehouse_detail?.name ?? '-'}
 								</div>
 							</div>
 							<div>
@@ -124,7 +124,7 @@ export default function TransitArrivalModal({ open, setOpen, order, onCancelOrde
 							</div>
 							<div>
 								<div className='text-ca-text'>Tranzit sklad (manzil)</div>
-								<div className='font-bold text-ca-red'>{order.destination_name ?? '-'}</div>
+								<div className='font-bold text-ca-red'>{order.destination_logistics_warehouse_detail?.name ?? '-'}</div>
 							</div>
 						</div>
 
@@ -168,7 +168,7 @@ export default function TransitArrivalModal({ open, setOpen, order, onCancelOrde
 						</FormField>
 
 						<div className='rounded-[3px] border border-ca-theme/30 bg-ca-theme/5 px-3 py-2 text-xs text-ca-heading'>
-							Tasdiqlanganda mahsulotlar {order.destination_name ?? 'tranzit'} skladga qo'shiladi va narx
+							Tasdiqlanganda mahsulotlar {order.destination_logistics_warehouse_detail?.name ?? 'tranzit'} skladga qo'shiladi va narx
 							tarixi saqlanadi.
 						</div>
 					</ModalBody>

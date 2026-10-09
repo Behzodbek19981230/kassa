@@ -136,26 +136,46 @@ export interface CancelOrderPayload {
 	note?: string;
 }
 
-/**
- * The guide does not document the fields of `ImportOrderListSerializer`. `id`, `order_number`,
- * `stage` and `status` come from the documented responses; every other field is assumed from the
- * design columns. Verify the names against the backend before relying on them.
- */
+/** One row of `design/orders/`. Shape taken from the live response; nested `*_detail` objects carry the names. */
 export interface ImportOrderListItem {
 	id: number;
 	order_number: string;
 	stage: ImportStage;
 	status: ImportOrderStatus;
-	import_number?: string | null;
-	dispatch_datetime?: string | null;
-	consignor_name?: string | null;
-	source_name?: string | null;
-	destination_name?: string | null;
-	destination_type_sklad_name?: string | null;
-	total_quantity?: number | null;
-	total_dollar?: string | null;
+	order_datetime?: string | null;
+	consignor?: number | null;
+	consignor_detail?: { id: number; name: string } | null;
+	carrier_logistics?: number | null;
+	carrier_logistics_detail?: { id: number; name: string } | null;
+	source_logistics_warehouse?: number | null;
+	source_logistics_warehouse_detail?: LogisticsWarehouseDetail | null;
+	destination_logistics_warehouse?: number | null;
+	destination_logistics_warehouse_detail?: LogisticsWarehouseDetail | null;
+	destination_type_sklad?: number | null;
+	destination_type_sklad_detail?: { id: number; name: string } | null;
 	truck_number?: string | null;
 	driver_phone?: string | null;
+	total_quantity?: number | null;
+	total_yuan?: string | null;
+	total_dollar?: string | null;
+	weight_kg?: string | null;
+	volume_m3?: string | null;
+	note?: string | null;
+	two_stage_import_detail?: {
+		id: number;
+		import_number: string;
+		import_flow: string;
+		status: string;
+		total_quantity: number;
+		total_dollar: string;
+	} | null;
+}
+
+interface LogisticsWarehouseDetail {
+	id: number;
+	name: string;
+	country?: number | null;
+	logistics_company?: number | null;
 }
 
 export interface ImportOrderListParams {
@@ -178,4 +198,17 @@ export interface TransitStockItem {
 	current_price_yuan: string;
 	current_price_dollar: string;
 	last_arrival_at: string | null;
+	company_detail?: { id: number; name: string } | null;
+	logistics_warehouse_detail?: { id: number; name: string; country?: number | null; logistics_company?: number | null } | null;
+	warehouse_detail?: {
+		id: number;
+		size: string;
+		count: number;
+		cr_date: string;
+		real_price: string;
+		brand: number | null;
+		product_category: number | null;
+		type: number | null;
+		type_sklad: number | null;
+	} | null;
 }
