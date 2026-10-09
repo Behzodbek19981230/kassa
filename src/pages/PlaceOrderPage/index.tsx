@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, type UIEvent, useMemo, useState } from 'react';
 import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
 	Button,
@@ -28,8 +28,8 @@ import { useCurrencyRateQuery } from '@/services/currency/currency.queries';
 import { useDeleteOrderCartMutation, useOrderCartListQuery } from '@/services/order-cart/order-cart.queries';
 import type { ConfirmSaleSummary } from '@/services/order-cart/order-cart.types';
 import { productCategoryService } from '@/services/product-category/product-category.service';
-import { useWarehouseAllListQuery } from '@/services/warehouse/warehouse.queries';
-import type { WarehouseAllListBrandGroup, WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
+import { useWarehouseAllListInfiniteQuery } from '@/services/warehouse/warehouse.queries';
+import type { WarehouseAllListBrandGroup } from '@/services/warehouse/warehouse.types';
 import ClientFormModal from '@/pages/settings/ClientPage/components/ClientFormModal';
 import AddToCartModal, { type ProductVariant } from '@/pages/PlaceOrderPage/components/AddToCartModal';
 import ClearCartConfirmModal from '@/pages/PlaceOrderPage/components/ClearCartConfirmModal';
@@ -90,26 +90,28 @@ export default function PlaceOrderPage() {
 	const [confirmSaleOpen, setConfirmSaleOpen] = useState(false);
 	const [clearCartOpen, setClearCartOpen] = useState(false);
 
-	// Unfiltered catalog, kept separate so cart rows added before a filter change can
-	// still resolve their product info even once they fall outside the active filter.
-	const { data: catalogData } = useWarehouseAllListQuery({});
-	const catalogGroups = catalogData ?? [];
-
-	const { data, isLoading, isFetching, isError, error, refetch } = useWarehouseAllListQuery({
+	const {
+		data,
+		isLoading,
+		isFetching,
+		isFetchingNextPage,
+		hasNextPage,
+		fetchNextPage,
+		isError,
+		error,
+		refetch,
+	} = useWarehouseAllListInfiniteQuery({
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
 	const groups = data ?? [];
 
-	const warehouseById = useMemo(() => {
-		const map = new Map<number, WarehouseAllListItem>();
-		for (const g of catalogGroups) {
-			for (const pc of g.product_categories) {
-				for (const row of pc.warehouses) map.set(row.id, row);
-			}
+	function handleScroll(e: UIEvent<HTMLDivElement>) {
+		const el = e.currentTarget;
+		if (hasNextPage && !isFetchingNextPage && el.scrollTop + el.clientHeight >= el.scrollHeight - 40) {
+			fetchNextPage();
 		}
-		return map;
-	}, [catalogGroups]);
+	}
 
 	const brandVariants = useMemo(() => buildBrandVariants(groups).filter((b) => b.variants.length > 0), [groups]);
 
@@ -232,7 +234,7 @@ export default function PlaceOrderPage() {
 							</div>
 						</div>
 
-						<div className='max-h-[calc(100vh-320px)] min-h-[300px] overflow-auto'>
+						<div className='max-h-[calc(100vh-320px)] min-h-[300px] overflow-auto' onScroll={handleScroll}>
 							<Table>
 								<TableHeader className='sticky top-0 z-10'>
 									<TableRow>
@@ -245,7 +247,7 @@ export default function PlaceOrderPage() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{(isLoading || isFetching) && (
+									{(isLoading || (isFetching && !isFetchingNextPage)) && (
 										<TableRow>
 											<TableCell colSpan={6} className='text-center'>
 												Yuklanmoqda...
@@ -313,6 +315,13 @@ export default function PlaceOrderPage() {
 												</Fragment>
 											);
 										})}
+								{isFetchingNextPage && (
+									<TableRow>
+										<TableCell colSpan={6} className='text-center'>
+											Yuklanmoqda...
+										</TableCell>
+									</TableRow>
+								)}
 								</TableBody>
 							</Table>
 						</div>
@@ -403,34 +412,30 @@ export default function PlaceOrderPage() {
 									{clientId &&
 										!isCartLoading &&
 										cartItems.map((item, index) => {
-											const warehouse = warehouseById.get(item.warehouse);
 											const totalPrice =
 												Number(item.total_price) || item.count * Number(item.price);
 											return (
 												<TableRow key={item.id} className='bg-red-50'>
 													<TableCell>{index + 1}</TableCell>
 													<TableCell>
-														{warehouse?.type_sklad_name ??
-															item.warehouse_detail?.type_sklad_name ??
+														{item.warehouse_detail?.type_sklad_name ??
 															DEFAULT_LOCATION_LABEL}
 													</TableCell>
 													<TableCell>
-														{warehouse?.brand_name ??
-															item.warehouse_detail?.brand_name ??
+														{item.warehouse_detail?.brand_name ??
 															'-'}
 													</TableCell>
 													<TableCell>
-														{warehouse?.product_category_name ??
-															item.warehouse_detail?.product_category_name ??
+														{item.warehouse_detail?.product_category_name ??
 															'-'}
 													</TableCell>
 													<TableCell>
 														{formatNumber(
-															warehouse?.size ?? item.warehouse_detail?.size ?? '',
+															item.warehouse_detail?.size ?? '',
 														)}
 													</TableCell>
 													<TableCell>
-														{warehouse?.type_name ?? item.warehouse_detail?.type_name ?? ''}
+														{item.warehouse_detail?.type_name ?? ''}
 													</TableCell>
 													<TableCell className='font-semibold text-ca-green'>
 														{formatNumber(item.price, 2)} $
