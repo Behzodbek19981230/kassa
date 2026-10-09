@@ -8,6 +8,11 @@ import {
    Combobox,
    FormField,
    InputGroup,
+   Modal,
+   ModalBody,
+   ModalContent,
+   ModalHeader,
+   ModalTitle,
    PriceInput,
    Select,
    SelectContent,
@@ -38,11 +43,13 @@ const uzbekistanDispatchSchema = z.object({
 type UzbekistanDispatchFormValues = z.infer<typeof uzbekistanDispatchSchema>;
 
 interface UzbekistanDispatchFormProps {
+   open: boolean;
+   setOpen: (open: boolean) => void;
    cartId?: number;
    disabled?: boolean;
 }
 
-export default function UzbekistanDispatchForm({ cartId, disabled }: UzbekistanDispatchFormProps) {
+export default function UzbekistanDispatchForm({ open, setOpen, cartId, disabled }: UzbekistanDispatchFormProps) {
    const { notify } = useNotification();
    const [formError, setFormError] = useState('');
 
@@ -94,120 +101,130 @@ export default function UzbekistanDispatchForm({ cartId, disabled }: UzbekistanD
          });
          notify({ title: "O'zbekistonga jo'natildi", text: result.order_number });
          reset();
+         setOpen(false);
       } catch (err) {
          setFormError(getApiErrorMessage(err, 'Tasdiqlashda xatolik yuz berdi'));
       }
    });
 
    return (
-      <form onSubmit={onSubmit} noValidate>
-         {formError && (
-            <div className='mb-3 rounded border border-ca-danger-border bg-ca-danger-bg px-3 py-2 text-xs text-ca-red'>
-               {formError}
-            </div>
-         )}
+      <Modal open={open} onOpenChange={setOpen}>
+         <ModalContent className='max-w-2xl'>
+            <ModalHeader>
+               <ModalTitle>O'zbekistonga yuk chiqarish</ModalTitle>
+            </ModalHeader>
+            <ModalBody>
+               <form onSubmit={onSubmit} noValidate>
+                  {formError && (
+                     <div className='mb-3 rounded border border-ca-danger-border bg-ca-danger-bg px-3 py-2 text-xs text-ca-red'>
+                        {formError}
+                     </div>
+                  )}
 
-         <div className='grid grid-cols-2 gap-x-4'>
-            <FormField label="Og'irlik (kg)" error={errors.weightKg?.message} required horizontal={false} className='mb-3'>
-               <Input type='number' inputMode='decimal' min={0} step='0.001' {...register('weightKg')} />
-            </FormField>
-            <FormField label='Hajm (m³)' error={errors.volumeM3?.message} required horizontal={false} className='mb-3'>
-               <Input type='number' inputMode='decimal' min={0} step='0.0001' {...register('volumeM3')} />
-            </FormField>
+                  <div className='grid grid-cols-2 gap-x-4'>
+                     <FormField label="Og'irlik (kg)" error={errors.weightKg?.message} required horizontal={false} className='mb-3'>
+                        <Input type='number' inputMode='decimal' min={0} step='0.001' {...register('weightKg')} />
+                     </FormField>
+                     <FormField label='Hajm (m³)' error={errors.volumeM3?.message} required horizontal={false} className='mb-3'>
+                        <Input type='number' inputMode='decimal' min={0} step='0.0001' {...register('volumeM3')} />
+                     </FormField>
 
-            <div className='col-span-2'>
-               <FormField
-                  label='Tashuvchi logistika'
-                  error={errors.carrierLogistics?.message}
-                  required
-                  horizontal={false}
-                  className='mb-3'
-               >
-                  <Controller
-                     name='carrierLogistics'
-                     control={control}
-                     render={({ field }) => (
-                        <Combobox
-                           value={field.value}
-                           onChange={(v) => field.onChange(v)}
-                           loadOptions={loadLogisticsCompanyOptions}
-                           selectedLabel={selectedCarrier?.name}
-                           placeholder='Tashuvchini tanlang'
+                     <div className='col-span-2'>
+                        <FormField
+                           label='Tashuvchi logistika'
+                           error={errors.carrierLogistics?.message}
+                           required
+                           horizontal={false}
+                           className='mb-3'
+                        >
+                           <Controller
+                              name='carrierLogistics'
+                              control={control}
+                              render={({ field }) => (
+                                 <Combobox
+                                    value={field.value}
+                                    onChange={(v) => field.onChange(v)}
+                                    loadOptions={loadLogisticsCompanyOptions}
+                                    selectedLabel={selectedCarrier?.name}
+                                    placeholder='Tashuvchini tanlang'
+                                 />
+                              )}
+                           />
+                        </FormField>
+                     </div>
+
+                     <FormField label='Xizmat narxi (¥)' error={errors.servicePriceYuan?.message} required horizontal={false} className='mb-3'>
+                        <Controller
+                           name='servicePriceYuan'
+                           control={control}
+                           render={({ field }) => (
+                              <InputGroup prepend='¥'>
+                                 <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+                              </InputGroup>
+                           )}
                         />
-                     )}
-                  />
-               </FormField>
-            </div>
+                     </FormField>
+                     <FormField label='Xizmat narxi ($)' error={errors.servicePriceDollar?.message} required horizontal={false} className='mb-3'>
+                        <Controller
+                           name='servicePriceDollar'
+                           control={control}
+                           render={({ field }) => (
+                              <InputGroup prepend='$'>
+                                 <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+                              </InputGroup>
+                           )}
+                        />
+                     </FormField>
 
-            <FormField label='Xizmat narxi (¥)' error={errors.servicePriceYuan?.message} required horizontal={false} className='mb-3'>
-               <Controller
-                  name='servicePriceYuan'
-                  control={control}
-                  render={({ field }) => (
-                     <InputGroup prepend='¥'>
-                        <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
-                     </InputGroup>
-                  )}
-               />
-            </FormField>
-            <FormField label='Xizmat narxi ($)' error={errors.servicePriceDollar?.message} required horizontal={false} className='mb-3'>
-               <Controller
-                  name='servicePriceDollar'
-                  control={control}
-                  render={({ field }) => (
-                     <InputGroup prepend='$'>
-                        <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
-                     </InputGroup>
-                  )}
-               />
-            </FormField>
+                     <FormField
+                        label='Qabul qiluvchi sklad'
+                        error={errors.destinationSkladType?.message}
+                        required
+                        horizontal={false}
+                        className='mb-3'
+                     >
+                        <Controller
+                           name='destinationSkladType'
+                           control={control}
+                           render={({ field }) => (
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                 <SelectTrigger>
+                                    <SelectValue placeholder='Tanlang...' />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                    {(skladTypes?.results ?? []).map((type) => (
+                                       <SelectItem key={type.id} value={String(type.id)}>
+                                          {type.name}
+                                       </SelectItem>
+                                    ))}
+                                 </SelectContent>
+                              </Select>
+                           )}
+                        />
+                     </FormField>
+                     <FormField label='Fura raqami' error={errors.truckNumber?.message} required horizontal={false} className='mb-3'>
+                        <Input {...register('truckNumber')} />
+                     </FormField>
 
-            <FormField
-               label='Qabul qiluvchi sklad'
-               error={errors.destinationSkladType?.message}
-               required
-               horizontal={false}
-               className='mb-3'
-            >
-               <Controller
-                  name='destinationSkladType'
-                  control={control}
-                  render={({ field }) => (
-                     <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger>
-                           <SelectValue placeholder='Tanlang...' />
-                        </SelectTrigger>
-                        <SelectContent>
-                           {(skladTypes?.results ?? []).map((type) => (
-                              <SelectItem key={type.id} value={String(type.id)}>
-                                 {type.name}
-                              </SelectItem>
-                           ))}
-                        </SelectContent>
-                     </Select>
-                  )}
-               />
-            </FormField>
-            <FormField label='Fura raqami' error={errors.truckNumber?.message} required horizontal={false} className='mb-3'>
-               <Input {...register('truckNumber')} />
-            </FormField>
+                     <div />
+                     <FormField label='Haydovchi telefoni' error={errors.driverPhone?.message} required horizontal={false} className='mb-3'>
+                        <Input {...register('driverPhone')} placeholder='+998901234567' />
+                     </FormField>
+                  </div>
 
-            <div />
-            <FormField label='Haydovchi telefoni' error={errors.driverPhone?.message} required horizontal={false} className='mb-3'>
-               <Input {...register('driverPhone')} placeholder='+998901234567' />
-            </FormField>
-         </div>
-
-         <Button
-            type='submit'
-            variant='danger'
-            size='lg'
-            className='w-full'
-            disabled={disabled || !cartId}
-            loading={dispatchMutation.isPending}
-         >
-            <FaTruck className='mr-1.5' /> Buyurtmani tasdiqlash
-         </Button>
-      </form>
+                  <Button
+                     type='submit'
+                     variant='danger'
+                     size='lg'
+                     className='w-full'
+                     disabled={disabled || !cartId}
+                     loading={dispatchMutation.isPending}
+                  >
+                     <FaTruck className='mr-1.5' /> Buyurtmani tasdiqlash
+                  </Button>
+               </form>
+            </ModalBody>
+         </ModalContent>
+      </Modal>
    );
 }

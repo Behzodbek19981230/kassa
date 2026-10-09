@@ -176,19 +176,20 @@ export default function ImportOrdersPage() {
 								<TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Fura</TableHead>
 								<TableHead className='bg-ca-theme text-white'>Holati</TableHead>
+								<TableHead className='bg-ca-theme text-white'>Amal</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{ordersQuery.isLoading && (
 								<TableRow>
-									<TableCell colSpan={9} className='text-center'>
+									<TableCell colSpan={10} className='text-center'>
 										Yuklanmoqda...
 									</TableCell>
 								</TableRow>
 							)}
 							{!ordersQuery.isLoading && ordersQuery.isError && (
 								<TableRow>
-									<TableCell colSpan={9} className='text-center text-ca-red'>
+									<TableCell colSpan={10} className='text-center text-ca-red'>
 										<FaExclamationTriangle className='mr-1.5 inline' />{' '}
 										{getApiErrorMessage(ordersQuery.error, 'Xatolik yuz berdi')}
 									</TableCell>
@@ -196,7 +197,7 @@ export default function ImportOrdersPage() {
 							)}
 							{!ordersQuery.isLoading && !ordersQuery.isError && orders.length === 0 && (
 								<TableRow>
-									<TableCell colSpan={9} className='text-center'>
+									<TableCell colSpan={10} className='text-center'>
 										Ma'lumot topilmadi
 									</TableCell>
 								</TableRow>
@@ -217,6 +218,21 @@ export default function ImportOrdersPage() {
 									<TableCell>{order.truck_number ?? '-'}</TableCell>
 									<TableCell>
 										<Badge variant={ORDER_STATUS_VARIANTS[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
+									</TableCell>
+									<TableCell>
+										{canWrite && primaryAction(order) && (
+											<Button
+												type='button'
+												variant='danger'
+												size='xs'
+												onClick={(e) => {
+													e.stopPropagation();
+													setAction(primaryAction(order));
+												}}
+											>
+												{primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}
+											</Button>
+										)}
 									</TableCell>
 								</TableRow>
 							))}
