@@ -23,7 +23,6 @@ import {
    useImportCartQuery,
    useTransitStockQuery,
 } from '@/services/two-stage-import/two-stage-import.queries';
-import { useWarehouseDetailQueries } from '@/services/warehouse/warehouse.queries';
 import type { ImportCartItem, TransitStockItem } from '@/services/two-stage-import/two-stage-import.types';
 import { createCategoryLoader, loadBrandOptions } from '@/pages/TwoStageImport/options';
 import AddToUzCartModal from '@/pages/TwoStageImport/components/AddToUzCartModal';
@@ -67,11 +66,6 @@ export default function UzbekistanDispatchPage() {
    const summary = cartQuery.data?.summary;
 
    const dispatchValue = dispatchInput || (cart ? fromApiDateTime(cart.dispatch_datetime) : defaultDispatch);
-
-   // Transit stock carries only brand/category/type ids, so the names come from each warehouse's detail.
-   const stockWarehouseIds = [...new Set((stockQuery.data ?? []).map((s) => s.warehouse))];
-   const stockWarehouseQueries = useWarehouseDetailQueries(stockWarehouseIds);
-   const warehouseById = new Map(stockWarehouseIds.map((id, index) => [id, stockWarehouseQueries[index]?.data] as const));
 
    const stockById = useMemo(() => new Map((stockQuery.data ?? []).map((s) => [s.id, s])), [stockQuery.data]);
 
@@ -214,14 +208,14 @@ export default function UzbekistanDispatchPage() {
                               </TableRow>
                            )}
                            {rows.map((stock, index) => {
-                              const product = warehouseById.get(stock.warehouse);
+                              const product = stock.warehouse_detail;
                               return (
                                  <TableRow key={stock.id} onClick={() => canWrite && stock.available_quantity > 0 && setSelected(stock)} className={canWrite && stock.available_quantity > 0 ? 'cursor-pointer bg-red-50 hover:bg-red-100' : 'bg-red-50 opacity-60'}>
                                     <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{product?.brand_detail?.name ?? '-'}</TableCell>
-                                    <TableCell>{product?.product_category_detail?.name ?? '-'}</TableCell>
-                                    <TableCell>{formatNumber(stock.warehouse_detail?.size ?? '')}</TableCell>
-                                    <TableCell>{product?.type_detail?.name ?? '-'}</TableCell>
+                                    <TableCell>{product?.brand_name ?? '-'}</TableCell>
+                                    <TableCell>{product?.product_category_name ?? '-'}</TableCell>
+                                    <TableCell>{formatNumber(product?.size ?? '')}</TableCell>
+                                    <TableCell>{product?.type_name ?? '-'}</TableCell>
                                     <TableCell className='font-semibold'>{formatNumber(stock.available_quantity)}</TableCell>
                                     <TableCell className='whitespace-nowrap'>
                                        {formatNumber(stock.current_price_yuan, 0)} ¥ /{' '}

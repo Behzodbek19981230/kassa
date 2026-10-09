@@ -46,6 +46,9 @@ export default function AddToUzCartModal({ open, setOpen, stock, product, dispat
 	const [formError, setFormError] = useState('');
 
 	const available = stock.available_quantity;
+	const brandName = stock.warehouse_detail?.brand_name ?? product?.brand_name;
+	const categoryName = stock.warehouse_detail?.product_category_name ?? product?.product_category_name;
+	const typeName = stock.warehouse_detail?.type_name ?? product?.type_name;
 
 	// Transit stock is pooled per logistics warehouse, but a cart item must name the import it ships.
 	// Once the cart holds an import, every later item goes under that same one.
@@ -146,28 +149,26 @@ export default function AddToUzCartModal({ open, setOpen, stock, product, dispat
 						)}
 
 						<div className='mb-4 flex flex-col gap-2 rounded-[3px] bg-ca-silver p-3 text-xs'>
-							{product && (
+							{brandName && (
 								<div className='flex items-center justify-between'>
-										<span className='font-semibold text-ca-heading'>Model:</span>
-										<span className='font-bold text-ca-red'>{product.brand_name}</span>
-									</div>
+									<span className='font-semibold text-ca-heading'>Model:</span>
+									<span className='font-bold text-ca-red'>{brandName}</span>
+								</div>
 							)}
-							{product && (
+							{categoryName && (
 								<div className='flex items-center justify-between'>
-										<span className='font-semibold text-ca-heading'>Nomi:</span>
-										<span className='font-bold text-ca-red'>{product.product_category_name}</span>
-									</div>
+									<span className='font-semibold text-ca-heading'>Nomi:</span>
+									<span className='font-bold text-ca-red'>{categoryName}</span>
+								</div>
 							)}
 							<div className='flex items-center justify-between'>
 								<span className='font-semibold text-ca-heading'>O'lchami:</span>
 								<span className='font-bold text-ca-red'>{formatNumber(stock.warehouse_detail?.size ?? product?.size ?? '')}</span>
 							</div>
-							{product && (
-								<div className='flex items-center justify-between'>
-										<span className='font-semibold text-ca-heading'>Tip:</span>
-										<span className='font-bold text-ca-red'>{product.type_name ?? '-'}</span>
-									</div>
-							)}
+							<div className='flex items-center justify-between'>
+								<span className='font-semibold text-ca-heading'>Tip:</span>
+								<span className='font-bold text-ca-red'>{typeName ?? '-'}</span>
+							</div>
 							<div className='flex items-center justify-between'>
 								<span className='font-semibold text-ca-heading'>Mavjud:</span>
 								<span className='font-bold text-ca-heading'>{formatNumber(available)}</span>
@@ -196,7 +197,7 @@ export default function AddToUzCartModal({ open, setOpen, stock, product, dispat
 								name='quantity'
 								control={control}
 								render={({ field }) => (
-									<InputGroup append={product?.type_name ?? 'Dona'}>
+									<InputGroup append={typeName ?? 'Dona'}>
 										<Input
 											type='number'
 											inputMode='numeric'

@@ -203,6 +203,10 @@ export interface TransitStockItem {
 	logistics_warehouse_detail?: { id: number; name: string; country?: number | null; logistics_company?: number | null } | null;
 	warehouse_detail?: {
 		id: number;
+		brand_name?: string | null;
+		product_category_name?: string | null;
+		type_sklad_name?: string | null;
+		type_name?: string | null;
 		size: string;
 		count: number;
 		cr_date: string;
