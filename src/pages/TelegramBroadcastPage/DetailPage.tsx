@@ -91,7 +91,7 @@ export default function TelegramBroadcastDetailPage() {
   if (isError || !job) {
     return (
       <div className='flex items-center justify-center gap-2 p-5 text-ca-red'>
-        <FaExclamationTriangle /> Broadcast topilmadi
+        <FaExclamationTriangle /> Xabarnoma topilmadi
       </div>
     )
   }
@@ -104,7 +104,7 @@ export default function TelegramBroadcastDetailPage() {
   return (
     <>
       <PageHeader
-        title={`Broadcast #${job.id}`}
+        title={`Xabarnoma #${job.id}`}
         breadcrumb={[
           { label: 'Asosiy', path: '/' },
           { label: 'Telegram xabarnomalar', path: '/telegram-broadcast' },
@@ -113,7 +113,7 @@ export default function TelegramBroadcastDetailPage() {
       />
 
       <Panel
-        title={`Broadcast #${job.id}`}
+        title={`Xabarnoma #${job.id}`}
         actions={
           <Button type='button' variant='warning' size='xs' onClick={goBack}>
             <FaArrowLeft className='mr-1.5' /> Orqaga qaytish
@@ -123,7 +123,7 @@ export default function TelegramBroadcastDetailPage() {
         <div className='mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2'>
           <div className='divide-y divide-ca-border text-xs'>
             <div className='flex items-center justify-between py-2.5'>
-              <span className='font-semibold text-ca-heading'>Status:</span>
+              <span className='font-semibold text-ca-heading'>Holati:</span>
               <BroadcastStatusBadge status={job.status} />
             </div>
             <div className='flex items-center justify-between py-2.5'>
@@ -135,11 +135,11 @@ export default function TelegramBroadcastDetailPage() {
               <span className='font-bold text-ca-red'>{job.error_count}</span>
             </div>
             <div className='flex items-center justify-between py-2.5'>
-              <span className='font-semibold text-ca-heading'>Warehouse:</span>
+              <span className='font-semibold text-ca-heading'>Tovarlar:</span>
               <span className='font-bold text-ca-heading'>{job.warehouses_count} ta</span>
             </div>
             <div className='flex items-center justify-between py-2.5'>
-              <span className='font-semibold text-ca-heading'>Client:</span>
+              <span className='font-semibold text-ca-heading'>Mijozlar:</span>
               <span className='font-bold text-ca-heading'>{job.clients_count} ta</span>
             </div>
             <div className='flex items-center justify-between py-2.5'>
@@ -151,7 +151,7 @@ export default function TelegramBroadcastDetailPage() {
           <div className='flex flex-col gap-3'>
             <div>
               <div className='mb-1 flex items-center justify-between text-xs'>
-                <span className='font-semibold text-ca-heading'>Progress</span>
+                <span className='font-semibold text-ca-heading'>Jarayon</span>
                 <span className='font-semibold text-ca-heading'>
                   {job.sent_count} / {job.total_count}
                 </span>
@@ -161,7 +161,7 @@ export default function TelegramBroadcastDetailPage() {
 
             {job.text && (
               <div>
-                <p className='mb-1 text-xs font-semibold text-ca-heading'>Text:</p>
+                <p className='mb-1 text-xs font-semibold text-ca-heading'>Matn:</p>
                 <p className='rounded-[3px] border border-ca-border bg-ca-silver/40 p-3 text-xs whitespace-pre-wrap text-ca-text'>
                   {job.text}
                 </p>
@@ -203,7 +203,7 @@ export default function TelegramBroadcastDetailPage() {
       </Panel>
 
       <Panel
-        title='Deliverylar'
+        title='Yuborilgan xabarlar'
         toolbar={
           <div className='flex items-center gap-2'>
             <span className='text-xs font-semibold text-ca-heading'>Limit:</span>
@@ -229,19 +229,19 @@ export default function TelegramBroadcastDetailPage() {
                 <TableHead>ID</TableHead>
                 <TableHead>Mijoz</TableHead>
                 <TableHead>Telegram ID</TableHead>
-                <TableHead>Warehouse</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Message ID</TableHead>
+                <TableHead>Tovar</TableHead>
+                <TableHead>Holati</TableHead>
+                <TableHead>Xabar ID</TableHead>
                 <TableHead>Xato</TableHead>
                 <TableHead>Yuborilgan vaqt</TableHead>
-                <TableHead>Action</TableHead>
+                <TableHead>Amal</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {deliveries.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className='text-center text-ca-text'>
-                    Deliverylar topilmadi
+                    Yuborilgan xabarlar topilmadi
                   </TableCell>
                 </TableRow>
               ) : (

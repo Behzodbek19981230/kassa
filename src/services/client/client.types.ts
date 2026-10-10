@@ -14,6 +14,11 @@ export const CLIENT_PROFIT_LOSS_OPTIONS = [
   { value: '0', label: 'Hisoblanmasin' },
 ]
 
+export const CLIENT_BLOCKED_OPTIONS = [
+  { value: 'true', label: 'Bloklangan' },
+  { value: 'false', label: 'Bloklanmagan' },
+]
+
 export interface ClientCompanyDetail {
   id: number
   name: string
@@ -52,6 +57,7 @@ export interface Client {
   is_worker: number
   is_partner: number
   is_profit_loss: number
+  is_blocked?: boolean
   type: ClientType
   company: number
   company_detail?: ClientCompanyDetail | null
@@ -93,5 +99,6 @@ export interface ClientListParams extends ListParams {
   created_by?: number
   is_profit_loss?: 0 | 1
   is_telegram_started?: 0 | 1
+  is_blocked?: boolean
   status?: string
 }

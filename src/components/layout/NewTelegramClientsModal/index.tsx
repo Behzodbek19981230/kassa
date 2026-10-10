@@ -1,5 +1,5 @@
 import { createColumnHelper, type PaginationState } from '@tanstack/react-table';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FaCheck, FaExclamationTriangle } from 'react-icons/fa';
 import {
 	Button,
@@ -27,7 +27,7 @@ interface NewTelegramClientsModalProps {
 export default function NewTelegramClientsModal({ open, setOpen }: NewTelegramClientsModalProps) {
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 
-	const { data, isLoading, isFetching, isError, error } = useClientListQuery(
+	const { data, isLoading, isError, error } = useClientListQuery(
 		{
 			status: 'new_telegram',
 			page: pagination.pageIndex + 1,
@@ -39,7 +39,9 @@ export default function NewTelegramClientsModal({ open, setOpen }: NewTelegramCl
 	const results = data?.results ?? [];
 	const paginationMeta = data?.pagination;
 
-	const columns = [
+	// Columns must be stable: otherwise every re-render remounts the row cells and
+	// the nested confirm dialog (held in OpenDialogButton state) closes immediately.
+	const columns = useMemo(() => [
 		columnHelper.accessor('fio', { header: 'FIO', enableColumnFilter: false }),
 		columnHelper.accessor('phone', { header: 'Telefon nomer', size: 160, enableColumnFilter: false }),
 		columnHelper.accessor('address', { header: 'Manzil', enableColumnFilter: false }),
@@ -69,7 +71,7 @@ export default function NewTelegramClientsModal({ open, setOpen }: NewTelegramCl
 				</div>
 			),
 		}),
-	];
+	], []);
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
@@ -89,7 +91,7 @@ export default function NewTelegramClientsModal({ open, setOpen }: NewTelegramCl
 						enablePagination
 						enableGlobalFilter={false}
 						enableSorting={false}
-						isLoading={isLoading || isFetching}
+						isLoading={isLoading}
 						emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Yangi klientlar yo'q"}
 						emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 					/>

@@ -15,6 +15,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import type { ComboboxLoadParams, ComboboxLoadResult } from '@/components/ui';
+import { getApiErrorMessage } from '@/lib/errors';
 import { clientService } from '@/services/client/client.service';
 import {
 	useCreateAllTelegramBroadcastMutation,
@@ -51,7 +52,7 @@ export default function WarehouseSendTelegramModal({
 		if (!open || allClientsCount !== null) return;
 		setLoadingCount(true);
 		clientService
-			.list({ page: 1, limit: 1, is_telegram_started: 1, status: 'confirmed_telegram' })
+			.list({ page: 1, limit: 1, is_telegram_started: 1, is_blocked: false, status: 'confirmed_telegram' })
 			.then((result) => setAllClientsCount(result.pagination.total))
 			.catch(() => setAllClientsCount(0))
 			.finally(() => setLoadingCount(false));
@@ -63,6 +64,7 @@ export default function WarehouseSendTelegramModal({
 			page,
 			limit: 20,
 			is_telegram_started: 1,
+			is_blocked: false,
 			status: 'confirmed_telegram',
 		});
 		return {
@@ -91,8 +93,8 @@ export default function WarehouseSendTelegramModal({
 			}
 			notify({ title: 'Mahsulot Telegram orqali yuborish boshlandi' });
 			setOpen(false);
-		} catch {
-			setFormError('Yuborishda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Yuborishda xatolik yuz berdi'));
 		}
 	};
 

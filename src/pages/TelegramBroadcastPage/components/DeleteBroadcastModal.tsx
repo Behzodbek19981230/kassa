@@ -37,9 +37,9 @@ export default function DeleteBroadcastModal({ open, setOpen, jobId }: DeleteBro
           <ModalTitle>O'chirishni tasdiqlang</ModalTitle>
         </ModalHeader>
         <ModalBody>
-          <p className='mb-2'>Bu broadcast bo'yicha bot yuborgan Telegram xabarlar o'chiriladi.</p>
+          <p className='mb-2'>Bu xabarnoma bo'yicha bot yuborgan Telegram xabarlar o'chiriladi.</p>
           <p className='mb-2'>O'chgan xabarlar Telegramdan yo'qoladi.</p>
-          <p className='mb-2'>O'chmagan xabarlar "delete_failed" statusida qoladi.</p>
+          <p className='mb-2'>O'chmagan xabarlar "O'chmadi" holatida qoladi.</p>
           <p>Keyin ularni qayta o'chirish mumkin.</p>
         </ModalBody>
         <ModalFooter>

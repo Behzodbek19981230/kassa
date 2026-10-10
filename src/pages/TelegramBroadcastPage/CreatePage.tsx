@@ -21,6 +21,7 @@ import {
 } from '@/components/ui'
 import type { ComboboxLoadParams, ComboboxLoadResult } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import { getApiErrorMessage } from '@/lib/errors'
 import { clientService } from '@/services/client/client.service'
 import {
   useCreateAllTelegramBroadcastMutation,
@@ -48,7 +49,7 @@ export default function TelegramBroadcastCreatePage() {
   const { notify } = useNotification()
 
   const [postType, setPostType] = useState<'new' | 'existing'>('new')
-  const [clientStatus, setClientStatus] = useState<ClientStatus>('ordinary')
+  const [clientStatus, setClientStatus] = useState<ClientStatus>('confirmed_telegram')
   const [clientIds, setClientIds] = useState<string[]>([])
   const [selectAllClients, setSelectAllClients] = useState(false)
   const [loadingAllClients, setLoadingAllClients] = useState(false)
@@ -70,6 +71,7 @@ export default function TelegramBroadcastCreatePage() {
       page,
       limit: 20,
       is_telegram_started: 1,
+      is_blocked: false,
       status: clientStatus,
     })
     return {
@@ -120,7 +122,7 @@ export default function TelegramBroadcastCreatePage() {
     }
     setLoadingAllClients(true)
     try {
-      const result = await clientService.list({ page: 1, limit: 1, is_telegram_started: 1, status: clientStatus })
+      const result = await clientService.list({ page: 1, limit: 1, is_telegram_started: 1, is_blocked: false, status: clientStatus })
       setAllClientsCount(result.pagination.total)
     } catch {
       notify({ title: 'Mijozlar sonini yuklashda xatolik yuz berdi' })
@@ -172,8 +174,10 @@ export default function TelegramBroadcastCreatePage() {
           })
       notify({ title: 'Xabarnoma yuborish boshlandi' })
       navigate(`/telegram-broadcast/${result.job_id}`)
-    } catch {
-      notify({ title: 'Yuborishda xatolik yuz berdi' })
+    } catch (err) {
+      const message = getApiErrorMessage(err, 'Yuborishda xatolik yuz berdi')
+      setFormError(message)
+      notify({ title: 'Yuborishda xatolik yuz berdi', text: message })
     }
   }
 
@@ -198,7 +202,7 @@ export default function TelegramBroadcastCreatePage() {
   return (
     <>
       <PageHeader
-        title='Telegram Broadcast Yaratish'
+        title='Telegram xabarnoma yaratish'
         breadcrumb={[
           { label: 'Asosiy', path: '/' },
           { label: 'Telegram xabarnomalar', path: '/telegram-broadcast' },
@@ -207,7 +211,7 @@ export default function TelegramBroadcastCreatePage() {
       />
 
       <Panel
-        title='Telegram Broadcast Yaratish'
+        title='Telegram xabarnoma yaratish'
         actions={
           <Button type='button' variant='warning' size='xs' onClick={goBack}>
             <FaArrowLeft className='mr-1.5' /> Orqaga qaytish
@@ -274,12 +278,12 @@ export default function TelegramBroadcastCreatePage() {
           </FormField>
 
           {postType === 'existing' && (
-            <FormField label='Warehouse tanlash' required horizontal={false}>
+            <FormField label='Tovar tanlash' required horizontal={false}>
               <MultiCombobox
                 value={warehouseIds}
                 onChange={setWarehouseIds}
                 loadOptions={loadWarehouseOptions}
-                placeholder='Warehouse mahsulotlarini tanlang'
+                placeholder='Omborxona tovarlarini tanlang'
               />
             </FormField>
           )}
@@ -319,18 +323,18 @@ export default function TelegramBroadcastCreatePage() {
           )}
 
           <div className='mb-4 rounded-[3px] border border-ca-border bg-ca-silver/40 px-4 py-3 text-xs'>
-            <h4 className='mb-2 text-sm font-semibold text-ca-heading'>Preview</h4>
+            <h4 className='mb-2 text-sm font-semibold text-ca-heading'>Ko'rib chiqish</h4>
             <div className='divide-y divide-ca-border'>
               <div className='flex items-center justify-between py-1.5'>
                 <span className='text-ca-text'>Mijozlar:</span>
                 <span className='font-semibold text-ca-heading'>{clientCount} ta</span>
               </div>
               <div className='flex items-center justify-between py-1.5'>
-                <span className='text-ca-text'>Warehouse:</span>
+                <span className='text-ca-text'>Tovarlar:</span>
                 <span className='font-semibold text-ca-heading'>{warehouseCount} ta</span>
               </div>
               <div className='flex items-center justify-between py-1.5'>
-                <span className='text-ca-text'>Umumiy image:</span>
+                <span className='text-ca-text'>Umumiy rasm:</span>
                 <span className='font-semibold text-ca-heading'>{image ? 'Bor' : "Yo'q"}</span>
               </div>
               <div className='flex items-center justify-between py-1.5'>

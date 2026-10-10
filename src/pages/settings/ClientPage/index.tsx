@@ -22,7 +22,7 @@ import { formatNumber } from '@/lib/number';
 import ClientFormModal from '@/pages/settings/ClientPage/components/ClientFormModal';
 import DeleteClientModal from '@/pages/settings/ClientPage/components/DeleteClientModal';
 import { useClientListQuery } from '@/services/client/client.queries';
-import { CLIENT_PROFIT_LOSS_OPTIONS, CLIENT_TYPE_OPTIONS } from '@/services/client/client.types';
+import { CLIENT_BLOCKED_OPTIONS, CLIENT_PROFIT_LOSS_OPTIONS, CLIENT_TYPE_OPTIONS } from '@/services/client/client.types';
 import type { Client, ClientType } from '@/services/client/client.types';
 import { districtService } from '@/services/district/district.service';
 import { useRegionListQuery } from '@/services/region/region.queries';
@@ -49,6 +49,7 @@ export default function ClientPage() {
 	const districtFilter = columnFilters.find((f) => f.id === 'district')?.value as string | undefined;
 	const typeFilter = columnFilters.find((f) => f.id === 'type')?.value as string | undefined;
 	const profitLossFilter = columnFilters.find((f) => f.id === 'is_profit_loss')?.value as string | undefined;
+	const blockedFilter = columnFilters.find((f) => f.id === 'is_blocked')?.value as string | undefined;
 	const createdByFilter = columnFilters.find((f) => f.id === 'created_by')?.value as string | undefined;
 
 	const { data, isLoading, isFetching, isError, error, refetch } = useClientListQuery({
@@ -60,6 +61,7 @@ export default function ClientPage() {
 		district: districtFilter ? Number(districtFilter) : undefined,
 		type: (typeFilter as ClientType) || undefined,
 		is_profit_loss: profitLossFilter ? (Number(profitLossFilter) as 0 | 1) : undefined,
+		is_blocked: blockedFilter ? blockedFilter === 'true' : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 		ordering,
 	});
@@ -152,6 +154,21 @@ export default function ClientPage() {
 				filterVariant: 'select',
 				filterOptions: CLIENT_PROFIT_LOSS_OPTIONS,
 				filterSelectedLabel: (value) => profitLossLabelByValue.get(value),
+				filterPlaceholder: 'Barchasi',
+			},
+		}),
+		columnHelper.accessor('is_blocked', {
+			header: 'Bloklangan',
+			size: 130,
+			cell: (info) => (
+				<span className={info.getValue() ? 'font-semibold text-ca-red' : 'font-semibold text-ca-green'}>
+					{info.getValue() ? 'Bloklangan' : 'Bloklanmagan'}
+				</span>
+			),
+			meta: {
+				filterVariant: 'select',
+				filterOptions: CLIENT_BLOCKED_OPTIONS,
+				filterSelectedLabel: (value) => CLIENT_BLOCKED_OPTIONS.find((o) => o.value === value)?.label,
 				filterPlaceholder: 'Barchasi',
 			},
 		}),

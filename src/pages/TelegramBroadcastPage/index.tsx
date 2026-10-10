@@ -33,7 +33,7 @@ export default function TelegramBroadcastPage() {
 	const columns = [
 		columnHelper.accessor('id', { header: 'ID', size: 70 }),
 		columnHelper.accessor('text', {
-			header: 'Text',
+			header: 'Matn',
 			cell: (info) => info.getValue() || '-',
 		}),
 		columnHelper.accessor('warehouses_count', { header: 'Tovar soni', size: 130 }),
@@ -50,7 +50,7 @@ export default function TelegramBroadcastPage() {
 			cell: (info) => <span className='font-semibold text-ca-red'>{info.getValue()}</span>,
 		}),
 		columnHelper.accessor('status', {
-			header: 'Status',
+			header: 'Holati',
 			size: 130,
 			cell: (info) => <BroadcastStatusBadge status={info.getValue()} />,
 		}),
