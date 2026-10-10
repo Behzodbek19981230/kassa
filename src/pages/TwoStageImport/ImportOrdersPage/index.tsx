@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaExclamationTriangle, FaPlus } from 'react-icons/fa';
+import { FaExclamationTriangle, FaEye, FaPlus } from 'react-icons/fa';
 import {
    Badge,
    Button,
@@ -218,6 +218,18 @@ export default function ImportOrdersPage() {
                               <Badge variant={ORDER_STATUS_VARIANTS[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
                            </TableCell>
                            <TableCell>
+                              <div className='flex gap-1.5'>
+                              <Button
+                                 type='button'
+                                 variant='theme'
+                                 size='xs'
+                                 onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/two-stage-import/orders/${order.id}`);
+                                 }}
+                              >
+                                 <FaEye className='mr-1.5' /> Ko'rish
+                              </Button>
                               {canWrite && primaryAction(order) && (
                                  <Button
                                     type='button'
@@ -231,6 +243,7 @@ export default function ImportOrdersPage() {
                                     {primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}
                                  </Button>
                               )}
+                              </div>
                            </TableCell>
                         </TableRow>
                      ))}

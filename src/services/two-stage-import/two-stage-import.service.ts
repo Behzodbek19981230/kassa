@@ -12,6 +12,14 @@ import type {
 	ImportOrderListParams,
 	ImportStage,
 	LocalReceiptPayload,
+	LogisticsPartnersParams,
+	LogisticsPartnersResponse,
+	OrderProductsParams,
+	OrderProductsResponse,
+	PartnerStockExportFormat,
+	PartnerStockParams,
+	PartnerStockResponse,
+	PriceHistoryResponse,
 	TransitArrivalPayload,
 	TransitStockItem,
 	UzbekistanDispatchPayload,
@@ -60,6 +68,39 @@ export const twoStageImportService = {
 			params: logisticsWarehouse ? { logistics_warehouse: logisticsWarehouse } : undefined,
 		});
 		return data;
+	},
+	getLogisticsPartners: async (params?: LogisticsPartnersParams) => {
+		const { data } = await apiClient.get<LogisticsPartnersResponse>(`${BASE_PATH}/logistics-partners/`, { params });
+		return data;
+	},
+	getPartnerStock: async (partnerId: number, params?: PartnerStockParams) => {
+		const { data } = await apiClient.get<PartnerStockResponse>(`${BASE_PATH}/logistics-partners/${partnerId}/stock/`, {
+			params,
+		});
+		return data;
+	},
+	getPartnerPriceHistory: async (partnerId: number, stockId: number, params?: { page?: number; limit?: number }) => {
+		const { data } = await apiClient.get<PriceHistoryResponse>(
+			`${BASE_PATH}/logistics-partners/${partnerId}/stock/${stockId}/price-history/`,
+			{ params },
+		);
+		return data;
+	},
+	getOrderProducts: async (orderId: number, params?: OrderProductsParams) => {
+		const { data } = await apiClient.get<OrderProductsResponse>(`${BASE_PATH}/order/${orderId}/products/`, { params });
+		return data;
+	},
+	exportPartnerStock: async (
+		partnerId: number,
+		format: PartnerStockExportFormat,
+		params?: Pick<PartnerStockParams, 'logistics_warehouse' | 'brand' | 'product_category'>,
+	) => {
+		const response = await apiClient.get<Blob>(`${BASE_PATH}/logistics-partners/${partnerId}/stock/export/${format}/`, {
+			params,
+			responseType: 'blob',
+			timeout: 120_000,
+		});
+		return response.data;
 	},
 	uzbekistanDispatch: async (payload: UzbekistanDispatchPayload) => {
 		const { data } = await apiClient.post<ImportOrderListItem>(`${BASE_PATH}/uzbekistan-dispatch/`, payload);

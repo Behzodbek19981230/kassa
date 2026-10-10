@@ -219,3 +219,175 @@ export interface TransitStockItem {
 		type_sklad: number | null;
 	} | null;
 }
+
+// --- Logistika hamkorlari (design/logistics-partners) ---
+
+export interface PartnerRef {
+	id: number;
+	name: string;
+}
+
+export interface PartnerConsignor {
+	id: number;
+	name: string;
+	phone: string | null;
+	country: PartnerRef | null;
+	contact_person: string | null;
+	invoice_number: string | null;
+}
+
+export interface PartnerInfo {
+	id: number;
+	name: string;
+	country: PartnerRef | null;
+	phone: string | null;
+	contact_person: string | null;
+	invoice_number: string | null;
+}
+
+export interface LogisticsPartner extends PartnerInfo {
+	warehouse_count: number;
+	total_count: number;
+	consignors: PartnerConsignor[];
+	stock_url: string;
+}
+
+export interface LogisticsPartnersParams {
+	country?: number;
+	search?: string;
+	page?: number;
+	limit?: number;
+}
+
+export interface PartnerPagination {
+	currentPage: number;
+	lastPage: number;
+	perPage: number;
+	total: number;
+}
+
+export interface LogisticsPartnersResponse {
+	pagination: PartnerPagination;
+	summary: { partner_count: number; warehouse_count: number; total_count: number };
+	results: LogisticsPartner[];
+}
+
+export interface StockPrice {
+	yuan: string;
+	dollar: string;
+	display: string;
+}
+
+export interface PartnerStockItem {
+	id: number;
+	warehouse_id: number;
+	brand: PartnerRef | null;
+	product_category: PartnerRef | null;
+	logistics_warehouse: PartnerRef | null;
+	size: string | null;
+	type: PartnerRef | null;
+	count: number;
+	price: StockPrice;
+	last_arrival_at: string | null;
+	image: string | null;
+	price_history_url: string;
+}
+
+export interface PartnerStockParams {
+	logistics_warehouse?: number;
+	brand?: number;
+	product_category?: number;
+	page?: number;
+	limit?: number;
+}
+
+export interface PartnerStockResponse {
+	partner: PartnerInfo;
+	consignors: PartnerConsignor[];
+	summary: { total_count: number; warehouse_count: number };
+	pagination: PartnerPagination;
+	filters: {
+		logistics_warehouses: { logistics_warehouse_id: number; logistics_warehouse__name: string }[];
+		brands: { warehouse__brand_id: number; warehouse__brand__name: string }[];
+		product_categories: { warehouse__product_category_id: number; warehouse__product_category__name: string }[];
+	};
+	results: {
+		brand: PartnerRef | null;
+		product_categories: { product_category: PartnerRef | null; stocks: PartnerStockItem[] }[];
+	}[];
+}
+
+export interface PriceHistoryEntry {
+	id: number;
+	arrival_at: string;
+	order_id: number | null;
+	order_number: string | null;
+	count: number;
+	price: StockPrice;
+}
+
+export interface PriceHistoryResponse {
+	partner: PartnerInfo;
+	stock: PartnerStockItem;
+	pagination: PartnerPagination;
+	results: PriceHistoryEntry[];
+}
+
+export type PartnerStockExportFormat = 'pdf' | 'xlsx';
+
+// --- Buyurtma mahsulotlari (design/order/{id}/products) ---
+
+export type OrderMovementType = 'ARRIVAL' | 'RESERVE' | 'RELEASE_RESERVE' | 'DISPATCH' | 'CORRECTION' | 'REVERSAL';
+
+export interface OrderProductsParams {
+	brand_name?: string;
+	category_name?: string;
+	page?: number;
+	limit?: number;
+	movement_page?: number;
+	movement_limit?: number;
+}
+
+export interface OrderProductItem {
+	id: number;
+	warehouse_id: number;
+	brand_name: string | null;
+	category_name: string | null;
+	size: string | null;
+	type_name: string | null;
+	type_quantity: string | null;
+	count: number;
+	price: StockPrice;
+	total: StockPrice;
+	image: string | null;
+}
+
+export interface OrderMovement {
+	date: string;
+	first_at: string;
+	last_at: string;
+	movement_type: OrderMovementType;
+	label: string;
+	logistics_warehouse: PartnerRef | null;
+	quantity_change: number;
+	history_row_count: number;
+}
+
+export interface OrderProductsResponse {
+	order: ImportOrderListItem;
+	summary: { total_count: number; total_yuan: string; total_dollar: string };
+	pagination: PartnerPagination;
+	filters: {
+		brands: string[];
+		product_categories: { brand_name: string; category_name: string }[];
+	};
+	results: {
+		brand: { name: string } | null;
+		product_categories: { product_category: { name: string } | null; items: OrderProductItem[] }[];
+	}[];
+	movements: {
+		dispatch_at: string | null;
+		pagination: PartnerPagination;
+		results: OrderMovement[];
+	};
+}

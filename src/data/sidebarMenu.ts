@@ -36,7 +36,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 			{
 				id: 'two-stage-transit-stock',
 				icon: 'warehouse',
-				label: 'Tranzit logistika skladi',
+				label: 'Logistika hamkorlari',
 				path: '/two-stage-import/transit-stock',
 			},
 			{

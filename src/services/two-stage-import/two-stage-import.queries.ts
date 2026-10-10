@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { parseListPage } from '@/services/api/list-page';
 import { mergeBrandGroups } from '@/services/warehouse/warehouse.service';
 import { twoStageImportService } from '@/services/two-stage-import/two-stage-import.service';
@@ -10,6 +10,9 @@ import type {
 	ImportOrderListParams,
 	ImportStage,
 	LocalReceiptPayload,
+	LogisticsPartnersParams,
+	OrderProductsParams,
+	PartnerStockParams,
 	TransitArrivalPayload,
 	UzbekistanDispatchPayload,
 } from '@/services/two-stage-import/two-stage-import.types';
@@ -62,6 +65,40 @@ export function useTransitStockQuery(logisticsWarehouse?: number) {
 	return useQuery({
 		queryKey: twoStageKeys.transitStock(logisticsWarehouse),
 		queryFn: () => twoStageImportService.getTransitStock(logisticsWarehouse),
+	});
+}
+
+export function useLogisticsPartnersQuery(params?: LogisticsPartnersParams) {
+	return useQuery({
+		queryKey: ['two-stage-import', 'logistics-partners', params] as const,
+		queryFn: () => twoStageImportService.getLogisticsPartners(params),
+		placeholderData: keepPreviousData,
+	});
+}
+
+export function usePartnerStockQuery(partnerId?: number, params?: PartnerStockParams) {
+	return useQuery({
+		queryKey: ['two-stage-import', 'logistics-partners', partnerId, 'stock', params] as const,
+		queryFn: () => twoStageImportService.getPartnerStock(partnerId!, params),
+		enabled: !!partnerId,
+		placeholderData: keepPreviousData,
+	});
+}
+
+export function usePartnerPriceHistoryQuery(partnerId?: number, stockId?: number, params?: { page?: number; limit?: number }) {
+	return useQuery({
+		queryKey: ['two-stage-import', 'logistics-partners', partnerId, 'price-history', stockId, params] as const,
+		queryFn: () => twoStageImportService.getPartnerPriceHistory(partnerId!, stockId!, params),
+		enabled: !!partnerId && !!stockId,
+	});
+}
+
+export function useOrderProductsQuery(orderId?: number, params?: OrderProductsParams) {
+	return useQuery({
+		queryKey: ['two-stage-import', 'order-products', orderId, params] as const,
+		queryFn: () => twoStageImportService.getOrderProducts(orderId!, params),
+		enabled: !!orderId,
+		placeholderData: keepPreviousData,
 	});
 }
 

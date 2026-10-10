@@ -48,8 +48,10 @@ import TelegramBroadcastPage from '@/pages/TelegramBroadcastPage';
 import TelegramBroadcastCreatePage from '@/pages/TelegramBroadcastPage/CreatePage';
 import TelegramBroadcastDetailPage from '@/pages/TelegramBroadcastPage/DetailPage';
 import ChinaDispatchPage from '@/pages/TwoStageImport/ChinaDispatchPage';
+import ImportOrderProductsPage from '@/pages/TwoStageImport/ImportOrderProductsPage';
 import ImportOrdersPage from '@/pages/TwoStageImport/ImportOrdersPage';
-import TransitStockPage from '@/pages/TwoStageImport/TransitStockPage';
+import LogisticsPartnersPage from '@/pages/TwoStageImport/LogisticsPartnersPage';
+import LogisticsPartnerStockPage from '@/pages/TwoStageImport/LogisticsPartnerStockPage';
 import UzbekistanDispatchPage from '@/pages/TwoStageImport/UzbekistanDispatchPage';
 import UzbekistanInRoadPage from '@/pages/TwoStageImport/UzbekistanInRoadPage';
 
@@ -67,7 +69,9 @@ export default function App() {
 					<Route path='import' element={<ImportPage />} />
 					<Route path='two-stage-import/china-dispatch' element={<ChinaDispatchPage />} />
 					<Route path='two-stage-import/orders' element={<ImportOrdersPage />} />
-					<Route path='two-stage-import/transit-stock' element={<TransitStockPage />} />
+					<Route path='two-stage-import/orders/:id' element={<ImportOrderProductsPage />} />
+					<Route path='two-stage-import/transit-stock' element={<LogisticsPartnersPage />} />
+					<Route path='two-stage-import/transit-stock/:id' element={<LogisticsPartnerStockPage />} />
 					<Route path='two-stage-import/transit-dispatch' element={<UzbekistanDispatchPage />} />
 					<Route path='two-stage-import/uzbekistan-in-road' element={<UzbekistanInRoadPage />} />
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />

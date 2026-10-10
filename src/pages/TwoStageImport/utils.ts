@@ -85,3 +85,9 @@ export const nonNegativeNumber = (requiredMessage: string) =>
 		.trim()
 		.min(1, requiredMessage)
 		.refine((v) => Number(v) >= 0, { message: "Manfiy bo'lmasligi kerak" });
+
+/** Any API datetime -> "07.10.2026 14:30" in Tashkent time. */
+export function formatTashkentDateTime(value?: string | null) {
+	if (!value) return '-';
+	return `${formatTashkentDate(value)} ${fromApiDateTime(value).slice(11, 16)}`;
+}
