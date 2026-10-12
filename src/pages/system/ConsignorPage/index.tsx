@@ -14,7 +14,8 @@ import { usePermissions } from '@/lib/permissions';
 import ConsignorFormModal from '@/pages/system/ConsignorPage/components/ConsignorFormModal';
 import DeleteConsignorModal from '@/pages/system/ConsignorPage/components/DeleteConsignorModal';
 import { useConsignorListQuery } from '@/services/consignor/consignor.queries';
-import type { Consignor } from '@/services/consignor/consignor.types';
+import { CONSIGNOR_TYPE_OPTIONS } from '@/services/consignor/consignor.types';
+import type { Consignor, ConsignorType } from '@/services/consignor/consignor.types';
 
 const columnHelper = createColumnHelper<Consignor>();
 
@@ -27,11 +28,13 @@ export default function ConsignorPage() {
 
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const nameFilter = columnFilters.find((f) => f.id === 'name')?.value as string | undefined;
+	const typeFilter = columnFilters.find((f) => f.id === 'type')?.value as ConsignorType | undefined;
 
 	const { data, isLoading, isFetching, isError, error, refetch } = useConsignorListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
+		type: typeFilter || undefined,
 		ordering,
 	});
 
@@ -40,6 +43,16 @@ export default function ConsignorPage() {
 
 	const columns = [
 		columnHelper.accessor('name', { header: 'Nomi', meta: { align: 'left' } }),
+		columnHelper.accessor('type', {
+			header: 'Turi',
+			size: 190,
+			cell: (info) => CONSIGNOR_TYPE_OPTIONS.find((o) => o.value === info.getValue())?.label ?? info.getValue(),
+			meta: {
+				filterVariant: 'select',
+				filterOptions: CONSIGNOR_TYPE_OPTIONS,
+				filterPlaceholder: 'Barchasi',
+			},
+		}),
 		columnHelper.accessor('phone', { header: 'Telefon', size: 160, enableColumnFilter: false }),
 		columnHelper.accessor('address', { header: 'Manzil', meta: { align: 'left' }, enableColumnFilter: false }),
 		columnHelper.display({

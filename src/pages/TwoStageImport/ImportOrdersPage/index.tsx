@@ -212,7 +212,7 @@ export default function ImportOrdersPage() {
                            <TableCell className='font-semibold'>{formatNumber(order.total_dollar ?? 0, 2)} $</TableCell>
                            <TableCell>{order.truck_number ?? '-'}</TableCell>
                            <TableCell>
-                              <Badge variant={ORDER_STATUS_VARIANTS[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
+                              <Badge variant={ORDER_STATUS_VARIANTS[order.status]} className='px-2.5 py-1 text-xs whitespace-nowrap'>{ORDER_STATUS_LABELS[order.status]}</Badge>
                            </TableCell>
                            <TableCell>
                               <div className='flex gap-1.5'>

@@ -115,7 +115,7 @@ export default function UzbekistanInRoadPage() {
                            <TableCell>{order.truck_number ?? '-'}</TableCell>
                            <TableCell>{order.driver_phone ?? '-'}</TableCell>
                            <TableCell>
-                              <Badge variant={ORDER_STATUS_VARIANTS[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
+                              <Badge variant={ORDER_STATUS_VARIANTS[order.status]} className='px-2.5 py-1 text-xs whitespace-nowrap'>{ORDER_STATUS_LABELS[order.status]}</Badge>
                            </TableCell>
                         </TableRow>
                      ))}

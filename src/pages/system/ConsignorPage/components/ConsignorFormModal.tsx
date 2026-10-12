@@ -12,17 +12,24 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalTitle,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
 	Textarea,
 	useNotification,
 } from '@/components/ui';
 import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
 import { useCreateConsignorMutation, useUpdateConsignorMutation } from '@/services/consignor/consignor.queries';
-import type { Consignor, ConsignorPayload } from '@/services/consignor/consignor.types';
+import { CONSIGNOR_TYPE_OPTIONS } from '@/services/consignor/consignor.types';
+import type { Consignor, ConsignorPayload, ConsignorType } from '@/services/consignor/consignor.types';
 
 const consignorFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
 	phone: z.string().regex(UZ_PHONE_REGEX, "Telefon raqami to'liq kiritilishi shart"),
 	address: z.string().min(1, 'Manzil kiritilishi shart'),
+	type: z.string().min(1, 'Turi tanlanishi shart'),
 });
 
 type ConsignorFormValues = z.infer<typeof consignorFormSchema>;
@@ -47,8 +54,8 @@ export default function ConsignorFormModal({ open, setOpen, mode, item }: Consig
 		resolver: zodResolver(consignorFormSchema),
 		defaultValues:
 			mode === 'edit' && item
-				? { name: item.name, phone: item.phone, address: item.address }
-				: { name: '', phone: '+998', address: '' },
+				? { name: item.name, phone: item.phone, address: item.address, type: item.type ?? '' }
+				: { name: '', phone: '+998', address: '', type: '' },
 	});
 
 	const createMutation = useCreateConsignorMutation();
@@ -61,6 +68,7 @@ export default function ConsignorFormModal({ open, setOpen, mode, item }: Consig
 			name: values.name.trim(),
 			phone: values.phone.trim(),
 			address: values.address.trim(),
+			type: values.type as ConsignorType,
 		};
 
 		try {
@@ -105,6 +113,26 @@ export default function ConsignorFormModal({ open, setOpen, mode, item }: Consig
 										onChange={(e) => field.onChange(formatUzPhone(e.target.value))}
 										onBlur={field.onBlur}
 									/>
+								)}
+							/>
+						</FormField>
+						<FormField label='Turi' error={errors.type?.message} required horizontal={false} className='mb-3'>
+							<Controller
+								name='type'
+								control={control}
+								render={({ field }) => (
+									<Select value={field.value} onValueChange={field.onChange}>
+										<SelectTrigger>
+											<SelectValue placeholder='Tanlang...' />
+										</SelectTrigger>
+										<SelectContent>
+											{CONSIGNOR_TYPE_OPTIONS.map((option) => (
+												<SelectItem key={option.value} value={option.value}>
+													{option.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 								)}
 							/>
 						</FormField>

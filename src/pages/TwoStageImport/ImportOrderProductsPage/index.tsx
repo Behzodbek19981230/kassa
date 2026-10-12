@@ -134,7 +134,7 @@ export default function ImportOrderProductsPage() {
                      />
                      <InfoItem icon={<FaTruck />} label='Fura:' value={order.truck_number} />
                      <div className='px-3 py-2'>
-                        <Badge variant={ORDER_STATUS_VARIANTS[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
+                        <Badge variant={ORDER_STATUS_VARIANTS[order.status]} className='px-2.5 py-1 text-xs whitespace-nowrap'>{ORDER_STATUS_LABELS[order.status]}</Badge>
                      </div>
                   </div>
                </div>

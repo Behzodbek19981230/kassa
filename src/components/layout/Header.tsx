@@ -315,35 +315,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                      </Tooltip>
                   </li>
 
-                  {logisticsMenu?.children && (
-                     <li>
-                        <DropdownMenu>
-                           <DropdownMenuTrigger asChild>
-                              <button
-                                 type='button'
-                                 className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
-                                 aria-label={logisticsMenu.label}
-                              >
-                                 <FaShippingFast />
-                                 <span className='hidden md:inline'>{logisticsMenu.label}</span>
-                                 <span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />
-                              </button>
-                           </DropdownMenuTrigger>
-                           <DropdownMenuContent>
-                              {logisticsMenu.children.map((item) => (
-                                 <DropdownMenuItem
-                                    key={item.id}
-                                    onSelect={() => item.path && navigate(item.path)}
-                                    className='flex items-center gap-2'
-                                 >
-                                    {item.icon && logisticsIcons[item.icon]}
-                                    {item.label}
-                                 </DropdownMenuItem>
-                              ))}
-                           </DropdownMenuContent>
-                        </DropdownMenu>
-                     </li>
-                  )}
+
 
                   <li>
                      <DropdownMenu>
