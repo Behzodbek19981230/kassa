@@ -23,6 +23,8 @@ import { formatNumber } from '@/lib/number';
 import { useTransitArrivalMutation } from '@/services/two-stage-import/two-stage-import.queries';
 import type { ImportOrderListItem } from '@/services/two-stage-import/two-stage-import.types';
 import { ORDER_STATUS_LABELS, nonNegativeNumber, todayTashkent } from '@/pages/TwoStageImport/utils';
+import YuanRateHint from '@/pages/TwoStageImport/components/YuanRateHint';
+import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
 
 const transitArrivalSchema = z.object({
 	arrivalDate: z.string().min(1, 'Yetib kelgan sanani kiriting'),
@@ -45,8 +47,10 @@ export default function TransitArrivalModal({ open, setOpen, order, onCancelOrde
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 
+	const { yuanToDollar, dollarToYuan } = useYuanDollarConversion();
 	const {
 		control,
+		setValue,
 		register,
 		handleSubmit,
 		formState: { errors },
@@ -145,10 +149,19 @@ export default function TransitArrivalModal({ open, setOpen, order, onCancelOrde
 									control={control}
 									render={({ field }) => (
 										<InputGroup prepend='¥'>
-											<PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+											<PriceInput
+												value={field.value}
+												onChange={(value) => {
+													field.onChange(value);
+													const converted = yuanToDollar(value);
+													if (converted !== null) setValue('paidDollar', converted, { shouldValidate: converted !== '' });
+												}}
+												onBlur={field.onBlur}
+											/>
 										</InputGroup>
 									)}
 								/>
+								<YuanRateHint />
 							</FormField>
 							<FormField label="To'langan summa ($)" error={errors.paidDollar?.message} required horizontal={false} className='mb-0'>
 								<Controller
@@ -156,7 +169,15 @@ export default function TransitArrivalModal({ open, setOpen, order, onCancelOrde
 									control={control}
 									render={({ field }) => (
 										<InputGroup prepend='$'>
-											<PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+											<PriceInput
+												value={field.value}
+												onChange={(value) => {
+													field.onChange(value);
+													const converted = dollarToYuan(value);
+													if (converted !== null) setValue('paidYuan', converted, { shouldValidate: converted !== '' });
+												}}
+												onBlur={field.onBlur}
+											/>
 										</InputGroup>
 									)}
 								/>

@@ -23,6 +23,8 @@ import { useCurrentCompany } from '@/lib/company';
 import { useAddCartItemMutation } from '@/services/two-stage-import/two-stage-import.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import { nonNegativeNumber, positiveNumber } from '@/pages/TwoStageImport/utils';
+import YuanRateHint from '@/pages/TwoStageImport/components/YuanRateHint';
+import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
 
 const addToChinaCartSchema = z.object({
    typeQuantity: positiveNumber('Tip donani kiriting'),
@@ -62,8 +64,10 @@ export default function AddToChinaCartModal({
    const rate = Number(exchangeRate?.dollar ?? 0);
 
 
+   const { yuanToDollar, dollarToYuan } = useYuanDollarConversion();
    const {
       control,
+      setValue,
       handleSubmit,
       watch,
       formState: { errors },
@@ -77,7 +81,10 @@ export default function AddToChinaCartModal({
       },
    });
 
+   const typeQuantity = Number(watch('typeQuantity')) || 0;
    const quantity = Number(watch('quantity')) || 0;
+   // The price is per type unit, so the line total is tip dona × soni × narx.
+   const totalUnits = typeQuantity * quantity;
    const priceYuan = Number(watch('priceYuan')) || 0;
    const priceDollar = Number(watch('priceDollar')) || 0;
 
@@ -118,10 +125,7 @@ export default function AddToChinaCartModal({
                   )}
 
                   <div className='mb-4 flex flex-col gap-2 rounded-[3px] bg-ca-silver p-3 text-xs'>
-                     <div className='flex items-center justify-between'>
-                        <span className='font-semibold text-ca-heading'>Dollar kursi:</span>
-                        <span className='font-bold text-ca-heading'>{formatNumber(rate)}</span>
-                     </div>
+
                      <div className='flex items-center justify-between'>
                         <span className='font-semibold text-ca-heading'>Model:</span>
                         <span className='truncate font-bold text-ca-red'>{product.brand_name}</span>
@@ -185,10 +189,19 @@ export default function AddToChinaCartModal({
                         control={control}
                         render={({ field }) => (
                            <InputGroup prepend='¥'>
-                              <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+                              <PriceInput
+                                 value={field.value}
+                                 onChange={(value) => {
+                                    field.onChange(value);
+                                    const converted = yuanToDollar(value);
+                                    if (converted !== null) setValue('priceDollar', converted, { shouldValidate: converted !== '' });
+                                 }}
+                                 onBlur={field.onBlur}
+                              />
                            </InputGroup>
                         )}
                      />
+                     <YuanRateHint />
                   </FormField>
 
                   <FormField label='Narxi ($)' error={errors.priceDollar?.message} required horizontal={false} className='mb-3'>
@@ -197,24 +210,32 @@ export default function AddToChinaCartModal({
                         control={control}
                         render={({ field }) => (
                            <InputGroup prepend='$'>
-                              <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+                              <PriceInput
+                                 value={field.value}
+                                 onChange={(value) => {
+                                    field.onChange(value);
+                                    const converted = dollarToYuan(value);
+                                    if (converted !== null) setValue('priceYuan', converted, { shouldValidate: converted !== '' });
+                                 }}
+                                 onBlur={field.onBlur}
+                              />
                            </InputGroup>
                         )}
                      />
                   </FormField>
 
-                  {quantity > 0 && (
+                  {totalUnits > 0 && (
                      <div className='rounded-[3px] border border-ca-border bg-ca-silver-light px-3 py-2 text-xs'>
                         <div className='flex items-center justify-between py-0.5'>
                            <span className='text-ca-text'>Umumiy narxi (¥)</span>
                            <span className='font-semibold text-ca-green'>
-                              {formatNumber(quantity * priceYuan, 0)} ¥
+                              {formatNumber(totalUnits * priceYuan, 2)} ¥
                            </span>
                         </div>
                         <div className='flex items-center justify-between py-0.5'>
                            <span className='text-ca-text'>Umumiy narxi ($)</span>
                            <span className='font-semibold text-ca-green'>
-                              {formatNumber(quantity * priceDollar, 2)} $
+                              {formatNumber(totalUnits * priceDollar, 2)} $
                            </span>
                         </div>
                      </div>

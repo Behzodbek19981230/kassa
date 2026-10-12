@@ -121,4 +121,8 @@ export const twoStageImportService = {
 		const { data } = await apiClient.post<ImportOrderListItem>(`${BASE_PATH}/order/${orderId}/cancel/`, payload);
 		return data;
 	},
+	// Deleting lives on the generic import-order resource, not under BASE_PATH.
+	deleteOrder: async (orderId: number) => {
+		await apiClient.delete(`/import-order/${orderId}/`);
+	},
 };

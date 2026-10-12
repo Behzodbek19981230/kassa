@@ -187,3 +187,11 @@ export function useCancelOrderMutation() {
 		onSuccess: invalidate,
 	});
 }
+
+export function useDeleteOrderMutation() {
+	const invalidate = useInvalidateTwoStageImport();
+	return useMutation({
+		mutationFn: (orderId: number) => twoStageImportService.deleteOrder(orderId),
+		onSuccess: invalidate,
+	});
+}

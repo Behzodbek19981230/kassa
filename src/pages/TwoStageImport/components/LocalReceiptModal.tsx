@@ -26,6 +26,8 @@ import { useLocalReceiptMutation } from '@/services/two-stage-import/two-stage-i
 import type { ImportOrderListItem } from '@/services/two-stage-import/two-stage-import.types';
 import { loadUserOptions } from '@/pages/TwoStageImport/options';
 import { formatUserName, nonNegativeNumber, todayTashkent } from '@/pages/TwoStageImport/utils';
+import YuanRateHint from '@/pages/TwoStageImport/components/YuanRateHint';
+import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
 
 const localReceiptSchema = z.object({
    receiptDate: z.string().min(1, 'Qabul sanasini kiriting'),
@@ -51,8 +53,10 @@ export default function LocalReceiptModal({ open, setOpen, order, onCancelOrder 
 
    const { data: currentUser } = useUserInfoQuery();
 
+   const { yuanToDollar, dollarToYuan } = useYuanDollarConversion();
    const {
       control,
+      setValue,
       register,
       handleSubmit,
       watch,
@@ -165,10 +169,19 @@ export default function LocalReceiptModal({ open, setOpen, order, onCancelOrder 
                            control={control}
                            render={({ field }) => (
                               <InputGroup prepend='¥'>
-                                 <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+                                 <PriceInput
+                                    value={field.value}
+                                    onChange={(value) => {
+                                       field.onChange(value);
+                                       const converted = yuanToDollar(value);
+                                       if (converted !== null) setValue('paidDollar', converted, { shouldValidate: converted !== '' });
+                                    }}
+                                    onBlur={field.onBlur}
+                                 />
                               </InputGroup>
                            )}
                         />
+                        <YuanRateHint />
                      </FormField>
                      <FormField label="To'langan summa ($)" error={errors.paidDollar?.message} required horizontal={false} className='mb-0'>
                         <Controller
@@ -176,7 +189,15 @@ export default function LocalReceiptModal({ open, setOpen, order, onCancelOrder 
                            control={control}
                            render={({ field }) => (
                               <InputGroup prepend='$'>
-                                 <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+                                 <PriceInput
+                                    value={field.value}
+                                    onChange={(value) => {
+                                       field.onChange(value);
+                                       const converted = dollarToYuan(value);
+                                       if (converted !== null) setValue('paidYuan', converted, { shouldValidate: converted !== '' });
+                                    }}
+                                    onBlur={field.onBlur}
+                                 />
                               </InputGroup>
                            )}
                         />

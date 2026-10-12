@@ -100,7 +100,6 @@ export default function UzbekistanDispatchPage() {
 
    const cart = cartQuery.data?.cart ?? null;
    const cartItems = cartQuery.data?.items ?? [];
-   const summary = cartQuery.data?.summary;
 
    const dispatchValue = dispatchInput || (cart ? fromApiDateTime(cart.dispatch_datetime) : defaultDispatch);
 
@@ -126,6 +125,20 @@ export default function UzbekistanDispatchPage() {
       if (categoryFilter && stock.warehouse_detail?.product_category !== Number(categoryFilter)) return false;
       return true;
    });
+
+   // The cart only lists items from the chosen logistics warehouse — nothing until one is picked.
+   const visibleCartItems = logisticsWarehouseId
+      ? cartItems.filter((item) => stockForCartItem(item)?.logistics_warehouse === logisticsWarehouseId)
+      : [];
+   const otherWarehouseItemCount = logisticsWarehouseId ? cartItems.length - visibleCartItems.length : 0;
+   const visibleSummary = visibleCartItems.reduce(
+      (acc, item) => ({
+         quantity: acc.quantity + item.quantity,
+         yuan: acc.yuan + Number(item.total_yuan),
+         dollar: acc.dollar + Number(item.total_dollar),
+      }),
+      { quantity: 0, yuan: 0, dollar: 0 },
+   );
 
    const headerErrors = {
       logisticsCompany: submitAttempted && !logisticsCompany ? 'Logistikani tanlang' : '',
@@ -347,14 +360,14 @@ export default function UzbekistanDispatchPage() {
                                  </TableCell>
                               </TableRow>
                            )}
-                           {!cartQuery.isLoading && cartItems.length === 0 && (
+                           {!cartQuery.isLoading && visibleCartItems.length === 0 && (
                               <TableRow>
                                  <TableCell colSpan={cartCols.visibleCount} className='text-center'>
-                                    Jo'natish savati bo'sh
+                                    {logisticsWarehouseId ? "Jo'natish savati bo'sh" : 'Avval logistika va skladni tanlang'}
                                  </TableCell>
                               </TableRow>
                            )}
-                           {cartItems.map((item, index) => {
+                           {visibleCartItems.map((item, index) => {
                               const stock = stockForCartItem(item);
                               return (
                                  <TableRow key={item.id} className='bg-red-50'>
@@ -382,14 +395,21 @@ export default function UzbekistanDispatchPage() {
                         </TableBody>
                      </Table>
 
-                     {summary && cartItems.length > 0 && (
+                     {visibleCartItems.length > 0 && (
                         <div className='mt-4 flex flex-wrap items-center justify-around gap-3 rounded-[3px] border border-ca-border bg-ca-silver px-4 py-3 text-sm'>
                            <span className='text-ca-heading'>
-                              Jami: <span className='font-bold'>{formatNumber(summary.total_quantity)} </span>
+                              Jami: <span className='font-bold'>{formatNumber(visibleSummary.quantity)} </span>
                            </span>
-                           <span className='font-bold text-ca-heading'>{formatNumber(summary.total_yuan, 0)} ¥</span>
-                           <span className='font-bold text-ca-green'>{formatNumber(summary.total_dollar, 2)} $</span>
+                           <span className='font-bold text-ca-heading'>{formatNumber(visibleSummary.yuan, 0)} ¥</span>
+                           <span className='font-bold text-ca-green'>{formatNumber(visibleSummary.dollar, 2)} $</span>
                         </div>
+                     )}
+
+                     {otherWarehouseItemCount > 0 && (
+                        <p className='mt-3 flex items-center gap-1.5 text-xs font-semibold text-ca-red'>
+                           <FaExclamationTriangle /> Savatda boshqa skladlardan yana {otherWarehouseItemCount} ta mahsulot
+                           bor. Jo'natishda butun savat yuboriladi.
+                        </p>
                      )}
 
                      {canWrite && (
@@ -409,7 +429,7 @@ export default function UzbekistanDispatchPage() {
                               variant='danger'
                               size='lg'
                               className='flex-1'
-                              disabled={cartItems.length === 0 || !cart}
+                              disabled={visibleCartItems.length === 0 || !cart}
                               onClick={handleContinue}
                            >
                               Davom etish

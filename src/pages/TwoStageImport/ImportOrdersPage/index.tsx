@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaCheck, FaExclamationTriangle, FaEye, FaPlus, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaExclamationTriangle, FaEye, FaPlus, FaTimes, FaTrash } from 'react-icons/fa';
 import {
    Badge,
    Tooltip,
@@ -34,6 +34,7 @@ import {
    logisticsWarehouseLabel,
 } from '@/pages/TwoStageImport/options';
 import CancelOrderModal from '@/pages/TwoStageImport/components/CancelOrderModal';
+import DeleteOrderModal from '@/pages/TwoStageImport/components/DeleteOrderModal';
 import LocalReceiptModal from '@/pages/TwoStageImport/components/LocalReceiptModal';
 import TransitArrivalModal from '@/pages/TwoStageImport/components/TransitArrivalModal';
 import {
@@ -47,7 +48,7 @@ import {
    formatTashkentDate,
 } from '@/pages/TwoStageImport/utils';
 
-type OrderAction = { kind: 'arrival' | 'receipt' | 'cancel'; order: ImportOrderListItem };
+type OrderAction = { kind: 'arrival' | 'receipt' | 'cancel' | 'delete'; order: ImportOrderListItem };
 
 const COLUMNS: ColumnVisibilityDef[] = [
    { id: 'index', label: '#', hideable: false },
@@ -268,6 +269,22 @@ export default function ImportOrdersPage() {
                                        </Button>
                                     </Tooltip>
                                  )}
+                                 {canWrite && (
+                                    <Tooltip content="O'chirish">
+                                       <Button
+                                          type='button'
+                                          variant='danger'
+                                          size='icon'
+                                          aria-label="O'chirish"
+                                          onClick={(e) => {
+                                             e.stopPropagation();
+                                             setAction({ kind: 'delete', order });
+                                          }}
+                                       >
+                                          <FaTrash />
+                                       </Button>
+                                    </Tooltip>
+                                 )}
                               </div>
                            </TableCell>
                         </TableRow>
@@ -292,6 +309,7 @@ export default function ImportOrdersPage() {
             onCancelOrder={() => setAction({ kind: 'cancel', order: action.order })}
          />}
          {action?.kind === 'cancel' && <CancelOrderModal open setOpen={closeAction} order={action.order} />}
+         {action?.kind === 'delete' && <DeleteOrderModal open setOpen={closeAction} order={action.order} />}
       </>
    );
 }

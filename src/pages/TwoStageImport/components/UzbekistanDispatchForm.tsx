@@ -28,6 +28,8 @@ import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries'
 import { useUzbekistanDispatchMutation } from '@/services/two-stage-import/two-stage-import.queries';
 import { loadLogisticsCompanyOptions } from '@/pages/TwoStageImport/options';
 import { nonNegativeNumber, positiveNumber } from '@/pages/TwoStageImport/utils';
+import YuanRateHint from '@/pages/TwoStageImport/components/YuanRateHint';
+import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
 
 const uzbekistanDispatchSchema = z.object({
    weightKg: positiveNumber("Og'irlikni kiriting"),
@@ -53,8 +55,10 @@ export default function UzbekistanDispatchForm({ open, setOpen, cartId, disabled
    const { notify } = useNotification();
    const [formError, setFormError] = useState('');
 
+   const { yuanToDollar, dollarToYuan } = useYuanDollarConversion();
    const {
       control,
+      setValue,
       register,
       handleSubmit,
       reset,
@@ -159,10 +163,19 @@ export default function UzbekistanDispatchForm({ open, setOpen, cartId, disabled
                            control={control}
                            render={({ field }) => (
                               <InputGroup prepend='¥'>
-                                 <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+                                 <PriceInput
+                                    value={field.value}
+                                    onChange={(value) => {
+                                       field.onChange(value);
+                                       const converted = yuanToDollar(value);
+                                       if (converted !== null) setValue('servicePriceDollar', converted, { shouldValidate: converted !== '' });
+                                    }}
+                                    onBlur={field.onBlur}
+                                 />
                               </InputGroup>
                            )}
                         />
+                        <YuanRateHint />
                      </FormField>
                      <FormField label='Xizmat narxi ($)' error={errors.servicePriceDollar?.message} required horizontal={false} className='mb-3'>
                         <Controller
@@ -170,7 +183,15 @@ export default function UzbekistanDispatchForm({ open, setOpen, cartId, disabled
                            control={control}
                            render={({ field }) => (
                               <InputGroup prepend='$'>
-                                 <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+                                 <PriceInput
+                                    value={field.value}
+                                    onChange={(value) => {
+                                       field.onChange(value);
+                                       const converted = dollarToYuan(value);
+                                       if (converted !== null) setValue('servicePriceYuan', converted, { shouldValidate: converted !== '' });
+                                    }}
+                                    onBlur={field.onBlur}
+                                 />
                               </InputGroup>
                            )}
                         />

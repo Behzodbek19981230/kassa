@@ -32,6 +32,8 @@ import {
    logisticsWarehouseLabel,
 } from '@/pages/TwoStageImport/options';
 import { nonNegativeNumber, positiveNumber } from '@/pages/TwoStageImport/utils';
+import YuanRateHint from '@/pages/TwoStageImport/components/YuanRateHint';
+import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
 
 const chinaDispatchSchema = z.object({
    weightKg: positiveNumber("Og'irlikni kiriting"),
@@ -61,6 +63,7 @@ export default function ChinaDispatchConfirmModal({ open, setOpen, cart, summary
    const { exchangeRate } = useCurrentCompany();
    const rate = Number(exchangeRate?.dollar ?? 0);
 
+   const { yuanToDollar, dollarToYuan } = useYuanDollarConversion();
    const {
       control,
       register,
@@ -184,10 +187,19 @@ export default function ChinaDispatchConfirmModal({ open, setOpen, cart, summary
                               control={control}
                               render={({ field }) => (
                                  <InputGroup prepend='¥'>
-                                    <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+                                    <PriceInput
+                                       value={field.value}
+                                       onChange={(value) => {
+                                          field.onChange(value);
+                                          const converted = yuanToDollar(value);
+                                          if (converted !== null) setValue('servicePriceDollar', converted, { shouldValidate: converted !== '' });
+                                       }}
+                                       onBlur={field.onBlur}
+                                    />
                                  </InputGroup>
                               )}
                            />
+                           <YuanRateHint />
                         </FormField>
                         <FormField label='Fura raqami' error={errors.truckNumber?.message} required horizontal={false} className='mb-3'>
                            <Input {...register('truckNumber')} />
@@ -204,7 +216,15 @@ export default function ChinaDispatchConfirmModal({ open, setOpen, cart, summary
                               control={control}
                               render={({ field }) => (
                                  <InputGroup prepend='$'>
-                                    <PriceInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+                                    <PriceInput
+                                       value={field.value}
+                                       onChange={(value) => {
+                                          field.onChange(value);
+                                          const converted = dollarToYuan(value);
+                                          if (converted !== null) setValue('servicePriceYuan', converted, { shouldValidate: converted !== '' });
+                                       }}
+                                       onBlur={field.onBlur}
+                                    />
                                  </InputGroup>
                               )}
                            />
