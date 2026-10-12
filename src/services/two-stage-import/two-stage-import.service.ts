@@ -11,6 +11,8 @@ import type {
 	ImportCartResponse,
 	ImportOrderListItem,
 	ImportStage,
+	RouteOrderEditPayload,
+	RouteOrderEditResponse,
 	RouteOrderListParams,
 	ImportCartParams,
 	LocalReceiptPayload,
@@ -75,6 +77,14 @@ export const twoStageImportService = {
 	getRouteOrders: async (stage: ImportStage, params?: RouteOrderListParams) => {
 		const response = await apiClient.get<ImportOrderListItem[]>(`${ROUTE_ORDERS_PATH[stage]}/`, { params });
 		return { results: response.data, pagination: paginationFromHeaders(response.headers) };
+	},
+	getRouteOrderEdit: async (stage: ImportStage, orderId: number) => {
+		const { data } = await apiClient.get<RouteOrderEditResponse>(`${ROUTE_ORDERS_PATH[stage]}/${orderId}/edit/`);
+		return data;
+	},
+	updateRouteOrder: async (stage: ImportStage, orderId: number, payload: RouteOrderEditPayload) => {
+		const { data } = await apiClient.put<RouteOrderEditResponse>(`${ROUTE_ORDERS_PATH[stage]}/${orderId}/edit/`, payload);
+		return data;
 	},
 	transitArrival: async (orderId: number, payload: TransitArrivalPayload) => {
 		const { data } = await apiClient.post<ImportOrderListItem>(

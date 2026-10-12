@@ -48,6 +48,7 @@ import TelegramBroadcastPage from '@/pages/TelegramBroadcastPage';
 import TelegramBroadcastCreatePage from '@/pages/TelegramBroadcastPage/CreatePage';
 import TelegramBroadcastDetailPage from '@/pages/TelegramBroadcastPage/DetailPage';
 import ChinaDispatchPage from '@/pages/TwoStageImport/ChinaDispatchPage';
+import ImportOrderEditPage from '@/pages/TwoStageImport/ImportOrderEditPage';
 import ImportOrderProductsPage from '@/pages/TwoStageImport/ImportOrderProductsPage';
 import ImportOrdersPage from '@/pages/TwoStageImport/ImportOrdersPage';
 import LogisticsDebtPage from '@/pages/TwoStageImport/LogisticsDebtPage';
@@ -71,6 +72,7 @@ export default function App() {
 					<Route path='two-stage-import/china-dispatch' element={<ChinaDispatchPage />} />
 					<Route path='two-stage-import/orders' element={<ImportOrdersPage />} />
 					<Route path='two-stage-import/orders/:id' element={<ImportOrderProductsPage />} />
+					<Route path='two-stage-import/orders/:id/edit' element={<ImportOrderEditPage />} />
 					<Route path='two-stage-import/transit-stock' element={<LogisticsPartnersPage />} />
 					<Route path='two-stage-import/transit-stock/:id' element={<LogisticsPartnerStockPage />} />
 					<Route path='two-stage-import/transit-dispatch' element={<UzbekistanDispatchPage />} />

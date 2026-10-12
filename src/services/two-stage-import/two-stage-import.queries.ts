@@ -8,6 +8,7 @@ import type {
 	ChinaDispatchPayload,
 	ChinaProductsParams,
 	ImportStage,
+	RouteOrderEditPayload,
 	RouteOrderListParams,
 	ImportCartParams,
 	LocalReceiptPayload,
@@ -62,6 +63,30 @@ export function useRouteOrdersQuery(stage: ImportStage, params?: RouteOrderListP
 		queryKey: twoStageKeys.routeOrders(stage, params),
 		queryFn: () => twoStageImportService.getRouteOrders(stage, params),
 		placeholderData: keepPreviousData,
+	});
+}
+
+export function useRouteOrderEditQuery(stage: ImportStage | undefined, orderId: number | undefined) {
+	return useQuery({
+		queryKey: ['two-stage-import', 'route-order-edit', stage, orderId] as const,
+		queryFn: () => twoStageImportService.getRouteOrderEdit(stage!, orderId!),
+		enabled: stage != null && orderId != null,
+		// The form is seeded from this once; refetching in the background would not update it anyway.
+		refetchOnWindowFocus: false,
+	});
+}
+
+export function useUpdateRouteOrderMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ stage, orderId, payload }: { stage: ImportStage; orderId: number; payload: RouteOrderEditPayload }) =>
+			twoStageImportService.updateRouteOrder(stage, orderId, payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: twoStageKeys.all });
+			// Edits move consignor (MyTotalDebt) and logistics debts.
+			queryClient.invalidateQueries({ queryKey: ['logistics-debt'] });
+			queryClient.invalidateQueries({ queryKey: ['my-debts'] });
+		},
 	});
 }
 

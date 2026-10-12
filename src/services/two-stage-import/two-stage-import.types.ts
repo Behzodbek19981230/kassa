@@ -415,3 +415,102 @@ export interface OrderProductsResponse {
 		results: OrderMovement[];
 	};
 }
+
+/* ---- Route order edit (`{route}/{id}/edit/`, GET / PUT / PATCH) ---- */
+
+export interface RouteOrderEditOrder {
+	id: number;
+	stage: ImportStage;
+	status: ImportOrderStatus;
+	order_number: string;
+	consignor: number | null;
+	carrier_logistics: number | null;
+	destination_logistics_warehouse: number | null;
+	source_logistics_warehouse: number | null;
+	destination_type_sklad: number | null;
+	order_datetime: string | null;
+	exchange_rate: string | null;
+	truck_number: string | null;
+	driver_phone: string | null;
+	total_quantity: number;
+	total_dollar: string;
+	total_yuan: string;
+	service_price_dollar: string | null;
+	service_price_yuan: string | null;
+	weight_kg: string | null;
+	volume_m3: string | null;
+	note: string | null;
+	/** Echoed back as `expected_updated_time` exactly (all fractional seconds) to detect concurrent edits. */
+	updated_time: string;
+}
+
+export interface RouteOrderEditItem {
+	id: number;
+	warehouse: number;
+	source_import_warehouse: number | null;
+	brand_snapshot: string | null;
+	category_snapshot: string | null;
+	size_snapshot: string | null;
+	type_snapshot: string | null;
+	type_quantity: string;
+	type_quantity_snapshot: string | null;
+	quantity: number;
+	unit_price_dollar: string;
+	unit_price_yuan: string;
+	total_dollar: string;
+	total_yuan: string;
+}
+
+export interface RouteOrderEditResponse {
+	order: RouteOrderEditOrder;
+	items: RouteOrderEditItem[];
+	debts: {
+		my_total_debt: { id: number; consignor: number; total_debt: string } | null;
+		logistics_debt: { id: number; logistics_company: number; total_debt: string } | null;
+	};
+	/** false for ARRIVED / RECEIVED / archived orders — only DRAFT and IN_ROAD can be edited. */
+	can_edit: boolean;
+}
+
+/** Items are the order's full final list: send `id` for existing rows, omit it for new ones; missing ids get deleted. */
+export interface RouteOrderEditItemPayload {
+	id?: number;
+	warehouse: number;
+	source_import_warehouse?: number;
+	type_quantity: string;
+	quantity: number;
+	unit_price_dollar: string;
+	unit_price_yuan: string;
+	total_dollar: string;
+	total_yuan: string;
+}
+
+interface RouteOrderEditCommonPayload {
+	expected_updated_time: string;
+	carrier_logistics: number;
+	order_datetime: string;
+	truck_number: string;
+	total_quantity: number;
+	total_dollar: string;
+	total_yuan: string;
+	service_price_dollar: string;
+	service_price_yuan: string;
+	weight_kg: string;
+	volume_m3: string;
+	note: string;
+	items: RouteOrderEditItemPayload[];
+}
+
+export interface ChinaTransitOrderEditPayload extends RouteOrderEditCommonPayload {
+	consignor: number;
+	destination_logistics_warehouse: number;
+	exchange_rate: string;
+}
+
+export interface TransitUzbekistanOrderEditPayload extends RouteOrderEditCommonPayload {
+	source_logistics_warehouse: number;
+	destination_type_sklad: number;
+	driver_phone: string;
+}
+
+export type RouteOrderEditPayload = ChinaTransitOrderEditPayload | TransitUzbekistanOrderEditPayload;

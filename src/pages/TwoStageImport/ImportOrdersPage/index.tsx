@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaCheck, FaExclamationTriangle, FaEye, FaPlus, FaTimes, FaTrash } from 'react-icons/fa';
+import { FaCheck, FaEdit, FaExclamationTriangle, FaEye, FaPlus, FaTimes, FaTrash } from 'react-icons/fa';
 import {
    Badge,
    Tooltip,
@@ -67,6 +67,8 @@ const COLUMNS: ColumnVisibilityDef[] = [
 
 const loadWarehouseOptions = createLogisticsWarehouseLoader();
 const PAGE_SIZE = 50;
+// The edit API only accepts orders that haven't arrived yet.
+const EDITABLE_STATUSES = new Set<ImportOrderListItem['status']>(['DRAFT', 'IN_ROAD']);
 
 // The step a row opens. An order in transit opens its next step. A draft opens the cancel dialog.
 function primaryAction(order: ImportOrderListItem): OrderAction | null {
@@ -315,6 +317,22 @@ export default function ImportOrdersPage() {
                                        <FaEye />
                                     </Button>
                                  </Tooltip>
+                                 {canWrite && EDITABLE_STATUSES.has(order.status) && (
+                                    <Tooltip content='Tahrirlash'>
+                                       <Button
+                                          type='button'
+                                          variant='warning'
+                                          size='icon'
+                                          aria-label='Tahrirlash'
+                                          onClick={(e) => {
+                                             e.stopPropagation();
+                                             navigate(`/two-stage-import/orders/${order.id}/edit?stage=${order.stage}`);
+                                          }}
+                                       >
+                                          <FaEdit />
+                                       </Button>
+                                    </Tooltip>
+                                 )}
                                  {canWrite && primaryAction(order) && (
                                     <Tooltip content={primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}>
                                        <Button
