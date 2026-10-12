@@ -477,10 +477,6 @@ export default function UzbekistanDispatchPage() {
                setOpen={setDispatchOpen}
                cartId={cart?.id}
                destinationTypeSklad={cart?.destination_type_sklad ?? destinationId}
-               destinationTypeSkladName={
-                  cart?.destination_type_sklad_detail?.name ??
-                  destinationOptions.find((o) => o.value === destination)?.label
-               }
                disabled={cartItems.length === 0}
             />
          )}

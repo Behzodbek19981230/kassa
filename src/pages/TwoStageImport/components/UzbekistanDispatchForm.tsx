@@ -41,9 +41,8 @@ interface UzbekistanDispatchFormProps {
    open: boolean;
    setOpen: (open: boolean) => void;
    cartId?: number;
-   /** Receiving sklad of the cart being dispatched — fixed by the cart, so it's shown, not chosen here. */
+   /** Receiving sklad of the cart being dispatched — chosen on the cart panel, so it's not asked here. */
    destinationTypeSklad?: number;
-   destinationTypeSkladName?: string;
    disabled?: boolean;
 }
 
@@ -52,7 +51,6 @@ export default function UzbekistanDispatchForm({
    setOpen,
    cartId,
    destinationTypeSklad,
-   destinationTypeSkladName,
    disabled,
 }: UzbekistanDispatchFormProps) {
    const { notify } = useNotification();
@@ -202,16 +200,9 @@ export default function UzbekistanDispatchForm({
                         />
                      </FormField>
 
-                     <FormField label='Qabul qiluvchi sklad' horizontal={false} className='mb-3'>
-                        <div className='flex h-[34px] items-center rounded-[3px] border border-ca-field-border bg-ca-muted-2 px-3 text-xs font-semibold text-ca-heading'>
-                           {destinationTypeSkladName ?? '-'}
-                        </div>
-                     </FormField>
                      <FormField label='Fura raqami' error={errors.truckNumber?.message} required horizontal={false} className='mb-3'>
                         <Input {...register('truckNumber')} />
                      </FormField>
-
-                     <div />
                      <FormField label='Haydovchi telefoni' error={errors.driverPhone?.message} required horizontal={false} className='mb-3'>
                         <Input {...register('driverPhone')} placeholder='+998901234567' />
                      </FormField>

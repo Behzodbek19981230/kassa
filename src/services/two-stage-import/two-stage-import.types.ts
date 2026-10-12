@@ -176,6 +176,8 @@ export interface ImportOrderListItem {
 	total_dollar?: string | null;
 	weight_kg?: string | null;
 	volume_m3?: string | null;
+	service_price_yuan?: string | null;
+	service_price_dollar?: string | null;
 	note?: string | null;
 	/** Ready-made labels from the backend: the consignor (China leg) or source warehouse (Uzbekistan leg), and "from → to". */
 	sender_name?: string | null;

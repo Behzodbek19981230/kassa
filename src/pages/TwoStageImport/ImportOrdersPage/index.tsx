@@ -67,6 +67,9 @@ const COLUMNS: ColumnVisibilityDef[] = [
 
 const loadWarehouseOptions = createLogisticsWarehouseLoader();
 const PAGE_SIZE = 50;
+// Arrived / received orders are read-only: only "Ko'rish" stays.
+const FINISHED_STATUSES = new Set<ImportOrderListItem['status']>(['ARRIVED', 'RECEIVED', 'ARCHIVED']);
+const isFinished = (order: ImportOrderListItem) => FINISHED_STATUSES.has(order.status);
 // The edit API only accepts orders that haven't arrived yet.
 const EDITABLE_STATUSES = new Set<ImportOrderListItem['status']>(['DRAFT', 'IN_ROAD']);
 
@@ -303,6 +306,22 @@ export default function ImportOrdersPage() {
                            )}
                            <TableCell>
                               <div className='flex gap-1.5'>
+                                 {canWrite && primaryAction(order) && (
+                                    <Tooltip content={primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}>
+                                       <Button
+                                          type='button'
+                                          variant={primaryAction(order)?.kind === 'cancel' ? 'danger' : 'success'}
+                                          size='icon'
+                                          aria-label={primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}
+                                          onClick={(e) => {
+                                             e.stopPropagation();
+                                             setAction(primaryAction(order));
+                                          }}
+                                       >
+                                          {primaryAction(order)?.kind === 'cancel' ? <FaTimes /> : <FaCheck />}
+                                       </Button>
+                                    </Tooltip>
+                                 )}
                                  <Tooltip content="Ko'rish">
                                     <Button
                                        type='button'
@@ -333,23 +352,7 @@ export default function ImportOrdersPage() {
                                        </Button>
                                     </Tooltip>
                                  )}
-                                 {canWrite && primaryAction(order) && (
-                                    <Tooltip content={primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}>
-                                       <Button
-                                          type='button'
-                                          variant={primaryAction(order)?.kind === 'cancel' ? 'danger' : 'success'}
-                                          size='icon'
-                                          aria-label={primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}
-                                          onClick={(e) => {
-                                             e.stopPropagation();
-                                             setAction(primaryAction(order));
-                                          }}
-                                       >
-                                          {primaryAction(order)?.kind === 'cancel' ? <FaTimes /> : <FaCheck />}
-                                       </Button>
-                                    </Tooltip>
-                                 )}
-                                 {canWrite && (
+                                 {canWrite && !isFinished(order) && (
                                     <Tooltip content="O'chirish">
                                        <Button
                                           type='button'

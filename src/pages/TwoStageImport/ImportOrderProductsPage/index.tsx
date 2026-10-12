@@ -12,6 +12,7 @@ import {
    FaImage,
    FaInfoCircle,
    FaDatabase,
+   FaMoneyBillWave,
    FaSearch,
    FaTruck,
 } from 'react-icons/fa';
@@ -157,6 +158,16 @@ export default function ImportOrderProductsPage() {
                      <div className='px-3 py-2'>
                         <Badge variant={ORDER_STATUS_VARIANTS[order.status]} className='px-2.5 py-1 text-xs whitespace-nowrap'>{ORDER_STATUS_LABELS[order.status]}</Badge>
                      </div>
+                     {/* 4th cell of this row, so it sits under "Yo'nalish". */}
+                     <InfoItem
+                        icon={<FaMoneyBillWave />}
+                        label='Xizmat narxi:'
+                        value={
+                           order.service_price_yuan != null || order.service_price_dollar != null
+                              ? `¥ ${formatNumber(order.service_price_yuan ?? 0, 2)} / $ ${formatNumber(order.service_price_dollar ?? 0, 2)}`
+                              : null
+                        }
+                     />
                   </div>
                </div>
             )}
