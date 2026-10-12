@@ -6,6 +6,7 @@ import { z } from 'zod';
 import {
    Button,
    Combobox,
+   DatePicker,
    FormField,
    InputGroup,
    Modal,
@@ -20,8 +21,9 @@ import { Input } from '@/components/ui/Input';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useLogisticsCompanyQuery } from '@/services/logistics-company/logistics-company.queries';
 import { useUzbekistanDispatchMutation } from '@/services/two-stage-import/two-stage-import.queries';
+import { twoStageImportService } from '@/services/two-stage-import/two-stage-import.service';
 import { loadLogisticsCompanyOptions } from '@/pages/TwoStageImport/options';
-import { nonNegativeNumber, positiveNumber } from '@/pages/TwoStageImport/utils';
+import { fromApiDateTime, nonNegativeNumber, nowTashkentLocal, positiveNumber, toApiDateTime } from '@/pages/TwoStageImport/utils';
 import YuanRateHint from '@/pages/TwoStageImport/components/YuanRateHint';
 import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
 
@@ -33,6 +35,8 @@ const uzbekistanDispatchSchema = z.object({
    servicePriceDollar: nonNegativeNumber('Xizmat narxini kiriting ($)'),
    truckNumber: z.string().trim().min(1, 'Fura raqamini kiriting'),
    driverPhone: z.string().trim().min(1, 'Haydovchi telefonini kiriting'),
+   /** "YYYY-MM-DDTHH:mm" (Tashkent). */
+   dispatchDatetime: z.string().min(1, "Jo'natish sanasini tanlang"),
 });
 
 type UzbekistanDispatchFormValues = z.infer<typeof uzbekistanDispatchSchema>;
@@ -41,6 +45,8 @@ interface UzbekistanDispatchFormProps {
    open: boolean;
    setOpen: (open: boolean) => void;
    cartId?: number;
+   /** The cart's current dispatch time (API format); the date picked here is saved back to the cart. */
+   cartDispatchDatetime?: string;
    /** Receiving sklad of the cart being dispatched — chosen on the cart panel, so it's not asked here. */
    destinationTypeSklad?: number;
    disabled?: boolean;
@@ -50,9 +56,11 @@ export default function UzbekistanDispatchForm({
    open,
    setOpen,
    cartId,
+   cartDispatchDatetime,
    destinationTypeSklad,
    disabled,
 }: UzbekistanDispatchFormProps) {
+   const initialDispatch = cartDispatchDatetime ? fromApiDateTime(cartDispatchDatetime) : nowTashkentLocal();
    const { notify } = useNotification();
    const [formError, setFormError] = useState('');
 
@@ -75,6 +83,7 @@ export default function UzbekistanDispatchForm({
          servicePriceDollar: '',
          truckNumber: '',
          driverPhone: '',
+         dispatchDatetime: initialDispatch,
       },
    });
 
@@ -95,6 +104,10 @@ export default function UzbekistanDispatchForm({
       }
 
       try {
+         // The dispatch date lives on the cart (uzbekistan-dispatch takes none), so a changed date is saved there first.
+         if (values.dispatchDatetime !== initialDispatch) {
+            await twoStageImportService.updateCartDispatchDatetime(cartId, toApiDateTime(values.dispatchDatetime));
+         }
          const result = await dispatchMutation.mutateAsync({
             cart: cartId,
             carrier_logistics: Number(values.carrierLogistics),
@@ -205,6 +218,25 @@ export default function UzbekistanDispatchForm({
                      </FormField>
                      <FormField label='Haydovchi telefoni' error={errors.driverPhone?.message} required horizontal={false} className='mb-3'>
                         <Input {...register('driverPhone')} placeholder='+998901234567' />
+                     </FormField>
+                     <FormField
+                        label="Jo'natish sanasi"
+                        error={errors.dispatchDatetime?.message}
+                        required
+                        horizontal={false}
+                        className='mb-3'
+                     >
+                        <Controller
+                           name='dispatchDatetime'
+                           control={control}
+                           render={({ field }) => (
+                              // Only the date is picked; the time stays as the cart's.
+                              <DatePicker
+                                 value={field.value}
+                                 onChange={(date) => field.onChange(date ? `${date}T${field.value.slice(11, 16) || '00:00'}` : '')}
+                              />
+                           )}
+                        />
                      </FormField>
                   </div>
 

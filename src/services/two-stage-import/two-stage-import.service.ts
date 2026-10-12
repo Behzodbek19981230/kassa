@@ -14,6 +14,7 @@ import type {
 	RouteOrderEditPayload,
 	RouteOrderEditResponse,
 	RouteOrderListParams,
+	ImportCart,
 	ImportCartParams,
 	LocalReceiptPayload,
 	LogisticsPartnersParams,
@@ -65,6 +66,11 @@ export const twoStageImportService = {
 	},
 	removeCartItem: async (id: number) => {
 		await apiClient.delete(`${BASE_PATH}/cart/item-delete/${id}/`);
+	},
+	// The cart carries the dispatch time of the import it becomes; china-dispatch itself takes no date.
+	updateCartDispatchDatetime: async (cartId: number, dispatchDatetime: string) => {
+		const { data } = await apiClient.patch<ImportCart>(`/import-cart/${cartId}/`, { dispatch_datetime: dispatchDatetime });
+		return data;
 	},
 	// Cleared by id so a different consignor's/destination's cart can't be wiped by mistake.
 	clearCart: async (cartId: number) => {

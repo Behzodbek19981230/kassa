@@ -94,3 +94,30 @@ export interface MyDebtPayResponse {
 	my_total_debt_history: MyDebtPayResultHistory;
 	summary: MyDebtPaySummary;
 }
+
+/**
+ * `POST /my-total-debt/payment/` — a payment made in yuan. The backend does not convert currencies:
+ * the dollar debt goes down by `all_summ_dollar + discount_amount`, and `paid_yuan` is only recorded.
+ */
+export interface MyDebtYuanPaymentPayload {
+	consignor: number;
+	/** YYYY-MM-DD */
+	date: string;
+	paid_yuan: string;
+	/** Dollar equivalent of `paid_yuan`, computed by the frontend; required when `paid_yuan` > 0. */
+	all_summ_dollar: string;
+	discount_amount: string;
+	text?: string;
+}
+
+export interface MyDebtYuanPaymentResponse {
+	my_total_debt: { id: number; consignor: number; total_debt: string; paid_yuan: string };
+	summary: {
+		consignor: number;
+		old_my_total_debt: string;
+		paid_amount: string;
+		paid_yuan: string;
+		discount_amount: string;
+		my_total_debt: string;
+	};
+}

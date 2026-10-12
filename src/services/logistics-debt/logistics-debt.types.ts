@@ -48,3 +48,29 @@ export interface LogisticsDebtHistoryListParams extends ListParams {
 	logistics_debt?: number;
 	logistics_company?: number;
 }
+
+/**
+ * `POST /logistics-debt/payment/` — like the consignor payment: the dollar debt goes down by
+ * `all_summ_dollar + discount_amount`; `paid_yuan` is only recorded (the backend converts nothing).
+ */
+export interface LogisticsDebtYuanPaymentPayload {
+	logistics_company: number;
+	/** YYYY-MM-DD */
+	date: string;
+	paid_yuan: string;
+	all_summ_dollar: string;
+	discount_amount: string;
+	note?: string;
+}
+
+export interface LogisticsDebtYuanPaymentResponse {
+	logistics_debt: { id: number; logistics_company: number; total_debt: string; paid_yuan: string };
+	summary: {
+		logistics_company: number;
+		old_logistics_debt: string;
+		paid_amount: string;
+		paid_yuan: string;
+		discount_amount: string;
+		logistics_debt: string;
+	};
+}

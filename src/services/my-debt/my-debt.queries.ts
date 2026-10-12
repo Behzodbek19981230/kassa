@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { myDebtService } from '@/services/my-debt/my-debt.service';
-import type { MyDebtListParams, MyDebtPayload, MyDebtPayPayload } from '@/services/my-debt/my-debt.types';
+import type {
+	MyDebtListParams,
+	MyDebtPayload,
+	MyDebtPayPayload,
+	MyDebtYuanPaymentPayload,
+} from '@/services/my-debt/my-debt.types';
 
 const myDebtKeys = {
 	all: ['my-debts'] as const,
@@ -22,6 +27,17 @@ export function useCreateMyDebtMutation() {
 		mutationFn: (payload: MyDebtPayload) => myDebtService.create(payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: myDebtKeys.all });
+		},
+	});
+}
+
+export function usePayMyDebtInYuanMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (payload: MyDebtYuanPaymentPayload) => myDebtService.payInYuan(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: myDebtKeys.all });
+			queryClient.invalidateQueries({ queryKey: ['my-debt-history'] });
 		},
 	});
 }

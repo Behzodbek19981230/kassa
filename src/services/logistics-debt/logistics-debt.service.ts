@@ -5,9 +5,11 @@ import type {
 	LogisticsDebtHistoryListParams,
 	LogisticsDebtItem,
 	LogisticsDebtListParams,
+	LogisticsDebtYuanPaymentPayload,
+	LogisticsDebtYuanPaymentResponse,
 } from '@/services/logistics-debt/logistics-debt.types';
 
-// Read-only: logistics debts change through route-order dispatch / edit / confirm, not directly.
+// Logistics debts grow through route-order dispatch / edit / confirm; they are paid down via payment/.
 export const logisticsDebtService = {
 	list: async (params?: LogisticsDebtListParams) => {
 		const { data } = await apiClient.get<PaginatedResponse<LogisticsDebtItem>>('/logistics-debt/', { params });
@@ -17,6 +19,10 @@ export const logisticsDebtService = {
 		const { data } = await apiClient.get<PaginatedResponse<LogisticsDebtHistoryItem>>('/logistics-debt-history/', {
 			params,
 		});
+		return data;
+	},
+	payInYuan: async (payload: LogisticsDebtYuanPaymentPayload) => {
+		const { data } = await apiClient.post<LogisticsDebtYuanPaymentResponse>('/logistics-debt/payment/', payload);
 		return data;
 	},
 };

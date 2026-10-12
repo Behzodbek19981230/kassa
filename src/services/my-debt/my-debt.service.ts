@@ -6,6 +6,8 @@ import type {
 	MyDebtPayload,
 	MyDebtPayPayload,
 	MyDebtPayResponse,
+	MyDebtYuanPaymentPayload,
+	MyDebtYuanPaymentResponse,
 } from '@/services/my-debt/my-debt.types';
 
 export const myDebtService = {
@@ -19,6 +21,10 @@ export const myDebtService = {
 	},
 	pay: async (payload: MyDebtPayPayload) => {
 		const { data } = await apiClient.post<MyDebtPayResponse>('/my-total-debt/pay/', payload);
+		return data;
+	},
+	payInYuan: async (payload: MyDebtYuanPaymentPayload) => {
+		const { data } = await apiClient.post<MyDebtYuanPaymentResponse>('/my-total-debt/payment/', payload);
 		return data;
 	},
 };

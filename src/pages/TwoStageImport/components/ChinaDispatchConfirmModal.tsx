@@ -7,6 +7,7 @@ import { z } from 'zod';
 import {
    Button,
    Combobox,
+   DatePicker,
    FormField,
    InputGroup,
    Modal,
@@ -24,6 +25,7 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useCurrentCompany } from '@/lib/company';
 import { useChinaDispatchMutation } from '@/services/two-stage-import/two-stage-import.queries';
+import { twoStageImportService } from '@/services/two-stage-import/two-stage-import.service';
 import type { ImportCart, ImportCartSummary } from '@/services/two-stage-import/two-stage-import.types';
 import { useLogisticsCompanyQuery } from '@/services/logistics-company/logistics-company.queries';
 import { useLogisticsWarehouseQuery } from '@/services/logistics-warehouse/logistics-warehouse.queries';
@@ -32,7 +34,7 @@ import {
    loadLogisticsCompanyOptions,
    logisticsWarehouseLabel,
 } from '@/pages/TwoStageImport/options';
-import { nonNegativeNumber, positiveNumber } from '@/pages/TwoStageImport/utils';
+import { fromApiDateTime, nonNegativeNumber, positiveNumber, toApiDateTime } from '@/pages/TwoStageImport/utils';
 import YuanRateHint from '@/pages/TwoStageImport/components/YuanRateHint';
 import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
 
@@ -41,6 +43,8 @@ const chinaDispatchSchema = z.object({
    carrierLogistics: z.string().min(1, 'Logistika 1 ni tanlang'),
    servicePriceYuan: nonNegativeNumber('Xizmat narxini kiriting (¥)'),
    truckNumber: z.string().trim().min(1, 'Fura raqamini kiriting'),
+   /** "YYYY-MM-DDTHH:mm" (Tashkent). */
+   dispatchDatetime: z.string().min(1, 'Yuk chiqish sanasini tanlang'),
    volumeM3: positiveNumber('Hajmni kiriting'),
    servicePriceDollar: nonNegativeNumber('Xizmat narxini kiriting ($)'),
    destinationCompany: z.string().min(1, 'Logistika 2 ni tanlang'),
@@ -80,6 +84,7 @@ export default function ChinaDispatchConfirmModal({ open, setOpen, cart, summary
          carrierLogistics: '',
          servicePriceYuan: '',
          truckNumber: '',
+         dispatchDatetime: fromApiDateTime(cart.dispatch_datetime),
          volumeM3: '',
          servicePriceDollar: '',
          destinationCompany: '',
@@ -111,6 +116,11 @@ export default function ChinaDispatchConfirmModal({ open, setOpen, cart, summary
       }
 
       try {
+         // The dispatch date lives on the cart, so a changed date is saved there first.
+         const dispatchDatetime = toApiDateTime(values.dispatchDatetime);
+         if (values.dispatchDatetime !== fromApiDateTime(cart.dispatch_datetime)) {
+            await twoStageImportService.updateCartDispatchDatetime(cart.id, dispatchDatetime);
+         }
          const result = await dispatchMutation.mutateAsync({
             cart: cart.id,
             exchange_rate: rate.toFixed(2),
@@ -266,9 +276,30 @@ export default function ChinaDispatchConfirmModal({ open, setOpen, cart, summary
                         />
                      </FormField>
                   </div>
-                  <FormField label='Fura raqami' error={errors.truckNumber?.message} required horizontal={false} className='mb-3'>
-                     <Input {...register('truckNumber')} />
-                  </FormField>
+                  <div className='grid grid-cols-1 gap-x-3 sm:grid-cols-2'>
+                     <FormField label='Fura raqami' error={errors.truckNumber?.message} required horizontal={false} className='mb-3'>
+                        <Input {...register('truckNumber')} />
+                     </FormField>
+                     <FormField
+                        label='Yuk chiqish sanasi'
+                        error={errors.dispatchDatetime?.message}
+                        required
+                        horizontal={false}
+                        className='mb-3'
+                     >
+                        <Controller
+                           name='dispatchDatetime'
+                           control={control}
+                           render={({ field }) => (
+                              // Only the date is picked; the time stays as the cart's.
+                              <DatePicker
+                                 value={field.value}
+                                 onChange={(date) => field.onChange(date ? `${date}T${field.value.slice(11, 16) || '00:00'}` : '')}
+                              />
+                           )}
+                        />
+                     </FormField>
+                  </div>
 
                   <FormField label='Izoh' horizontal={false} className='mb-0'>
                      <Textarea rows={2} {...register('note')} />

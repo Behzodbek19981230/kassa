@@ -4,7 +4,6 @@ import {
    Button,
    buttonProps,
    Combobox,
-   DatePicker,
    PageHeader,
    Panel,
    Table,
@@ -15,12 +14,15 @@ import {
    TableRow,
    useNotification,
 } from '@/components/ui';
+import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useConsignorQuery } from '@/services/consignor/consignor.queries';
+import { useMyDebtListQuery } from '@/services/my-debt/my-debt.queries';
+import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
 import {
    useChinaProductsQuery,
    useDeleteCartItemMutation,
@@ -30,6 +32,7 @@ import { useWarehouseDetailQueries } from '@/services/warehouse/warehouse.querie
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import { createCategoryLoader, loadBrandOptions, loadConsignorOptions } from '@/pages/TwoStageImport/options';
 import AddToChinaCartModal from '@/pages/TwoStageImport/components/AddToChinaCartModal';
+import YuanDebtPayModal from '@/pages/TwoStageImport/components/YuanDebtPayModal';
 import ChinaDispatchConfirmModal from '@/pages/TwoStageImport/components/ChinaDispatchConfirmModal';
 import ClearImportCartConfirmModal from '@/pages/TwoStageImport/components/ClearImportCartConfirmModal';
 import {
@@ -67,6 +70,7 @@ const STAGE = 'CHINA_TO_TRANSIT' as const;
 
 export default function ChinaDispatchPage() {
    const { canWrite } = useCurrentCompany();
+   const { dollarToYuan } = useYuanDollarConversion();
    const productCols = useColumnVisibility('logistics-china-products', PRODUCT_COLUMNS);
    const cartCols = useColumnVisibility('logistics-china-cart', CART_COLUMNS);
    const { notify } = useNotification();
@@ -74,7 +78,6 @@ export default function ChinaDispatchPage() {
    const [brandFilter, setBrandFilter] = useState('');
    const [categoryFilter, setCategoryFilter] = useState('');
    const [consignorInput, setConsignorInput] = useState('');
-   const [dispatchInput, setDispatchInput] = useState('');
    const [defaultDispatch] = useState(nowTashkentLocal);
    const [selectedProduct, setSelectedProduct] = useState<WarehouseAllListItem | null>(null);
    const [confirmOpen, setConfirmOpen] = useState(false);
@@ -106,11 +109,21 @@ export default function ChinaDispatchPage() {
    const cartWarehouseQueries = useWarehouseDetailQueries(cartWarehouseIds);
    const cartWarehouseById = new Map(cartWarehouseIds.map((id, index) => [id, cartWarehouseQueries[index]?.data] as const));
 
-   // The consignor's cart keeps the dispatch time of its open import, so it's prefilled from it.
-   const dispatchValue = dispatchInput || (cart ? fromApiDateTime(cart.dispatch_datetime) : defaultDispatch);
+   // New items go in with the cart's dispatch time (or now for a new cart); it's set when confirming the dispatch.
+   const dispatchValue = cart ? fromApiDateTime(cart.dispatch_datetime) : defaultDispatch;
    const canPick = canWrite && Boolean(consignorValue) && Boolean(dispatchValue);
 
    const { data: selectedConsignor } = useConsignorQuery(consignorValue ? Number(consignorValue) : undefined);
+   // What I owe the chosen consignor (MyTotalDebt), as on the import page.
+   const { data: myDebtData } = useMyDebtListQuery(
+      { consignor: Number(consignorValue), limit: 1 },
+      Boolean(consignorValue),
+   );
+   const consignorDebt = consignorValue ? myDebtData?.results?.[0] : undefined;
+   // MyTotalDebt is kept in dollars; China consignors are dealt with in yuan, so it's shown converted
+   // at today's yuan rate (null when no rate is set).
+   const consignorDebtDollar = String(Number(consignorDebt?.total_debt ?? 0));
+   const consignorDebtYuan = dollarToYuan(consignorDebtDollar);
    const deleteCartItemMutation = useDeleteCartItemMutation();
 
    function handleRemoveCartItem(id: number) {
@@ -274,24 +287,35 @@ export default function ChinaDispatchPage() {
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>Yuk jo'natuvchi:</label>
                         <Combobox
                            value={consignorValue}
-                           onChange={(value) => {
-                              setConsignorInput(value);
-                              // A different consignor means a different cart — show that cart's dispatch time.
-                              setDispatchInput('');
-                           }}
+                           onChange={(value) => setConsignorInput(value)}
                            loadOptions={loadConsignorOptions}
                            selectedLabel={selectedConsignor?.name}
                            placeholder="Yuk jo'natuvchini tanlang"
                         />
                      </div>
-                     <div>
-                        <label className='mb-1 block text-xs font-semibold text-ca-heading'>Yuk chiqish vaqti:</label>
-                        {/* Only the date is picked; the time stays as the default / cart value. */}
-                        <DatePicker
-                           value={dispatchValue}
-                           onChange={(date) => setDispatchInput(date ? `${date}T${dispatchValue.slice(11, 16)}` : '')}
-                        />
-                     </div>
+                     {consignorValue && (
+                        <div className='flex items-end'>
+                           <div className='flex h-8.5 items-center gap-2 text-xs whitespace-nowrap text-ca-heading'>
+                              Qarzim:{' '}
+                              <span className='font-bold text-ca-red'>
+                                 {consignorDebtYuan !== null ? `${formatNumber(consignorDebtYuan, 2)} ¥` : "yuan kursi yo'q"}
+                              </span>
+                              <span className='text-ca-text'>({formatNumber(consignorDebtDollar, 2)} $)</span>
+                              {canWrite && (
+                                 <OpenDialogButton
+                                    element={(props) => <Button {...props} />}
+                                    elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
+                                    dialog={YuanDebtPayModal}
+                                    dialogProps={{
+                                       target: { kind: 'consignor' as const, consignorId: Number(consignorValue) },
+                                       name: selectedConsignor?.name,
+                                       currentDebtDollar: Number(consignorDebt?.total_debt ?? 0),
+                                    }}
+                                 />
+                              )}
+                           </div>
+                        </div>
+                     )}
                   </div>
 
                   <div className='mb-2 flex justify-end'>
