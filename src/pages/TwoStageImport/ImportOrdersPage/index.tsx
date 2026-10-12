@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaExclamationTriangle, FaEye, FaPlus } from 'react-icons/fa';
+import { FaCheck, FaExclamationTriangle, FaEye, FaPlus, FaTimes } from 'react-icons/fa';
 import {
    Badge,
+   Tooltip,
    Button,
    Combobox,
    PageHeader,
@@ -17,6 +18,8 @@ import {
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useConsignorQuery } from '@/services/consignor/consignor.queries';
 import { useLogisticsWarehouseQuery } from '@/services/logistics-warehouse/logistics-warehouse.queries';
 import { useImportOrdersQuery } from '@/services/two-stage-import/two-stage-import.queries';
@@ -46,6 +49,18 @@ import {
 
 type OrderAction = { kind: 'arrival' | 'receipt' | 'cancel'; order: ImportOrderListItem };
 
+const COLUMNS: ColumnVisibilityDef[] = [
+   { id: 'index', label: '#', hideable: false },
+   { id: 'date', label: 'Sana' },
+   { id: 'sender', label: "Yuk jo'natuvchi" },
+   { id: 'direction', label: "Yo'nalish" },
+   { id: 'total_quantity', label: 'Jami soni' },
+   { id: 'total_dollar', label: 'Jami ($)' },
+   { id: 'truck', label: 'Fura' },
+   { id: 'status', label: 'Holati' },
+   { id: 'actions', label: 'Amal', hideable: false },
+];
+
 const loadWarehouseOptions = createLogisticsWarehouseLoader();
 
 // The step a row opens. An order in transit opens its next step. A draft opens the cancel dialog.
@@ -58,6 +73,7 @@ function primaryAction(order: ImportOrderListItem): OrderAction | null {
 export default function ImportOrdersPage() {
    const navigate = useNavigate();
    const { canWrite } = useCurrentCompany();
+   const cols = useColumnVisibility('logistics-orders', COLUMNS);
 
    const [consignorFilter, setConsignorFilter] = useState('');
    const [stageFilter, setStageFilter] = useState('');
@@ -163,32 +179,36 @@ export default function ImportOrdersPage() {
                </div>
             </div>
 
+            <div className='mb-2 flex justify-end'>
+               <ColumnVisibilityMenu state={cols} />
+            </div>
+
             <div className={SCROLL_AREA_CLASS}>
                <Table>
                   <TableHeader>
                      <TableRow>
                         <TableHead className='bg-ca-theme text-white'>#</TableHead>
-                        <TableHead className='bg-ca-theme text-white'>Sana</TableHead>
-                        <TableHead className='bg-ca-theme text-white'>Yuk jo'natuvchi</TableHead>
-                        <TableHead className='bg-ca-theme text-white'>Yo'nalish</TableHead>
-                        <TableHead className='bg-ca-theme text-white'>Jami soni</TableHead>
-                        <TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>
-                        <TableHead className='bg-ca-theme text-white'>Fura</TableHead>
-                        <TableHead className='bg-ca-theme text-white'>Holati</TableHead>
+                        {cols.isVisible('date') && <TableHead className='bg-ca-theme text-white'>Sana</TableHead>}
+                        {cols.isVisible('sender') && <TableHead className='bg-ca-theme text-white'>Yuk jo'natuvchi</TableHead>}
+                        {cols.isVisible('direction') && <TableHead className='bg-ca-theme text-white'>Yo'nalish</TableHead>}
+                        {cols.isVisible('total_quantity') && <TableHead className='bg-ca-theme text-white'>Jami soni</TableHead>}
+                        {cols.isVisible('total_dollar') && <TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>}
+                        {cols.isVisible('truck') && <TableHead className='bg-ca-theme text-white'>Fura</TableHead>}
+                        {cols.isVisible('status') && <TableHead className='bg-ca-theme text-white'>Holati</TableHead>}
                         <TableHead className='bg-ca-theme text-white'>Amal</TableHead>
                      </TableRow>
                   </TableHeader>
                   <TableBody>
                      {ordersQuery.isLoading && (
                         <TableRow>
-                           <TableCell colSpan={10} className='text-center'>
+                           <TableCell colSpan={cols.visibleCount} className='text-center'>
                               Yuklanmoqda...
                            </TableCell>
                         </TableRow>
                      )}
                      {!ordersQuery.isLoading && ordersQuery.isError && (
                         <TableRow>
-                           <TableCell colSpan={10} className='text-center text-ca-red'>
+                           <TableCell colSpan={cols.visibleCount} className='text-center text-ca-red'>
                               <FaExclamationTriangle className='mr-1.5 inline' />{' '}
                               {getApiErrorMessage(ordersQuery.error, 'Xatolik yuz berdi')}
                            </TableCell>
@@ -196,7 +216,7 @@ export default function ImportOrdersPage() {
                      )}
                      {!ordersQuery.isLoading && !ordersQuery.isError && orders.length === 0 && (
                         <TableRow>
-                           <TableCell colSpan={10} className='text-center'>
+                           <TableCell colSpan={cols.visibleCount} className='text-center'>
                               Ma'lumot topilmadi
                            </TableCell>
                         </TableRow>
@@ -205,40 +225,48 @@ export default function ImportOrdersPage() {
                         <TableRow key={order.id} onClick={() => { const next = primaryAction(order); if (canWrite && next) setAction(next); }} className={canWrite && primaryAction(order) ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}>
                            <TableCell>{index + 1}</TableCell>
 
-                           <TableCell>{formatTashkentDate(order.order_datetime)}</TableCell>
-                           <TableCell>{order.sender_name || '-'}</TableCell>
-                           <TableCell>{order.direction_name || '-'}</TableCell>
-                           <TableCell>{formatNumber(order.total_quantity ?? 0)}</TableCell>
-                           <TableCell className='font-semibold'>{formatNumber(order.total_dollar ?? 0, 2)} $</TableCell>
-                           <TableCell>{order.truck_number ?? '-'}</TableCell>
-                           <TableCell>
-                              <Badge variant={ORDER_STATUS_VARIANTS[order.status]} className='px-2.5 py-1 text-xs whitespace-nowrap'>{ORDER_STATUS_LABELS[order.status]}</Badge>
-                           </TableCell>
+                           {cols.isVisible('date') && <TableCell>{formatTashkentDate(order.order_datetime)}</TableCell>}
+                           {cols.isVisible('sender') && <TableCell>{order.sender_name || '-'}</TableCell>}
+                           {cols.isVisible('direction') && <TableCell>{order.direction_name || '-'}</TableCell>}
+                           {cols.isVisible('total_quantity') && <TableCell>{formatNumber(order.total_quantity ?? 0)}</TableCell>}
+                           {cols.isVisible('total_dollar') && <TableCell className='font-semibold'>{formatNumber(order.total_dollar ?? 0, 2)} $</TableCell>}
+                           {cols.isVisible('truck') && <TableCell>{order.truck_number ?? '-'}</TableCell>}
+                           {cols.isVisible('status') && (
+                              <TableCell>
+                                 <Badge variant={ORDER_STATUS_VARIANTS[order.status]} className='px-2.5 py-1 text-xs whitespace-nowrap'>{ORDER_STATUS_LABELS[order.status]}</Badge>
+                              </TableCell>
+                           )}
                            <TableCell>
                               <div className='flex gap-1.5'>
-                                 <Button
-                                    type='button'
-                                    variant='theme'
-                                    size='xs'
-                                    onClick={(e) => {
-                                       e.stopPropagation();
-                                       navigate(`/two-stage-import/orders/${order.id}`);
-                                    }}
-                                 >
-                                    <FaEye className='mr-1.5' /> Ko'rish
-                                 </Button>
-                                 {canWrite && primaryAction(order) && (
+                                 <Tooltip content="Ko'rish">
                                     <Button
                                        type='button'
-                                       variant='danger'
-                                       size='xs'
+                                       variant='theme'
+                                       size='icon'
+                                       aria-label="Ko'rish"
                                        onClick={(e) => {
                                           e.stopPropagation();
-                                          setAction(primaryAction(order));
+                                          navigate(`/two-stage-import/orders/${order.id}`);
                                        }}
                                     >
-                                       {primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}
+                                       <FaEye />
                                     </Button>
+                                 </Tooltip>
+                                 {canWrite && primaryAction(order) && (
+                                    <Tooltip content={primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}>
+                                       <Button
+                                          type='button'
+                                          variant={primaryAction(order)?.kind === 'cancel' ? 'danger' : 'success'}
+                                          size='icon'
+                                          aria-label={primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}
+                                          onClick={(e) => {
+                                             e.stopPropagation();
+                                             setAction(primaryAction(order));
+                                          }}
+                                       >
+                                          {primaryAction(order)?.kind === 'cancel' ? <FaTimes /> : <FaCheck />}
+                                       </Button>
+                                    </Tooltip>
                                  )}
                               </div>
                            </TableCell>

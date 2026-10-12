@@ -38,6 +38,8 @@ import {
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import PriceHistoryModal from '@/pages/TwoStageImport/LogisticsPartnerStockPage/PriceHistoryModal';
 import InfoItem from '@/pages/TwoStageImport/components/InfoItem';
 import StatCard from '@/pages/TwoStageImport/components/StatCard';
@@ -45,6 +47,19 @@ import { formatTashkentDate } from '@/pages/TwoStageImport/utils';
 import { twoStageImportService } from '@/services/two-stage-import/two-stage-import.service';
 import { usePartnerStockQuery } from '@/services/two-stage-import/two-stage-import.queries';
 import type { PartnerStockExportFormat } from '@/services/two-stage-import/two-stage-import.types';
+
+const COLUMNS: ColumnVisibilityDef[] = [
+   { id: 'image', label: 'Rasm' },
+   { id: 'index', label: '#', hideable: false },
+   { id: 'warehouse', label: 'Logistika skladi' },
+   { id: 'brand', label: 'Model' },
+   { id: 'category', label: 'Nomi' },
+   { id: 'size', label: "O'lchami" },
+   { id: 'type', label: 'Tip' },
+   { id: 'count', label: 'Soni' },
+   { id: 'price', label: 'Narx (¥ / $)' },
+   { id: 'last_arrival', label: 'Oxirgi kirim' },
+];
 
 const PAGE_SIZE = 50;
 const ALL = 'all';
@@ -54,6 +69,7 @@ export default function LogisticsPartnerStockPage() {
    const { id } = useParams();
    const partnerId = Number(id);
    const navigate = useNavigate();
+   const cols = useColumnVisibility('logistics-partner-stock', COLUMNS);
    const { notify } = useNotification();
 
    const [warehouseDraft, setWarehouseDraft] = useState(ALL);
@@ -246,33 +262,37 @@ export default function LogisticsPartnerStockPage() {
             </div>
 
             {/* Header, filters and stats take a lot of room, so the page scrolls and the table gets its own tall area. */}
+            <div className='mb-2 flex justify-end'>
+               <ColumnVisibilityMenu state={cols} />
+            </div>
+
             <div className='max-h-[85vh] min-h-75 overflow-auto [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10'>
                <Table>
                   <TableHeader>
                      <TableRow>
-                        <TableHead className={HEAD_CLASS}>Rasm</TableHead>
+                        {cols.isVisible('image') && <TableHead className={HEAD_CLASS}>Rasm</TableHead>}
                         <TableHead className={HEAD_CLASS}>#</TableHead>
-                        <TableHead className={HEAD_CLASS}>Logistika skladi</TableHead>
-                        <TableHead className={HEAD_CLASS}>Model</TableHead>
-                        <TableHead className={HEAD_CLASS}>Nomi</TableHead>
-                        <TableHead className={HEAD_CLASS}>O'lchami</TableHead>
-                        <TableHead className={HEAD_CLASS}>Tip</TableHead>
-                        <TableHead className={HEAD_CLASS}>Soni</TableHead>
-                        <TableHead className={HEAD_CLASS}>Narx (¥ / $)</TableHead>
-                        <TableHead className={HEAD_CLASS}>Oxirgi kirim</TableHead>
+                        {cols.isVisible('warehouse') && <TableHead className={HEAD_CLASS}>Logistika skladi</TableHead>}
+                        {cols.isVisible('brand') && <TableHead className={HEAD_CLASS}>Model</TableHead>}
+                        {cols.isVisible('category') && <TableHead className={HEAD_CLASS}>Nomi</TableHead>}
+                        {cols.isVisible('size') && <TableHead className={HEAD_CLASS}>O'lchami</TableHead>}
+                        {cols.isVisible('type') && <TableHead className={HEAD_CLASS}>Tip</TableHead>}
+                        {cols.isVisible('count') && <TableHead className={HEAD_CLASS}>Soni</TableHead>}
+                        {cols.isVisible('price') && <TableHead className={HEAD_CLASS}>Narx (¥ / $)</TableHead>}
+                        {cols.isVisible('last_arrival') && <TableHead className={HEAD_CLASS}>Oxirgi kirim</TableHead>}
                      </TableRow>
                   </TableHeader>
                   <TableBody>
                      {query.isLoading && (
                         <TableRow>
-                           <TableCell colSpan={10} className='text-center'>
+                           <TableCell colSpan={cols.visibleCount} className='text-center'>
                               Yuklanmoqda...
                            </TableCell>
                         </TableRow>
                      )}
                      {data && data.results.length === 0 && (
                         <TableRow>
-                           <TableCell colSpan={10} className='text-center'>
+                           <TableCell colSpan={cols.visibleCount} className='text-center'>
                               Ma'lumot topilmadi
                            </TableCell>
                         </TableRow>
@@ -280,7 +300,7 @@ export default function LogisticsPartnerStockPage() {
                      {data?.results.map((group, groupIndex) => (
                         <Fragment key={group.brand?.id ?? `g${groupIndex}`}>
                            <TableRow>
-                              <TableCell colSpan={10} className='bg-ca-theme/10 font-bold text-ca-red'>
+                              <TableCell colSpan={cols.visibleCount} className='bg-ca-theme/10 font-bold text-ca-red'>
                                  {group.brand?.name ?? '—'}
                               </TableCell>
                            </TableRow>
@@ -289,45 +309,49 @@ export default function LogisticsPartnerStockPage() {
                                  rowNumber += 1;
                                  return (
                                     <TableRow key={stock.id}>
-                                       <TableCell>
-                                          {stock.image ? (
-                                             <img
-                                                src={stock.image}
-                                                alt={stock.product_category?.name ?? ''}
-                                                className='h-9 w-9 rounded object-cover'
-                                             />
-                                          ) : (
-                                             <FaImage className='text-lg text-ca-text' />
-                                          )}
-                                       </TableCell>
-                                       <TableCell>{rowNumber}</TableCell>
-                                       <TableCell>{stock.logistics_warehouse?.name ?? '—'}</TableCell>
-                                       <TableCell>{stock.brand?.name ?? '—'}</TableCell>
-                                       <TableCell>{stock.product_category?.name ?? '—'}</TableCell>
-                                       <TableCell>{formatNumber(stock.size ?? '')}</TableCell>
-                                       <TableCell>{stock.type?.name ?? '—'}</TableCell>
-                                       <TableCell className='font-semibold'>{formatNumber(stock.count)}</TableCell>
-                                       <TableCell>
-                                          <OpenDialogButton
-                                             element={(props) => (
-                                                <button
-                                                   type='button'
-                                                   {...props}
-                                                   className='inline-flex items-center gap-1.5 font-semibold text-ca-theme underline hover:opacity-80'
+                                       {cols.isVisible('image') && (
+                                          <TableCell>
+                                             {stock.image ? (
+                                                <img
+                                                   src={stock.image}
+                                                   alt={stock.product_category?.name ?? ''}
+                                                   className='h-9 w-9 rounded object-cover'
                                                 />
+                                             ) : (
+                                                <FaImage className='text-lg text-ca-text' />
                                              )}
-                                             elementProps={{
-                                                children: (
-                                                   <>
-                                                      {stock.price.display} <FaHistory />
-                                                   </>
-                                                ),
-                                             }}
-                                             dialog={PriceHistoryModal}
-                                             dialogProps={{ partnerId, stockId: stock.id }}
-                                          />
-                                       </TableCell>
-                                       <TableCell>{formatTashkentDate(stock.last_arrival_at)}</TableCell>
+                                          </TableCell>
+                                       )}
+                                       <TableCell>{rowNumber}</TableCell>
+                                       {cols.isVisible('warehouse') && <TableCell>{stock.logistics_warehouse?.name ?? '—'}</TableCell>}
+                                       {cols.isVisible('brand') && <TableCell>{stock.brand?.name ?? '—'}</TableCell>}
+                                       {cols.isVisible('category') && <TableCell>{stock.product_category?.name ?? '—'}</TableCell>}
+                                       {cols.isVisible('size') && <TableCell>{formatNumber(stock.size ?? '')}</TableCell>}
+                                       {cols.isVisible('type') && <TableCell>{stock.type?.name ?? '—'}</TableCell>}
+                                       {cols.isVisible('count') && <TableCell className='font-semibold'>{formatNumber(stock.count)}</TableCell>}
+                                       {cols.isVisible('price') && (
+                                          <TableCell>
+                                             <OpenDialogButton
+                                                element={(props) => (
+                                                   <button
+                                                      type='button'
+                                                      {...props}
+                                                      className='inline-flex items-center gap-1.5 font-semibold text-ca-theme underline hover:opacity-80'
+                                                   />
+                                                )}
+                                                elementProps={{
+                                                   children: (
+                                                      <>
+                                                         {stock.price.display} <FaHistory />
+                                                      </>
+                                                   ),
+                                                }}
+                                                dialog={PriceHistoryModal}
+                                                dialogProps={{ partnerId, stockId: stock.id }}
+                                             />
+                                          </TableCell>
+                                       )}
+                                       {cols.isVisible('last_arrival') && <TableCell>{formatTashkentDate(stock.last_arrival_at)}</TableCell>}
                                     </TableRow>
                                  );
                               }),

@@ -35,6 +35,8 @@ import {
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import InfoItem from '@/pages/TwoStageImport/components/InfoItem';
 import StatCard from '@/pages/TwoStageImport/components/StatCard';
 import {
@@ -43,6 +45,18 @@ import {
    formatTashkentDateTime,
 } from '@/pages/TwoStageImport/utils';
 import { useOrderProductsQuery } from '@/services/two-stage-import/two-stage-import.queries';
+
+const COLUMNS: ColumnVisibilityDef[] = [
+   { id: 'image', label: 'Rasm' },
+   { id: 'index', label: '#', hideable: false },
+   { id: 'brand', label: 'Model' },
+   { id: 'category', label: 'Nomi' },
+   { id: 'size', label: "O'lchami" },
+   { id: 'type', label: 'Tip' },
+   { id: 'count', label: "Jo'natilgan soni" },
+   { id: 'price', label: 'Narx (¥ / $)' },
+   { id: 'total', label: 'Jami (¥ / $)' },
+];
 
 const PAGE_SIZE = 50;
 const MOVEMENT_PAGE_SIZE = 20;
@@ -53,6 +67,7 @@ export default function ImportOrderProductsPage() {
    const { id } = useParams();
    const orderId = Number(id);
    const navigate = useNavigate();
+   const cols = useColumnVisibility('logistics-order-products', COLUMNS);
 
    const [brandDraft, setBrandDraft] = useState(ALL);
    const [categoryDraft, setCategoryDraft] = useState(ALL);
@@ -184,25 +199,29 @@ export default function ImportOrderProductsPage() {
                />
             </div>
 
+            <div className='mb-2 flex justify-end'>
+               <ColumnVisibilityMenu state={cols} />
+            </div>
+
             <div className='max-h-[85vh] min-h-75 overflow-auto [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10'>
                <Table>
                   <TableHeader>
                      <TableRow>
-                        <TableHead className={HEAD_CLASS}>Rasm</TableHead>
+                        {cols.isVisible('image') && <TableHead className={HEAD_CLASS}>Rasm</TableHead>}
                         <TableHead className={HEAD_CLASS}>#</TableHead>
-                        <TableHead className={HEAD_CLASS}>Model</TableHead>
-                        <TableHead className={HEAD_CLASS}>Nomi</TableHead>
-                        <TableHead className={HEAD_CLASS}>O'lchami</TableHead>
-                        <TableHead className={HEAD_CLASS}>Tip</TableHead>
-                        <TableHead className={HEAD_CLASS}>Jo'natilgan soni</TableHead>
-                        <TableHead className={HEAD_CLASS}>Narx (¥ / $)</TableHead>
-                        <TableHead className={HEAD_CLASS}>Jami (¥ / $)</TableHead>
+                        {cols.isVisible('brand') && <TableHead className={HEAD_CLASS}>Model</TableHead>}
+                        {cols.isVisible('category') && <TableHead className={HEAD_CLASS}>Nomi</TableHead>}
+                        {cols.isVisible('size') && <TableHead className={HEAD_CLASS}>O'lchami</TableHead>}
+                        {cols.isVisible('type') && <TableHead className={HEAD_CLASS}>Tip</TableHead>}
+                        {cols.isVisible('count') && <TableHead className={HEAD_CLASS}>Jo'natilgan soni</TableHead>}
+                        {cols.isVisible('price') && <TableHead className={HEAD_CLASS}>Narx (¥ / $)</TableHead>}
+                        {cols.isVisible('total') && <TableHead className={HEAD_CLASS}>Jami (¥ / $)</TableHead>}
                      </TableRow>
                   </TableHeader>
                   <TableBody>
                      {data && data.results.length === 0 && (
                         <TableRow>
-                           <TableCell colSpan={9} className='text-center'>
+                           <TableCell colSpan={cols.visibleCount} className='text-center'>
                               Ma'lumot topilmadi
                            </TableCell>
                         </TableRow>
@@ -210,7 +229,7 @@ export default function ImportOrderProductsPage() {
                      {data?.results.map((group, groupIndex) => (
                         <Fragment key={group.brand?.name ?? `g${groupIndex}`}>
                            <TableRow>
-                              <TableCell colSpan={9} className='bg-ca-theme/10 font-bold text-ca-red'>
+                              <TableCell colSpan={cols.visibleCount} className='bg-ca-theme/10 font-bold text-ca-red'>
                                  {group.brand?.name ?? '—'}
                               </TableCell>
                            </TableRow>
@@ -219,25 +238,27 @@ export default function ImportOrderProductsPage() {
                                  rowNumber += 1;
                                  return (
                                     <TableRow key={item.id}>
-                                       <TableCell>
-                                          {item.image ? (
-                                             <img
-                                                src={item.image}
-                                                alt={item.category_name ?? ''}
-                                                className='h-9 w-9 rounded object-cover'
-                                             />
-                                          ) : (
-                                             <FaImage className='text-lg text-ca-text' />
-                                          )}
-                                       </TableCell>
+                                       {cols.isVisible('image') && (
+                                          <TableCell>
+                                             {item.image ? (
+                                                <img
+                                                   src={item.image}
+                                                   alt={item.category_name ?? ''}
+                                                   className='h-9 w-9 rounded object-cover'
+                                                />
+                                             ) : (
+                                                <FaImage className='text-lg text-ca-text' />
+                                             )}
+                                          </TableCell>
+                                       )}
                                        <TableCell>{rowNumber}</TableCell>
-                                       <TableCell>{item.brand_name ?? '—'}</TableCell>
-                                       <TableCell>{item.category_name ?? '—'}</TableCell>
-                                       <TableCell>{item.size ? formatNumber(item.size) : '—'}</TableCell>
-                                       <TableCell>{item.type_name ?? '—'}</TableCell>
-                                       <TableCell className='font-semibold'>{formatNumber(item.count)}</TableCell>
-                                       <TableCell className='text-ca-theme'>{item.price.display}</TableCell>
-                                       <TableCell className='font-semibold text-ca-theme'>{item.total.display}</TableCell>
+                                       {cols.isVisible('brand') && <TableCell>{item.brand_name ?? '—'}</TableCell>}
+                                       {cols.isVisible('category') && <TableCell>{item.category_name ?? '—'}</TableCell>}
+                                       {cols.isVisible('size') && <TableCell>{item.size ? formatNumber(item.size) : '—'}</TableCell>}
+                                       {cols.isVisible('type') && <TableCell>{item.type_name ?? '—'}</TableCell>}
+                                       {cols.isVisible('count') && <TableCell className='font-semibold'>{formatNumber(item.count)}</TableCell>}
+                                       {cols.isVisible('price') && <TableCell className='text-ca-theme'>{item.price.display}</TableCell>}
+                                       {cols.isVisible('total') && <TableCell className='font-semibold text-ca-theme'>{item.total.display}</TableCell>}
                                     </TableRow>
                                  );
                               }),

@@ -18,6 +18,8 @@ import {
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import {
    useDeleteCartItemMutation,
    useImportCartQuery,
@@ -42,10 +44,33 @@ import {
    toApiDateTime,
 } from '@/pages/TwoStageImport/utils';
 
+const STOCK_COLUMNS: ColumnVisibilityDef[] = [
+   { id: 'index', label: '#', hideable: false },
+   { id: 'brand', label: 'Model' },
+   { id: 'category', label: 'Nomi' },
+   { id: 'size', label: "O'lcham" },
+   { id: 'type', label: 'Tip' },
+   { id: 'available', label: 'Mavjud' },
+   { id: 'price', label: 'Narxi (¥ / $)' },
+];
+
+const CART_COLUMNS: ColumnVisibilityDef[] = [
+   { id: 'index', label: '#', hideable: false },
+   { id: 'size', label: "O'lcham" },
+   { id: 'quantity', label: 'Soni' },
+   { id: 'price_yuan', label: 'Narxi (¥)' },
+   { id: 'price_dollar', label: 'Narxi ($)' },
+   { id: 'total_yuan', label: 'Jami (¥)' },
+   { id: 'total_dollar', label: 'Jami ($)' },
+   { id: 'actions', label: '', hideable: false },
+];
+
 const STAGE = 'TRANSIT_TO_UZBEKISTAN' as const;
 
 export default function UzbekistanDispatchPage() {
    const { canWrite } = useCurrentCompany();
+   const stockCols = useColumnVisibility('logistics-uz-stock', STOCK_COLUMNS);
+   const cartCols = useColumnVisibility('logistics-uz-cart', CART_COLUMNS);
    const { notify } = useNotification();
 
    const [logisticsCompany, setLogisticsCompany] = useState('');
@@ -179,30 +204,34 @@ export default function UzbekistanDispatchPage() {
                      </div>
                   </div>
 
+                  <div className='mb-2 flex justify-end'>
+                     <ColumnVisibilityMenu state={stockCols} />
+                  </div>
+
                   <div className={SCROLL_AREA_CLASS}>
                      <Table>
                         <TableHeader>
                            <TableRow>
                               <TableHead className='bg-ca-theme text-white'>#</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Model</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Mavjud</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Narxi (¥ / $)</TableHead>
+                              {stockCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+                              {stockCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+                              {stockCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
+                              {stockCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
+                              {stockCols.isVisible('available') && <TableHead className='bg-ca-theme text-white'>Mavjud</TableHead>}
+                              {stockCols.isVisible('price') && <TableHead className='bg-ca-theme text-white'>Narxi (¥ / $)</TableHead>}
                            </TableRow>
                         </TableHeader>
                         <TableBody>
                            {stockQuery.isLoading && (
                               <TableRow>
-                                 <TableCell colSpan={7} className='text-center'>
+                                 <TableCell colSpan={stockCols.visibleCount} className='text-center'>
                                     Yuklanmoqda...
                                  </TableCell>
                               </TableRow>
                            )}
                            {!stockQuery.isLoading && stockQuery.isError && (
                               <TableRow>
-                                 <TableCell colSpan={7} className='text-center text-ca-red'>
+                                 <TableCell colSpan={stockCols.visibleCount} className='text-center text-ca-red'>
                                     <FaExclamationTriangle className='mr-1.5 inline' />{' '}
                                     {getApiErrorMessage(stockQuery.error, 'Xatolik yuz berdi')}
                                  </TableCell>
@@ -210,7 +239,7 @@ export default function UzbekistanDispatchPage() {
                            )}
                            {!stockQuery.isLoading && !stockQuery.isError && rows.length === 0 && (
                               <TableRow>
-                                 <TableCell colSpan={7} className='text-center'>
+                                 <TableCell colSpan={stockCols.visibleCount} className='text-center'>
                                     {logisticsWarehouseId ? "Ma'lumot topilmadi" : 'Avval logistika va skladni tanlang'}
                                  </TableCell>
                               </TableRow>
@@ -220,15 +249,17 @@ export default function UzbekistanDispatchPage() {
                               return (
                                  <TableRow key={stock.id} onClick={() => canWrite && stock.available_quantity > 0 && setSelected(stock)} className={canWrite && stock.available_quantity > 0 ? 'cursor-pointer bg-red-50 hover:bg-red-100' : 'bg-red-50 opacity-60'}>
                                     <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{product?.brand_name ?? '-'}</TableCell>
-                                    <TableCell>{product?.product_category_name ?? '-'}</TableCell>
-                                    <TableCell>{formatNumber(product?.size ?? '')}</TableCell>
-                                    <TableCell>{product?.type_name ?? '-'}</TableCell>
-                                    <TableCell className='font-semibold'>{formatNumber(stock.available_quantity)}</TableCell>
-                                    <TableCell className='whitespace-nowrap'>
-                                       {formatNumber(stock.current_price_yuan, 0)} ¥ /{' '}
-                                       <span className='font-semibold text-ca-green'>{formatNumber(stock.current_price_dollar, 2)} $</span>
-                                    </TableCell>
+                                    {stockCols.isVisible('brand') && <TableCell>{product?.brand_name ?? '-'}</TableCell>}
+                                    {stockCols.isVisible('category') && <TableCell>{product?.product_category_name ?? '-'}</TableCell>}
+                                    {stockCols.isVisible('size') && <TableCell>{formatNumber(product?.size ?? '')}</TableCell>}
+                                    {stockCols.isVisible('type') && <TableCell>{product?.type_name ?? '-'}</TableCell>}
+                                    {stockCols.isVisible('available') && <TableCell className='font-semibold'>{formatNumber(stock.available_quantity)}</TableCell>}
+                                    {stockCols.isVisible('price') && (
+                                       <TableCell className='whitespace-nowrap'>
+                                          {formatNumber(stock.current_price_yuan, 0)} ¥ /{' '}
+                                          <span className='font-semibold text-ca-green'>{formatNumber(stock.current_price_dollar, 2)} $</span>
+                                       </TableCell>
+                                    )}
                                  </TableRow>
                               );
                            })}
@@ -290,31 +321,35 @@ export default function UzbekistanDispatchPage() {
                      </div>
                   </div>
 
+                  <div className='mb-2 flex justify-end'>
+                     <ColumnVisibilityMenu state={cartCols} />
+                  </div>
+
                   <div className={SCROLL_AREA_CLASS}>
                      <Table>
                         <TableHeader>
                            <TableRow>
                               <TableHead className='bg-ca-theme text-white'>#</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Narxi (¥)</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Jami (¥)</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>
+                              {cartCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
+                              {cartCols.isVisible('quantity') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
+                              {cartCols.isVisible('price_yuan') && <TableHead className='bg-ca-theme text-white'>Narxi (¥)</TableHead>}
+                              {cartCols.isVisible('price_dollar') && <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>}
+                              {cartCols.isVisible('total_yuan') && <TableHead className='bg-ca-theme text-white'>Jami (¥)</TableHead>}
+                              {cartCols.isVisible('total_dollar') && <TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>}
                               <TableHead className='bg-ca-theme text-white' />
                            </TableRow>
                         </TableHeader>
                         <TableBody>
                            {cartQuery.isLoading && (
                               <TableRow>
-                                 <TableCell colSpan={8} className='text-center'>
+                                 <TableCell colSpan={cartCols.visibleCount} className='text-center'>
                                     Yuklanmoqda...
                                  </TableCell>
                               </TableRow>
                            )}
                            {!cartQuery.isLoading && cartItems.length === 0 && (
                               <TableRow>
-                                 <TableCell colSpan={8} className='text-center'>
+                                 <TableCell colSpan={cartCols.visibleCount} className='text-center'>
                                     Jo'natish savati bo'sh
                                  </TableCell>
                               </TableRow>
@@ -324,12 +359,12 @@ export default function UzbekistanDispatchPage() {
                               return (
                                  <TableRow key={item.id} className='bg-red-50'>
                                     <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{formatNumber(stock?.warehouse_detail?.size ?? '')}</TableCell>
-                                    <TableCell>{formatNumber(item.quantity)}</TableCell>
-                                    <TableCell>{formatNumber(item.unit_price_yuan, 0)}</TableCell>
-                                    <TableCell>{formatNumber(item.unit_price_dollar, 2)}</TableCell>
-                                    <TableCell>{formatNumber(item.total_yuan, 0)}</TableCell>
-                                    <TableCell className='font-semibold'>{formatNumber(item.total_dollar, 2)}</TableCell>
+                                    {cartCols.isVisible('size') && <TableCell>{formatNumber(stock?.warehouse_detail?.size ?? '')}</TableCell>}
+                                    {cartCols.isVisible('quantity') && <TableCell>{formatNumber(item.quantity)}</TableCell>}
+                                    {cartCols.isVisible('price_yuan') && <TableCell>{formatNumber(item.unit_price_yuan, 0)}</TableCell>}
+                                    {cartCols.isVisible('price_dollar') && <TableCell>{formatNumber(item.unit_price_dollar, 2)}</TableCell>}
+                                    {cartCols.isVisible('total_yuan') && <TableCell>{formatNumber(item.total_yuan, 0)}</TableCell>}
+                                    {cartCols.isVisible('total_dollar') && <TableCell className='font-semibold'>{formatNumber(item.total_dollar, 2)}</TableCell>}
                                     <TableCell>
                                        {canWrite && (
                                           <Button

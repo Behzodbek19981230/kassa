@@ -33,7 +33,7 @@ export type ExchangeRateCurrency = 'dollar' | 'yuan';
 // The dollar rate is entered in so'm; the yuan rate is entered as how many dollars 1 yuan is worth.
 const CURRENCY_TEXT: Record<ExchangeRateCurrency, { name: string; label: string; unit: string; decimals: number }> = {
 	dollar: { name: 'Dollar', label: 'dollar', unit: "so'm", decimals: 2 },
-	yuan: { name: 'Yuan', label: 'yuan', unit: '$', decimals: 6 },
+	yuan: { name: 'Yuan', label: 'yuan', unit: '$', decimals: 2 },
 };
 
 interface ExchangeRateEditModalProps {
@@ -96,14 +96,22 @@ export default function ExchangeRateEditModal({
 	const historyItems =
 		currency === 'dollar'
 			? (dollarHistory.data?.results ?? []).map((item) => ({
-					...item,
+					id: item.id,
+					created_time: item.created_time,
+					user: item.created_by_detail ?? item.user_detail,
+					action: item.action,
 					old_value: item.old_dollar,
 					new_value: item.new_dollar,
 				}))
-			: (yuanHistory.data?.results ?? []).map((item) => ({
-					...item,
-					old_value: item.old_dollar_per_yuan,
-					new_value: item.new_dollar_per_yuan,
+			: // The yuan history has no `action` field: the initial record is the one without an old value.
+				(yuanHistory.data?.results ?? []).map((item) => ({
+					id: item.id,
+					created_time: item.created_time,
+					user: item.created_by_detail,
+					action: item.old_value == null ? ('CREATE' as const) : ('UPDATE' as const),
+					// Decimal strings like "0.16000000" — Number() drops the trailing zeros.
+					old_value: item.old_value == null ? null : Number(item.old_value),
+					new_value: item.new_value == null ? null : Number(item.new_value),
 				}));
 
 	const resetAndClose = (next: boolean) => {
@@ -206,7 +214,7 @@ export default function ExchangeRateEditModal({
 											<TableRow key={item.id}>
 												<TableCell>{formatDateTime(item.created_time)}</TableCell>
 												<TableCell>
-													{userLabel(item.created_by_detail ?? item.user_detail)}
+													{userLabel(item.user)}
 												</TableCell>
 												<TableCell>
 													<Badge variant={item.action === 'CREATE' ? 'info' : 'warning'}>

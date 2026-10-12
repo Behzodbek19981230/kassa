@@ -110,10 +110,7 @@ export default function LocalReceiptModal({ open, setOpen, order, onCancelOrder 
                   )}
 
                   <div className='mb-4 grid grid-cols-2 gap-x-4 gap-y-3 rounded-[3px] bg-ca-silver p-3 text-xs sm:grid-cols-5'>
-                     <div>
-                        <div className='text-ca-text'>Buyurtma raqami</div>
-                        <div className='font-bold text-ca-red'>{order.order_number}</div>
-                     </div>
+
                      <div className='sm:col-span-2'>
                         <div className='text-ca-text'>Yo'nalish</div>
                         <div className='font-bold text-ca-red'>

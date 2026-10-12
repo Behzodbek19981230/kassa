@@ -18,6 +18,8 @@ import {
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useConsignorQuery } from '@/services/consignor/consignor.queries';
 import {
    useChinaProductsQuery,
@@ -39,10 +41,34 @@ import {
    toApiDateTime,
 } from '@/pages/TwoStageImport/utils';
 
+const PRODUCT_COLUMNS: ColumnVisibilityDef[] = [
+   { id: 'index', label: '#', hideable: false },
+   { id: 'brand', label: 'Model' },
+   { id: 'category', label: 'Nomi' },
+   { id: 'size', label: "O'lcham" },
+   { id: 'type', label: 'Tip' },
+];
+
+const CART_COLUMNS: ColumnVisibilityDef[] = [
+   { id: 'index', label: '#', hideable: false },
+   { id: 'brand', label: 'Model' },
+   { id: 'category', label: 'Nomi' },
+   { id: 'size', label: "O'lcham" },
+   { id: 'type', label: 'Tip' },
+   { id: 'type_quantity', label: 'Tip dona' },
+   { id: 'price_yuan', label: 'Narxi (¥)' },
+   { id: 'price_dollar', label: 'Narxi ($)' },
+   { id: 'quantity', label: 'Soni' },
+   { id: 'total_dollar', label: 'Jami ($)' },
+   { id: 'actions', label: '', hideable: false },
+];
+
 const STAGE = 'CHINA_TO_TRANSIT' as const;
 
 export default function ChinaDispatchPage() {
    const { canWrite } = useCurrentCompany();
+   const productCols = useColumnVisibility('logistics-china-products', PRODUCT_COLUMNS);
+   const cartCols = useColumnVisibility('logistics-china-cart', CART_COLUMNS);
    const { notify } = useNotification();
 
    const [brandFilter, setBrandFilter] = useState('');
@@ -163,28 +189,32 @@ export default function ChinaDispatchPage() {
                      </div>
                   </div>
 
+                  <div className='mb-2 flex justify-end'>
+                     <ColumnVisibilityMenu state={productCols} />
+                  </div>
+
                   <div className={SCROLL_AREA_CLASS} onScroll={handleProductsScroll}>
                      <Table>
                         <TableHeader>
                            <TableRow>
                               <TableHead className='bg-ca-theme text-white'>#</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Model</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Tip</TableHead>
+                              {productCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+                              {productCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+                              {productCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
+                              {productCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
                            </TableRow>
                         </TableHeader>
                         <TableBody>
                            {productsQuery.isLoading && (
                               <TableRow>
-                                 <TableCell colSpan={5} className='text-center'>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center'>
                                     Yuklanmoqda...
                                  </TableCell>
                               </TableRow>
                            )}
                            {productsQuery.isError && (
                               <TableRow>
-                                 <TableCell colSpan={5} className='text-center text-ca-red'>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center text-ca-red'>
                                     <FaExclamationTriangle className='mr-1.5 inline' />{' '}
                                     {getApiErrorMessage(productsQuery.error, 'Xatolik yuz berdi')}
                                  </TableCell>
@@ -192,7 +222,7 @@ export default function ChinaDispatchPage() {
                            )}
                            {!productsQuery.isLoading && !productsQuery.isError && products.length === 0 && (
                               <TableRow>
-                                 <TableCell colSpan={5} className='text-center'>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center'>
                                     Ma'lumot topilmadi
                                  </TableCell>
                               </TableRow>
@@ -200,7 +230,7 @@ export default function ChinaDispatchPage() {
                            {productGroups.map((group) => (
                               <Fragment key={group.brand.id}>
                                  <TableRow>
-                                    <TableCell colSpan={5} className='bg-cyan-100 font-bold text-ca-red dark:bg-cyan-950/60 dark:text-red-400'>
+                                    <TableCell colSpan={productCols.visibleCount} className='bg-cyan-100 font-bold text-ca-red dark:bg-cyan-950/60 dark:text-red-400'>
                                        {group.brand.name}
                                     </TableCell>
                                  </TableRow>
@@ -209,17 +239,17 @@ export default function ChinaDispatchPage() {
                                     .map((row) => (
                                        <TableRow key={row.id} onClick={() => canPick && setSelectedProduct(row)} className={canPick ? 'cursor-pointer bg-red-50 hover:bg-red-100' : 'cursor-not-allowed bg-red-50 opacity-60'}>
                                           <TableCell>{rowNumbers.get(row.id)}</TableCell>
-                                          <TableCell>{row.brand_name}</TableCell>
-                                          <TableCell>{row.product_category_name}</TableCell>
-                                          <TableCell>{formatNumber(row.size)}</TableCell>
-                                          <TableCell>{row.type_name ?? ''}</TableCell>
+                                          {productCols.isVisible('brand') && <TableCell>{row.brand_name}</TableCell>}
+                                          {productCols.isVisible('category') && <TableCell>{row.product_category_name}</TableCell>}
+                                          {productCols.isVisible('size') && <TableCell>{formatNumber(row.size)}</TableCell>}
+                                          {productCols.isVisible('type') && <TableCell>{row.type_name ?? ''}</TableCell>}
                                        </TableRow>
                                     ))}
                               </Fragment>
                            ))}
                            {productsQuery.isFetchingNextPage && (
                               <TableRow>
-                                 <TableCell colSpan={5} className='text-center'>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center'>
                                     Yuklanmoqda...
                                  </TableCell>
                               </TableRow>
@@ -256,34 +286,38 @@ export default function ChinaDispatchPage() {
                      </div>
                   </div>
 
+                  <div className='mb-2 flex justify-end'>
+                     <ColumnVisibilityMenu state={cartCols} />
+                  </div>
+
                   <div className=' overflow-auto [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10'>
                      <Table>
                         <TableHeader>
                            <TableRow>
                               <TableHead className='bg-ca-theme text-white'>#</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Model</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Tip dona</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Narxi (¥)</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>
+                              {cartCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+                              {cartCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+                              {cartCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
+                              {cartCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
+                              {cartCols.isVisible('type_quantity') && <TableHead className='bg-ca-theme text-white'>Tip dona</TableHead>}
+                              {cartCols.isVisible('price_yuan') && <TableHead className='bg-ca-theme text-white'>Narxi (¥)</TableHead>}
+                              {cartCols.isVisible('price_dollar') && <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>}
+                              {cartCols.isVisible('quantity') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
+                              {cartCols.isVisible('total_dollar') && <TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>}
                               <TableHead className='bg-ca-theme text-white' />
                            </TableRow>
                         </TableHeader>
                         <TableBody>
                            {cartQuery.isLoading && (
                               <TableRow>
-                                 <TableCell colSpan={11} className='text-center'>
+                                 <TableCell colSpan={cartCols.visibleCount} className='text-center'>
                                     Yuklanmoqda...
                                  </TableCell>
                               </TableRow>
                            )}
                            {!cartQuery.isLoading && cartItems.length === 0 && (
                               <TableRow>
-                                 <TableCell colSpan={11} className='text-center'>
+                                 <TableCell colSpan={cartCols.visibleCount} className='text-center'>
                                     Import savati bo'sh
                                  </TableCell>
                               </TableRow>
@@ -293,17 +327,19 @@ export default function ChinaDispatchPage() {
                               return (
                                  <TableRow key={item.id} className='bg-red-50'>
                                     <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{row?.brand_detail?.name ?? '-'}</TableCell>
-                                    <TableCell>{row?.product_category_detail?.name ?? '-'}</TableCell>
-                                    <TableCell>{formatNumber(row?.size ?? '')}</TableCell>
-                                    <TableCell>{row?.type_detail?.name ?? ''}</TableCell>
-                                    <TableCell>{formatNumber(item.type_quantity, 2)}</TableCell>
-                                    <TableCell>{formatNumber(item.unit_price_yuan, 0)}</TableCell>
-                                    <TableCell className='font-semibold text-ca-green'>
-                                       {formatNumber(item.unit_price_dollar, 2)} $
-                                    </TableCell>
-                                    <TableCell>{formatNumber(item.quantity)}</TableCell>
-                                    <TableCell className='font-semibold'>{formatNumber(item.total_dollar, 2)} $</TableCell>
+                                    {cartCols.isVisible('brand') && <TableCell>{row?.brand_detail?.name ?? '-'}</TableCell>}
+                                    {cartCols.isVisible('category') && <TableCell>{row?.product_category_detail?.name ?? '-'}</TableCell>}
+                                    {cartCols.isVisible('size') && <TableCell>{formatNumber(row?.size ?? '')}</TableCell>}
+                                    {cartCols.isVisible('type') && <TableCell>{row?.type_detail?.name ?? ''}</TableCell>}
+                                    {cartCols.isVisible('type_quantity') && <TableCell>{formatNumber(item.type_quantity, 2)}</TableCell>}
+                                    {cartCols.isVisible('price_yuan') && <TableCell>{formatNumber(item.unit_price_yuan, 0)}</TableCell>}
+                                    {cartCols.isVisible('price_dollar') && (
+                                       <TableCell className='font-semibold text-ca-green'>
+                                          {formatNumber(item.unit_price_dollar, 2)} $
+                                       </TableCell>
+                                    )}
+                                    {cartCols.isVisible('quantity') && <TableCell>{formatNumber(item.quantity)}</TableCell>}
+                                    {cartCols.isVisible('total_dollar') && <TableCell className='font-semibold'>{formatNumber(item.total_dollar, 2)} $</TableCell>}
                                     <TableCell>
                                        {canWrite && (
                                           <Button

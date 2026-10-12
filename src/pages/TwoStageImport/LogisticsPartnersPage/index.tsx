@@ -14,9 +14,12 @@ import {
    TableHead,
    TableHeader,
    TableRow,
+   Tooltip,
 } from '@/components/ui';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { loadCountryOptions } from '@/pages/TwoStageImport/options';
 import StatCard from '@/pages/TwoStageImport/components/StatCard';
 import { SCROLL_AREA_CLASS, SCROLL_BODY_CLASS, SCROLL_PANEL_CLASS } from '@/pages/TwoStageImport/utils';
@@ -25,8 +28,23 @@ import { useLogisticsPartnersQuery } from '@/services/two-stage-import/two-stage
 const PAGE_SIZE = 20;
 const HEAD_CLASS = 'bg-ca-theme text-white';
 
+const COLUMNS: ColumnVisibilityDef[] = [
+   { id: 'index', label: '#', hideable: false },
+   { id: 'name', label: 'Logistika firmasi' },
+   { id: 'country', label: 'Davlat' },
+   { id: 'phone', label: 'Telefon' },
+   { id: 'contact_person', label: "Mas'ul shaxs" },
+   { id: 'consignors', label: "Yuk jo'natuvchi" },
+   { id: 'invoice_number', label: 'Logistika invoice' },
+   { id: 'consignor_invoice', label: "Jo'natuvchi invoice" },
+   { id: 'warehouse_count', label: 'Skladlar' },
+   { id: 'total_count', label: 'Jami soni' },
+   { id: 'actions', label: 'Harakatlar', hideable: false },
+];
+
 export default function LogisticsPartnersPage() {
    const navigate = useNavigate();
+   const cols = useColumnVisibility('logistics-partners', COLUMNS);
 
    const [countryDraft, setCountryDraft] = useState('');
    const [searchDraft, setSearchDraft] = useState('');
@@ -113,34 +131,38 @@ export default function LogisticsPartnersPage() {
                />
             </div>
 
+            <div className='mb-2 flex justify-end'>
+               <ColumnVisibilityMenu state={cols} />
+            </div>
+
             <div className={SCROLL_AREA_CLASS}>
                <Table>
                   <TableHeader>
                      <TableRow>
                         <TableHead className={HEAD_CLASS}>#</TableHead>
-                        <TableHead className={HEAD_CLASS}>Logistika firmasi</TableHead>
-                        <TableHead className={HEAD_CLASS}>Davlat</TableHead>
-                        <TableHead className={HEAD_CLASS}>Telefon</TableHead>
-                        <TableHead className={HEAD_CLASS}>Mas'ul shaxs</TableHead>
-                        <TableHead className={HEAD_CLASS}>Yuk jo'natuvchi</TableHead>
-                        <TableHead className={HEAD_CLASS}>Logistika invoice</TableHead>
-                        <TableHead className={HEAD_CLASS}>Jo'natuvchi invoice</TableHead>
-                        <TableHead className={HEAD_CLASS}>Skladlar</TableHead>
-                        <TableHead className={HEAD_CLASS}>Jami soni</TableHead>
+                        {cols.isVisible('name') && <TableHead className={HEAD_CLASS}>Logistika firmasi</TableHead>}
+                        {cols.isVisible('country') && <TableHead className={HEAD_CLASS}>Davlat</TableHead>}
+                        {cols.isVisible('phone') && <TableHead className={HEAD_CLASS}>Telefon</TableHead>}
+                        {cols.isVisible('contact_person') && <TableHead className={HEAD_CLASS}>Mas'ul shaxs</TableHead>}
+                        {cols.isVisible('consignors') && <TableHead className={HEAD_CLASS}>Yuk jo'natuvchi</TableHead>}
+                        {cols.isVisible('invoice_number') && <TableHead className={HEAD_CLASS}>Logistika invoice</TableHead>}
+                        {cols.isVisible('consignor_invoice') && <TableHead className={HEAD_CLASS}>Jo'natuvchi invoice</TableHead>}
+                        {cols.isVisible('warehouse_count') && <TableHead className={HEAD_CLASS}>Skladlar</TableHead>}
+                        {cols.isVisible('total_count') && <TableHead className={HEAD_CLASS}>Jami soni</TableHead>}
                         <TableHead className={`${HEAD_CLASS} text-right`}>Harakatlar</TableHead>
                      </TableRow>
                   </TableHeader>
                   <TableBody>
                      {query.isLoading && (
                         <TableRow>
-                           <TableCell colSpan={11} className='text-center'>
+                           <TableCell colSpan={cols.visibleCount} className='text-center'>
                               Yuklanmoqda...
                            </TableCell>
                         </TableRow>
                      )}
                      {!query.isLoading && query.isError && (
                         <TableRow>
-                           <TableCell colSpan={11} className='text-center text-ca-red'>
+                           <TableCell colSpan={cols.visibleCount} className='text-center text-ca-red'>
                               <FaExclamationTriangle className='mr-1.5 inline' />{' '}
                               {getApiErrorMessage(query.error, 'Xatolik yuz berdi')}
                            </TableCell>
@@ -148,7 +170,7 @@ export default function LogisticsPartnersPage() {
                      )}
                      {!query.isLoading && !query.isError && partners.length === 0 && (
                         <TableRow>
-                           <TableCell colSpan={11} className='text-center'>
+                           <TableCell colSpan={cols.visibleCount} className='text-center'>
                               Ma'lumot topilmadi
                            </TableCell>
                         </TableRow>
@@ -156,36 +178,41 @@ export default function LogisticsPartnersPage() {
                      {partners.map((partner, index) => (
                         <TableRow key={partner.id}>
                            <TableCell>{(pagination ? (pagination.currentPage - 1) * pagination.perPage : 0) + index + 1}</TableCell>
-                           <TableCell className='font-semibold'>{partner.name}</TableCell>
-                           <TableCell>{partner.country?.name ?? '—'}</TableCell>
-                           <TableCell>{partner.phone || '—'}</TableCell>
-                           <TableCell>{partner.contact_person || '—'}</TableCell>
-                           <TableCell>
-                              {partner.consignors.length
-                                 ? partner.consignors.map((c) => (
-                                      <div key={c.id}>{c.name}</div>
-                                   ))
-                                 : '—'}
-                           </TableCell>
-                           <TableCell>{partner.invoice_number || '—'}</TableCell>
-                           <TableCell>
-                              {partner.consignors.length
-                                 ? partner.consignors.map((c) => (
-                                      <div key={c.id}>{c.invoice_number || '—'}</div>
-                                   ))
-                                 : '—'}
-                           </TableCell>
-                           <TableCell>{formatNumber(partner.warehouse_count)}</TableCell>
-                           <TableCell className='font-semibold'>{formatNumber(partner.total_count)}</TableCell>
+                           {cols.isVisible('name') && <TableCell className='font-semibold'>{partner.name}</TableCell>}
+                           {cols.isVisible('country') && <TableCell>{partner.country?.name ?? '—'}</TableCell>}
+                           {cols.isVisible('phone') && <TableCell>{partner.phone || '—'}</TableCell>}
+                           {cols.isVisible('contact_person') && <TableCell>{partner.contact_person || '—'}</TableCell>}
+                           {cols.isVisible('consignors') && (
+                              <TableCell>
+                                 {partner.consignors.length
+                                    ? partner.consignors.map((c) => <div key={c.id}>{c.name}</div>)
+                                    : '—'}
+                              </TableCell>
+                           )}
+                           {cols.isVisible('invoice_number') && <TableCell>{partner.invoice_number || '—'}</TableCell>}
+                           {cols.isVisible('consignor_invoice') && (
+                              <TableCell>
+                                 {partner.consignors.length
+                                    ? partner.consignors.map((c) => <div key={c.id}>{c.invoice_number || '—'}</div>)
+                                    : '—'}
+                              </TableCell>
+                           )}
+                           {cols.isVisible('warehouse_count') && <TableCell>{formatNumber(partner.warehouse_count)}</TableCell>}
+                           {cols.isVisible('total_count') && (
+                              <TableCell className='font-semibold'>{formatNumber(partner.total_count)}</TableCell>
+                           )}
                            <TableCell className='text-right'>
-                              <Button
-                                 type='button'
-                                 variant='theme'
-                                 size='xs'
-                                 onClick={() => navigate(`/two-stage-import/transit-stock/${partner.id}`)}
-                              >
-                                 <FaEye className='mr-1.5' /> Ko'rish
-                              </Button>
+                              <Tooltip content="Ko'rish">
+                                 <Button
+                                    type='button'
+                                    variant='theme'
+                                    size='icon'
+                                    aria-label="Ko'rish"
+                                    onClick={() => navigate(`/two-stage-import/transit-stock/${partner.id}`)}
+                                 >
+                                    <FaEye />
+                                 </Button>
+                              </Tooltip>
                            </TableCell>
                         </TableRow>
                      ))}
