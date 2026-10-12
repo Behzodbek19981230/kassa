@@ -285,7 +285,7 @@ export default function ImportOrdersPage() {
                         </TableRow>
                      )}
                      {orders.map((order, index) => (
-                        <TableRow key={order.id} onClick={() => { const next = primaryAction(order); if (canWrite && next) setAction(next); }} className={canWrite && primaryAction(order) ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}>
+                        <TableRow key={order.id} className={canWrite && primaryAction(order) ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}>
                            <TableCell>{(page - 1) * PAGE_SIZE + index + 1}</TableCell>
 
                            {cols.isVisible('date') && <TableCell>{formatTashkentDate(order.order_datetime)}</TableCell>}

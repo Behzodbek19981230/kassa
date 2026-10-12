@@ -50,6 +50,7 @@ import TelegramBroadcastDetailPage from '@/pages/TelegramBroadcastPage/DetailPag
 import ChinaDispatchPage from '@/pages/TwoStageImport/ChinaDispatchPage';
 import ImportOrderProductsPage from '@/pages/TwoStageImport/ImportOrderProductsPage';
 import ImportOrdersPage from '@/pages/TwoStageImport/ImportOrdersPage';
+import LogisticsDebtPage from '@/pages/TwoStageImport/LogisticsDebtPage';
 import LogisticsPartnersPage from '@/pages/TwoStageImport/LogisticsPartnersPage';
 import LogisticsPartnerStockPage from '@/pages/TwoStageImport/LogisticsPartnerStockPage';
 import UzbekistanDispatchPage from '@/pages/TwoStageImport/UzbekistanDispatchPage';
@@ -74,6 +75,7 @@ export default function App() {
 					<Route path='two-stage-import/transit-stock/:id' element={<LogisticsPartnerStockPage />} />
 					<Route path='two-stage-import/transit-dispatch' element={<UzbekistanDispatchPage />} />
 					<Route path='two-stage-import/uzbekistan-in-road' element={<UzbekistanInRoadPage />} />
+					<Route path='two-stage-import/debts' element={<LogisticsDebtPage />} />
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
 					<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
 					<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />

@@ -51,6 +51,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				label: "O'zbekistonga yo'ldagi buyurtmalar",
 				path: '/two-stage-import/uzbekistan-in-road',
 			},
+			{ id: 'two-stage-debts', icon: 'bookmark', label: 'Mening qarzlarim', path: '/two-stage-import/debts' },
 		],
 	},
 	{ id: 'warehouse-report', icon: 'warehouse', label: 'Omborxona hisobi', path: '/warehouse-report' },

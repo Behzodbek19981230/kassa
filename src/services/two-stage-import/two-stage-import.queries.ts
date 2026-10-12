@@ -117,6 +117,8 @@ function useInvalidateTwoStageImport() {
 	const queryClient = useQueryClient();
 	return () => {
 		queryClient.invalidateQueries({ queryKey: twoStageKeys.all });
+		// Dispatch / confirm / cancel recalculate what is owed to logistics companies.
+		queryClient.invalidateQueries({ queryKey: ['logistics-debt'] });
 	};
 }
 
