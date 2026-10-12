@@ -1,6 +1,6 @@
 import { isAxiosError } from 'axios';
-import { useMemo, useState } from 'react';
-import { FaArrowLeft, FaExclamationTriangle, FaSave, FaSyncAlt, FaTrash } from 'react-icons/fa';
+import { type ReactNode, useMemo, useState } from 'react';
+import { FaArrowLeft, FaExclamationTriangle, FaPlus, FaSave, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
    Button,
@@ -9,15 +9,7 @@ import {
    FormField,
    Input,
    InputGroup,
-   PageHeader,
-   Panel,
    PriceInput,
-   Table,
-   TableBody,
-   TableCell,
-   TableHead,
-   TableHeader,
-   TableRow,
    Textarea,
    Tooltip,
    useNotification,
@@ -49,24 +41,52 @@ import {
 } from '@/pages/TwoStageImport/options';
 import { useWarehouseCatalog } from '@/pages/TwoStageImport/useWarehouseCatalog';
 import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
-import { fromApiDateTime, STAGE_LABELS, toApiDateTime } from '@/pages/TwoStageImport/utils';
+import { fromApiDateTime, ORDER_STATUS_LABELS, STAGE_LABELS, toApiDateTime } from '@/pages/TwoStageImport/utils';
 
-const HEAD_CLASS = 'bg-ca-theme text-white';
 const loadWarehouseOptions = createLogisticsWarehouseLoader();
+
+const PAGE_TITLES: Record<ImportStage, string> = {
+   CHINA_TO_TRANSIT: "Xitoydan tranzit skladga buyurtmani o'zgartirish",
+   TRANSIT_TO_UZBEKISTAN: "Tranzit skladdan O'zbekistonga buyurtmani o'zgartirish",
+};
+
+/**
+ * One pickable product. China rows pick from the warehouse catalog (key = warehouse id); Uzbekistan
+ * rows pick a stock line of the source transit warehouse (key = stock id), which also fixes tip dona and prices.
+ */
+interface ProductOption {
+   key: string;
+   warehouse: number;
+   stockId?: number;
+   brand: string;
+   brandName: string;
+   category: string;
+   categoryName: string;
+   size: string;
+   typeName: string;
+   typeQuantity?: string;
+   priceYuan?: string;
+   priceDollar?: string;
+}
 
 interface EditRow {
    key: string;
    /** Present for rows that already belong to the order; new rows are sent without it. */
    id?: number;
-   warehouse: number;
+   /** Partial Model → Nomi → O'lchami choice while no product is picked yet. */
+   brand: string;
+   category: string;
+   size: string;
+   /** ProductOption key once the product is fully chosen. */
+   productKey: string;
+   warehouse?: number;
    sourceImportWarehouse?: number;
-   name: { brand: string; category: string; size: string; type: string };
+   /** Names saved on the order, shown while the catalog / stock list isn't loaded (or no longer has the line). */
+   snapshot?: { brand: string; category: string; size: string; type: string };
    typeQuantity: string;
    quantity: string;
    priceYuan: string;
    priceDollar: string;
-   totalYuan: string;
-   totalDollar: string;
 }
 
 interface HeaderValues {
@@ -91,11 +111,31 @@ const decimalString = (value: string | null) => (value != null ? String(Number(v
 
 // The backend stores whatever totals it gets, so the frontend owns the math: line total = soni × narx.
 function lineTotal(quantity: string, price: string) {
-   const total = (Number(quantity) || 0) * (Number(price) || 0);
-   return total.toFixed(2);
+   return (Number(quantity) || 0) * (Number(price) || 0);
 }
 
-let newRowCounter = 0;
+let rowCounter = 0;
+const newRowKey = () => `row-${++rowCounter}`;
+
+function emptyRow(): EditRow {
+   return {
+      key: newRowKey(),
+      brand: '',
+      category: '',
+      size: '',
+      productKey: '',
+      typeQuantity: '',
+      quantity: '',
+      priceYuan: '',
+      priceDollar: '',
+   };
+}
+
+function uniqueOptions(items: { value: string; label: string }[]) {
+   const seen = new Map<string, string>();
+   for (const item of items) if (!seen.has(item.value)) seen.set(item.value, item.label);
+   return [...seen].map(([value, label]) => ({ value, label }));
+}
 
 function parseStage(value: string | null): ImportStage | undefined {
    return value === 'CHINA_TO_TRANSIT' || value === 'TRANSIT_TO_UZBEKISTAN' ? value : undefined;
@@ -110,8 +150,7 @@ export default function ImportOrderEditPage() {
 
    const editQuery = useRouteOrderEditQuery(stage, orderId);
    const data = editQuery.data;
-
-   const title = data ? `Buyurtmani tahrirlash — ${data.order.order_number}` : 'Buyurtmani tahrirlash';
+   const goBack = () => navigate('/two-stage-import/orders');
 
    let body;
    if (!stage) {
@@ -130,24 +169,22 @@ export default function ImportOrderEditPage() {
             stage={stage}
             data={data}
             onReload={() => editQuery.refetch()}
-            onDone={() => navigate('/two-stage-import/orders')}
+            onDone={goBack}
          />
       );
    }
 
    return (
       <>
-         <PageHeader
-            title={title}
-            breadcrumb={[
-               { label: 'Asosiy', path: '/' },
-               { label: 'Logistika' },
-               { label: 'Import buyurtmalar', path: '/two-stage-import/orders' },
-               { label: 'Tahrirlash', active: true },
-            ]}
-         />
-         <div className='mb-3'>
-            <Button type='button' variant='white' size='xs' onClick={() => navigate('/two-stage-import/orders')}>
+         <div className='mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[3px] bg-ca-theme px-4 py-3 text-white'>
+            <div>
+               <h4 className='text-base font-semibold'>
+                  {stage ? PAGE_TITLES[stage] : 'Buyurtmani tahrirlash'}
+                  {data && ` · ${data.order.order_number}`}
+               </h4>
+               {stage && <div className='text-xs text-white/80'>{STAGE_LABELS[stage]}</div>}
+            </div>
+            <Button type='button' variant='warning' size='sm' onClick={goBack}>
                <FaArrowLeft className='mr-1.5' /> Orqaga qaytish
             </Button>
          </div>
@@ -164,6 +201,44 @@ function Message({ text }: { text: string }) {
    );
 }
 
+/** A $ and ¥ input side by side under one label, kept in sync with today's yuan rate. */
+function DualPriceInput({
+   dollar,
+   yuan,
+   onChange,
+}: {
+   dollar: string;
+   yuan: string;
+   onChange: (next: { dollar: string; yuan: string }) => void;
+}) {
+   const { yuanToDollar, dollarToYuan } = useYuanDollarConversion();
+   return (
+      <div className='flex gap-1'>
+         <InputGroup prepend='$' className='flex-1'>
+            <PriceInput
+               value={dollar}
+               onChange={(v) => onChange({ dollar: v, yuan: dollarToYuan(v) ?? yuan })}
+            />
+         </InputGroup>
+         <InputGroup prepend='¥' className='flex-1'>
+            <PriceInput value={yuan} onChange={(v) => onChange({ yuan: v, dollar: yuanToDollar(v) ?? dollar })} />
+         </InputGroup>
+      </div>
+   );
+}
+
+function Card({ children }: { children: ReactNode }) {
+   return <div className='mb-5 rounded-[3px] bg-ca-silver-light p-4 shadow-sm'>{children}</div>;
+}
+
+function ReadOnlyField({ value }: { value: string }) {
+   return (
+      <div className='flex h-8.5 items-center rounded-[3px] border border-ca-field-border bg-ca-muted-2 px-3 text-xs text-ca-text'>
+         {value}
+      </div>
+   );
+}
+
 interface OrderEditFormProps {
    stage: ImportStage;
    data: RouteOrderEditResponse;
@@ -175,10 +250,9 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
    const isChina = stage === 'CHINA_TO_TRANSIT';
    const { canWrite } = useCurrentCompany();
    const { notify } = useNotification();
-   const { yuanToDollar, dollarToYuan } = useYuanDollarConversion();
    const updateMutation = useUpdateRouteOrderMutation();
 
-   const { order } = data;
+   const { order, debts } = data;
    const [header, setHeader] = useState<HeaderValues>(() => ({
       consignor: idString(order.consignor),
       carrierLogistics: idString(order.carrier_logistics),
@@ -197,22 +271,24 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
    }));
    const [rows, setRows] = useState<EditRow[]>(() =>
       data.items.map((item) => ({
-         key: `item-${item.id}`,
+         key: newRowKey(),
          id: item.id,
+         brand: '',
+         category: '',
+         size: '',
+         productKey: String(isChina ? item.warehouse : (item.source_import_warehouse ?? '')),
          warehouse: item.warehouse,
          sourceImportWarehouse: item.source_import_warehouse ?? undefined,
-         name: {
+         snapshot: {
             brand: item.brand_snapshot ?? '',
             category: item.category_snapshot ?? '',
-            size: item.size_snapshot ? formatNumber(item.size_snapshot) : '',
+            size: item.size_snapshot ? formatNumber(Number(item.size_snapshot)) : '',
             type: item.type_snapshot ?? '',
          },
          typeQuantity: String(Number(item.type_quantity)),
          quantity: String(item.quantity),
          priceYuan: String(Number(item.unit_price_yuan)),
          priceDollar: String(Number(item.unit_price_dollar)),
-         totalYuan: item.total_yuan,
-         totalDollar: item.total_dollar,
       })),
    );
    const [formError, setFormError] = useState('');
@@ -233,137 +309,109 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
    const { data: skladTypes } = useSkladTypeListQuery({ limit: 200 });
    const skladTypeOptions = (skladTypes?.results ?? []).map((t) => ({ value: String(t.id), label: t.name }));
 
-   // New rows: China picks any catalog product; Uzbekistan picks a stock line of the source transit warehouse.
    const catalog = useWarehouseCatalog();
    const sourceId = !isChina && header.sourceLogisticsWarehouse ? Number(header.sourceLogisticsWarehouse) : undefined;
    const stockQuery = useTransitStockQuery(sourceId);
-   const addOptions = useMemo(() => {
+   const products = useMemo<ProductOption[]>(() => {
       if (isChina) {
          return [...catalog.byId.values()].map((w) => ({
-            value: String(w.id),
-            label: [w.brand_name, w.product_category_name, formatNumber(w.size), w.type_name].filter(Boolean).join(' · '),
+            key: String(w.id),
+            warehouse: w.id,
+            brand: String(w.brand_id),
+            brandName: w.brand_name,
+            category: String(w.product_category_id),
+            categoryName: w.product_category_name,
+            size: String(Number(w.size)),
+            typeName: w.type_name ?? '-',
          }));
       }
       return (stockQuery.data ?? [])
-         .filter((s) => sourceId == null || s.logistics_warehouse === sourceId)
+         .filter((s) => s.logistics_warehouse === sourceId && s.warehouse_detail)
          .map((s) => ({
-            value: String(s.id),
-            label: `${[
-               s.warehouse_detail?.brand_name,
-               s.warehouse_detail?.product_category_name,
-               formatNumber(s.warehouse_detail?.size ?? ''),
-               s.warehouse_detail?.type_name,
-            ]
-               .filter(Boolean)
-               .join(' · ')} (mavjud: ${formatNumber(s.available_quantity)})`,
-         }));
-   }, [isChina, catalog.byId, stockQuery.data, sourceId]);
-
-   function addRow(value: string) {
-      if (!value) return;
-      const key = `new-${++newRowCounter}`;
-      if (isChina) {
-         const w = catalog.byId.get(Number(value));
-         if (!w) return;
-         setRows((prev) => [
-            ...prev,
-            {
-               key,
-               warehouse: w.id,
-               name: {
-                  brand: w.brand_name,
-                  category: w.product_category_name,
-                  size: formatNumber(w.size),
-                  type: w.type_name ?? '',
-               },
-               typeQuantity: '1',
-               quantity: '',
-               priceYuan: '',
-               priceDollar: '',
-               totalYuan: '0.00',
-               totalDollar: '0.00',
-            },
-         ]);
-         return;
-      }
-      const s = (stockQuery.data ?? []).find((stock) => stock.id === Number(value));
-      if (!s) return;
-      // Uzbekistan prices and tip dona come from the transit stock line.
-      setRows((prev) => [
-         ...prev,
-         {
-            key,
+            key: String(s.id),
             warehouse: s.warehouse,
-            sourceImportWarehouse: s.id,
-            name: {
-               brand: s.warehouse_detail?.brand_name ?? '',
-               category: s.warehouse_detail?.product_category_name ?? '',
-               size: formatNumber(s.warehouse_detail?.size ?? ''),
-               type: s.warehouse_detail?.type_name ?? '',
-            },
+            stockId: s.id,
+            brand: String(s.warehouse_detail?.brand ?? ''),
+            brandName: s.warehouse_detail?.brand_name ?? '',
+            category: String(s.warehouse_detail?.product_category ?? ''),
+            categoryName: s.warehouse_detail?.product_category_name ?? '',
+            size: String(Number(s.warehouse_detail?.size ?? 0)),
+            typeName: `${s.warehouse_detail?.type_name ?? '-'} (mavjud: ${formatNumber(s.available_quantity)})`,
             typeQuantity: String(Number(s.current_type_quantity)),
-            quantity: '',
             priceYuan: String(Number(s.current_price_yuan)),
             priceDollar: String(Number(s.current_price_dollar)),
-            totalYuan: '0.00',
-            totalDollar: '0.00',
-         },
-      ]);
+         }));
+   }, [isChina, catalog.byId, stockQuery.data, sourceId]);
+   const productByKey = useMemo(() => new Map(products.map((p) => [p.key, p])), [products]);
+   const brandOptions = useMemo(
+      () => uniqueOptions(products.map((p) => ({ value: p.brand, label: p.brandName }))),
+      [products],
+   );
+
+   /** The row's Model / Nomi / O'lchami: from its chosen product when there is one, else the partial picks. */
+   function selectionOf(row: EditRow) {
+      const product = row.productKey ? productByKey.get(row.productKey) : undefined;
+      return product
+         ? { brand: product.brand, category: product.category, size: product.size, product }
+         : { brand: row.brand, category: row.category, size: row.size, product: undefined };
    }
 
    function updateRow(key: string, patch: Partial<EditRow>) {
-      setRows((prev) =>
-         prev.map((row) => {
-            if (row.key !== key) return row;
-            const next = { ...row, ...patch };
-            return {
-               ...next,
-               totalYuan: lineTotal(next.quantity, next.priceYuan),
-               totalDollar: lineTotal(next.quantity, next.priceDollar),
-            };
-         }),
-      );
+      setRows((prev) => prev.map((row) => (row.key === key ? { ...row, ...patch } : row)));
    }
 
-   function changeRowPrice(row: EditRow, currency: 'yuan' | 'dollar', value: string) {
-      if (currency === 'yuan') {
-         const dollar = yuanToDollar(value);
-         updateRow(row.key, { priceYuan: value, ...(dollar !== null && { priceDollar: dollar }) });
-      } else {
-         const yuan = dollarToYuan(value);
-         updateRow(row.key, { priceDollar: value, ...(yuan !== null && { priceYuan: yuan }) });
-      }
+   function pickProduct(row: EditRow, productKey: string) {
+      const product = productByKey.get(productKey);
+      if (!product) return;
+      updateRow(row.key, {
+         productKey,
+         warehouse: product.warehouse,
+         sourceImportWarehouse: product.stockId,
+         snapshot: undefined,
+         // Uzbekistan lines bring their own tip dona and prices from the transit stock.
+         ...(product.typeQuantity != null && { typeQuantity: product.typeQuantity }),
+         ...(product.priceYuan != null && { priceYuan: product.priceYuan }),
+         ...(product.priceDollar != null && { priceDollar: product.priceDollar }),
+         ...(isChina && !row.typeQuantity && { typeQuantity: '1' }),
+      });
    }
 
+   const rowTotals = rows.map((row) => ({
+      dollar: lineTotal(row.quantity, row.priceDollar),
+      yuan: lineTotal(row.quantity, row.priceYuan),
+   }));
    const totals = rows.reduce(
-      (acc, row) => ({
+      (acc, row, index) => ({
          quantity: acc.quantity + (Number(row.quantity) || 0),
-         yuan: acc.yuan + Number(row.totalYuan),
-         dollar: acc.dollar + Number(row.totalDollar),
+         dollar: acc.dollar + rowTotals[index].dollar,
+         yuan: acc.yuan + rowTotals[index].yuan,
       }),
-      { quantity: 0, yuan: 0, dollar: 0 },
+      { quantity: 0, dollar: 0, yuan: 0 },
    );
 
    function validate(): string {
       if (isChina) {
          if (!header.consignor) return "Yuk jo'natuvchini tanlang";
-         if (!header.destinationLogisticsWarehouse) return 'Qabul qiluvchi logistika skladini tanlang';
+         if (!header.destinationLogisticsWarehouse) return 'Qabul qiluvchi tranzit skladni tanlang';
          if (!(Number(header.exchangeRate) > 0)) return 'Dollar kursini kiriting';
       } else {
          if (!header.sourceLogisticsWarehouse) return "Jo'natuvchi tranzit skladni tanlang";
          if (!header.destinationTypeSklad) return 'Qabul qiluvchi skladni tanlang';
          if (!header.driverPhone.trim()) return 'Haydovchi telefonini kiriting';
       }
-      if (!header.carrierLogistics) return 'Tashuvchi logistikani tanlang';
+      if (!header.carrierLogistics) return 'Logistika firmasini tanlang';
       if (!header.orderDatetime) return 'Sanani tanlang';
       if (!header.truckNumber.trim()) return 'Fura raqamini kiriting';
+      if (!(Number(header.weightKg) > 0)) return "Og'irlikni kiriting";
+      if (!(Number(header.volumeM3) > 0)) return 'Hajmni kiriting';
       if (rows.length === 0) return "Kamida bitta mahsulot bo'lishi kerak";
-      for (const row of rows) {
-         const label = `${row.name.brand} ${row.name.category}`.trim();
+      for (const [index, row] of rows.entries()) {
+         const n = `${index + 1}-mahsulot`;
+         if (row.warehouse == null) return `${n}: model, nomi, o'lchami va tipni tanlang`;
+         if (!(Number(row.typeQuantity) > 0)) return `${n}: tip donani kiriting`;
          const qty = Number(row.quantity);
-         if (!Number.isInteger(qty) || qty <= 0) return `${label}: soni 0 dan katta butun son bo'lishi kerak`;
-         if (!(Number(row.typeQuantity) > 0)) return `${label}: tip donani kiriting`;
-         if (row.priceYuan === '' || row.priceDollar === '') return `${label}: narxni kiriting`;
+         if (!Number.isInteger(qty) || qty <= 0) return `${n}: soni 0 dan katta butun son bo'lishi kerak`;
+         if (row.priceYuan === '' || row.priceDollar === '') return `${n}: narxni kiriting`;
       }
       return '';
    }
@@ -377,16 +425,16 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
          return;
       }
 
-      const items: RouteOrderEditItemPayload[] = rows.map((row) => ({
+      const items: RouteOrderEditItemPayload[] = rows.map((row, index) => ({
          ...(row.id != null && { id: row.id }),
-         warehouse: row.warehouse,
+         warehouse: row.warehouse!,
          ...(!isChina && row.sourceImportWarehouse != null && { source_import_warehouse: row.sourceImportWarehouse }),
          type_quantity: Number(row.typeQuantity).toFixed(4),
          quantity: Number(row.quantity),
          unit_price_yuan: Number(row.priceYuan).toFixed(2),
          unit_price_dollar: Number(row.priceDollar).toFixed(2),
-         total_yuan: row.totalYuan,
-         total_dollar: row.totalDollar,
+         total_yuan: rowTotals[index].yuan.toFixed(2),
+         total_dollar: rowTotals[index].dollar.toFixed(2),
       }));
       const common = {
          expected_updated_time: order.updated_time,
@@ -398,8 +446,8 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
          total_dollar: totals.dollar.toFixed(2),
          service_price_yuan: (Number(header.servicePriceYuan) || 0).toFixed(2),
          service_price_dollar: (Number(header.servicePriceDollar) || 0).toFixed(2),
-         weight_kg: (Number(header.weightKg) || 0).toFixed(3),
-         volume_m3: (Number(header.volumeM3) || 0).toFixed(4),
+         weight_kg: Number(header.weightKg).toFixed(3),
+         volume_m3: Number(header.volumeM3).toFixed(4),
          note: header.note.trim(),
          items,
       };
@@ -419,7 +467,7 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
 
       try {
          await updateMutation.mutateAsync({ stage, orderId: order.id, payload });
-         notify({ title: 'Buyurtma saqlandi', text: order.order_number });
+         notify({ title: "Buyurtma o'zgartirildi", text: order.order_number });
          onDone();
       } catch (err) {
          if (isAxiosError(err) && err.response?.status === 409) {
@@ -430,12 +478,43 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
       }
    }
 
-   const debts = data.debts;
    // Existing Uzbekistan rows point at stock lines of the original transit warehouse.
    const sourceChanged =
       !isChina &&
       header.sourceLogisticsWarehouse !== idString(order.source_logistics_warehouse) &&
       rows.some((row) => row.id != null);
+
+   const statusField = (
+      <FormField label='Holati' required horizontal={false} className='mb-3'>
+         {/* The edit API only accepts the current status; it changes through confirm / cancel. */}
+         <Combobox value={order.status} options={[{ value: order.status, label: ORDER_STATUS_LABELS[order.status] }]} disabled />
+      </FormField>
+   );
+   const datetimeField = (
+      <FormField label='Sana va vaqt' required horizontal={false} className='mb-3'>
+         {/* Only the date is picked; the time of day is kept from the order. */}
+         <DatePicker
+            value={header.orderDatetime}
+            onChange={(date) => set('orderDatetime', date ? `${date}T${header.orderDatetime.slice(11, 16) || '00:00'}` : '')}
+         />
+      </FormField>
+   );
+   const carrierField = (
+      <FormField label='Logistika firmasi' required horizontal={false} className='mb-3'>
+         <Combobox
+            value={header.carrierLogistics}
+            onChange={(v) => set('carrierLogistics', v)}
+            loadOptions={loadLogisticsCompanyOptions}
+            selectedLabel={carrier?.name}
+            placeholder='Tanlang...'
+         />
+      </FormField>
+   );
+   const truckField = (
+      <FormField label='Fura raqami' required horizontal={false} className='mb-3'>
+         <Input value={header.truckNumber} onChange={(e) => set('truckNumber', e.target.value)} />
+      </FormField>
+   );
 
    return (
       <>
@@ -456,7 +535,8 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
             </div>
          )}
 
-         <Panel title={`${STAGE_LABELS[stage]} — ${order.order_number}`}>
+         {/* Order header */}
+         <Card>
             <div className='grid grid-cols-1 gap-x-4 sm:grid-cols-2 xl:grid-cols-4'>
                {isChina ? (
                   <>
@@ -469,7 +549,13 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                            placeholder='Tanlang...'
                         />
                      </FormField>
-                     <FormField label='Qabul qiluvchi logistika skladi' required horizontal={false} className='mb-3'>
+                     {datetimeField}
+                     <FormField label='Dollar kursi' required horizontal={false} className='mb-3'>
+                        <PriceInput value={header.exchangeRate} onChange={(v) => set('exchangeRate', v)} />
+                     </FormField>
+                     {statusField}
+                     {carrierField}
+                     <FormField label='Qabul qiluvchi tranzit sklad' required horizontal={false} className='mb-3'>
                         <Combobox
                            value={header.destinationLogisticsWarehouse}
                            onChange={(v) => set('destinationLogisticsWarehouse', v)}
@@ -478,8 +564,11 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                            placeholder='Tanlang...'
                         />
                      </FormField>
-                     <FormField label="Dollar kursi (so'm)" required horizontal={false} className='mb-3'>
-                        <PriceInput value={header.exchangeRate} onChange={(v) => set('exchangeRate', v)} />
+                     {truckField}
+                     <FormField label='Consignorga qolgan qarz ($)' horizontal={false} className='mb-3'>
+                        <ReadOnlyField
+                           value={debts.my_total_debt ? formatNumber(debts.my_total_debt.total_debt, 2) : '0'}
+                        />
                      </FormField>
                   </>
                ) : (
@@ -493,6 +582,7 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                            placeholder='Tanlang...'
                         />
                      </FormField>
+                     {datetimeField}
                      <FormField label='Qabul qiluvchi sklad' required horizontal={false} className='mb-3'>
                         <Combobox
                            value={header.destinationTypeSklad}
@@ -501,33 +591,206 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                            placeholder='Tanlang...'
                         />
                      </FormField>
+                     {statusField}
+                     {carrierField}
+                     {truckField}
                      <FormField label='Haydovchi telefoni' required horizontal={false} className='mb-3'>
                         <Input value={header.driverPhone} onChange={(e) => set('driverPhone', e.target.value)} />
                      </FormField>
+                     <FormField label='Logistikaga qolgan qarz ($)' horizontal={false} className='mb-3'>
+                        <ReadOnlyField
+                           value={debts.logistics_debt ? formatNumber(debts.logistics_debt.total_debt, 2) : '0'}
+                        />
+                     </FormField>
                   </>
                )}
-               <FormField label='Tashuvchi logistika' required horizontal={false} className='mb-3'>
-                  <Combobox
-                     value={header.carrierLogistics}
-                     onChange={(v) => set('carrierLogistics', v)}
-                     loadOptions={loadLogisticsCompanyOptions}
-                     selectedLabel={carrier?.name}
-                     placeholder='Tanlang...'
-                  />
+            </div>
+         </Card>
+
+         {/* Products */}
+         <Card>
+            {sourceChanged && (
+               <p className='mb-3 flex items-center gap-1.5 text-xs font-semibold text-ca-red'>
+                  <FaExclamationTriangle /> Tranzit sklad o'zgardi: eski mahsulotlar oldingi skladga tegishli. Ularni
+                  o'chirib, yangi skladdan qayta qo'shing.
+               </p>
+            )}
+
+            {rows.map((row, index) => {
+               const sel = selectionOf(row);
+               const categoryOptions = uniqueOptions(
+                  products
+                     .filter((p) => p.brand === sel.brand)
+                     .map((p) => ({ value: p.category, label: p.categoryName })),
+               );
+               const sizeOptions = uniqueOptions(
+                  products
+                     .filter((p) => p.brand === sel.brand && p.category === sel.category)
+                     .map((p) => ({ value: p.size, label: formatNumber(Number(p.size)) })),
+               );
+               const typeOptions = products
+                  .filter((p) => p.brand === sel.brand && p.category === sel.category && p.size === sel.size)
+                  .map((p) => ({ value: p.key, label: p.typeName }));
+               const snap = sel.product ? undefined : row.snapshot;
+               const isLast = index === rows.length - 1;
+
+               return (
+                  <div key={row.key} className='flex flex-wrap items-start gap-x-3 border-b border-ca-border pb-3 last:border-b-0'>
+                     <FormField label='Model' required horizontal={false} className='mb-2 min-w-36 flex-[1.2]'>
+                        <Combobox
+                           value={sel.brand}
+                           onChange={(v) => updateRow(row.key, { ...emptyPick, brand: v })}
+                           options={brandOptions}
+                           selectedLabel={snap?.brand || undefined}
+                           disabled={!isChina && !sourceId}
+                           placeholder='Tanlang...'
+                        />
+                     </FormField>
+                     <FormField label='Nomi' required horizontal={false} className='mb-2 min-w-32 flex-1'>
+                        <Combobox
+                           value={sel.category}
+                           onChange={(v) => updateRow(row.key, { ...emptyPick, brand: sel.brand, category: v })}
+                           options={categoryOptions}
+                           selectedLabel={snap?.category || undefined}
+                           disabled={!sel.brand && !snap}
+                           placeholder='Tanlang...'
+                        />
+                     </FormField>
+                     <FormField label="O'lchami" required horizontal={false} className='mb-2 min-w-28 flex-1'>
+                        <Combobox
+                           value={sel.size}
+                           onChange={(v) => {
+                              updateRow(row.key, { ...emptyPick, brand: sel.brand, category: sel.category, size: v });
+                              // A size with a single type needs no extra pick.
+                              const matches = products.filter(
+                                 (p) => p.brand === sel.brand && p.category === sel.category && p.size === v,
+                              );
+                              if (matches.length === 1) pickProduct(row, matches[0].key);
+                           }}
+                           options={sizeOptions}
+                           selectedLabel={snap?.size || undefined}
+                           disabled={!sel.category && !snap}
+                           placeholder='Tanlang...'
+                        />
+                     </FormField>
+                     <FormField label='Tip' required horizontal={false} className='mb-2 min-w-32 flex-1'>
+                        <Combobox
+                           value={row.productKey}
+                           onChange={(v) => pickProduct(row, v)}
+                           options={typeOptions}
+                           selectedLabel={snap?.type || undefined}
+                           disabled={typeOptions.length <= 1}
+                           placeholder='Tanlang...'
+                           contentClassName='w-[260px] min-w-[var(--radix-popover-trigger-width)]'
+                           wrapOptions
+                        />
+                     </FormField>
+                     <FormField label='Tip dona' required horizontal={false} className='mb-2 w-24'>
+                        <Input
+                           type='number'
+                           inputMode='decimal'
+                           min={0}
+                           step='0.0001'
+                           value={row.typeQuantity}
+                           // Uzbekistan lines take tip dona from the transit stock.
+                           disabled={!isChina}
+                           onChange={(e) => updateRow(row.key, { typeQuantity: e.target.value })}
+                        />
+                     </FormField>
+                     <FormField label='Soni' required horizontal={false} className='mb-2 w-24'>
+                        <Input
+                           type='number'
+                           inputMode='numeric'
+                           min={1}
+                           step='1'
+                           value={row.quantity}
+                           onChange={(e) => updateRow(row.key, { quantity: e.target.value })}
+                        />
+                     </FormField>
+                     <div className='mb-2 min-w-56 flex-[1.6]'>
+                        <FormField label='Narx ($ / ¥)' required horizontal={false} className='mb-0'>
+                           <DualPriceInput
+                              dollar={row.priceDollar}
+                              yuan={row.priceYuan}
+                              onChange={({ dollar, yuan }) => updateRow(row.key, { priceDollar: dollar, priceYuan: yuan })}
+                           />
+                        </FormField>
+                        <p className='mt-1 text-[11px] text-ca-text'>
+                           Summa:{' '}
+                           <span className='font-semibold text-ca-heading'>
+                              {formatNumber(rowTotals[index].dollar, 2)} $ / {formatNumber(rowTotals[index].yuan, 2)} ¥
+                           </span>
+                        </p>
+                     </div>
+                     <div className='mb-2 flex gap-1 pt-5.5'>
+                        <Tooltip content="O'chirish">
+                           <Button
+                              type='button'
+                              variant='danger'
+                              size='icon'
+                              aria-label="O'chirish"
+                              onClick={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}
+                           >
+                              <FaTrash />
+                           </Button>
+                        </Tooltip>
+                        {isLast && (
+                           <Tooltip content="Mahsulot qo'shish">
+                              <Button
+                                 type='button'
+                                 variant='success'
+                                 size='icon'
+                                 aria-label="Mahsulot qo'shish"
+                                 onClick={() => setRows((prev) => [...prev, emptyRow()])}
+                              >
+                                 <FaPlus />
+                              </Button>
+                           </Tooltip>
+                        )}
+                     </div>
+                  </div>
+               );
+            })}
+
+            {rows.length === 0 && (
+               <div className='flex items-center justify-between gap-2 py-2'>
+                  <span className='text-xs text-ca-red'>Kamida bitta mahsulot bo'lishi kerak</span>
+                  <Button type='button' variant='success' size='sm' onClick={() => setRows([emptyRow()])}>
+                     <FaPlus className='mr-1.5' /> Mahsulot qo'shish
+                  </Button>
+               </div>
+            )}
+
+            <div className='mt-3 flex flex-wrap items-baseline justify-end gap-x-8 gap-y-1 border-t border-ca-border pt-3 text-sm'>
+               <span className='text-ca-text'>
+                  Jami soni: <span className='text-base font-bold text-ca-heading'>{formatNumber(totals.quantity)}</span>
+               </span>
+               <span className='text-ca-text'>
+                  Mahsulotlar summasi:{' '}
+                  <span className='text-base font-bold text-ca-heading'>
+                     {formatNumber(totals.dollar, 2)} $ / {formatNumber(totals.yuan, 2)} ¥
+                  </span>
+               </span>
+            </div>
+         </Card>
+
+         {/* Shipment and save */}
+         <Card>
+            <div className='grid grid-cols-1 gap-x-4 sm:grid-cols-2 xl:grid-cols-4'>
+               <FormField label='Jami summa ($ / ¥)' horizontal={false} className='mb-3'>
+                  <ReadOnlyField value={`${formatNumber(totals.dollar, 2)} / ${formatNumber(totals.yuan, 2)}`} />
                </FormField>
-               <FormField label='Sana' required horizontal={false} className='mb-3'>
-                  {/* Only the date is picked; the time of day is kept from the order. */}
-                  <DatePicker
-                     value={header.orderDatetime}
-                     onChange={(date) =>
-                        set('orderDatetime', date ? `${date}T${header.orderDatetime.slice(11, 16) || '00:00'}` : '')
+               <FormField label='Logistika xizmat narxi ($ / ¥)' required horizontal={false} className='mb-3'>
+                  <DualPriceInput
+                     dollar={header.servicePriceDollar}
+                     yuan={header.servicePriceYuan}
+                     onChange={({ dollar, yuan }) =>
+                        setHeader((prev) => ({ ...prev, servicePriceDollar: dollar, servicePriceYuan: yuan }))
                      }
                   />
+                  <YuanRateHint />
                </FormField>
-               <FormField label='Fura raqami' required horizontal={false} className='mb-3'>
-                  <Input value={header.truckNumber} onChange={(e) => set('truckNumber', e.target.value)} />
-               </FormField>
-               <FormField label="Og'irlik (kg)" horizontal={false} className='mb-3'>
+               <FormField label="Og'irlik (kg)" required horizontal={false} className='mb-3'>
                   <Input
                      type='number'
                      inputMode='decimal'
@@ -537,7 +800,7 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                      onChange={(e) => set('weightKg', e.target.value)}
                   />
                </FormField>
-               <FormField label='Hajm (m³)' horizontal={false} className='mb-3'>
+               <FormField label='Hajm (m³)' required horizontal={false} className='mb-3'>
                   <Input
                      type='number'
                      inputMode='decimal'
@@ -547,200 +810,35 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                      onChange={(e) => set('volumeM3', e.target.value)}
                   />
                </FormField>
-               <FormField label='Xizmat narxi (¥)' horizontal={false} className='mb-3'>
-                  <InputGroup prepend='¥'>
-                     <PriceInput
-                        value={header.servicePriceYuan}
-                        onChange={(v) => {
-                           const dollar = yuanToDollar(v);
-                           setHeader((prev) => ({
-                              ...prev,
-                              servicePriceYuan: v,
-                              ...(dollar !== null && { servicePriceDollar: dollar }),
-                           }));
-                        }}
-                     />
-                  </InputGroup>
-                  <YuanRateHint />
-               </FormField>
-               <FormField label='Xizmat narxi ($)' horizontal={false} className='mb-3'>
-                  <InputGroup prepend='$'>
-                     <PriceInput
-                        value={header.servicePriceDollar}
-                        onChange={(v) => {
-                           const yuan = dollarToYuan(v);
-                           setHeader((prev) => ({
-                              ...prev,
-                              servicePriceDollar: v,
-                              ...(yuan !== null && { servicePriceYuan: yuan }),
-                           }));
-                        }}
-                     />
-                  </InputGroup>
-               </FormField>
-               <div className='sm:col-span-2 xl:col-span-4'>
-                  <FormField label='Izoh' horizontal={false} className='mb-3'>
-                     <Textarea rows={2} value={header.note} onChange={(e) => set('note', e.target.value)} />
-                  </FormField>
-               </div>
             </div>
-
-            {(debts.my_total_debt || debts.logistics_debt) && (
-               <div className='flex flex-wrap gap-4 rounded-[3px] bg-ca-silver px-3 py-2 text-xs'>
-                  {debts.my_total_debt && (
-                     <span>
-                        Yuk jo'natuvchiga qarz:{' '}
-                        <b className='text-ca-red'>{formatNumber(debts.my_total_debt.total_debt, 2)} $</b>
-                     </span>
-                  )}
-                  {debts.logistics_debt && (
-                     <span>
-                        Logistikaga qarz: <b className='text-ca-red'>{formatNumber(debts.logistics_debt.total_debt, 2)} $</b>
-                     </span>
-                  )}
-                  <span className='text-ca-text'>Saqlanganda qarzlar backendda qayta hisoblanadi.</span>
-               </div>
-            )}
-         </Panel>
-
-         <Panel title='Mahsulotlar'>
-            {canWrite && (
-               <div className='mb-3 max-w-xl'>
-                  <label className='mb-1 block text-xs font-semibold text-ca-heading'>Mahsulot qo'shish:</label>
-                  <Combobox
-                     key={rows.length}
-                     value=''
-                     onChange={addRow}
-                     options={addOptions}
-                     disabled={!isChina && !sourceId}
-                     placeholder={
-                        isChina || sourceId ? 'Mahsulotni tanlang...' : "Avval jo'natuvchi tranzit skladni tanlang"
-                     }
-                     contentClassName='w-[480px] min-w-[var(--radix-popover-trigger-width)] max-w-[90vw]'
-                     wrapOptions
-                  />
-               </div>
-            )}
-
-            {sourceChanged && (
-               <p className='mb-3 flex items-center gap-1.5 text-xs font-semibold text-ca-red'>
-                  <FaExclamationTriangle /> Tranzit sklad o'zgardi: eski mahsulotlar oldingi skladga tegishli. Ularni
-                  o'chirib, yangi skladdan qayta qo'shing.
-               </p>
-            )}
-
-            <div className='overflow-x-auto'>
-               <Table>
-                  <TableHeader>
-                     <TableRow>
-                        <TableHead className={HEAD_CLASS}>#</TableHead>
-                        <TableHead className={HEAD_CLASS}>Mahsulot</TableHead>
-                        <TableHead className={HEAD_CLASS}>Tip dona</TableHead>
-                        <TableHead className={HEAD_CLASS}>Soni</TableHead>
-                        <TableHead className={HEAD_CLASS}>Narxi (¥)</TableHead>
-                        <TableHead className={HEAD_CLASS}>Narxi ($)</TableHead>
-                        <TableHead className={HEAD_CLASS}>Jami (¥ / $)</TableHead>
-                        <TableHead className={HEAD_CLASS} />
-                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                     {rows.length === 0 && (
-                        <TableRow>
-                           <TableCell colSpan={8} className='text-center text-ca-red'>
-                              Kamida bitta mahsulot bo'lishi kerak
-                           </TableCell>
-                        </TableRow>
-                     )}
-                     {rows.map((row, index) => (
-                        <TableRow key={row.key}>
-                           <TableCell>{index + 1}</TableCell>
-                           <TableCell>
-                              <div className='font-semibold text-ca-heading'>
-                                 {row.name.brand} {row.name.category}
-                              </div>
-                              <div className='text-[11px] text-ca-text'>
-                                 {[row.name.size, row.name.type].filter(Boolean).join(' · ')}
-                                 {row.id == null && <span className='ml-1.5 font-semibold text-ca-green'>yangi</span>}
-                              </div>
-                           </TableCell>
-                           <TableCell className='w-28'>
-                              <Input
-                                 type='number'
-                                 inputMode='decimal'
-                                 min={0}
-                                 step='0.0001'
-                                 value={row.typeQuantity}
-                                 // Uzbekistan rows take tip dona from the transit stock line.
-                                 disabled={!isChina}
-                                 onChange={(e) => updateRow(row.key, { typeQuantity: e.target.value })}
-                              />
-                           </TableCell>
-                           <TableCell className='w-24'>
-                              <Input
-                                 type='number'
-                                 inputMode='numeric'
-                                 min={1}
-                                 step='1'
-                                 value={row.quantity}
-                                 onChange={(e) => updateRow(row.key, { quantity: e.target.value })}
-                              />
-                           </TableCell>
-                           <TableCell className='w-32'>
-                              <PriceInput
-                                 value={row.priceYuan}
-                                 onChange={(v) => changeRowPrice(row, 'yuan', v)}
-                              />
-                           </TableCell>
-                           <TableCell className='w-32'>
-                              <PriceInput
-                                 value={row.priceDollar}
-                                 onChange={(v) => changeRowPrice(row, 'dollar', v)}
-                              />
-                           </TableCell>
-                           <TableCell className='whitespace-nowrap'>
-                              {formatNumber(row.totalYuan, 2)} ¥ /{' '}
-                              <span className='font-semibold text-ca-green'>{formatNumber(row.totalDollar, 2)} $</span>
-                           </TableCell>
-                           <TableCell>
-                              <Tooltip content="O'chirish">
-                                 <Button
-                                    type='button'
-                                    variant='danger'
-                                    size='icon'
-                                    aria-label="O'chirish"
-                                    onClick={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}
-                                 >
-                                    <FaTrash />
-                                 </Button>
-                              </Tooltip>
-                           </TableCell>
-                        </TableRow>
-                     ))}
-                  </TableBody>
-               </Table>
-            </div>
-
-            <div className='mt-4 flex flex-wrap items-center justify-around gap-3 rounded-[3px] border border-ca-border bg-ca-silver px-4 py-3 text-sm'>
-               <span className='text-ca-heading'>
-                  Jami: <span className='font-bold'>{formatNumber(totals.quantity)}</span>
-               </span>
-               <span className='font-bold text-ca-heading'>{formatNumber(totals.yuan, 2)} ¥</span>
-               <span className='font-bold text-ca-green'>{formatNumber(totals.dollar, 2)} $</span>
-            </div>
+            <FormField label='Izoh' horizontal={false} className='mb-3'>
+               <Textarea rows={2} value={header.note} onChange={(e) => set('note', e.target.value)} />
+            </FormField>
 
             {canWrite && (
                <Button
                   type='button'
-                  variant='success'
+                  variant='info'
                   size='lg'
-                  className='mt-4 w-full'
+                  className='w-full'
                   loading={updateMutation.isPending}
                   onClick={handleSave}
                >
-                  <FaSave className='mr-1.5' /> Saqlash
+                  <FaSave className='mr-1.5' /> O'zgartirish
                </Button>
             )}
-         </Panel>
+         </Card>
       </>
    );
 }
+
+/** Clears a row's product pick when an upper level (model / nomi / o'lchami) changes. */
+const emptyPick: Partial<EditRow> = {
+   brand: '',
+   category: '',
+   size: '',
+   productKey: '',
+   warehouse: undefined,
+   sourceImportWarehouse: undefined,
+   snapshot: undefined,
+};

@@ -6,8 +6,8 @@ import type { ImportOrderStatus, ImportStage } from '@/services/two-stage-import
 export { SCROLL_AREA_CLASS, SCROLL_BODY_CLASS, SCROLL_PANEL_CLASS } from '@/lib/layout';
 
 export const STAGE_LABELS: Record<ImportStage, string> = {
-	CHINA_TO_TRANSIT: 'Xitoy → Tranzit sklad',
-	TRANSIT_TO_UZBEKISTAN: "Tranzit sklad → O'zbekiston",
+	CHINA_TO_TRANSIT: 'Xitoy → Qozog‘iston',
+	TRANSIT_TO_UZBEKISTAN: "Qozog‘iston → O'zbekiston",
 };
 
 export const ORDER_STATUS_LABELS: Record<ImportOrderStatus, string> = {
