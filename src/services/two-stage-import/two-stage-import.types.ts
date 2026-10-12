@@ -1,6 +1,7 @@
 export type ImportStage = 'CHINA_TO_TRANSIT' | 'TRANSIT_TO_UZBEKISTAN';
 
-export type ImportOrderStatus = 'DRAFT' | 'IN_ROAD' | 'ARRIVED' | 'RECEIVED' | 'CANCELLED';
+/** `ARCHIVED` is what the per-route order APIs report for finished orders (ARRIVED / RECEIVED in the DB). */
+export type ImportOrderStatus = 'DRAFT' | 'IN_ROAD' | 'ARRIVED' | 'RECEIVED' | 'CANCELLED' | 'ARCHIVED';
 
 export interface ImportCart {
 	id: number;
@@ -9,6 +10,9 @@ export interface ImportCart {
 	stage: ImportStage;
 	consignor: number | null;
 	source_logistics_warehouse: number | null;
+	/** Uzbekistan-stage carts are per (source warehouse, destination sklad); null on legacy carts. */
+	destination_type_sklad?: number | null;
+	destination_type_sklad_detail?: { id: number; name: string } | null;
 	two_stage_import: number | null;
 	dispatch_datetime: string;
 	is_active: boolean;
@@ -31,6 +35,17 @@ export interface ImportCartSummary {
 	total_quantity: number;
 	total_yuan: string;
 	total_dollar: string;
+}
+
+/**
+ * Which cart to load. CHINA_TO_TRANSIT carts are per consignor; TRANSIT_TO_UZBEKISTAN carts are per
+ * source warehouse + destination sklad (destination alone returns that destination's latest active cart).
+ */
+export interface ImportCartParams {
+	stage: ImportStage;
+	consignor?: number;
+	source_logistics_warehouse?: number;
+	destination_type_sklad?: number;
 }
 
 export interface ImportCartResponse {
@@ -63,6 +78,7 @@ export interface ChinaCartItemPayload {
 export interface UzbekistanCartItemPayload {
 	stage: 'TRANSIT_TO_UZBEKISTAN';
 	source_logistics_warehouse: number;
+	destination_type_sklad: number;
 	dispatch_datetime: string;
 	import_warehouse: number;
 	quantity: number;
@@ -181,12 +197,20 @@ interface LogisticsWarehouseDetail {
 	logistics_company?: number | null;
 }
 
-export interface ImportOrderListParams {
-	stage?: ImportStage;
-	status?: ImportOrderStatus;
+/**
+ * Filters of the per-route lists (`china-transit-orders/`, `transit-uzbekistan-orders/`). Without
+ * `status` the backend returns active (not yet arrived) orders; `ALL` includes the archive.
+ */
+export interface RouteOrderListParams {
+	status?: ImportOrderStatus | 'ALL';
 	consignor?: number;
 	source_logistics_warehouse?: number;
 	destination_logistics_warehouse?: number;
+	destination_type_sklad?: number;
+	/** CHINA_TO_TRANSIT: destination warehouse's country; TRANSIT_TO_UZBEKISTAN: source warehouse's country. */
+	country?: number;
+	page?: number;
+	limit?: number;
 }
 
 export interface TransitStockItem {

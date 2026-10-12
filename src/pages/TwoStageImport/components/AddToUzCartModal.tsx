@@ -27,6 +27,8 @@ interface AddToUzCartModalProps {
 	setOpen: (open: boolean) => void;
 	stock: TransitStockItem;
 	product?: WarehouseAllListItem;
+	/** TypeSklad id of the receiving sklad — picks which Uzbekistan cart the item goes into. */
+	destinationTypeSklad: number;
 	/** API format, e.g. "2026-10-14T09:00:00+05:00". */
 	dispatchDatetime: string;
 }
@@ -35,7 +37,14 @@ interface AddToUzCartFormValues {
 	quantity: string;
 }
 
-export default function AddToUzCartModal({ open, setOpen, stock, product, dispatchDatetime }: AddToUzCartModalProps) {
+export default function AddToUzCartModal({
+	open,
+	setOpen,
+	stock,
+	product,
+	destinationTypeSklad,
+	dispatchDatetime,
+}: AddToUzCartModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 
@@ -82,6 +91,7 @@ export default function AddToUzCartModal({ open, setOpen, stock, product, dispat
 			await addToCartMutation.mutateAsync({
 				stage: 'TRANSIT_TO_UZBEKISTAN',
 				source_logistics_warehouse: stock.logistics_warehouse,
+				destination_type_sklad: destinationTypeSklad,
 				dispatch_datetime: dispatchDatetime,
 				import_warehouse: stock.id,
 				quantity: Number(values.quantity),

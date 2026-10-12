@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
    Button,
@@ -20,6 +20,8 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
+import { useLogisticsWarehouseQuery } from '@/services/logistics-warehouse/logistics-warehouse.queries';
+import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import {
    useDeleteCartItemMutation,
    useImportCartQuery,
@@ -73,6 +75,7 @@ export default function UzbekistanDispatchPage() {
    const cartCols = useColumnVisibility('logistics-uz-cart', CART_COLUMNS);
    const { notify } = useNotification();
 
+   const [destination, setDestination] = useState('');
    const [logisticsCompany, setLogisticsCompany] = useState('');
    const [logisticsWarehouse, setLogisticsWarehouse] = useState('');
    const [brandFilter, setBrandFilter] = useState('');
@@ -96,10 +99,35 @@ export default function UzbekistanDispatchPage() {
    );
 
    const stockQuery = useTransitStockQuery();
-   const cartQuery = useImportCartQuery(STAGE);
+   const { data: skladTypes } = useSkladTypeListQuery({ limit: 200 });
+   const destinationOptions = (skladTypes?.results ?? []).map((t) => ({ value: String(t.id), label: t.name }));
+
+   // Carts are per (source warehouse, receiving sklad). The receiving sklad is picked first; with only
+   // it set, the backend returns that sklad's latest active cart, whose source is then prefilled below.
+   const destinationId = destination ? Number(destination) : undefined;
+   const cartQuery = useImportCartQuery(
+      { stage: STAGE, destination_type_sklad: destinationId, source_logistics_warehouse: logisticsWarehouseId },
+      destinationId != null,
+   );
 
    const cart = cartQuery.data?.cart ?? null;
    const cartItems = cartQuery.data?.items ?? [];
+   const summary = cartQuery.data?.summary;
+
+   useEffect(() => {
+      if (!logisticsWarehouse && cart?.source_logistics_warehouse) {
+         setLogisticsWarehouse(String(cart.source_logistics_warehouse));
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [cart?.source_logistics_warehouse]);
+
+   const { data: selectedWarehouse } = useLogisticsWarehouseQuery(logisticsWarehouseId);
+   useEffect(() => {
+      if (!logisticsCompany && selectedWarehouse?.logistics_company) {
+         setLogisticsCompany(String(selectedWarehouse.logistics_company));
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [selectedWarehouse?.logistics_company]);
 
    const dispatchValue = dispatchInput || (cart ? fromApiDateTime(cart.dispatch_datetime) : defaultDispatch);
 
@@ -126,21 +154,10 @@ export default function UzbekistanDispatchPage() {
       return true;
    });
 
-   // The cart only lists items from the chosen logistics warehouse — nothing until one is picked.
-   const visibleCartItems = logisticsWarehouseId
-      ? cartItems.filter((item) => stockForCartItem(item)?.logistics_warehouse === logisticsWarehouseId)
-      : [];
-   const otherWarehouseItemCount = logisticsWarehouseId ? cartItems.length - visibleCartItems.length : 0;
-   const visibleSummary = visibleCartItems.reduce(
-      (acc, item) => ({
-         quantity: acc.quantity + item.quantity,
-         yuan: acc.yuan + Number(item.total_yuan),
-         dollar: acc.dollar + Number(item.total_dollar),
-      }),
-      { quantity: 0, yuan: 0, dollar: 0 },
-   );
+   const canPick = canWrite && Boolean(destination);
 
    const headerErrors = {
+      destination: submitAttempted && !destination ? 'Qabul qiluvchi skladni tanlang' : '',
       logisticsCompany: submitAttempted && !logisticsCompany ? 'Logistikani tanlang' : '',
       logisticsWarehouse: submitAttempted && !logisticsWarehouse ? 'Logistika skladini tanlang' : '',
       dispatch: submitAttempted && !dispatchValue ? "Jo'natish sanasini tanlang" : '',
@@ -148,7 +165,7 @@ export default function UzbekistanDispatchPage() {
 
    function handleContinue() {
       setSubmitAttempted(true);
-      if (!logisticsCompany || !logisticsWarehouse || !dispatchValue) return;
+      if (!destination || !logisticsCompany || !logisticsWarehouse || !dispatchValue) return;
       setDispatchOpen(true);
    }
 
@@ -260,7 +277,7 @@ export default function UzbekistanDispatchPage() {
                            {rows.map((stock, index) => {
                               const product = stock.warehouse_detail;
                               return (
-                                 <TableRow key={stock.id} onClick={() => canWrite && stock.available_quantity > 0 && setSelected(stock)} className={canWrite && stock.available_quantity > 0 ? 'cursor-pointer bg-red-50 hover:bg-red-100' : 'bg-red-50 opacity-60'}>
+                                 <TableRow key={stock.id} onClick={() => canPick && stock.available_quantity > 0 && setSelected(stock)} className={canPick && stock.available_quantity > 0 ? 'cursor-pointer bg-red-50 hover:bg-red-100' : 'bg-red-50 opacity-60'}>
                                     <TableCell>{index + 1}</TableCell>
                                     {stockCols.isVisible('brand') && <TableCell>{product?.brand_name ?? '-'}</TableCell>}
                                     {stockCols.isVisible('category') && <TableCell>{product?.product_category_name ?? '-'}</TableCell>}
@@ -290,7 +307,24 @@ export default function UzbekistanDispatchPage() {
                   bodyClassName={SCROLL_BODY_CLASS}
                >
                   <div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
-                     <div className='w-full px-2.5 sm:w-1/3'>
+                     <div className='w-full px-2.5 sm:w-1/2'>
+                        <label className='mb-1 block text-xs font-semibold text-ca-heading'>
+                           Qabul qiluvchi sklad: <span className='text-ca-red'>*</span>
+                        </label>
+                        <Combobox
+                           value={destination}
+                           onChange={(value) => {
+                              setDestination(value);
+                              // Another destination means another cart — show that cart's dispatch time.
+                              setDispatchInput('');
+                           }}
+                           options={destinationOptions}
+                           placeholder='Qabul qiluvchini tanlang'
+                           clearable
+                        />
+                        {headerErrors.destination && <p className='mt-1 text-xs text-ca-red'>{headerErrors.destination}</p>}
+                     </div>
+                     <div className='w-full px-2.5 sm:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                            Logistika: <span className='text-ca-red'>*</span>
                         </label>
@@ -301,14 +335,16 @@ export default function UzbekistanDispatchPage() {
                               setLogisticsWarehouse('');
                            }}
                            loadOptions={loadLogisticsCompanyOptions}
-                           placeholder='Logistikani tanlang'
+                           selectedLabel={selectedWarehouse?.logistics_company_name ?? undefined}
+                           disabled={!destination}
+                           placeholder={destination ? 'Logistikani tanlang' : 'Avval qabul qiluvchini tanlang'}
                            clearable
                         />
                         {headerErrors.logisticsCompany && (
                            <p className='mt-1 text-xs text-ca-red'>{headerErrors.logisticsCompany}</p>
                         )}
                      </div>
-                     <div className='w-full px-2.5 sm:w-1/3'>
+                     <div className='w-full px-2.5 sm:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                            Logistika skladi: <span className='text-ca-red'>*</span>
                         </label>
@@ -317,6 +353,7 @@ export default function UzbekistanDispatchPage() {
                            value={logisticsWarehouse}
                            onChange={(value) => setLogisticsWarehouse(value)}
                            loadOptions={loadLogisticsWarehouseOptions}
+                           selectedLabel={selectedWarehouse?.name}
                            disabled={!logisticsCompany}
                            placeholder={logisticsCompany ? 'Skladni tanlang' : 'Avval logistikani tanlang'}
                            clearable
@@ -325,7 +362,7 @@ export default function UzbekistanDispatchPage() {
                            <p className='mt-1 text-xs text-ca-red'>{headerErrors.logisticsWarehouse}</p>
                         )}
                      </div>
-                     <div className='w-full px-2.5 sm:w-1/3'>
+                     <div className='w-full px-2.5 sm:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                            Jo'natish sanasi va vaqti: <span className='text-ca-red'>*</span>
                         </label>
@@ -360,14 +397,14 @@ export default function UzbekistanDispatchPage() {
                                  </TableCell>
                               </TableRow>
                            )}
-                           {!cartQuery.isLoading && visibleCartItems.length === 0 && (
+                           {!cartQuery.isLoading && cartItems.length === 0 && (
                               <TableRow>
                                  <TableCell colSpan={cartCols.visibleCount} className='text-center'>
-                                    {logisticsWarehouseId ? "Jo'natish savati bo'sh" : 'Avval logistika va skladni tanlang'}
+                                    {destination ? "Jo'natish savati bo'sh" : 'Avval qabul qiluvchi skladni tanlang'}
                                  </TableCell>
                               </TableRow>
                            )}
-                           {visibleCartItems.map((item, index) => {
+                           {cartItems.map((item, index) => {
                               const stock = stockForCartItem(item);
                               return (
                                  <TableRow key={item.id} className='bg-red-50'>
@@ -395,21 +432,14 @@ export default function UzbekistanDispatchPage() {
                         </TableBody>
                      </Table>
 
-                     {visibleCartItems.length > 0 && (
+                     {summary && cartItems.length > 0 && (
                         <div className='mt-4 flex flex-wrap items-center justify-around gap-3 rounded-[3px] border border-ca-border bg-ca-silver px-4 py-3 text-sm'>
                            <span className='text-ca-heading'>
-                              Jami: <span className='font-bold'>{formatNumber(visibleSummary.quantity)} </span>
+                              Jami: <span className='font-bold'>{formatNumber(summary.total_quantity)} </span>
                            </span>
-                           <span className='font-bold text-ca-heading'>{formatNumber(visibleSummary.yuan, 0)} ¥</span>
-                           <span className='font-bold text-ca-green'>{formatNumber(visibleSummary.dollar, 2)} $</span>
+                           <span className='font-bold text-ca-heading'>{formatNumber(summary.total_yuan, 0)} ¥</span>
+                           <span className='font-bold text-ca-green'>{formatNumber(summary.total_dollar, 2)} $</span>
                         </div>
-                     )}
-
-                     {otherWarehouseItemCount > 0 && (
-                        <p className='mt-3 flex items-center gap-1.5 text-xs font-semibold text-ca-red'>
-                           <FaExclamationTriangle /> Savatda boshqa skladlardan yana {otherWarehouseItemCount} ta mahsulot
-                           bor. Jo'natishda butun savat yuboriladi.
-                        </p>
                      )}
 
                      {canWrite && (
@@ -419,7 +449,7 @@ export default function UzbekistanDispatchPage() {
                               variant='default'
                               size='lg'
                               className='flex-1'
-                              disabled={cartItems.length === 0}
+                              disabled={!cart || cartItems.length === 0}
                               onClick={() => setClearCartOpen(true)}
                            >
                               Savatni tozalash
@@ -429,7 +459,7 @@ export default function UzbekistanDispatchPage() {
                               variant='danger'
                               size='lg'
                               className='flex-1'
-                              disabled={visibleCartItems.length === 0 || !cart}
+                              disabled={cartItems.length === 0 || !cart}
                               onClick={handleContinue}
                            >
                               Davom etish
@@ -446,19 +476,25 @@ export default function UzbekistanDispatchPage() {
                open={dispatchOpen}
                setOpen={setDispatchOpen}
                cartId={cart?.id}
+               destinationTypeSklad={cart?.destination_type_sklad ?? destinationId}
+               destinationTypeSkladName={
+                  cart?.destination_type_sklad_detail?.name ??
+                  destinationOptions.find((o) => o.value === destination)?.label
+               }
                disabled={cartItems.length === 0}
             />
          )}
 
-         {clearCartOpen && (
-            <ClearImportCartConfirmModal open={clearCartOpen} setOpen={setClearCartOpen} stage={STAGE} />
+         {clearCartOpen && cart && (
+            <ClearImportCartConfirmModal open={clearCartOpen} setOpen={setClearCartOpen} stage={STAGE} cartId={cart.id} />
          )}
 
-         {selected && (
+         {selected && destinationId != null && (
             <AddToUzCartModal
                open
                setOpen={(open) => !open && setSelected(null)}
                stock={selected}
+               destinationTypeSklad={destinationId}
                dispatchDatetime={toApiDateTime(dispatchValue)}
             />
          )}

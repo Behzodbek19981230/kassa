@@ -1,5 +1,6 @@
 import { apiClient } from '@/services/api/client';
 import type { ListResponse } from '@/services/api/list-page';
+import type { PaginationMeta } from '@/services/api/types';
 import type { WarehouseAllListBrandGroup } from '@/services/warehouse/warehouse.types';
 import type {
 	CancelOrderPayload,
@@ -9,8 +10,9 @@ import type {
 	ChinaProductsParams,
 	ImportCartResponse,
 	ImportOrderListItem,
-	ImportOrderListParams,
 	ImportStage,
+	RouteOrderListParams,
+	ImportCartParams,
 	LocalReceiptPayload,
 	LogisticsPartnersParams,
 	LogisticsPartnersResponse,
@@ -27,6 +29,23 @@ import type {
 
 const BASE_PATH = '/design';
 
+// Each route (stage) has its own order list / products / confirm endpoints.
+const ROUTE_ORDERS_PATH: Record<ImportStage, string> = {
+	CHINA_TO_TRANSIT: `${BASE_PATH}/china-transit-orders`,
+	TRANSIT_TO_UZBEKISTAN: `${BASE_PATH}/transit-uzbekistan-orders`,
+};
+
+// The route lists answer with a plain array; pagination comes in X-* headers.
+function paginationFromHeaders(headers: Record<string, unknown>): PaginationMeta {
+	const num = (name: string) => Number(headers[name] ?? 0) || 0;
+	return {
+		currentPage: num('x-page') || 1,
+		lastPage: num('x-total-pages') || 1,
+		perPage: num('x-limit'),
+		total: num('x-total-count'),
+	};
+}
+
 export const twoStageImportService = {
 	getChinaProducts: async (params?: ChinaProductsParams) => {
 		const { data } = await apiClient.get<WarehouseAllListBrandGroup[] | ListResponse<WarehouseAllListBrandGroup>>(`${BASE_PATH}/china-products/`, {
@@ -34,8 +53,8 @@ export const twoStageImportService = {
 		});
 		return data;
 	},
-	getCart: async (stage: ImportStage) => {
-		const { data } = await apiClient.get<ImportCartResponse>(`${BASE_PATH}/cart/`, { params: { stage } });
+	getCart: async (params: ImportCartParams) => {
+		const { data } = await apiClient.get<ImportCartResponse>(`${BASE_PATH}/cart/`, { params });
 		return data;
 	},
 	addCartItem: async (payload: CartItemPayload) => {
@@ -45,20 +64,21 @@ export const twoStageImportService = {
 	removeCartItem: async (id: number) => {
 		await apiClient.delete(`${BASE_PATH}/cart/item-delete/${id}/`);
 	},
-	clearCart: async (stage: ImportStage) => {
-		await apiClient.delete(`${BASE_PATH}/cart/clear/`, { data: { stage } });
+	// Cleared by id so a different consignor's/destination's cart can't be wiped by mistake.
+	clearCart: async (cartId: number) => {
+		await apiClient.delete(`${BASE_PATH}/cart/clear/`, { data: { cart: cartId } });
 	},
 	chinaDispatch: async (payload: ChinaDispatchPayload) => {
 		const { data } = await apiClient.post<ChinaDispatchResponse>(`${BASE_PATH}/china-dispatch/`, payload);
 		return data;
 	},
-	getOrders: async (params?: ImportOrderListParams) => {
-		const { data } = await apiClient.get<ImportOrderListItem[]>(`${BASE_PATH}/orders/`, { params });
-		return data;
+	getRouteOrders: async (stage: ImportStage, params?: RouteOrderListParams) => {
+		const response = await apiClient.get<ImportOrderListItem[]>(`${ROUTE_ORDERS_PATH[stage]}/`, { params });
+		return { results: response.data, pagination: paginationFromHeaders(response.headers) };
 	},
 	transitArrival: async (orderId: number, payload: TransitArrivalPayload) => {
 		const { data } = await apiClient.post<ImportOrderListItem>(
-			`${BASE_PATH}/order/${orderId}/transit-arrival/`,
+			`${ROUTE_ORDERS_PATH.CHINA_TO_TRANSIT}/${orderId}/confirm/`,
 			payload,
 		);
 		return data;
@@ -86,8 +106,10 @@ export const twoStageImportService = {
 		);
 		return data;
 	},
-	getOrderProducts: async (orderId: number, params?: OrderProductsParams) => {
-		const { data } = await apiClient.get<OrderProductsResponse>(`${BASE_PATH}/order/${orderId}/products/`, { params });
+	/** With `stage`, uses that route's products endpoint (404s for an order of the other route). */
+	getOrderProducts: async (orderId: number, params?: OrderProductsParams, stage?: ImportStage) => {
+		const url = stage ? `${ROUTE_ORDERS_PATH[stage]}/${orderId}/products/` : `${BASE_PATH}/order/${orderId}/products/`;
+		const { data } = await apiClient.get<OrderProductsResponse>(url, { params });
 		return data;
 	},
 	exportPartnerStock: async (
@@ -112,7 +134,7 @@ export const twoStageImportService = {
 	},
 	localReceipt: async (orderId: number, payload: LocalReceiptPayload) => {
 		const { data } = await apiClient.post<ImportOrderListItem>(
-			`${BASE_PATH}/order/${orderId}/local-receipt/`,
+			`${ROUTE_ORDERS_PATH.TRANSIT_TO_UZBEKISTAN}/${orderId}/confirm/`,
 			payload,
 		);
 		return data;

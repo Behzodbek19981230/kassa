@@ -91,7 +91,12 @@ export default function ChinaDispatchPage() {
    const products = productGroups.flatMap((group) => group.product_categories.flatMap((category) => category.warehouses));
    const rowNumbers = new Map(products.map((row, index) => [row.id, index + 1]));
 
-   const cartQuery = useImportCartQuery(STAGE);
+   // Each consignor has its own cart, so nothing is loaded until one is chosen.
+   const consignorValue = consignorInput;
+   const cartQuery = useImportCartQuery(
+      { stage: STAGE, consignor: consignorValue ? Number(consignorValue) : undefined },
+      Boolean(consignorValue),
+   );
    const cart = cartQuery.data?.cart ?? null;
    const cartItems = cartQuery.data?.items ?? [];
    const summary = cartQuery.data?.summary;
@@ -101,8 +106,7 @@ export default function ChinaDispatchPage() {
    const cartWarehouseQueries = useWarehouseDetailQueries(cartWarehouseIds);
    const cartWarehouseById = new Map(cartWarehouseIds.map((id, index) => [id, cartWarehouseQueries[index]?.data] as const));
 
-   // The cart keeps the consignor and dispatch time of the open import, so they are prefilled from it.
-   const consignorValue = consignorInput || (cart?.consignor ? String(cart.consignor) : '');
+   // The consignor's cart keeps the dispatch time of its open import, so it's prefilled from it.
    const dispatchValue = dispatchInput || (cart ? fromApiDateTime(cart.dispatch_datetime) : defaultDispatch);
    const canPick = canWrite && Boolean(consignorValue) && Boolean(dispatchValue);
 
@@ -270,7 +274,11 @@ export default function ChinaDispatchPage() {
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>Yuk jo'natuvchi:</label>
                         <Combobox
                            value={consignorValue}
-                           onChange={(value) => setConsignorInput(value)}
+                           onChange={(value) => {
+                              setConsignorInput(value);
+                              // A different consignor means a different cart — show that cart's dispatch time.
+                              setDispatchInput('');
+                           }}
                            loadOptions={loadConsignorOptions}
                            selectedLabel={selectedConsignor?.name}
                            placeholder="Yuk jo'natuvchini tanlang"
@@ -315,7 +323,14 @@ export default function ChinaDispatchPage() {
                                  </TableCell>
                               </TableRow>
                            )}
-                           {!cartQuery.isLoading && cartItems.length === 0 && (
+                           {!consignorValue && (
+                              <TableRow>
+                                 <TableCell colSpan={cartCols.visibleCount} className='text-center'>
+                                    Avval yuk jo'natuvchini tanlang
+                                 </TableCell>
+                              </TableRow>
+                           )}
+                           {consignorValue && !cartQuery.isLoading && cartItems.length === 0 && (
                               <TableRow>
                                  <TableCell colSpan={cartCols.visibleCount} className='text-center'>
                                     Import savati bo'sh
@@ -375,7 +390,7 @@ export default function ChinaDispatchPage() {
                            variant='default'
                            size='lg'
                            className='flex-1'
-                           disabled={cartItems.length === 0}
+                           disabled={!cart || cartItems.length === 0}
                            onClick={() => setClearCartOpen(true)}
                         >
                            Savatni tozalash
@@ -406,8 +421,8 @@ export default function ChinaDispatchPage() {
             />
          )}
 
-         {clearCartOpen && (
-            <ClearImportCartConfirmModal open={clearCartOpen} setOpen={setClearCartOpen} stage={STAGE} />
+         {clearCartOpen && cart && (
+            <ClearImportCartConfirmModal open={clearCartOpen} setOpen={setClearCartOpen} stage={STAGE} cartId={cart.id} />
          )}
 
          {confirmOpen && cart && summary && (

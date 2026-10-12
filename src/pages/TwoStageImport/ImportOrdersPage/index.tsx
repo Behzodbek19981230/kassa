@@ -7,6 +7,7 @@ import {
    Button,
    Combobox,
    PageHeader,
+   Pagination,
    Panel,
    Table,
    TableBody,
@@ -22,14 +23,16 @@ import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useConsignorQuery } from '@/services/consignor/consignor.queries';
 import { useLogisticsWarehouseQuery } from '@/services/logistics-warehouse/logistics-warehouse.queries';
-import { useImportOrdersQuery } from '@/services/two-stage-import/two-stage-import.queries';
+import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
+import { useRouteOrdersQuery } from '@/services/two-stage-import/two-stage-import.queries';
 import type {
    ImportOrderListItem,
-   ImportOrderStatus,
    ImportStage,
+   RouteOrderListParams,
 } from '@/services/two-stage-import/two-stage-import.types';
 import {
    loadConsignorOptions,
+   loadCountryOptions,
    createLogisticsWarehouseLoader,
    logisticsWarehouseLabel,
 } from '@/pages/TwoStageImport/options';
@@ -39,10 +42,10 @@ import LocalReceiptModal from '@/pages/TwoStageImport/components/LocalReceiptMod
 import TransitArrivalModal from '@/pages/TwoStageImport/components/TransitArrivalModal';
 import {
    ORDER_STATUS_LABELS,
-   ORDER_STATUS_OPTIONS,
    ORDER_STATUS_VARIANTS,
    SCROLL_AREA_CLASS,
    SCROLL_BODY_CLASS,
+   ROUTE_ORDER_STATUS_OPTIONS,
    SCROLL_PANEL_CLASS,
    STAGE_OPTIONS,
    formatTashkentDate,
@@ -63,6 +66,7 @@ const COLUMNS: ColumnVisibilityDef[] = [
 ];
 
 const loadWarehouseOptions = createLogisticsWarehouseLoader();
+const PAGE_SIZE = 50;
 
 // The step a row opens. An order in transit opens its next step. A draft opens the cancel dialog.
 function primaryAction(order: ImportOrderListItem): OrderAction | null {
@@ -76,29 +80,57 @@ export default function ImportOrdersPage() {
    const { canWrite } = useCurrentCompany();
    const cols = useColumnVisibility('logistics-orders', COLUMNS);
 
+   const [stage, setStage] = useState<ImportStage>('CHINA_TO_TRANSIT');
    const [consignorFilter, setConsignorFilter] = useState('');
-   const [stageFilter, setStageFilter] = useState('');
    const [statusFilter, setStatusFilter] = useState('');
+   const [countryFilter, setCountryFilter] = useState('');
    const [sourceFilter, setSourceFilter] = useState('');
    const [destinationFilter, setDestinationFilter] = useState('');
+   const [page, setPage] = useState(1);
    const [action, setAction] = useState<OrderAction | null>(null);
+
+   const isChina = stage === 'CHINA_TO_TRANSIT';
 
    const { data: selectedConsignor } = useConsignorQuery(consignorFilter ? Number(consignorFilter) : undefined);
    const { data: selectedSource } = useLogisticsWarehouseQuery(sourceFilter ? Number(sourceFilter) : undefined);
    const { data: selectedDestination } = useLogisticsWarehouseQuery(
-      destinationFilter ? Number(destinationFilter) : undefined,
+      isChina && destinationFilter ? Number(destinationFilter) : undefined,
    );
+   const { data: skladTypes } = useSkladTypeListQuery({ limit: 200 });
+   const skladTypeOptions = (skladTypes?.results ?? []).map((t) => ({ value: String(t.id), label: t.name }));
 
-   const ordersQuery = useImportOrdersQuery({
+   // China orders go into a logistics warehouse; Uzbekistan orders leave one and go into a TypeSklad.
+   const ordersQuery = useRouteOrdersQuery(stage, {
+      status: (statusFilter as RouteOrderListParams['status']) || undefined,
       consignor: consignorFilter ? Number(consignorFilter) : undefined,
-      stage: (stageFilter as ImportStage) || undefined,
-      status: (statusFilter as ImportOrderStatus) || undefined,
-      source_logistics_warehouse: sourceFilter ? Number(sourceFilter) : undefined,
-      destination_logistics_warehouse: destinationFilter ? Number(destinationFilter) : undefined,
+      country: countryFilter ? Number(countryFilter) : undefined,
+      source_logistics_warehouse: !isChina && sourceFilter ? Number(sourceFilter) : undefined,
+      destination_logistics_warehouse: isChina && destinationFilter ? Number(destinationFilter) : undefined,
+      destination_type_sklad: !isChina && destinationFilter ? Number(destinationFilter) : undefined,
+      page,
+      limit: PAGE_SIZE,
    });
-   const orders = ordersQuery.data ?? [];
+   const orders = ordersQuery.data?.results ?? [];
+   const pagination = ordersQuery.data?.pagination;
 
    const closeAction = (open: boolean) => !open && setAction(null);
+
+   // Any filter change starts over from the first page.
+   function withPageReset<T>(setter: (value: T) => void) {
+      return (value: T) => {
+         setter(value);
+         setPage(1);
+      };
+   }
+
+   function changeStage(next: ImportStage) {
+      if (next === stage) return;
+      setStage(next);
+      // Warehouse filters mean different things per route, so they don't carry over.
+      setSourceFilter('');
+      setDestinationFilter('');
+      setPage(1);
+   }
 
    return (
       <>
@@ -124,59 +156,89 @@ export default function ImportOrdersPage() {
                )
             }
          >
+            <div className='mb-4 flex flex-wrap gap-2'>
+               {STAGE_OPTIONS.map((option) => (
+                  <Button
+                     key={option.value}
+                     type='button'
+                     variant={stage === option.value ? 'theme' : 'white'}
+                     size='sm'
+                     onClick={() => changeStage(option.value as ImportStage)}
+                  >
+                     {option.label}
+                  </Button>
+               ))}
+            </div>
+
             <div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
-               <div className='w-full px-2.5 sm:w-1/2 xl:w-1/4'>
+               <div className='w-full px-2.5 sm:w-1/2 xl:w-1/5'>
+                  <label className='mb-1 block text-xs font-semibold text-ca-heading'>Holati:</label>
+                  <Combobox
+                     value={statusFilter}
+                     onChange={withPageReset(setStatusFilter)}
+                     options={ROUTE_ORDER_STATUS_OPTIONS}
+                     placeholder='Faol (yetib kelmagan)'
+                     clearable
+                  />
+               </div>
+               <div className='w-full px-2.5 sm:w-1/2 xl:w-1/5'>
                   <label className='mb-1 block text-xs font-semibold text-ca-heading'>Yuk jo'natuvchi:</label>
                   <Combobox
                      value={consignorFilter}
-                     onChange={(value) => setConsignorFilter(value)}
+                     onChange={withPageReset(setConsignorFilter)}
                      loadOptions={loadConsignorOptions}
                      selectedLabel={selectedConsignor?.name}
                      placeholder='Barchasi'
                      clearable
                   />
                </div>
-               <div className='w-full px-2.5 sm:w-1/2 xl:w-1/4'>
-                  <label className='mb-1 block text-xs font-semibold text-ca-heading'>Bosqich:</label>
+               <div className='w-full px-2.5 sm:w-1/2 xl:w-1/5'>
+                  <label className='mb-1 block text-xs font-semibold text-ca-heading'>
+                     {isChina ? 'Qabul qiluvchi sklad davlati:' : 'Jo\'natuvchi sklad davlati:'}
+                  </label>
                   <Combobox
-                     value={stageFilter}
-                     onChange={(value) => setStageFilter(value)}
-                     options={STAGE_OPTIONS}
+                     value={countryFilter}
+                     onChange={withPageReset(setCountryFilter)}
+                     loadOptions={loadCountryOptions}
                      placeholder='Barchasi'
                      clearable
                   />
                </div>
-               <div className='w-full px-2.5 sm:w-1/2 xl:w-1/4'>
-                  <label className='mb-1 block text-xs font-semibold text-ca-heading'>Holati:</label>
-                  <Combobox
-                     value={statusFilter}
-                     onChange={(value) => setStatusFilter(value)}
-                     options={ORDER_STATUS_OPTIONS}
-                     placeholder='Barchasi'
-                     clearable
-                  />
-               </div>
-               <div className='w-full px-2.5 sm:w-1/2 xl:w-1/4'>
-                  <label className='mb-1 block text-xs font-semibold text-ca-heading'>Jo'natuvchi sklad:</label>
-                  <Combobox
-                     value={sourceFilter}
-                     onChange={(value) => setSourceFilter(value)}
-                     loadOptions={loadWarehouseOptions}
-                     selectedLabel={selectedSource ? logisticsWarehouseLabel(selectedSource) : undefined}
-                     placeholder='Barchasi'
-                     clearable
-                  />
-               </div>
-               <div className='w-full px-2.5 sm:w-1/2 xl:w-1/4'>
+               {!isChina && (
+                  <div className='w-full px-2.5 sm:w-1/2 xl:w-1/5'>
+                     <label className='mb-1 block text-xs font-semibold text-ca-heading'>Jo'natuvchi sklad:</label>
+                     <Combobox
+                        value={sourceFilter}
+                        onChange={withPageReset(setSourceFilter)}
+                        loadOptions={loadWarehouseOptions}
+                        selectedLabel={selectedSource ? logisticsWarehouseLabel(selectedSource) : undefined}
+                        placeholder='Barchasi'
+                        clearable
+                     />
+                  </div>
+               )}
+               <div className='w-full px-2.5 sm:w-1/2 xl:w-1/5'>
                   <label className='mb-1 block text-xs font-semibold text-ca-heading'>Qabul qiluvchi sklad:</label>
-                  <Combobox
-                     value={destinationFilter}
-                     onChange={(value) => setDestinationFilter(value)}
-                     loadOptions={loadWarehouseOptions}
-                     selectedLabel={selectedDestination ? logisticsWarehouseLabel(selectedDestination) : undefined}
-                     placeholder='Barchasi'
-                     clearable
-                  />
+                  {isChina ? (
+                     <Combobox
+                        key='logistics-destination'
+                        value={destinationFilter}
+                        onChange={withPageReset(setDestinationFilter)}
+                        loadOptions={loadWarehouseOptions}
+                        selectedLabel={selectedDestination ? logisticsWarehouseLabel(selectedDestination) : undefined}
+                        placeholder='Barchasi'
+                        clearable
+                     />
+                  ) : (
+                     <Combobox
+                        key='sklad-destination'
+                        value={destinationFilter}
+                        onChange={withPageReset(setDestinationFilter)}
+                        options={skladTypeOptions}
+                        placeholder='Barchasi'
+                        clearable
+                     />
+                  )}
                </div>
             </div>
 
@@ -224,7 +286,7 @@ export default function ImportOrdersPage() {
                      )}
                      {orders.map((order, index) => (
                         <TableRow key={order.id} onClick={() => { const next = primaryAction(order); if (canWrite && next) setAction(next); }} className={canWrite && primaryAction(order) ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}>
-                           <TableCell>{index + 1}</TableCell>
+                           <TableCell>{(page - 1) * PAGE_SIZE + index + 1}</TableCell>
 
                            {cols.isVisible('date') && <TableCell>{formatTashkentDate(order.order_datetime)}</TableCell>}
                            {cols.isVisible('sender') && <TableCell>{order.sender_name || '-'}</TableCell>}
@@ -247,7 +309,7 @@ export default function ImportOrdersPage() {
                                        aria-label="Ko'rish"
                                        onClick={(e) => {
                                           e.stopPropagation();
-                                          navigate(`/two-stage-import/orders/${order.id}`);
+                                          navigate(`/two-stage-import/orders/${order.id}?stage=${order.stage}`);
                                        }}
                                     >
                                        <FaEye />
@@ -292,6 +354,15 @@ export default function ImportOrdersPage() {
                   </TableBody>
                </Table>
             </div>
+
+            {pagination && pagination.lastPage > 1 && (
+               <div className='mt-3 flex flex-wrap items-center justify-between gap-2'>
+                  <span className='text-xs text-ca-text'>
+                     Jami {formatNumber(pagination.total)} ta, {pagination.currentPage}-sahifa ({pagination.lastPage} tadan)
+                  </span>
+                  <Pagination page={page} totalPages={pagination.lastPage} onPageChange={setPage} />
+               </div>
+            )}
          </Panel>
 
          {action?.kind === 'arrival' && (

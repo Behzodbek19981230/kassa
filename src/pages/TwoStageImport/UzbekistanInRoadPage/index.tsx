@@ -158,7 +158,7 @@ export default function UzbekistanInRoadPage() {
                                        variant='theme'
                                        size='icon'
                                        aria-label="Ko'rish"
-                                       onClick={() => navigate(`/two-stage-import/orders/${order.id}`)}
+                                       onClick={() => navigate(`/two-stage-import/orders/${order.id}?stage=${order.stage}`)}
                                     >
                                        <FaEye />
                                     </Button>

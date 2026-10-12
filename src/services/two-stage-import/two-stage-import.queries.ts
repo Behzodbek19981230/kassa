@@ -7,8 +7,9 @@ import type {
 	CartItemPayload,
 	ChinaDispatchPayload,
 	ChinaProductsParams,
-	ImportOrderListParams,
 	ImportStage,
+	RouteOrderListParams,
+	ImportCartParams,
 	LocalReceiptPayload,
 	LogisticsPartnersParams,
 	OrderProductsParams,
@@ -20,8 +21,9 @@ import type {
 const twoStageKeys = {
 	all: ['two-stage-import'] as const,
 	chinaProducts: (params?: ChinaProductsParams) => ['two-stage-import', 'china-products', params] as const,
-	cart: (stage: ImportStage) => ['two-stage-import', 'cart', stage] as const,
-	orders: (params?: ImportOrderListParams) => ['two-stage-import', 'orders', params] as const,
+	cart: (params: ImportCartParams) => ['two-stage-import', 'cart', params] as const,
+	routeOrders: (stage: ImportStage, params?: RouteOrderListParams) =>
+		['two-stage-import', 'route-orders', stage, params] as const,
 	transitStock: (logisticsWarehouse?: number) =>
 		['two-stage-import', 'transit-stock', logisticsWarehouse ?? null] as const,
 	uzbekistanInRoad: ['two-stage-import', 'uzbekistan-in-road'] as const,
@@ -47,17 +49,19 @@ export function useChinaProductsQuery(params?: ChinaProductsParams) {
 	});
 }
 
-export function useImportCartQuery(stage: ImportStage) {
+export function useImportCartQuery(params: ImportCartParams, enabled = true) {
 	return useQuery({
-		queryKey: twoStageKeys.cart(stage),
-		queryFn: () => twoStageImportService.getCart(stage),
+		queryKey: twoStageKeys.cart(params),
+		queryFn: () => twoStageImportService.getCart(params),
+		enabled,
 	});
 }
 
-export function useImportOrdersQuery(params?: ImportOrderListParams) {
+export function useRouteOrdersQuery(stage: ImportStage, params?: RouteOrderListParams) {
 	return useQuery({
-		queryKey: twoStageKeys.orders(params),
-		queryFn: () => twoStageImportService.getOrders(params),
+		queryKey: twoStageKeys.routeOrders(stage, params),
+		queryFn: () => twoStageImportService.getRouteOrders(stage, params),
+		placeholderData: keepPreviousData,
 	});
 }
 
@@ -93,10 +97,10 @@ export function usePartnerPriceHistoryQuery(partnerId?: number, stockId?: number
 	});
 }
 
-export function useOrderProductsQuery(orderId?: number, params?: OrderProductsParams) {
+export function useOrderProductsQuery(orderId?: number, params?: OrderProductsParams, stage?: ImportStage) {
 	return useQuery({
-		queryKey: ['two-stage-import', 'order-products', orderId, params] as const,
-		queryFn: () => twoStageImportService.getOrderProducts(orderId!, params),
+		queryKey: ['two-stage-import', 'order-products', orderId, params, stage ?? null] as const,
+		queryFn: () => twoStageImportService.getOrderProducts(orderId!, params, stage),
 		enabled: !!orderId,
 		placeholderData: keepPreviousData,
 	});
@@ -135,7 +139,7 @@ export function useDeleteCartItemMutation() {
 export function useClearCartMutation() {
 	const invalidate = useInvalidateTwoStageImport();
 	return useMutation({
-		mutationFn: (stage: ImportStage) => twoStageImportService.clearCart(stage),
+		mutationFn: (cartId: number) => twoStageImportService.clearCart(cartId),
 		onSuccess: invalidate,
 	});
 }

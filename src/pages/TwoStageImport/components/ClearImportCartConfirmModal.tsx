@@ -16,15 +16,17 @@ interface ClearImportCartConfirmModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	stage: ImportStage;
+	/** The cart currently shown — only this one is cleared. */
+	cartId: number;
 }
 
-export default function ClearImportCartConfirmModal({ open, setOpen, stage }: ClearImportCartConfirmModalProps) {
+export default function ClearImportCartConfirmModal({ open, setOpen, stage, cartId }: ClearImportCartConfirmModalProps) {
 	const { notify } = useNotification();
 	const clearCartMutation = useClearCartMutation();
 
 	const handleClear = async () => {
 		try {
-			await clearCartMutation.mutateAsync(stage);
+			await clearCartMutation.mutateAsync(cartId);
 			notify({ title: 'Savatcha tozalandi' });
 			setOpen(false);
 		} catch (err) {

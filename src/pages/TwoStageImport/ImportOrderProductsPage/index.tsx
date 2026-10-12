@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
    FaArrowLeft,
    FaBoxes,
@@ -45,6 +45,7 @@ import {
    formatTashkentDateTime,
 } from '@/pages/TwoStageImport/utils';
 import { useOrderProductsQuery } from '@/services/two-stage-import/two-stage-import.queries';
+import type { ImportStage } from '@/services/two-stage-import/two-stage-import.types';
 
 const COLUMNS: ColumnVisibilityDef[] = [
    { id: 'image', label: 'Rasm' },
@@ -66,6 +67,11 @@ const HEAD_CLASS = 'bg-ca-theme text-white';
 export default function ImportOrderProductsPage() {
    const { id } = useParams();
    const orderId = Number(id);
+   // Lists link here with ?stage= so the route's own products endpoint is used; without it, the generic one.
+   const [searchParams] = useSearchParams();
+   const stageParam = searchParams.get('stage');
+   const stage: ImportStage | undefined =
+      stageParam === 'CHINA_TO_TRANSIT' || stageParam === 'TRANSIT_TO_UZBEKISTAN' ? stageParam : undefined;
    const navigate = useNavigate();
    const cols = useColumnVisibility('logistics-order-products', COLUMNS);
 
@@ -82,7 +88,7 @@ export default function ImportOrderProductsPage() {
       limit: PAGE_SIZE,
       movement_page: movementPage,
       movement_limit: MOVEMENT_PAGE_SIZE,
-   });
+   }, stage);
    const data = query.data;
    const order = data?.order;
    const pagination = data?.pagination;

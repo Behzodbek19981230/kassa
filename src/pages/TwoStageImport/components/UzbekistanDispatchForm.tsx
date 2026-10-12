@@ -14,17 +14,11 @@ import {
    ModalHeader,
    ModalTitle,
    PriceInput,
-   Select,
-   SelectContent,
-   SelectItem,
-   SelectTrigger,
-   SelectValue,
    useNotification,
 } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useLogisticsCompanyQuery } from '@/services/logistics-company/logistics-company.queries';
-import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import { useUzbekistanDispatchMutation } from '@/services/two-stage-import/two-stage-import.queries';
 import { loadLogisticsCompanyOptions } from '@/pages/TwoStageImport/options';
 import { nonNegativeNumber, positiveNumber } from '@/pages/TwoStageImport/utils';
@@ -37,7 +31,6 @@ const uzbekistanDispatchSchema = z.object({
    carrierLogistics: z.string().min(1, 'Tashuvchi logistikani tanlang'),
    servicePriceYuan: nonNegativeNumber('Xizmat narxini kiriting (¥)'),
    servicePriceDollar: nonNegativeNumber('Xizmat narxini kiriting ($)'),
-   destinationSkladType: z.string().min(1, 'Qabul qiluvchi skladni tanlang'),
    truckNumber: z.string().trim().min(1, 'Fura raqamini kiriting'),
    driverPhone: z.string().trim().min(1, 'Haydovchi telefonini kiriting'),
 });
@@ -48,10 +41,20 @@ interface UzbekistanDispatchFormProps {
    open: boolean;
    setOpen: (open: boolean) => void;
    cartId?: number;
+   /** Receiving sklad of the cart being dispatched — fixed by the cart, so it's shown, not chosen here. */
+   destinationTypeSklad?: number;
+   destinationTypeSkladName?: string;
    disabled?: boolean;
 }
 
-export default function UzbekistanDispatchForm({ open, setOpen, cartId, disabled }: UzbekistanDispatchFormProps) {
+export default function UzbekistanDispatchForm({
+   open,
+   setOpen,
+   cartId,
+   destinationTypeSklad,
+   destinationTypeSkladName,
+   disabled,
+}: UzbekistanDispatchFormProps) {
    const { notify } = useNotification();
    const [formError, setFormError] = useState('');
 
@@ -72,7 +75,6 @@ export default function UzbekistanDispatchForm({ open, setOpen, cartId, disabled
          carrierLogistics: '',
          servicePriceYuan: '',
          servicePriceDollar: '',
-         destinationSkladType: '',
          truckNumber: '',
          driverPhone: '',
       },
@@ -80,7 +82,6 @@ export default function UzbekistanDispatchForm({ open, setOpen, cartId, disabled
 
    const carrierId = watch('carrierLogistics');
    const { data: selectedCarrier } = useLogisticsCompanyQuery(carrierId ? Number(carrierId) : undefined);
-   const { data: skladTypes } = useSkladTypeListQuery({ limit: 200 });
 
    const dispatchMutation = useUzbekistanDispatchMutation();
 
@@ -90,12 +91,16 @@ export default function UzbekistanDispatchForm({ open, setOpen, cartId, disabled
          setFormError("Savat bo'sh. Avval mahsulot qo'shing.");
          return;
       }
+      if (!destinationTypeSklad) {
+         setFormError('Qabul qiluvchi sklad tanlanmagan');
+         return;
+      }
 
       try {
          const result = await dispatchMutation.mutateAsync({
             cart: cartId,
             carrier_logistics: Number(values.carrierLogistics),
-            destination_type_sklad: Number(values.destinationSkladType),
+            destination_type_sklad: destinationTypeSklad,
             truck_number: values.truckNumber.trim(),
             driver_phone: values.driverPhone.trim(),
             weight_kg: Number(values.weightKg).toFixed(3),
@@ -197,31 +202,10 @@ export default function UzbekistanDispatchForm({ open, setOpen, cartId, disabled
                         />
                      </FormField>
 
-                     <FormField
-                        label='Qabul qiluvchi sklad'
-                        error={errors.destinationSkladType?.message}
-                        required
-                        horizontal={false}
-                        className='mb-3'
-                     >
-                        <Controller
-                           name='destinationSkladType'
-                           control={control}
-                           render={({ field }) => (
-                              <Select value={field.value} onValueChange={field.onChange}>
-                                 <SelectTrigger>
-                                    <SelectValue placeholder='Tanlang...' />
-                                 </SelectTrigger>
-                                 <SelectContent>
-                                    {(skladTypes?.results ?? []).map((type) => (
-                                       <SelectItem key={type.id} value={String(type.id)}>
-                                          {type.name}
-                                       </SelectItem>
-                                    ))}
-                                 </SelectContent>
-                              </Select>
-                           )}
-                        />
+                     <FormField label='Qabul qiluvchi sklad' horizontal={false} className='mb-3'>
+                        <div className='flex h-[34px] items-center rounded-[3px] border border-ca-field-border bg-ca-muted-2 px-3 text-xs font-semibold text-ca-heading'>
+                           {destinationTypeSkladName ?? '-'}
+                        </div>
                      </FormField>
                      <FormField label='Fura raqami' error={errors.truckNumber?.message} required horizontal={false} className='mb-3'>
                         <Input {...register('truckNumber')} />

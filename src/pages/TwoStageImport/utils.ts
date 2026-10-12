@@ -16,6 +16,7 @@ export const ORDER_STATUS_LABELS: Record<ImportOrderStatus, string> = {
 	ARRIVED: 'Tranzit skladga keldi',
 	RECEIVED: 'Yakunlangan',
 	CANCELLED: 'Bekor qilingan',
+	ARCHIVED: 'Arxiv',
 };
 
 export const ORDER_STATUS_VARIANTS: Record<ImportOrderStatus, BadgeProps['variant']> = {
@@ -24,6 +25,7 @@ export const ORDER_STATUS_VARIANTS: Record<ImportOrderStatus, BadgeProps['varian
 	ARRIVED: 'success',
 	RECEIVED: 'success',
 	CANCELLED: 'danger',
+	ARCHIVED: 'success',
 };
 
 export const STAGE_OPTIONS: ComboboxOption[] = [
@@ -31,9 +33,14 @@ export const STAGE_OPTIONS: ComboboxOption[] = [
 	{ value: 'TRANSIT_TO_UZBEKISTAN', label: STAGE_LABELS.TRANSIT_TO_UZBEKISTAN },
 ];
 
-export const ORDER_STATUS_OPTIONS: ComboboxOption[] = (Object.keys(ORDER_STATUS_LABELS) as ImportOrderStatus[]).map(
-	(value) => ({ value, label: ORDER_STATUS_LABELS[value] }),
-);
+/** Status filter of the per-route order lists. No value = active (not yet arrived) orders. */
+export const ROUTE_ORDER_STATUS_OPTIONS: ComboboxOption[] = [
+	{ value: 'IN_ROAD', label: ORDER_STATUS_LABELS.IN_ROAD },
+	{ value: 'DRAFT', label: ORDER_STATUS_LABELS.DRAFT },
+	{ value: 'CANCELLED', label: ORDER_STATUS_LABELS.CANCELLED },
+	{ value: 'ARCHIVED', label: ORDER_STATUS_LABELS.ARCHIVED },
+	{ value: 'ALL', label: 'Barchasi (arxiv bilan)' },
+];
 
 // Uzbekistan has no DST, so the offset is fixed. It matches the +05:00 used in the API examples.
 const TASHKENT_OFFSET_MS = 5 * 60 * 60 * 1000;
