@@ -36,6 +36,8 @@ export function useCreateOrderCartMutation() {
 		mutationFn: (payload: OrderCartPayload) => orderCartService.create(payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
+			// Cart changes reserve/release stock, so the warehouse product counts change too.
+			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
 		},
 	});
 }
@@ -47,6 +49,8 @@ export function useUpdateOrderCartMutation() {
 			orderCartService.update(id, payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
+			// Cart changes reserve/release stock, so the warehouse product counts change too.
+			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
 		},
 	});
 }
@@ -57,6 +61,8 @@ export function useDeleteOrderCartMutation() {
 		mutationFn: (id: number) => orderCartService.remove(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
+			// Cart changes reserve/release stock, so the warehouse product counts change too.
+			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
 		},
 	});
 }
@@ -67,6 +73,8 @@ export function useClearOrderCartMutation() {
 		mutationFn: (payload: ClearOrderCartPayload) => orderCartService.clear(payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
+			// Cart changes reserve/release stock, so the warehouse product counts change too.
+			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
 		},
 	});
 }
@@ -77,6 +85,8 @@ export function useConfirmSaleMutation() {
 		mutationFn: (payload: ConfirmSalePayload) => orderCartService.confirmSale(payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
+			// Cart changes reserve/release stock, so the warehouse product counts change too.
+			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
 			queryClient.invalidateQueries({ queryKey: ['clients'] });
 		},
 	});
