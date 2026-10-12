@@ -625,6 +625,8 @@ export function DataTable<TData>({
 														disabled={header.column.columnDef.meta?.filterDisabled}
 														searchPlaceholder='Qidirish...'
 														className='h-[26px] text-[11px]'
+														contentClassName='w-[280px] min-w-[var(--radix-popover-trigger-width)] max-w-[90vw]'
+														wrapOptions
 													/>
 												) : (
 													<Input

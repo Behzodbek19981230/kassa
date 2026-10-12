@@ -84,6 +84,7 @@ export interface ClientPayload {
   is_worker: 0 | 1
   is_partner: 0 | 1
   is_profit_loss: 0 | 1
+  is_blocked: boolean
   type: ClientType
   company: number
   region: number

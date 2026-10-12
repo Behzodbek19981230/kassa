@@ -348,6 +348,10 @@ export default function WarehouseProductRow({
 					<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar omborda topilmadi</p>
 				))}
 
+			{onDuplicateChange && !resolveStock && duplicateItem && (
+				<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar bazada mavjud</p>
+			)}
+
 			{requireCatalogMatch && isVariantComplete && !catalogMatch && (
 				<p className='mt-1 text-[11px] font-semibold text-ca-red'>
 					Bu tovar bazada topilmadi.{' '}

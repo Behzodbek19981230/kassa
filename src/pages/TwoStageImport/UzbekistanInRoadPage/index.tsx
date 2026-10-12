@@ -67,7 +67,6 @@ export default function UzbekistanInRoadPage() {
                   <TableHeader>
                      <TableRow>
                         <TableHead className='bg-ca-theme text-white'>#</TableHead>
-                        <TableHead className='bg-ca-theme text-white'>Buyurtma №</TableHead>
                         <TableHead className='bg-ca-theme text-white'>Jo'natilgan sana</TableHead>
                         <TableHead className='bg-ca-theme text-white'>Manba</TableHead>
                         <TableHead className='bg-ca-theme text-white'>Qabul sklad</TableHead>
@@ -108,7 +107,6 @@ export default function UzbekistanInRoadPage() {
                            className={canWrite ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}
                         >
                            <TableCell>{index + 1}</TableCell>
-                           <TableCell className='font-semibold text-ca-heading'>{order.order_number}</TableCell>
                            <TableCell>{formatTashkentDate(order.order_datetime)}</TableCell>
                            <TableCell>{order.source_logistics_warehouse_detail?.name ?? '-'}</TableCell>
                            <TableCell>{order.destination_type_sklad_detail?.name ?? order.destination_logistics_warehouse_detail?.name ?? '-'}</TableCell>

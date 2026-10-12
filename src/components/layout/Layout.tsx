@@ -16,9 +16,15 @@ import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { useCurrentCompany } from '@/lib/company';
 
+// Logistika pages work with yuan prices, so they're gated on today's yuan rate as well.
+const LOGISTICS_PATH_PREFIX = '/two-stage-import';
+
 export default function Layout() {
 	const { pathname } = useLocation();
-	const { isExchangeRateSet } = useCurrentCompany();
+	const { isExchangeRateSet, isYuanExchangeRateSet } = useCurrentCompany();
+	const isLogisticsPage = pathname.startsWith(LOGISTICS_PATH_PREFIX);
+	const isYuanBlocked = isLogisticsPage && !isYuanExchangeRateSet;
+	const [yuanModalOpen, setYuanModalOpen] = useState(false);
 	const [sidebarMinified, setSidebarMinified] = useState(false);
 	const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 	const [rateModalOpen, setRateModalOpen] = useState(false);
@@ -39,6 +45,12 @@ export default function Layout() {
 		}
 	}, [isExchangeRateSet]);
 
+	// Warn every time a Logistika page is opened while the yuan rate is missing. The dollar
+	// warning takes precedence, so don't stack both modals.
+	useEffect(() => {
+		setYuanModalOpen(isYuanBlocked && isExchangeRateSet);
+	}, [pathname, isYuanBlocked, isExchangeRateSet]);
+
 	const contentMargin = sidebarMinified ? 'lg:ml-[60px]' : 'lg:ml-[220px]';
 
 	return (
@@ -54,8 +66,16 @@ export default function Layout() {
 				/>
 
 				<main id='content' className={`px-[25px] py-5 transition-all duration-200 ${contentMargin}`}>
-					{isExchangeRateSet ? (
+					{isExchangeRateSet && !isYuanBlocked ? (
 						<Outlet />
+					) : isExchangeRateSet ? (
+						<div className='flex min-h-[70vh] flex-col items-center justify-center gap-3 text-center'>
+							<FaExclamationTriangle className='text-5xl text-ca-red' />
+							<div className='text-lg font-semibold text-ca-heading'>Bugungi yuan kursi yangilanmagan</div>
+							<div className='max-w-md text-sm text-ca-text'>
+								Shuning uchun Logistika bo'limida vazifa qila olmaysiz. Adminga murojaat qiling.
+							</div>
+						</div>
 					) : (
 						<div className='flex min-h-[70vh] flex-col items-center justify-center gap-3 text-center'>
 							<FaExclamationTriangle className='text-5xl text-ca-red' />
@@ -84,6 +104,24 @@ export default function Layout() {
 					</ModalBody>
 					<ModalFooter>
 						<Button variant='danger' onClick={() => setRateModalOpen(false)}>
+							Tushunarli
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
+
+			<Modal open={yuanModalOpen} onOpenChange={setYuanModalOpen}>
+				<ModalContent>
+					<ModalHeader>
+						<ModalTitle className='flex items-center gap-2 text-ca-red'>
+							<FaExclamationTriangle /> Bugungi yuan kursi yangilanmagan
+						</ModalTitle>
+					</ModalHeader>
+					<ModalBody>
+						<p>Shuning uchun Logistika bo'limida vazifa qila olmaysiz. Adminga murojaat qiling.</p>
+					</ModalBody>
+					<ModalFooter>
+						<Button variant='danger' onClick={() => setYuanModalOpen(false)}>
 							Tushunarli
 						</Button>
 					</ModalFooter>

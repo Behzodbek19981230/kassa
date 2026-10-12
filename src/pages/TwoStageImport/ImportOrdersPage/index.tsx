@@ -168,7 +168,6 @@ export default function ImportOrdersPage() {
                   <TableHeader>
                      <TableRow>
                         <TableHead className='bg-ca-theme text-white'>#</TableHead>
-                        <TableHead className='bg-ca-theme text-white'>Import №</TableHead>
                         <TableHead className='bg-ca-theme text-white'>Sana</TableHead>
                         <TableHead className='bg-ca-theme text-white'>Yuk jo'natuvchi</TableHead>
                         <TableHead className='bg-ca-theme text-white'>Yo'nalish</TableHead>
@@ -205,9 +204,7 @@ export default function ImportOrdersPage() {
                      {orders.map((order, index) => (
                         <TableRow key={order.id} onClick={() => { const next = primaryAction(order); if (canWrite && next) setAction(next); }} className={canWrite && primaryAction(order) ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}>
                            <TableCell>{index + 1}</TableCell>
-                           <TableCell className='font-semibold text-ca-heading'>
-                              {order.two_stage_import_detail?.import_number ?? order.order_number}
-                           </TableCell>
+
                            <TableCell>{formatTashkentDate(order.order_datetime)}</TableCell>
                            <TableCell>{order.sender_name || '-'}</TableCell>
                            <TableCell>{order.direction_name || '-'}</TableCell>
@@ -219,30 +216,30 @@ export default function ImportOrdersPage() {
                            </TableCell>
                            <TableCell>
                               <div className='flex gap-1.5'>
-                              <Button
-                                 type='button'
-                                 variant='theme'
-                                 size='xs'
-                                 onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/two-stage-import/orders/${order.id}`);
-                                 }}
-                              >
-                                 <FaEye className='mr-1.5' /> Ko'rish
-                              </Button>
-                              {canWrite && primaryAction(order) && (
                                  <Button
                                     type='button'
-                                    variant='danger'
+                                    variant='theme'
                                     size='xs'
                                     onClick={(e) => {
                                        e.stopPropagation();
-                                       setAction(primaryAction(order));
+                                       navigate(`/two-stage-import/orders/${order.id}`);
                                     }}
                                  >
-                                    {primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}
+                                    <FaEye className='mr-1.5' /> Ko'rish
                                  </Button>
-                              )}
+                                 {canWrite && primaryAction(order) && (
+                                    <Button
+                                       type='button'
+                                       variant='danger'
+                                       size='xs'
+                                       onClick={(e) => {
+                                          e.stopPropagation();
+                                          setAction(primaryAction(order));
+                                       }}
+                                    >
+                                       {primaryAction(order)?.kind === 'cancel' ? 'Bekor qilish' : 'Tasdiqlash'}
+                                    </Button>
+                                 )}
                               </div>
                            </TableCell>
                         </TableRow>

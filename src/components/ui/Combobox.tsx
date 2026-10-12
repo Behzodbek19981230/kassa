@@ -39,6 +39,8 @@ export interface ComboboxProps {
 	debounceMs?: number
 	className?: string
 	contentClassName?: string
+	/** Wraps long option labels onto multiple lines instead of truncating them. */
+	wrapOptions?: boolean
 	/** Shows an "x" button to clear the current value when one is selected. */
 	clearable?: boolean
 }
@@ -57,6 +59,7 @@ export function Combobox({
 	debounceMs = 300,
 	className,
 	contentClassName,
+	wrapOptions = false,
 	clearable = false,
 }: ComboboxProps) {
 	const isAsync = typeof loadOptions === 'function'
@@ -228,11 +231,13 @@ export function Combobox({
 								onClick={() => handleSelect(option)}
 								onMouseEnter={() => setHighlighted(index)}
 								className={cn(
-									'flex cursor-pointer items-center justify-between rounded-[2px] px-2.5 py-1.5 text-ca-heading select-none',
+									'flex cursor-pointer items-center justify-between gap-2 rounded-[2px] px-2.5 py-1.5 text-ca-heading select-none',
 									(index === highlighted || option.value === value) && 'bg-ca-muted',
 								)}
 							>
-								<span className='truncate'>{option.label}</span>
+								<span className={wrapOptions ? 'break-words whitespace-normal' : 'truncate'}>
+									{option.label}
+								</span>
 								{option.value === value && <FaCheck className='shrink-0 text-[10px] text-ca-theme' />}
 							</div>
 						))}

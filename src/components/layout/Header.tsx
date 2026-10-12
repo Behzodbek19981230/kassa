@@ -20,6 +20,7 @@ import {
    FaTruck,
    FaUser,
    FaWarehouse,
+   FaYenSign,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { sidebarMenu } from '@/data/sidebarMenu';
@@ -42,7 +43,7 @@ import {
    Tooltip,
    useNotification,
 } from '@/components/ui';
-import ExchangeRateEditModal from '@/components/layout/ExchangeRateEditModal';
+import ExchangeRateEditModal, { type ExchangeRateCurrency } from '@/components/layout/ExchangeRateEditModal';
 import NewTelegramClientsModal from '@/components/layout/NewTelegramClientsModal';
 import type { SidebarIcon } from '@/types';
 
@@ -99,12 +100,14 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
       isSuperAdmin,
       exchangeRate,
       isExchangeRateSet,
+      yuanExchangeRate,
+      isYuanExchangeRateSet,
    } = useCurrentCompany();
    const currentCompany = companies.find((c) => c.id === companyId);
    const { notify } = useNotification();
 
    const [switchingCompanyId, setSwitchingCompanyId] = useState<number | null>(null);
-   const [rateModalOpen, setRateModalOpen] = useState(false);
+   const [rateModalCurrency, setRateModalCurrency] = useState<ExchangeRateCurrency | null>(null);
    const [newClientsModalOpen, setNewClientsModalOpen] = useState(false);
 
    const { data: unconfirmedTransfersData } = useWarehouseTransferListQuery(
@@ -212,7 +215,45 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                               <button
                                  type='button'
                                  aria-label="Dollar kursini o'zgartirish"
-                                 onClick={() => setRateModalOpen(true)}
+                                 onClick={() => setRateModalCurrency('dollar')}
+                                 className='rounded-full p-1.5 text-ca-nav-text/70 transition-colors hover:bg-white/10 hover:text-ca-theme focus:outline-none'
+                              >
+                                 <FaPencilAlt className='text-[11px]' />
+                              </button>
+                           </Tooltip>
+                        )}
+                     </span>
+
+                     <span className='flex items-center gap-1'>
+                        <Tooltip
+                           side='bottom'
+                           content={
+                              isYuanExchangeRateSet
+                                 ? 'Bugungi yuan kursi'
+                                 : 'Bugungi yuan kursi hali belgilanmagan. Admin yoki menejer kursni yangilamaguncha Logistika sahifalari bloklangan.'
+                           }
+                        >
+                           <span
+                              className={cn(
+                                 'flex items-center gap-1.5 rounded-full  px-2.5 py-1 font-semibold text-white',
+                                 isYuanExchangeRateSet ? 'bg-ca-green' : 'bg-ca-red',
+                              )}
+                           >
+                              <FaYenSign />
+                              <span className='tabular-nums'>
+                                 {yuanExchangeRate
+                                    ? `1 ¥ = ${Number(yuanExchangeRate.dollar_per_yuan).toLocaleString('ru-RU', { maximumFractionDigits: 6 })} $`
+                                    : '...'}
+                              </span>
+                              {!isYuanExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}
+                           </span>
+                        </Tooltip>
+                        {isAdminOrManager && (
+                           <Tooltip side='bottom' content="Kursni o'zgartirish">
+                              <button
+                                 type='button'
+                                 aria-label="Yuan kursini o'zgartirish"
+                                 onClick={() => setRateModalCurrency('yuan')}
                                  className='rounded-full p-1.5 text-ca-nav-text/70 transition-colors hover:bg-white/10 hover:text-ca-theme focus:outline-none'
                               >
                                  <FaPencilAlt className='text-[11px]' />
@@ -472,12 +513,24 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
          </header>
 
          {isAdminOrManager && companyId && (
-            <ExchangeRateEditModal
-               open={rateModalOpen}
-               setOpen={setRateModalOpen}
-               companyId={companyId}
-               exchangeRate={exchangeRate}
-            />
+            <>
+               <ExchangeRateEditModal
+                  open={rateModalCurrency === 'dollar'}
+                  setOpen={(open) => setRateModalCurrency(open ? 'dollar' : null)}
+                  companyId={companyId}
+                  currency='dollar'
+                  rateId={exchangeRate?.id}
+                  rateValue={exchangeRate?.dollar}
+               />
+               <ExchangeRateEditModal
+                  open={rateModalCurrency === 'yuan'}
+                  setOpen={(open) => setRateModalCurrency(open ? 'yuan' : null)}
+                  companyId={companyId}
+                  currency='yuan'
+                  rateId={yuanExchangeRate?.id}
+                  rateValue={yuanExchangeRate?.dollar_per_yuan}
+               />
+            </>
          )}
 
          <NewTelegramClientsModal open={newClientsModalOpen} setOpen={setNewClientsModalOpen} />

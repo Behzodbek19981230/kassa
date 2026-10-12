@@ -53,6 +53,7 @@ const clientFormSchema = z.object({
 	worker_user: z.string().optional(),
 	is_partner: z.boolean(),
 	is_profit_loss: z.boolean(),
+	is_blocked: z.boolean(),
 });
 
 type ClientFormValues = z.infer<typeof clientFormSchema>;
@@ -78,6 +79,7 @@ function clientToFormValues(client: Client): ClientFormValues {
 		worker_user: client.worker_user ? String(client.worker_user) : '',
 		is_partner: Boolean(client.is_partner),
 		is_profit_loss: Boolean(client.is_profit_loss),
+		is_blocked: Boolean(client.is_blocked),
 	};
 }
 
@@ -115,6 +117,7 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 						worker_user: '',
 						is_partner: false,
 						is_profit_loss: false,
+						is_blocked: false,
 					},
 	});
 
@@ -196,6 +199,7 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 			worker_user: values.is_worker && values.worker_user ? Number(values.worker_user) : null,
 			is_partner: values.is_partner ? 1 : 0,
 			is_profit_loss: values.is_profit_loss ? 1 : 0,
+			is_blocked: values.is_blocked,
 			company,
 		};
 
@@ -414,6 +418,18 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 									<Checkbox
 										inline
 										label='Foyda/zarar hisobiga kiradi'
+										checked={field.value}
+										onCheckedChange={(v) => field.onChange(!!v)}
+									/>
+								)}
+							/>
+							<Controller
+								name='is_blocked'
+								control={control}
+								render={({ field }) => (
+									<Checkbox
+										inline
+										label='Bloklangan'
 										checked={field.value}
 										onCheckedChange={(v) => field.onChange(!!v)}
 									/>

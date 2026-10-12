@@ -1,6 +1,8 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useExchangeRateQuery } from '@/services/exchange-rate/exchange-rate.queries';
 import type { ExchangeRateItem } from '@/services/exchange-rate/exchange-rate.types';
+import { useYuanExchangeRateQuery } from '@/services/yuan-exchange-rate/yuan-exchange-rate.queries';
+import type { YuanExchangeRateItem } from '@/services/yuan-exchange-rate/yuan-exchange-rate.types';
 import { useUpdateUserMutation, useUserInfoQuery } from '@/services/user/user.queries';
 import type { UserPayload } from '@/services/user/user.types';
 
@@ -34,6 +36,10 @@ interface CompanyContextValue {
 	exchangeRate: ExchangeRateItem | null;
 	/** Whether today's exchange rate has been confirmed (set) for the current company. */
 	isExchangeRateSet: boolean;
+	/** Today's yuan exchange rate record for the current company, or null if none has been set yet. */
+	yuanExchangeRate: YuanExchangeRateItem | null;
+	/** Whether today's yuan rate is set — only gates the Logistika pages, not the rest of the app. */
+	isYuanExchangeRateSet: boolean;
 }
 
 const CompanyContext = createContext<CompanyContextValue | null>(null);
@@ -105,6 +111,10 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 	// wait for a real answer.
 	const isExchangeRateSet = companyId == null || isExchangeRateLoading || exchangeRate?.status === true;
 
+	const { data: yuanExchangeRate, isLoading: isYuanExchangeRateLoading } = useYuanExchangeRateQuery(companyId);
+	const isYuanExchangeRateSet =
+		companyId == null || isYuanExchangeRateLoading || yuanExchangeRate?.status === true;
+
 	const canWrite = (!isAdminOrManager || companyId === ownCompanyId) && isExchangeRateSet;
 
 	const value = useMemo(
@@ -121,6 +131,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 			canWrite,
 			exchangeRate: exchangeRate ?? null,
 			isExchangeRateSet,
+			yuanExchangeRate: yuanExchangeRate ?? null,
+			isYuanExchangeRateSet,
 		}),
 		[
 			companyId,
@@ -131,6 +143,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 			ownCompanyId,
 			exchangeRate,
 			isExchangeRateSet,
+			yuanExchangeRate,
+			isYuanExchangeRateSet,
 			ownCompany,
 			showCompanySelect,
 			canWrite,

@@ -88,7 +88,6 @@ export default function PriceHistoryModal({ open, setOpen, partnerId, stockId }:
                      <TableHeader>
                         <TableRow>
                            <TableHead className='bg-ca-theme text-white'>Kirim sanasi</TableHead>
-                           <TableHead className='bg-ca-theme text-white'>Buyurtma №</TableHead>
                            <TableHead className='bg-ca-theme text-white'>Kirgan soni</TableHead>
                            <TableHead className='bg-ca-theme text-white'>Narx (¥ / $)</TableHead>
                         </TableRow>
@@ -104,7 +103,6 @@ export default function PriceHistoryModal({ open, setOpen, partnerId, stockId }:
                         {entries.map((entry) => (
                            <TableRow key={entry.id}>
                               <TableCell>{formatTashkentDateTime(entry.arrival_at)}</TableCell>
-                              <TableCell>{entry.order_number ?? '—'}</TableCell>
                               <TableCell>{formatNumber(entry.count)}</TableCell>
                               <TableCell className='font-semibold text-ca-theme'>{entry.price.display}</TableCell>
                            </TableRow>

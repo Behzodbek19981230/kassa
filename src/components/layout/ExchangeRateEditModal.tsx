@@ -25,13 +25,25 @@ import { formatNumber } from '@/lib/number';
 import { useExchangeRateHistoryListQuery } from '@/services/exchange-rate-history/exchange-rate-history.queries';
 import type { ExchangeRateHistoryUserDetail } from '@/services/exchange-rate-history/exchange-rate-history.types';
 import { useSaveExchangeRateMutation } from '@/services/exchange-rate/exchange-rate.queries';
-import type { ExchangeRateItem } from '@/services/exchange-rate/exchange-rate.types';
+import { useYuanExchangeRateHistoryListQuery } from '@/services/yuan-exchange-rate-history/yuan-exchange-rate-history.queries';
+import { useSaveYuanExchangeRateMutation } from '@/services/yuan-exchange-rate/yuan-exchange-rate.queries';
+
+export type ExchangeRateCurrency = 'dollar' | 'yuan';
+
+// The dollar rate is entered in so'm; the yuan rate is entered as how many dollars 1 yuan is worth.
+const CURRENCY_TEXT: Record<ExchangeRateCurrency, { name: string; label: string; unit: string; decimals: number }> = {
+	dollar: { name: 'Dollar', label: 'dollar', unit: "so'm", decimals: 2 },
+	yuan: { name: 'Yuan', label: 'yuan', unit: '$', decimals: 6 },
+};
 
 interface ExchangeRateEditModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	companyId: number;
-	exchangeRate: ExchangeRateItem | null;
+	currency: ExchangeRateCurrency;
+	/** Current rate record for `currency`, or null if none exists yet (save will create one). */
+	rateId?: number;
+	rateValue?: string | number;
 }
 
 function formatDateTime(value: string) {
@@ -47,10 +59,20 @@ function userLabel(u: ExchangeRateHistoryUserDetail | null) {
 	return `${u.last_name} ${u.first_name}`.trim() || u.username;
 }
 
-export default function ExchangeRateEditModal({ open, setOpen, companyId, exchangeRate }: ExchangeRateEditModalProps) {
+export default function ExchangeRateEditModal({
+	open,
+	setOpen,
+	companyId,
+	currency,
+	rateId,
+	rateValue,
+}: ExchangeRateEditModalProps) {
 	const { notify } = useNotification();
-	const saveMutation = useSaveExchangeRateMutation();
-	const [dollar, setDollar] = useState(() => String(exchangeRate?.dollar ?? ''));
+	const text = CURRENCY_TEXT[currency];
+	const saveDollarMutation = useSaveExchangeRateMutation();
+	const saveYuanMutation = useSaveYuanExchangeRateMutation();
+	const isSaving = saveDollarMutation.isPending || saveYuanMutation.isPending;
+	const [rate, setRate] = useState(() => String(rateValue ?? ''));
 	const [error, setError] = useState('');
 	const [view, setView] = useState<'edit' | 'history'>('edit');
 
@@ -58,14 +80,31 @@ export default function ExchangeRateEditModal({ open, setOpen, companyId, exchan
 	// modal is opened, since it's mounted once in Header and just toggled visible/hidden —
 	// keep the field in sync with it for as long as the dialog is open.
 	useEffect(() => {
-		if (open) setDollar(String(exchangeRate?.dollar ?? ''));
-	}, [open, exchangeRate]);
+		if (open) setRate(String(rateValue ?? ''));
+	}, [open, rateValue]);
 
-	const { data: historyData, isLoading: isHistoryLoading } = useExchangeRateHistoryListQuery(
+	const historyEnabled = open && view === 'history';
+	const dollarHistory = useExchangeRateHistoryListQuery(
 		{ company: companyId, limit: 50 },
-		open && view === 'history',
+		historyEnabled && currency === 'dollar',
 	);
-	const historyItems = historyData?.results ?? [];
+	const yuanHistory = useYuanExchangeRateHistoryListQuery(
+		{ company: companyId, limit: 50 },
+		historyEnabled && currency === 'yuan',
+	);
+	const isHistoryLoading = currency === 'dollar' ? dollarHistory.isLoading : yuanHistory.isLoading;
+	const historyItems =
+		currency === 'dollar'
+			? (dollarHistory.data?.results ?? []).map((item) => ({
+					...item,
+					old_value: item.old_dollar,
+					new_value: item.new_dollar,
+				}))
+			: (yuanHistory.data?.results ?? []).map((item) => ({
+					...item,
+					old_value: item.old_dollar_per_yuan,
+					new_value: item.new_dollar_per_yuan,
+				}));
 
 	const resetAndClose = (next: boolean) => {
 		if (!next) setView('edit');
@@ -73,17 +112,24 @@ export default function ExchangeRateEditModal({ open, setOpen, companyId, exchan
 	};
 
 	const handleSubmit = async () => {
-		if (!dollar) {
-			setError('Dollar kursini kiriting');
+		if (!rate) {
+			setError(`${text.name} kursini kiriting`);
 			return;
 		}
 		setError('');
 		try {
-			await saveMutation.mutateAsync({
-				id: exchangeRate?.id,
-				payload: { dollar, status: true, company: companyId },
-			});
-			notify({ title: 'Dollar kursi yangilandi' });
+			if (currency === 'dollar') {
+				await saveDollarMutation.mutateAsync({
+					id: rateId,
+					payload: { dollar: rate, status: true, company: companyId },
+				});
+			} else {
+				await saveYuanMutation.mutateAsync({
+					id: rateId,
+					payload: { dollar_per_yuan: rate, status: true, company: companyId },
+				});
+			}
+			notify({ title: `${text.name} kursi yangilandi` });
 			resetAndClose(false);
 		} catch (err) {
 			setError(getApiErrorMessage(err, 'Kursni saqlashda xatolik yuz berdi'));
@@ -95,7 +141,7 @@ export default function ExchangeRateEditModal({ open, setOpen, companyId, exchan
 			<ModalContent className={view === 'history' ? 'max-w-2xl' : undefined}>
 				<ModalHeader className='flex items-center justify-between'>
 					<ModalTitle>
-						{view === 'edit' ? "Kunlik dollar kursini o'zgartirish" : 'Dollar kursi tarixi'}
+						{view === 'edit' ? `Kunlik ${text.label} kursini o'zgartirish` : `${text.name} kursi tarixi`}
 					</ModalTitle>
 					{view === 'edit' ? (
 						<Tooltip content="Kurs o'zgarishlari tarixini ko'rish">
@@ -124,15 +170,15 @@ export default function ExchangeRateEditModal({ open, setOpen, companyId, exchan
 				{view === 'edit' ? (
 					<>
 						<ModalBody>
-							<FormField label="Dollar kursi (so'm)" horizontal={false} error={error} required>
-								<PriceInput value={dollar} onChange={setDollar} autoFocus />
+							<FormField label={currency === 'yuan' ? '1 yuan necha dollar ($)' : `${text.name} kursi (${text.unit})`} horizontal={false} error={error} required>
+								<PriceInput value={rate} onChange={setRate} decimals={text.decimals} autoFocus />
 							</FormField>
 						</ModalBody>
 						<ModalFooter>
 							<Button variant='white' onClick={() => resetAndClose(false)}>
 								Bekor qilish
 							</Button>
-							<Button variant='success' onClick={handleSubmit} loading={saveMutation.isPending}>
+							<Button variant='success' onClick={handleSubmit} loading={isSaving}>
 								Saqlash
 							</Button>
 						</ModalFooter>
@@ -168,14 +214,14 @@ export default function ExchangeRateEditModal({ open, setOpen, companyId, exchan
 													</Badge>
 												</TableCell>
 												<TableCell>
-													{item.old_dollar == null
+													{item.old_value == null
 														? '-'
-														: `${formatNumber(item.old_dollar)} so'm`}
+														: `${formatNumber(item.old_value)} ${text.unit}`}
 												</TableCell>
 												<TableCell className='font-semibold'>
-													{item.new_dollar == null
+													{item.new_value == null
 														? '-'
-														: `${formatNumber(item.new_dollar)} so'm`}
+														: `${formatNumber(item.new_value)} ${text.unit}`}
 												</TableCell>
 											</TableRow>
 										))}
