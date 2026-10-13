@@ -10,6 +10,7 @@ import type {
 const myDebtKeys = {
 	all: ['my-debts'] as const,
 	list: (params?: MyDebtListParams) => ['my-debts', 'list', params] as const,
+	consignorDebts: (params?: MyDebtListParams) => ['my-debts', 'consignor-debts', params] as const,
 };
 
 export function useMyDebtListQuery(params?: MyDebtListParams, enabled = true) {
@@ -17,6 +18,14 @@ export function useMyDebtListQuery(params?: MyDebtListParams, enabled = true) {
 		queryKey: myDebtKeys.list(params),
 		queryFn: () => myDebtService.list(params),
 		enabled,
+		placeholderData: (prev) => prev,
+	});
+}
+
+export function useConsignorDebtListQuery(params?: MyDebtListParams) {
+	return useQuery({
+		queryKey: myDebtKeys.consignorDebts(params),
+		queryFn: () => myDebtService.consignorDebts(params),
 		placeholderData: (prev) => prev,
 	});
 }

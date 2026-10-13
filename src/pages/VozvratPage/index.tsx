@@ -15,7 +15,9 @@ import {
 	TableRow,
 	useNotification,
 } from '@/components/ui';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { useCurrentCompany } from '@/lib/company';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { brandService } from '@/services/brand/brand.service';
@@ -32,6 +34,31 @@ import ConfirmVozvratModal from '@/pages/VozvratPage/components/ConfirmVozvratMo
 import { groupIntoVariants, rowKey, type VozvratVariant } from '@/pages/VozvratPage/utils';
 
 const DANGER_HEADER = 'bg-[#a94442]';
+
+const PRODUCT_COLUMNS: ColumnVisibilityDef[] = [
+	{ id: 'index', label: '#', hideable: false },
+	{ id: 'brand', label: 'Model' },
+	{ id: 'category', label: 'Nomi' },
+	{ id: 'size', label: "O'lchami" },
+	{ id: 'count', label: 'Soni' },
+	{ id: 'type', label: 'Tip' },
+];
+
+const CART_COLUMNS: ColumnVisibilityDef[] = [
+	{ id: 'index', label: '#', hideable: false },
+	{ id: 'location', label: 'Joy' },
+	{ id: 'brand', label: 'Model' },
+	{ id: 'category', label: 'Nomi' },
+	{ id: 'size', label: "O'lcham" },
+	{ id: 'type', label: 'Tip' },
+	{ id: 'price', label: 'Narxi ($)' },
+	{ id: 'count', label: 'Soni' },
+	{ id: 'total', label: 'Umum.narxi ($)' },
+	{ id: 'actions', label: '', hideable: false },
+];
+
+/** Cart columns the "Jami" label of the total row spans. */
+const CART_LABEL_COLUMNS = ['index', 'location', 'brand', 'category', 'size', 'type', 'price'];
 
 interface VozvratCartRow {
 	key: string;
@@ -64,6 +91,9 @@ function toCartItemInput(row: VozvratCartRow): VozvratCartItemInput {
 
 export default function VozvratPage() {
 	const { companyId, canWrite } = useCurrentCompany();
+	const productCols = useColumnVisibility('vozvrat-products', PRODUCT_COLUMNS);
+	const cartCols = useColumnVisibility('vozvrat-cart', CART_COLUMNS);
+	const cartLabelSpan = CART_LABEL_COLUMNS.filter((id) => cartCols.isVisible(id)).length;
 	const { notify } = useNotification();
 
 	const [brandFilter, setBrandFilter] = useState('');
@@ -248,36 +278,40 @@ export default function VozvratPage() {
 							</div>
 						</div>
 
+						<div className='mb-2 flex justify-end'>
+							<ColumnVisibilityMenu state={productCols} />
+						</div>
+
 						<div className='overflow-x-auto'>
 							<Table>
 								<TableHeader>
 									<TableRow>
 										<TableHead className='bg-ca-theme text-white'>#</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Model</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-										<TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
+										{productCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+										{productCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+										{productCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>}
+										{productCols.isVisible('count') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
+										{productCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{!clientId && (
 										<TableRow>
-											<TableCell colSpan={6} className='text-center text-ca-text'>
+											<TableCell colSpan={productCols.visibleCount} className='text-center text-ca-text'>
 												Mijoz tanlangandan keyin xarid qilingan mahsulotlar chiqadi.
 											</TableCell>
 										</TableRow>
 									)}
 									{clientId && (isLoading || isFetching) && (
 										<TableRow>
-											<TableCell colSpan={6} className='text-center'>
+											<TableCell colSpan={productCols.visibleCount} className='text-center'>
 												Yuklanmoqda...
 											</TableCell>
 										</TableRow>
 									)}
 									{clientId && !isLoading && isError && (
 										<TableRow>
-											<TableCell colSpan={6} className='text-center text-ca-red'>
+											<TableCell colSpan={productCols.visibleCount} className='text-center text-ca-red'>
 												<FaExclamationTriangle className='mr-1.5 inline' />{' '}
 												{getApiErrorMessage(error, 'Xatolik yuz berdi')}
 											</TableCell>
@@ -285,7 +319,7 @@ export default function VozvratPage() {
 									)}
 									{clientId && !isLoading && !isError && (data?.groups.length ?? 0) === 0 && (
 										<TableRow>
-											<TableCell colSpan={6} className='text-center'>
+											<TableCell colSpan={productCols.visibleCount} className='text-center'>
 												Mahsulot topilmadi
 											</TableCell>
 										</TableRow>
@@ -299,7 +333,7 @@ export default function VozvratPage() {
 												<Fragment key={group.brand.id}>
 													<TableRow>
 														<TableCell
-															colSpan={6}
+															colSpan={productCols.visibleCount}
 															className='bg-cyan-100 font-bold text-ca-red'
 														>
 															{group.brand.name}
@@ -323,20 +357,24 @@ export default function VozvratPage() {
 																}
 															>
 																<TableCell>{vIndex + 1}</TableCell>
-																<TableCell>
-																	{variant.brandName}
-																	{variant.orderDateLabel && (
-																		<div className='text-[10px] font-semibold text-ca-orange'>
-																			Buyurtma sana:{variant.orderDateLabel}
-																		</div>
-																	)}
-																</TableCell>
-																<TableCell>{variant.categoryName}</TableCell>
-																<TableCell>{formatNumber(variant.size)}</TableCell>
-																<TableCell className='font-semibold'>
-																	{formatNumber(available)}
-																</TableCell>
-																<TableCell>{variant.typeName}</TableCell>
+																{productCols.isVisible('brand') && (
+																	<TableCell>
+																		{variant.brandName}
+																		{variant.orderDateLabel && (
+																			<div className='text-[10px] font-semibold text-ca-orange'>
+																				Buyurtma sana:{variant.orderDateLabel}
+																			</div>
+																		)}
+																	</TableCell>
+																)}
+																{productCols.isVisible('category') && <TableCell>{variant.categoryName}</TableCell>}
+																{productCols.isVisible('size') && <TableCell>{formatNumber(variant.size)}</TableCell>}
+																{productCols.isVisible('count') && (
+																	<TableCell className='font-semibold'>
+																		{formatNumber(available)}
+																	</TableCell>
+																)}
+																{productCols.isVisible('type') && <TableCell>{variant.typeName}</TableCell>}
 															</TableRow>
 														);
 													})}
@@ -372,26 +410,30 @@ export default function VozvratPage() {
 							)}
 						</div>
 
+						<div className='mb-2 flex justify-end'>
+							<ColumnVisibilityMenu state={cartCols} />
+						</div>
+
 						<div className='overflow-x-auto'>
 							<Table>
 								<TableHeader>
 									<TableRow>
 										<TableHead className='bg-ca-theme text-white'>#</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Joy</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Model</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-										<TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Umum.narxi ($)</TableHead>
+										{cartCols.isVisible('location') && <TableHead className='bg-ca-theme text-white'>Joy</TableHead>}
+										{cartCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+										{cartCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+										{cartCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
+										{cartCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
+										{cartCols.isVisible('price') && <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>}
+										{cartCols.isVisible('count') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
+										{cartCols.isVisible('total') && <TableHead className='bg-ca-theme text-white'>Umum.narxi ($)</TableHead>}
 										<TableHead className='bg-ca-theme text-white' />
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{cartRows.length === 0 && (
 										<TableRow>
-											<TableCell colSpan={10} className='text-center'>
+											<TableCell colSpan={cartCols.visibleCount} className='text-center'>
 												{clientId ? "Karzinka bo'sh" : 'Mijozni tanlang'}
 											</TableCell>
 										</TableRow>
@@ -405,24 +447,28 @@ export default function VozvratPage() {
 										return (
 											<TableRow key={row.key} className='bg-red-50'>
 												<TableCell>{index + 1}</TableCell>
-												<TableCell>{row.type_sklad_name}</TableCell>
-												<TableCell>{row.brand_name}</TableCell>
-												<TableCell>{row.product_category_name}</TableCell>
-												<TableCell>{formatNumber(row.size)}</TableCell>
-												<TableCell>{row.type_name}</TableCell>
-												<TableCell className='font-semibold text-ca-green'>
-													{formatNumber(priceDollar, 2)} $
-													<span className='ml-1 font-normal text-ca-text'>
-														({formatNumber(priceSom, 0)})
-													</span>
-												</TableCell>
-												<TableCell>{formatNumber(row.count)}</TableCell>
-												<TableCell className='font-semibold'>
-													{formatNumber(totalDollar, 2)} $
-													<span className='ml-1 font-normal text-ca-text'>
-														({formatNumber(totalSom, 0)})
-													</span>
-												</TableCell>
+												{cartCols.isVisible('location') && <TableCell>{row.type_sklad_name}</TableCell>}
+												{cartCols.isVisible('brand') && <TableCell>{row.brand_name}</TableCell>}
+												{cartCols.isVisible('category') && <TableCell>{row.product_category_name}</TableCell>}
+												{cartCols.isVisible('size') && <TableCell>{formatNumber(row.size)}</TableCell>}
+												{cartCols.isVisible('type') && <TableCell>{row.type_name}</TableCell>}
+												{cartCols.isVisible('price') && (
+													<TableCell className='font-semibold text-ca-green'>
+														{formatNumber(priceDollar, 2)} $
+														<span className='ml-1 font-normal text-ca-text'>
+															({formatNumber(priceSom, 0)})
+														</span>
+													</TableCell>
+												)}
+												{cartCols.isVisible('count') && <TableCell>{formatNumber(row.count)}</TableCell>}
+												{cartCols.isVisible('total') && (
+													<TableCell className='font-semibold'>
+														{formatNumber(totalDollar, 2)} $
+														<span className='ml-1 font-normal text-ca-text'>
+															({formatNumber(totalSom, 0)})
+														</span>
+													</TableCell>
+												)}
 												<TableCell>
 													{canWrite && (
 														<Button
@@ -441,18 +487,22 @@ export default function VozvratPage() {
 									})}
 									{cartRows.length > 0 && (
 										<TableRow className='bg-ca-heading dark:bg-ca-header'>
-											<TableCell className='bg-ca-heading dark:bg-ca-header text-white' colSpan={7}>
+											<TableCell className='bg-ca-heading dark:bg-ca-header text-white' colSpan={cartLabelSpan}>
 												Jami
 											</TableCell>
-											<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
-												{formatNumber(cartTotalCount)}
-											</TableCell>
-											<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
-												{formatNumber(cartTotalSum, 2)} $
-												<span className='ml-1 font-normal text-white/70'>
-													({formatNumber(cartTotalSumSom, 0)})
-												</span>
-											</TableCell>
+											{cartCols.isVisible('count') && (
+												<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
+													{formatNumber(cartTotalCount)}
+												</TableCell>
+											)}
+											{cartCols.isVisible('total') && (
+												<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
+													{formatNumber(cartTotalSum, 2)} $
+													<span className='ml-1 font-normal text-white/70'>
+														({formatNumber(cartTotalSumSom, 0)})
+													</span>
+												</TableCell>
+											)}
 											<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
 										</TableRow>
 									)}

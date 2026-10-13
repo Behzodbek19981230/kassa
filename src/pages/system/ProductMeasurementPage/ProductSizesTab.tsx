@@ -197,6 +197,8 @@ export default function ProductSizesTab() {
 					}}
 					enableGlobalFilter={false}
 					enableColumnFilters
+					enableColumnVisibility
+					columnVisibilityKey='product-sizes'
 					enableSorting={false}
 					isLoading={isLoading || isFetching}
 					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}

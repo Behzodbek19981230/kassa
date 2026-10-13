@@ -23,7 +23,9 @@ import {
 	TableRow,
 	useNotification,
 } from '@/components/ui';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { useCurrentCompany } from '@/lib/company';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import {
@@ -33,7 +35,17 @@ import {
 } from '@/services/order-cart/order-cart.queries';
 
 const DEFAULT_LOCATION_LABEL = 'Dokon';
-const COLUMN_COUNT = 8;
+const COLUMNS: ColumnVisibilityDef[] = [
+	{ id: 'location', label: 'Joy' },
+	{ id: 'brand', label: 'Model' },
+	{ id: 'category', label: 'Nomi' },
+	{ id: 'size', label: "O'lcham" },
+	{ id: 'type', label: 'Tip' },
+	{ id: 'price', label: 'Narxi ($)' },
+	{ id: 'count', label: 'Soni' },
+	{ id: 'total', label: 'Umum. narxi ($)' },
+	{ id: 'actions', label: '', hideable: false },
+];
 const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
 interface GroupToDelete {
@@ -54,6 +66,7 @@ function formatDate(value: string) {
 export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabProps) {
 	const { canWrite } = useCurrentCompany();
 	const { notify } = useNotification();
+	const cols = useColumnVisibility('order-cart-drafts', COLUMNS);
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
 
@@ -117,41 +130,44 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 						))}
 					</SelectContent>
 				</Select>
+				<div className='ml-auto'>
+					<ColumnVisibilityMenu state={cols} />
+				</div>
 			</div>
 
 			<div className='overflow-x-auto'>
 				<Table className='min-w-[720px] rounded-[3px] border border-ca-border'>
 					<TableHeader>
 						<TableRow>
-							<TableHead className='bg-ca-theme text-white'>Joy</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Model</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-							<TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Umum. narxi ($)</TableHead>
+							{cols.isVisible('location') && <TableHead className='bg-ca-theme text-white'>Joy</TableHead>}
+							{cols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+							{cols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+							{cols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
+							{cols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
+							{cols.isVisible('price') && <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>}
+							{cols.isVisible('count') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
+							{cols.isVisible('total') && <TableHead className='bg-ca-theme text-white'>Umum. narxi ($)</TableHead>}
 							<TableHead className='bg-ca-theme text-white' />
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{(isLoading || isFetching) && (
 							<TableRow>
-								<TableCell colSpan={COLUMN_COUNT + 1} className='text-center'>
+								<TableCell colSpan={cols.visibleCount} className='text-center'>
 									Yuklanmoqda...
 								</TableCell>
 							</TableRow>
 						)}
 						{!isLoading && isError && (
 							<TableRow>
-								<TableCell colSpan={COLUMN_COUNT + 1} className='text-center text-ca-red'>
+								<TableCell colSpan={cols.visibleCount} className='text-center text-ca-red'>
 									<FaExclamationTriangle className='mr-1.5 inline' /> {getApiErrorMessage(error, 'Xatolik yuz berdi')}
 								</TableCell>
 							</TableRow>
 						)}
 						{!isLoading && !isFetching && !isError && groups.length === 0 && (
 							<TableRow>
-								<TableCell colSpan={COLUMN_COUNT + 1} className='text-center'>
+								<TableCell colSpan={cols.visibleCount} className='text-center'>
 									Karzinkalar bo'sh
 								</TableCell>
 							</TableRow>
@@ -169,7 +185,7 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 								return (
 									<Fragment key={`${group.client_id}-${groupIndex}`}>
 										<TableRow>
-											<TableCell colSpan={COLUMN_COUNT + 1} className='bg-cyan-100 p-0'>
+											<TableCell colSpan={cols.visibleCount} className='bg-cyan-100 p-0'>
 												<div className='flex flex-wrap items-center justify-between gap-2 px-3 py-2'>
 													<div className='flex flex-wrap items-center gap-x-5 gap-y-1'>
 														<span className='font-bold text-ca-red'>
@@ -206,22 +222,30 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 											const totalPrice = Number(item.total_price) || item.count * Number(item.price);
 											return (
 												<TableRow key={item.id} className='bg-red-50'>
-													<TableCell>
-														{item.warehouse_detail?.type_sklad_name ?? DEFAULT_LOCATION_LABEL}
-													</TableCell>
-													<TableCell>{item.warehouse_detail?.brand_name ?? '-'}</TableCell>
-													<TableCell>
-														{item.warehouse_detail?.product_category_name ?? '-'}
-													</TableCell>
-													<TableCell>{formatNumber(item.warehouse_detail?.size ?? '')}</TableCell>
-													<TableCell>{item.warehouse_detail?.type_name ?? ''}</TableCell>
-													<TableCell className='font-semibold text-ca-green'>
-														{formatNumber(item.price, 2)} $
-													</TableCell>
-													<TableCell>{formatNumber(item.count)}</TableCell>
-													<TableCell className='font-semibold'>
-														{formatNumber(totalPrice, 2)} $
-													</TableCell>
+													{cols.isVisible('location') && (
+														<TableCell>
+															{item.warehouse_detail?.type_sklad_name ?? DEFAULT_LOCATION_LABEL}
+														</TableCell>
+													)}
+													{cols.isVisible('brand') && <TableCell>{item.warehouse_detail?.brand_name ?? '-'}</TableCell>}
+													{cols.isVisible('category') && (
+														<TableCell>
+															{item.warehouse_detail?.product_category_name ?? '-'}
+														</TableCell>
+													)}
+													{cols.isVisible('size') && <TableCell>{formatNumber(item.warehouse_detail?.size ?? '')}</TableCell>}
+													{cols.isVisible('type') && <TableCell>{item.warehouse_detail?.type_name ?? ''}</TableCell>}
+													{cols.isVisible('price') && (
+														<TableCell className='font-semibold text-ca-green'>
+															{formatNumber(item.price, 2)} $
+														</TableCell>
+													)}
+													{cols.isVisible('count') && <TableCell>{formatNumber(item.count)}</TableCell>}
+													{cols.isVisible('total') && (
+														<TableCell className='font-semibold'>
+															{formatNumber(totalPrice, 2)} $
+														</TableCell>
+													)}
 													<TableCell>
 														<div className='flex justify-end'>
 															{canWrite && (

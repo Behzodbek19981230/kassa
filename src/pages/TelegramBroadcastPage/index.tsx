@@ -116,6 +116,8 @@ export default function TelegramBroadcastPage() {
 					enableSorting={false}
 					enableGlobalFilter={false}
 					enableColumnFilters={false}
+					enableColumnVisibility
+					columnVisibilityKey='telegram-broadcast'
 					enableStriping
 					isLoading={isLoading || isFetching}
 					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}

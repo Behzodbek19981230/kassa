@@ -2,6 +2,7 @@ import { FaPlus, FaPrint } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { Badge, Button, TableCell, TableRow } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import type { ColumnVisibilityState } from '@/lib/useColumnVisibility';
 import { formatNumber } from '@/lib/number';
 import type { OrderAndDebtItem } from '@/services/order-account-history/order-account-history.types';
 
@@ -9,10 +10,11 @@ export type OrderAndDebtPrintRole = 'mijoz' | 'xodim';
 
 interface OrderAndDebtRowProps {
 	item: OrderAndDebtItem;
+	cols: ColumnVisibilityState;
 	onPrint: (item: OrderAndDebtItem, role: OrderAndDebtPrintRole) => void;
 }
 
-export default function OrderAndDebtRow({ item, onPrint }: OrderAndDebtRowProps) {
+export default function OrderAndDebtRow({ item, cols, onPrint }: OrderAndDebtRowProps) {
 	const navigate = useNavigate();
 	const isRed = item.row_style.color === 'red';
 	const textClass = isRed ? 'text-ca-red' : 'text-ca-heading';
@@ -23,27 +25,37 @@ export default function OrderAndDebtRow({ item, onPrint }: OrderAndDebtRowProps)
 	return (
 		<TableRow className='group'>
 			<TableCell className={textClass}>{item.day_seq}</TableCell>
-			<TableCell className={textClass}>{item.client_name}</TableCell>
-			<TableCell className={textClass}>{item.created_by_name}</TableCell>
-			<TableCell className='font-semibold text-ca-green'>
-				{item.all_product_sum ? formatNumber(item.all_product_sum, 2) : ''}
-			</TableCell>
-			<TableCell className='font-semibold text-ca-green'>
-				{item.sum_dollar || item.sum_cart || item.sum_som
-					? formatNumber(item.sum_dollar + item.sum_cart + item.sum_som, 2)
-					: ''}
-			</TableCell>
-			<TableCell className='font-semibold text-ca-green'>
-				{item.paid_debt ? formatNumber(item.paid_debt, 2) : ''}
-			</TableCell>
-			<TableCell className={cn('font-semibold', item.all_profit_dollar < 0 ? 'text-ca-red' : 'text-ca-green')}>
-				{formatNumber(item.all_profit_dollar, 2)}
-			</TableCell>
-			<TableCell className='font-semibold text-ca-heading'>{formatNumber(item.total_debt, 2)}</TableCell>
-			<TableCell className={textClass}>{item.datetime_label}</TableCell>
-			<TableCell>
-				{item.row_style.title ? <Badge variant={isRed ? 'danger' : 'default'}>{item.row_style.title}</Badge> : null}
-			</TableCell>
+			{cols.isVisible('client') && <TableCell className={textClass}>{item.client_name}</TableCell>}
+			{cols.isVisible('worker') && <TableCell className={textClass}>{item.created_by_name}</TableCell>}
+			{cols.isVisible('product_sum') && (
+				<TableCell className='font-semibold text-ca-green'>
+					{item.all_product_sum ? formatNumber(item.all_product_sum, 2) : ''}
+				</TableCell>
+			)}
+			{cols.isVisible('paid_sum') && (
+				<TableCell className='font-semibold text-ca-green'>
+					{item.sum_dollar || item.sum_cart || item.sum_som
+						? formatNumber(item.sum_dollar + item.sum_cart + item.sum_som, 2)
+						: ''}
+				</TableCell>
+			)}
+			{cols.isVisible('paid_debt') && (
+				<TableCell className='font-semibold text-ca-green'>
+					{item.paid_debt ? formatNumber(item.paid_debt, 2) : ''}
+				</TableCell>
+			)}
+			{cols.isVisible('profit') && (
+				<TableCell className={cn('font-semibold', item.all_profit_dollar < 0 ? 'text-ca-red' : 'text-ca-green')}>
+					{formatNumber(item.all_profit_dollar, 2)}
+				</TableCell>
+			)}
+			{cols.isVisible('total_debt') && <TableCell className='font-semibold text-ca-heading'>{formatNumber(item.total_debt, 2)}</TableCell>}
+			{cols.isVisible('time') && <TableCell className={textClass}>{item.datetime_label}</TableCell>}
+			{cols.isVisible('status') && (
+				<TableCell>
+					{item.row_style.title ? <Badge variant={isRed ? 'danger' : 'default'}>{item.row_style.title}</Badge> : null}
+				</TableCell>
+			)}
 			<TableCell className='text-right'>
 				{(canOpen || canPrintClient || canPrintWorker) && (
 					<div className='flex justify-end gap-1'>

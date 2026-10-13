@@ -10,11 +10,11 @@ export default function LogisticsDebtPage() {
    return (
       <>
          <PageHeader
-            title='Mening qarzlarim (logistika)'
+            title='Logistika qarzim'
             breadcrumb={[
                { label: 'Asosiy', path: '/' },
                { label: 'Logistika' },
-               { label: 'Mening qarzlarim', active: true },
+               { label: 'Logistika qarzim', active: true },
             ]}
          />
 

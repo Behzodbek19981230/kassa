@@ -1,7 +1,8 @@
 import { Fragment, type UIEvent, useMemo, useState } from 'react';
-import { FaExclamationTriangle, FaFileExport } from 'react-icons/fa';
+import { FaExclamationTriangle, FaFileExport, FaTelegramPlane } from 'react-icons/fa';
 import {
 	Button,
+	buttonProps,
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
@@ -14,7 +15,10 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui';
+import OpenDialogButton from '@/components/OpenDialogButton';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { useCurrentCompany } from '@/lib/company';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { SCROLL_AREA_CLASS, SCROLL_BODY_CLASS, SCROLL_PANEL_CLASS } from '@/lib/layout';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
@@ -25,9 +29,28 @@ import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types'
 import WarehouseProductImagesModal from '@/pages/WarehouseProductsPage/components/WarehouseProductImagesModal';
 import WarehouseProductThumbnail from '@/pages/WarehouseProductsPage/components/WarehouseProductThumbnail';
 import WarehouseRealPriceModal from '@/pages/WarehouseProductsPage/components/WarehouseRealPriceModal';
+import WarehouseSendTelegramModal from '@/pages/WarehousePage/components/WarehouseSendTelegramModal';
+
+const COLUMNS: ColumnVisibilityDef[] = [
+	{ id: 'image', label: 'Rasm' },
+	{ id: 'index', label: '#', hideable: false },
+	{ id: 'sklad', label: 'Sklad' },
+	{ id: 'brand', label: 'Model' },
+	{ id: 'category', label: 'Nomi' },
+	{ id: 'size', label: "O'lchami" },
+	{ id: 'type', label: 'Tip' },
+	{ id: 'count', label: 'Soni' },
+	{ id: 'real_price', label: 'Asl Narxi ($)' },
+	{ id: 'total', label: 'Jami narxi ($)' },
+	{ id: 'actions', label: 'Harakatlar', hideable: false },
+];
+
+/** Columns before "Soni"; the "Jami:" label of the total rows goes in the last visible one. */
+const LABEL_COLUMNS = ['index', 'sklad', 'brand', 'category', 'size', 'type'];
 
 export default function WarehouseProductsPage() {
 	const { canWrite } = useCurrentCompany();
+	const cols = useColumnVisibility('warehouse-products', COLUMNS);
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
 	const [imagesItem, setImagesItem] = useState<WarehouseAllListItem | null>(null);
@@ -136,6 +159,27 @@ export default function WarehouseProductsPage() {
 		URL.revokeObjectURL(url);
 	}
 
+	const labelColumn = LABEL_COLUMNS.filter((id) => cols.isVisible(id)).at(-1);
+
+	/** One total row's cells, following the visible columns. */
+	function renderTotalCells(count: number, sum: number, className = '') {
+		return COLUMNS.filter((c) => cols.isVisible(c.id)).map((c) => {
+			const content =
+				c.id === labelColumn
+					? 'Jami:'
+					: c.id === 'count'
+						? formatNumber(count)
+						: c.id === 'total'
+							? `${formatNumber(sum, 2)} $`
+							: null;
+			return (
+				<TableCell key={c.id} className={content !== null ? `${className} font-semibold` : className}>
+					{content}
+				</TableCell>
+			);
+		});
+	}
+
 	let rowIndex = 0;
 
 	return (
@@ -206,40 +250,45 @@ export default function WarehouseProductsPage() {
 					</div>
 				</div>
 
+				<div className='mb-2 flex justify-end'>
+					<ColumnVisibilityMenu state={cols} />
+				</div>
+
 				<div className={SCROLL_AREA_CLASS} onScroll={handleScroll}>
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead className='bg-ca-theme text-white'>Rasm</TableHead>
+								{cols.isVisible('image') && <TableHead className='bg-ca-theme text-white'>Rasm</TableHead>}
 								<TableHead className='bg-ca-theme text-white'>#</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Sklad</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Model</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-								<TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Asl Narxi ($)</TableHead>
-								<TableHead className='bg-ca-theme text-white'>Jami narxi ($)</TableHead>
+								{cols.isVisible('sklad') && <TableHead className='bg-ca-theme text-white'>Sklad</TableHead>}
+								{cols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+								{cols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+								{cols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>}
+								{cols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
+								{cols.isVisible('count') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
+								{cols.isVisible('real_price') && <TableHead className='bg-ca-theme text-white'>Asl Narxi ($)</TableHead>}
+								{cols.isVisible('total') && <TableHead className='bg-ca-theme text-white'>Jami narxi ($)</TableHead>}
+								<TableHead className='bg-ca-theme text-right text-white'>Harakatlar</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{(isLoading || (isFetching && !isFetchingNextPage)) && (
 								<TableRow>
-									<TableCell colSpan={10} className='text-center'>
+									<TableCell colSpan={cols.visibleCount} className='text-center'>
 										Yuklanmoqda...
 									</TableCell>
 								</TableRow>
 							)}
 							{!isLoading && isError && (
 								<TableRow>
-									<TableCell colSpan={10} className='text-center text-ca-red'>
+									<TableCell colSpan={cols.visibleCount} className='text-center text-ca-red'>
 										<FaExclamationTriangle className='mr-1.5 inline' /> {getApiErrorMessage(error, 'Xatolik yuz berdi')}
 									</TableCell>
 								</TableRow>
 							)}
 							{!isLoading && !isFetching && !isError && brandGroups.length === 0 && (
 								<TableRow>
-									<TableCell colSpan={10} className='text-center'>
+									<TableCell colSpan={cols.visibleCount} className='text-center'>
 										Ma'lumot topilmadi
 									</TableCell>
 								</TableRow>
@@ -252,7 +301,7 @@ export default function WarehouseProductsPage() {
 									return (
 										<Fragment key={group.brand.id}>
 											<TableRow>
-												<TableCell colSpan={10} className='bg-cyan-100 font-bold text-ca-red dark:bg-cyan-950/60 dark:text-red-400'>
+												<TableCell colSpan={cols.visibleCount} className='bg-cyan-100 font-bold text-ca-red dark:bg-cyan-950/60 dark:text-red-400'>
 													{group.brand.name}
 												</TableCell>
 											</TableRow>
@@ -260,83 +309,77 @@ export default function WarehouseProductsPage() {
 												rowIndex += 1;
 												return (
 													<TableRow key={item.id} className='bg-red-50'>
-														<TableCell>
-															<WarehouseProductThumbnail
-																item={item}
-																onClick={() => setImagesItem(item)}
-															/>
-														</TableCell>
+														{cols.isVisible('image') && (
+															<TableCell>
+																<WarehouseProductThumbnail
+																	item={item}
+																	onClick={() => setImagesItem(item)}
+																/>
+															</TableCell>
+														)}
 														<TableCell>{rowIndex}</TableCell>
-														<TableCell>{item.type_sklad_name ?? ''}</TableCell>
-														<TableCell>{group.brand.name}</TableCell>
-														<TableCell>{item.product_category_name}</TableCell>
-														<TableCell>{formatNumber(item.size)}</TableCell>
-														<TableCell>{item.type_name ?? ''}</TableCell>
+														{cols.isVisible('sklad') && <TableCell>{item.type_sklad_name ?? ''}</TableCell>}
+														{cols.isVisible('brand') && <TableCell>{group.brand.name}</TableCell>}
+														{cols.isVisible('category') && <TableCell>{item.product_category_name}</TableCell>}
+														{cols.isVisible('size') && <TableCell>{formatNumber(item.size)}</TableCell>}
+														{cols.isVisible('type') && <TableCell>{item.type_name ?? ''}</TableCell>}
 
-														<TableCell>{formatNumber(item.count)}</TableCell>
+														{cols.isVisible('count') && <TableCell>{formatNumber(item.count)}</TableCell>}
+														{cols.isVisible('real_price') && (
+															<TableCell>
+																{canWrite ? (
+																	<button
+																		type='button'
+																		className='font-semibold text-ca-green hover:underline'
+																		onClick={() => setRealPriceItem(item)}
+																	>
+																		{formatNumber(item.real_price, 2)} $
+																	</button>
+																) : (
+																	<span className='font-semibold text-ca-green'>
+																		{formatNumber(item.real_price, 2)} $
+																	</span>
+																)}
+															</TableCell>
+														)}
+														{cols.isVisible('total') && (
+															<TableCell className='font-semibold'>
+																{formatNumber(Number(item.real_price) * item.count, 2)} $
+															</TableCell>
+														)}
 														<TableCell>
-															{canWrite ? (
-																<button
-																	type='button'
-																	className='font-semibold text-ca-green hover:underline'
-																	onClick={() => setRealPriceItem(item)}
-																>
-																	{formatNumber(item.real_price, 2)} $
-																</button>
-															) : (
-																<span className='font-semibold text-ca-green'>
-																	{formatNumber(item.real_price, 2)} $
-																</span>
-															)}
-														</TableCell>
-														<TableCell className='font-semibold'>
-															{formatNumber(Number(item.real_price) * item.count, 2)} $
+															<div className='flex justify-end'>
+																<OpenDialogButton
+																	element={(props) => <Button {...props} />}
+																	elementProps={{
+																		...buttonProps(<FaTelegramPlane />, 'success', 'icon'),
+																		'aria-label': 'Telegramga yuborish',
+																	}}
+																	dialog={WarehouseSendTelegramModal}
+																	dialogProps={{
+																		item,
+																		productLabel: `${group.brand.name} ${item.product_category_name}`,
+																	}}
+																/>
+															</div>
 														</TableCell>
 													</TableRow>
 												);
 											})}
-											<TableRow>
-												<TableCell />
-												<TableCell />
-												<TableCell />
-												<TableCell />
-												<TableCell />
-												<TableCell className='font-semibold'>Jami:</TableCell>
-												<TableCell />
-												<TableCell className='font-semibold'>
-													{formatNumber(groupCount)}
-												</TableCell>
-												<TableCell />
-												<TableCell className='font-semibold'>
-													{formatNumber(groupSum, 2)} $
-												</TableCell>
-											</TableRow>
+											<TableRow>{renderTotalCells(groupCount, groupSum)}</TableRow>
 										</Fragment>
 									);
 								})}
 							{isFetchingNextPage && (
 									<TableRow>
-										<TableCell colSpan={10} className='text-center'>
+										<TableCell colSpan={cols.visibleCount} className='text-center'>
 											Yuklanmoqda...
 										</TableCell>
 									</TableRow>
 								)}
 								{!isLoading && !isError && brandGroups.length > 0 && (
 								<TableRow className='bg-ca-heading dark:bg-ca-header'>
-									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
-									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
-									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
-									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
-									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
-									<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>Jami:</TableCell>
-									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
-									<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
-										{formatNumber(totalCount)}
-									</TableCell>
-									<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
-									<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
-										{formatNumber(totalSum, 2)} $
-									</TableCell>
+									{renderTotalCells(totalCount, totalSum, 'bg-ca-heading text-white dark:bg-ca-header')}
 								</TableRow>
 							)}
 						</TableBody>

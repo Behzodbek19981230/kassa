@@ -15,6 +15,13 @@ export const myDebtService = {
 		const { data } = await apiClient.get<PaginatedResponse<MyDebtItem>>('/my-total-debt/', { params });
 		return data;
 	},
+	/** Debts to China consignors, for the Logistics "Xitoy qarzim" page. */
+	consignorDebts: async (params?: MyDebtListParams) => {
+		const { data } = await apiClient.get<PaginatedResponse<MyDebtItem>>('/my-total-debt/consignor-debts/', {
+			params,
+		});
+		return data;
+	},
 	create: async (payload: MyDebtPayload) => {
 		const { data } = await apiClient.post<MyDebtItem>('/my-total-debt/', payload);
 		return data;

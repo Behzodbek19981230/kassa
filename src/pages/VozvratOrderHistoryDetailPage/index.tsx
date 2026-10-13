@@ -2,12 +2,30 @@ import { Fragment, useState } from 'react';
 import { FaArrowLeft, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useNotification } from '@/components/ui';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { formatNumber } from '@/lib/number';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useVozvratOrderProductsQuery } from '@/services/vozvrat/vozvrat.queries';
 import { vozvratService } from '@/services/vozvrat/vozvrat.service';
 
 type PrintRole = 'mijoz' | 'admin';
+
+const COLUMNS: ColumnVisibilityDef[] = [
+	{ id: 'index', label: '#', hideable: false },
+	{ id: 'location', label: 'Joyi' },
+	{ id: 'brand', label: 'Model' },
+	{ id: 'category', label: 'Nomi' },
+	{ id: 'size', label: "O'lchami" },
+	{ id: 'type', label: 'Tip' },
+	{ id: 'count', label: 'Soni' },
+	{ id: 'price', label: 'Narxi ($)' },
+	{ id: 'real_price', label: 'Asl Narxi ($)' },
+	{ id: 'profit', label: 'Foyda ($)' },
+];
+
+/** Columns the "Jami:" label of the total rows spans. */
+const LABEL_COLUMNS = ['index', 'location', 'brand', 'category', 'size', 'type'];
 
 export default function VozvratOrderHistoryDetailPage() {
 	const navigate = useNavigate();
@@ -16,6 +34,8 @@ export default function VozvratOrderHistoryDetailPage() {
 
 	const { data, isLoading, isError } = useVozvratOrderProductsQuery(orderId);
 	const { notify } = useNotification();
+	const cols = useColumnVisibility('vozvrat-order-history-detail', COLUMNS);
+	const labelSpan = LABEL_COLUMNS.filter((c) => cols.isVisible(c)).length;
 	const [printingRole, setPrintingRole] = useState<PrintRole | null>(null);
 
 	async function printFor(role: PrintRole) {
@@ -124,26 +144,29 @@ export default function VozvratOrderHistoryDetailPage() {
 			</div>
 
 			<div className='overflow-x-auto rounded-[3px] bg-ca-silver-light shadow-sm'>
-				<h4 className='p-4 text-sm font-semibold text-ca-heading'>Vozvrat qilingan mahsulotlar</h4>
+				<div className='flex items-center justify-between gap-2 p-4'>
+					<h4 className='text-sm font-semibold text-ca-heading'>Vozvrat qilingan mahsulotlar</h4>
+					<ColumnVisibilityMenu state={cols} />
+				</div>
 				<Table>
 					<TableHeader>
 						<TableRow>
 							<TableHead className='bg-ca-theme text-white'>#</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Joyi</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Model</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-							<TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Asl Narxi ($)</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Foyda ($)</TableHead>
+							{cols.isVisible('location') && <TableHead className='bg-ca-theme text-white'>Joyi</TableHead>}
+							{cols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+							{cols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+							{cols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>}
+							{cols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
+							{cols.isVisible('count') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
+							{cols.isVisible('price') && <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>}
+							{cols.isVisible('real_price') && <TableHead className='bg-ca-theme text-white'>Asl Narxi ($)</TableHead>}
+							{cols.isVisible('profit') && <TableHead className='bg-ca-theme text-white'>Foyda ($)</TableHead>}
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{products.groups.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={10} className='text-center text-ca-text'>
+								<TableCell colSpan={cols.visibleCount} className='text-center text-ca-text'>
 									Mahsulotlar topilmadi
 								</TableCell>
 							</TableRow>
@@ -151,60 +174,74 @@ export default function VozvratOrderHistoryDetailPage() {
 							products.groups.map((group) => (
 								<Fragment key={group.brand}>
 									<TableRow>
-										<TableCell colSpan={10} className='bg-ca-aqua/15 font-semibold text-ca-aqua'>
+										<TableCell colSpan={cols.visibleCount} className='bg-ca-aqua/15 font-semibold text-ca-aqua'>
 											{group.brand_name}
 										</TableCell>
 									</TableRow>
 									{group.items.map((item, index) => (
 										<TableRow key={item.id}>
 											<TableCell>{index + 1}</TableCell>
-											<TableCell>{item.type_sklad_name}</TableCell>
-											<TableCell>{item.brand_name}</TableCell>
-											<TableCell>{item.product_category_name}</TableCell>
-											<TableCell>{item.size}</TableCell>
-											<TableCell>{item.type_name}</TableCell>
-											<TableCell>{item.count}</TableCell>
-											<TableCell>{formatNumber(item.price, 2)}</TableCell>
-											<TableCell>{formatNumber(item.real_price, 2)}</TableCell>
-											<TableCell
-												className={`font-semibold ${Number(item.profit) < 0 ? 'text-ca-red' : 'text-ca-green'}`}
-											>
-												{formatNumber(item.profit, 2)}
-											</TableCell>
+											{cols.isVisible('location') && <TableCell>{item.type_sklad_name}</TableCell>}
+											{cols.isVisible('brand') && <TableCell>{item.brand_name}</TableCell>}
+											{cols.isVisible('category') && <TableCell>{item.product_category_name}</TableCell>}
+											{cols.isVisible('size') && <TableCell>{item.size}</TableCell>}
+											{cols.isVisible('type') && <TableCell>{item.type_name}</TableCell>}
+											{cols.isVisible('count') && <TableCell>{item.count}</TableCell>}
+											{cols.isVisible('price') && <TableCell>{formatNumber(item.price, 2)}</TableCell>}
+											{cols.isVisible('real_price') && <TableCell>{formatNumber(item.real_price, 2)}</TableCell>}
+											{cols.isVisible('profit') && (
+												<TableCell
+													className={`font-semibold ${Number(item.profit) < 0 ? 'text-ca-red' : 'text-ca-green'}`}
+												>
+													{formatNumber(item.profit, 2)}
+												</TableCell>
+											)}
 										</TableRow>
 									))}
 									<TableRow className='bg-ca-silver'>
-										<TableCell colSpan={6} className='font-semibold text-ca-heading'>
+										<TableCell colSpan={labelSpan} className='font-semibold text-ca-heading'>
 											Jami:
 										</TableCell>
-										<TableCell className='font-semibold text-ca-heading'>{group.totals.count}</TableCell>
-										<TableCell className='font-semibold text-ca-heading'>
-											{formatNumber(group.totals.price_total, 2)}
-										</TableCell>
-										<TableCell className='font-semibold text-ca-heading'>
-											{formatNumber(group.totals.real_price_total, 2)}
-										</TableCell>
-										<TableCell className='font-semibold text-ca-heading'>
-											{formatNumber(group.totals.profit_total, 2)}
-										</TableCell>
+										{cols.isVisible('count') && <TableCell className='font-semibold text-ca-heading'>{group.totals.count}</TableCell>}
+										{cols.isVisible('price') && (
+											<TableCell className='font-semibold text-ca-heading'>
+												{formatNumber(group.totals.price_total, 2)}
+											</TableCell>
+										)}
+										{cols.isVisible('real_price') && (
+											<TableCell className='font-semibold text-ca-heading'>
+												{formatNumber(group.totals.real_price_total, 2)}
+											</TableCell>
+										)}
+										{cols.isVisible('profit') && (
+											<TableCell className='font-semibold text-ca-heading'>
+												{formatNumber(group.totals.profit_total, 2)}
+											</TableCell>
+										)}
 									</TableRow>
 								</Fragment>
 							))
 						)}
 						<TableRow className='bg-ca-heading dark:bg-ca-header'>
-							<TableCell className='bg-ca-heading dark:bg-ca-header text-white' colSpan={6}>
+							<TableCell className='bg-ca-heading dark:bg-ca-header text-white' colSpan={labelSpan}>
 								Jami:
 							</TableCell>
-							<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>{products.totals.count}</TableCell>
-							<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
-								{formatNumber(products.totals.price_total, 2)}
-							</TableCell>
-							<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
-								{formatNumber(products.totals.real_price_total, 2)}
-							</TableCell>
-							<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
-								{formatNumber(products.totals.profit_total, 2)}
-							</TableCell>
+							{cols.isVisible('count') && <TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>{products.totals.count}</TableCell>}
+							{cols.isVisible('price') && (
+								<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
+									{formatNumber(products.totals.price_total, 2)}
+								</TableCell>
+							)}
+							{cols.isVisible('real_price') && (
+								<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
+									{formatNumber(products.totals.real_price_total, 2)}
+								</TableCell>
+							)}
+							{cols.isVisible('profit') && (
+								<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
+									{formatNumber(products.totals.profit_total, 2)}
+								</TableCell>
+							)}
 						</TableRow>
 					</TableBody>
 				</Table>

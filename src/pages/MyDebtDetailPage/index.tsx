@@ -1,9 +1,11 @@
 import { FaArrowLeft, FaTrash, FaEdit, FaExclamationTriangle } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, buttonProps, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useMyDebtHistoryListQuery } from '@/services/my-debt/my-debt-history.queries';
 import MyDebtHistoryDraftDeleteModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryDraftDeleteModal';
 import MyDebtHistoryEditModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryEditModal';
@@ -18,11 +20,23 @@ function formatDate(value: string) {
 	return d.toLocaleDateString('ru-RU');
 }
 
+const COLUMNS: ColumnVisibilityDef[] = [
+	{ id: 'index', label: '#', hideable: false },
+	{ id: 'date', label: 'Sana' },
+	{ id: 'total_debt', label: 'Qarz miqdori ($)' },
+	{ id: 'discount', label: 'Chegirma ($)' },
+	{ id: 'rate', label: 'Dollar kursi' },
+	{ id: 'total_sum', label: 'Jami summa ($)' },
+	{ id: 'created_by', label: 'Kim tomonidan' },
+	{ id: 'actions', label: 'Harakatlar', hideable: false },
+];
+
 export default function MyDebtDetailPage() {
 	const navigate = useNavigate();
 	const { id } = useParams();
 	const myDebtId = id ? Number(id) : undefined;
 	const { canWrite } = useCurrentCompany();
+	const cols = useColumnVisibility('my-debt-detail', COLUMNS);
 
 	const { data, isLoading, isError } = useMyDebtHistoryListQuery(
 		{ my_total_debt: myDebtId, limit: 200 },
@@ -72,24 +86,28 @@ export default function MyDebtDetailPage() {
 				</div>
 			)}
 
+			<div className='mb-2 flex justify-end'>
+				<ColumnVisibilityMenu state={cols} />
+			</div>
+
 			<div className='overflow-x-auto rounded-[3px] bg-ca-silver-light shadow-sm'>
 				<Table>
 					<TableHeader>
 						<TableRow>
 							<TableHead className='bg-ca-theme text-white'>#</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Sana</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Qarz miqdori ($)</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Chegirma ($)</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Dollar kursi</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Jami summa ($)</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Kim tomonidan</TableHead>
+							{cols.isVisible('date') && <TableHead className='bg-ca-theme text-white'>Sana</TableHead>}
+							{cols.isVisible('total_debt') && <TableHead className='bg-ca-theme text-white'>Qarz miqdori ($)</TableHead>}
+							{cols.isVisible('discount') && <TableHead className='bg-ca-theme text-white'>Chegirma ($)</TableHead>}
+							{cols.isVisible('rate') && <TableHead className='bg-ca-theme text-white'>Dollar kursi</TableHead>}
+							{cols.isVisible('total_sum') && <TableHead className='bg-ca-theme text-white'>Jami summa ($)</TableHead>}
+							{cols.isVisible('created_by') && <TableHead className='bg-ca-theme text-white'>Kim tomonidan</TableHead>}
 							<TableHead className='bg-ca-theme text-right text-white'>Harakatlar</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{results.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={8} className='text-center text-ca-text'>
+								<TableCell colSpan={cols.visibleCount} className='text-center text-ca-text'>
 									Tarix topilmadi
 								</TableCell>
 							</TableRow>
@@ -99,18 +117,24 @@ export default function MyDebtDetailPage() {
 								return (
 									<TableRow key={item.id}>
 										<TableCell>{index + 1}</TableCell>
-										<TableCell>{formatDate(item.cr_date)}</TableCell>
-										<TableCell className='font-semibold text-ca-red'>
-											{formatNumber(item.total_debt, 2)} $
-										</TableCell>
-										<TableCell>{formatNumber(item.discount_amount, 2)} $</TableCell>
-										<TableCell>{formatNumber(item.exchange_rate, 2)}</TableCell>
-										<TableCell className='font-semibold text-ca-heading'>
-											{formatNumber(item.all_summ_dollar, 2)} $
-										</TableCell>
-										<TableCell>
-											{item.created_by_detail ? userLabel(item.created_by_detail) : ''}
-										</TableCell>
+										{cols.isVisible('date') && <TableCell>{formatDate(item.cr_date)}</TableCell>}
+										{cols.isVisible('total_debt') && (
+											<TableCell className='font-semibold text-ca-red'>
+												{formatNumber(item.total_debt, 2)} $
+											</TableCell>
+										)}
+										{cols.isVisible('discount') && <TableCell>{formatNumber(item.discount_amount, 2)} $</TableCell>}
+										{cols.isVisible('rate') && <TableCell>{formatNumber(item.exchange_rate, 2)}</TableCell>}
+										{cols.isVisible('total_sum') && (
+											<TableCell className='font-semibold text-ca-heading'>
+												{formatNumber(item.all_summ_dollar, 2)} $
+											</TableCell>
+										)}
+										{cols.isVisible('created_by') && (
+											<TableCell>
+												{item.created_by_detail ? userLabel(item.created_by_detail) : ''}
+											</TableCell>
+										)}
 										<TableCell>
 											<div className='flex justify-end gap-1'>
 												{canWrite && (

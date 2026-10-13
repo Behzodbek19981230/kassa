@@ -52,6 +52,7 @@ import ImportOrderEditPage from '@/pages/TwoStageImport/ImportOrderEditPage';
 import ImportOrderProductsPage from '@/pages/TwoStageImport/ImportOrderProductsPage';
 import ImportOrdersPage from '@/pages/TwoStageImport/ImportOrdersPage';
 import LogisticsDebtPage from '@/pages/TwoStageImport/LogisticsDebtPage';
+import ChinaDebtPage from '@/pages/TwoStageImport/ChinaDebtPage';
 import LogisticsPartnersPage from '@/pages/TwoStageImport/LogisticsPartnersPage';
 import LogisticsPartnerStockPage from '@/pages/TwoStageImport/LogisticsPartnerStockPage';
 import UzbekistanDispatchPage from '@/pages/TwoStageImport/UzbekistanDispatchPage';
@@ -78,6 +79,7 @@ export default function App() {
 					<Route path='two-stage-import/transit-dispatch' element={<UzbekistanDispatchPage />} />
 					<Route path='two-stage-import/uzbekistan-in-road' element={<UzbekistanInRoadPage />} />
 					<Route path='two-stage-import/debts' element={<LogisticsDebtPage />} />
+					<Route path='two-stage-import/china-debts' element={<ChinaDebtPage />} />
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
 					<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
 					<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />

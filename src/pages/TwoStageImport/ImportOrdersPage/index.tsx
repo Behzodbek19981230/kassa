@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FaCheck, FaEdit, FaExclamationTriangle, FaEye, FaPlus, FaTimes, FaTrash } from 'react-icons/fa';
 import {
    Badge,
@@ -85,7 +85,9 @@ export default function ImportOrdersPage() {
    const { canWrite } = useCurrentCompany();
    const cols = useColumnVisibility('logistics-orders', COLUMNS);
 
-   const [stage, setStage] = useState<ImportStage>('CHINA_TO_TRANSIT');
+   // The route tab lives in the URL so a refresh stays on it.
+   const [searchParams, setSearchParams] = useSearchParams();
+   const stage: ImportStage = searchParams.get('stage') === 'TRANSIT_TO_UZBEKISTAN' ? 'TRANSIT_TO_UZBEKISTAN' : 'CHINA_TO_TRANSIT';
    const [consignorFilter, setConsignorFilter] = useState('');
    const [statusFilter, setStatusFilter] = useState('');
    const [countryFilter, setCountryFilter] = useState('');
@@ -130,7 +132,7 @@ export default function ImportOrdersPage() {
 
    function changeStage(next: ImportStage) {
       if (next === stage) return;
-      setStage(next);
+      setSearchParams(next === 'CHINA_TO_TRANSIT' ? {} : { stage: next });
       // Warehouse filters mean different things per route, so they don't carry over.
       setSourceFilter('');
       setDestinationFilter('');
@@ -161,13 +163,14 @@ export default function ImportOrdersPage() {
                )
             }
          >
-            <div className='mb-4 flex flex-wrap gap-2'>
+            <div className='mb-4 flex gap-2'>
                {STAGE_OPTIONS.map((option) => (
                   <Button
                      key={option.value}
                      type='button'
                      variant={stage === option.value ? 'theme' : 'white'}
                      size='sm'
+                     className='flex-1'
                      onClick={() => changeStage(option.value as ImportStage)}
                   >
                      {option.label}

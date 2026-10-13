@@ -16,8 +16,10 @@ import {
    TableRow,
    useNotification,
 } from '@/components/ui';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { cn } from '@/lib/utils';
@@ -36,6 +38,31 @@ import ConfirmSaleModal from '@/pages/PlaceOrderPage/components/ConfirmSaleModal
 import PayDebtModal from '@/pages/PlaceOrderPage/components/PayDebtModal';
 
 const DEFAULT_LOCATION_LABEL = 'Dokon';
+
+const PRODUCT_COLUMNS: ColumnVisibilityDef[] = [
+   { id: 'index', label: '#', hideable: false },
+   { id: 'brand', label: 'Model' },
+   { id: 'category', label: 'Nomi' },
+   { id: 'size', label: "O'lchami" },
+   { id: 'stock', label: 'Sklad soni' },
+   { id: 'type', label: 'Tip' },
+];
+
+const CART_COLUMNS: ColumnVisibilityDef[] = [
+   { id: 'index', label: '#', hideable: false },
+   { id: 'location', label: 'Joy' },
+   { id: 'brand', label: 'Model' },
+   { id: 'category', label: 'Nomi' },
+   { id: 'size', label: "O'lcham" },
+   { id: 'type', label: 'Tip' },
+   { id: 'price', label: "Narxi ($ / so'm)" },
+   { id: 'count', label: 'Soni' },
+   { id: 'total', label: "Umum.narxi ($ / so'm)" },
+   { id: 'actions', label: '', hideable: false },
+];
+
+/** Cart columns the "Jami" label of the total row spans. */
+const CART_LABEL_COLUMNS = ['index', 'location', 'brand', 'category', 'size', 'type', 'price'];
 
 interface BrandVariants {
    brandId: number;
@@ -81,6 +108,9 @@ function buildBrandVariants(groups: WarehouseAllListBrandGroup[]): BrandVariants
 export default function PlaceOrderPage() {
    const { companyId, canWrite } = useCurrentCompany();
    const { notify } = useNotification();
+   const productCols = useColumnVisibility('place-order-products', PRODUCT_COLUMNS);
+   const cartCols = useColumnVisibility('place-order-cart', CART_COLUMNS);
+   const cartLabelSpan = CART_LABEL_COLUMNS.filter((id) => cartCols.isVisible(id)).length;
 
    const [brandFilter, setBrandFilter] = useState('');
    const [categoryFilter, setCategoryFilter] = useState('');
@@ -234,29 +264,33 @@ export default function PlaceOrderPage() {
                      </div>
                   </div>
 
+                  <div className='mb-2 flex justify-end'>
+                     <ColumnVisibilityMenu state={productCols} />
+                  </div>
+
                   <div className='max-h-[calc(100vh-320px)] min-h-[300px] overflow-auto' onScroll={handleScroll}>
                      <Table>
                         <TableHeader className='sticky top-0 z-10'>
                            <TableRow>
                               <TableHead className='bg-ca-theme text-white'>#</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Model</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Sklad soni</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Tip</TableHead>
+                              {productCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+                              {productCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+                              {productCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>}
+                              {productCols.isVisible('stock') && <TableHead className='bg-ca-theme text-white'>Sklad soni</TableHead>}
+                              {productCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
                            </TableRow>
                         </TableHeader>
                         <TableBody>
                            {(isLoading || (isFetching && !isFetchingNextPage)) && (
                               <TableRow>
-                                 <TableCell colSpan={6} className='text-center'>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center'>
                                     Yuklanmoqda...
                                  </TableCell>
                               </TableRow>
                            )}
                            {!isLoading && isError && (
                               <TableRow>
-                                 <TableCell colSpan={6} className='text-center text-ca-red'>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center text-ca-red'>
                                     <FaExclamationTriangle className='mr-1.5 inline' />{' '}
                                     {getApiErrorMessage(error, 'Xatolik yuz berdi')}
                                  </TableCell>
@@ -264,7 +298,7 @@ export default function PlaceOrderPage() {
                            )}
                            {!isLoading && !isFetching && !isError && brandVariants.length === 0 && (
                               <TableRow>
-                                 <TableCell colSpan={6} className='text-center'>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center'>
                                     Ma'lumot topilmadi
                                  </TableCell>
                               </TableRow>
@@ -277,7 +311,7 @@ export default function PlaceOrderPage() {
                                     <Fragment key={brand.brandId}>
                                        <TableRow>
                                           <TableCell
-                                             colSpan={6}
+                                             colSpan={productCols.visibleCount}
                                              className='bg-cyan-100 font-bold text-ca-red'
                                           >
                                              {brand.brandName}
@@ -302,13 +336,13 @@ export default function PlaceOrderPage() {
                                                 )}
                                              >
                                                 <TableCell>{rowIndex}</TableCell>
-                                                <TableCell>{variant.brandName}</TableCell>
-                                                <TableCell>{variant.categoryName}</TableCell>
-                                                <TableCell>{formatNumber(variant.size)}</TableCell>
-                                                <TableCell className='font-semibold'>
-                                                   {formatNumber(stockCount)}
-                                                </TableCell>
-                                                <TableCell>{variant.typeName ?? ''}</TableCell>
+                                                {productCols.isVisible('brand') && <TableCell>{variant.brandName}</TableCell>}
+                                                {productCols.isVisible('category') && <TableCell>{variant.categoryName}</TableCell>}
+                                                {productCols.isVisible('size') && <TableCell>{formatNumber(variant.size)}</TableCell>}
+                                                {productCols.isVisible('stock') && (
+                                                   <TableCell className='font-semibold'>{formatNumber(stockCount)}</TableCell>
+                                                )}
+                                                {productCols.isVisible('type') && <TableCell>{variant.typeName ?? ''}</TableCell>}
                                              </TableRow>
                                           );
                                        })}
@@ -317,7 +351,7 @@ export default function PlaceOrderPage() {
                               })}
                            {isFetchingNextPage && (
                               <TableRow>
-                                 <TableCell colSpan={6} className='text-center'>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center'>
                                     Yuklanmoqda...
                                  </TableCell>
                               </TableRow>
@@ -371,40 +405,44 @@ export default function PlaceOrderPage() {
                      )}
                   </div>
 
+                  <div className='mb-2 flex justify-end'>
+                     <ColumnVisibilityMenu state={cartCols} />
+                  </div>
+
                   <div className='overflow-x-auto'>
                      <Table>
                         <TableHeader>
                            <TableRow>
                               <TableHead className='bg-ca-theme text-white'>#</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Joy</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Model</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Narxi ($ / so'm)</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Soni</TableHead>
-                              <TableHead className='bg-ca-theme text-white'>Umum.narxi ($ / so'm)</TableHead>
+                              {cartCols.isVisible('location') && <TableHead className='bg-ca-theme text-white'>Joy</TableHead>}
+                              {cartCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+                              {cartCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+                              {cartCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
+                              {cartCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
+                              {cartCols.isVisible('price') && <TableHead className='bg-ca-theme text-white'>Narxi ($ / so'm)</TableHead>}
+                              {cartCols.isVisible('count') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
+                              {cartCols.isVisible('total') && <TableHead className='bg-ca-theme text-white'>Umum.narxi ($ / so'm)</TableHead>}
                               <TableHead className='bg-ca-theme text-white' />
                            </TableRow>
                         </TableHeader>
                         <TableBody>
                            {!clientId && (
                               <TableRow>
-                                 <TableCell colSpan={10} className='text-center'>
+                                 <TableCell colSpan={cartCols.visibleCount} className='text-center'>
                                     Mijozni tanlang
                                  </TableCell>
                               </TableRow>
                            )}
                            {clientId && isCartLoading && (
                               <TableRow>
-                                 <TableCell colSpan={10} className='text-center'>
+                                 <TableCell colSpan={cartCols.visibleCount} className='text-center'>
                                     Yuklanmoqda...
                                  </TableCell>
                               </TableRow>
                            )}
                            {clientId && !isCartLoading && cartItems.length === 0 && (
                               <TableRow>
-                                 <TableCell colSpan={10} className='text-center'>
+                                 <TableCell colSpan={cartCols.visibleCount} className='text-center'>
                                     Buyurtma bo'sh
                                  </TableCell>
                               </TableRow>
@@ -417,43 +455,59 @@ export default function PlaceOrderPage() {
                                  return (
                                     <TableRow key={item.id} className='bg-red-50'>
                                        <TableCell>{index + 1}</TableCell>
-                                       <TableCell>
-                                          {item.warehouse_detail?.type_sklad_name ??
-                                             DEFAULT_LOCATION_LABEL}
-                                       </TableCell>
-                                       <TableCell>
-                                          {item.warehouse_detail?.brand_name ??
-                                             '-'}
-                                       </TableCell>
-                                       <TableCell>
-                                          {item.warehouse_detail?.product_category_name ??
-                                             '-'}
-                                       </TableCell>
-                                       <TableCell>
-                                          {formatNumber(
-                                             item.warehouse_detail?.size ?? '',
-                                          )}
-                                       </TableCell>
-                                       <TableCell>
-                                          {item.warehouse_detail?.type_name ?? ''}
-                                       </TableCell>
-                                       <TableCell className='font-semibold text-ca-green'>
-                                          {formatNumber(item.price, 2)} $
-                                          {rate > 0 && (
-                                             <span className='ml-1 font-normal text-ca-text'>
-                                                ({formatNumber(Number(item.price) * rate, 0)})
-                                             </span>
-                                          )}
-                                       </TableCell>
-                                       <TableCell>{formatNumber(item.count)}</TableCell>
-                                       <TableCell className='font-semibold'>
-                                          {formatNumber(totalPrice, 2)} $
-                                          {rate > 0 && (
-                                             <span className='ml-1 font-normal text-ca-text'>
-                                                ({formatNumber(totalPrice * rate, 0)})
-                                             </span>
-                                          )}
-                                       </TableCell>
+                                       {cartCols.isVisible('location') && (
+                                          <TableCell>
+                                             {item.warehouse_detail?.type_sklad_name ??
+                                                DEFAULT_LOCATION_LABEL}
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('brand') && (
+                                          <TableCell>
+                                             {item.warehouse_detail?.brand_name ??
+                                                '-'}
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('category') && (
+                                          <TableCell>
+                                             {item.warehouse_detail?.product_category_name ??
+                                                '-'}
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('size') && (
+                                          <TableCell>
+                                             {formatNumber(
+                                                item.warehouse_detail?.size ?? '',
+                                             )}
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('type') && (
+                                          <TableCell>
+                                             {item.warehouse_detail?.type_name ?? ''}
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('price') && (
+                                          <TableCell className='font-semibold text-ca-green'>
+                                             {formatNumber(item.price, 2)} $
+                                             {rate > 0 && (
+                                                <span className='ml-1 font-normal text-ca-text'>
+                                                   ({formatNumber(Number(item.price) * rate, 0)})
+                                                </span>
+                                             )}
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('count') && (
+                                          <TableCell>{formatNumber(item.count)}</TableCell>
+                                       )}
+                                       {cartCols.isVisible('total') && (
+                                          <TableCell className='font-semibold'>
+                                             {formatNumber(totalPrice, 2)} $
+                                             {rate > 0 && (
+                                                <span className='ml-1 font-normal text-ca-text'>
+                                                   ({formatNumber(totalPrice * rate, 0)})
+                                                </span>
+                                             )}
+                                          </TableCell>
+                                       )}
                                        <TableCell>
                                           {canWrite && (
                                              <Button
@@ -469,20 +523,24 @@ export default function PlaceOrderPage() {
                               })}
                            {clientId && !isCartLoading && cartItems.length > 0 && (
                               <TableRow className='bg-ca-heading dark:bg-ca-header'>
-                                 <TableCell className='bg-ca-heading dark:bg-ca-header text-white' colSpan={7}>
+                                 <TableCell className='bg-ca-heading dark:bg-ca-header text-white' colSpan={cartLabelSpan}>
                                     Jami
                                  </TableCell>
-                                 <TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
-                                    {formatNumber(cartTotalCount)}
-                                 </TableCell>
-                                 <TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
-                                    {formatNumber(cartTotalSum, 2)} $
-                                    {rate > 0 && (
-                                       <span className='ml-1 font-normal text-white/70'>
-                                          ({formatNumber(cartTotalSum * rate, 0)})
-                                       </span>
-                                    )}
-                                 </TableCell>
+                                 {cartCols.isVisible('count') && (
+                                    <TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
+                                       {formatNumber(cartTotalCount)}
+                                    </TableCell>
+                                 )}
+                                 {cartCols.isVisible('total') && (
+                                    <TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
+                                       {formatNumber(cartTotalSum, 2)} $
+                                       {rate > 0 && (
+                                          <span className='ml-1 font-normal text-white/70'>
+                                             ({formatNumber(cartTotalSum * rate, 0)})
+                                          </span>
+                                       )}
+                                    </TableCell>
+                                 )}
                                  <TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
                               </TableRow>
                            )}

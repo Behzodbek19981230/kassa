@@ -12,9 +12,11 @@ import {
 	TableRow,
 	useNotification,
 } from '@/components/ui';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { warehouseTransferService } from '@/services/warehouse-transfer/warehouse-transfer.service';
 import { useWarehouseTransferQuery } from '@/services/warehouse-transfer/warehouse-transfer.queries';
 import ReverseTransferModal from '@/pages/WarehouseTransferDetailPage/components/ReverseTransferModal';
@@ -24,12 +26,22 @@ const MODE_LABEL: Record<string, string> = {
 	spread: 'Yoyib',
 };
 
+const COLUMNS: ColumnVisibilityDef[] = [
+	{ id: 'index', label: '#', hideable: false },
+	{ id: 'mode', label: 'Usul' },
+	{ id: 'source', label: 'Transfer qilingan tovar' },
+	{ id: 'source_quantity', label: 'Miqdor (transfer)' },
+	{ id: 'target', label: 'Qabul qilingan tovar' },
+	{ id: 'target_quantity', label: 'Miqdor (qabul)' },
+];
+
 export default function WarehouseTransferDetailPage() {
 	const navigate = useNavigate();
 	const { id } = useParams();
 	const transferId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
 	const { canWrite } = useCurrentCompany();
+	const cols = useColumnVisibility('warehouse-transfer-detail', COLUMNS);
 
 	const { data, isLoading, isError } = useWarehouseTransferQuery(transferId);
 	const [isPrinting, setIsPrinting] = useState(false);
@@ -133,22 +145,26 @@ export default function WarehouseTransferDetailPage() {
 				</div>
 			</div>
 
+			<div className='mb-2 flex justify-end'>
+				<ColumnVisibilityMenu state={cols} />
+			</div>
+
 			<div className='overflow-x-auto rounded-[3px] bg-ca-silver-light shadow-sm'>
 				<Table>
 					<TableHeader>
 						<TableRow>
 							<TableHead className='bg-ca-theme text-white'>#</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Usul</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Transfer qilingan tovar</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Miqdor</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Qabul qilingan tovar</TableHead>
-							<TableHead className='bg-ca-theme text-white'>Miqdor</TableHead>
+							{cols.isVisible('mode') && <TableHead className='bg-ca-theme text-white'>Usul</TableHead>}
+							{cols.isVisible('source') && <TableHead className='bg-ca-theme text-white'>Transfer qilingan tovar</TableHead>}
+							{cols.isVisible('source_quantity') && <TableHead className='bg-ca-theme text-white'>Miqdor</TableHead>}
+							{cols.isVisible('target') && <TableHead className='bg-ca-theme text-white'>Qabul qilingan tovar</TableHead>}
+							{cols.isVisible('target_quantity') && <TableHead className='bg-ca-theme text-white'>Miqdor</TableHead>}
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{data.items.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={6} className='text-center text-ca-text'>
+								<TableCell colSpan={cols.visibleCount} className='text-center text-ca-text'>
 									Mahsulotlar topilmadi
 								</TableCell>
 							</TableRow>
@@ -159,23 +175,31 @@ export default function WarehouseTransferDetailPage() {
 								return (
 									<TableRow key={item.id}>
 										<TableCell>{index + 1}</TableCell>
-										<TableCell>{MODE_LABEL[item.mode] ?? item.mode}</TableCell>
-										<TableCell className='font-semibold text-ca-red'>
-											{source.type_sklad_name} / {source.brand_name} /{' '}
-											{source.product_category_name} / {formatNumber(source.size)} /{' '}
-											{source.type_name}
-										</TableCell>
-										<TableCell className='font-semibold text-ca-red'>
-											-{formatNumber(item.source_quantity)}
-										</TableCell>
-										<TableCell className='font-semibold text-ca-green'>
-											{target.type_sklad_name} / {target.brand_name} /{' '}
-											{target.product_category_name} / {formatNumber(target.size)} /{' '}
-											{target.type_name}
-										</TableCell>
-										<TableCell className='font-semibold text-ca-green'>
-											+{formatNumber(item.target_quantity)}
-										</TableCell>
+										{cols.isVisible('mode') && <TableCell>{MODE_LABEL[item.mode] ?? item.mode}</TableCell>}
+										{cols.isVisible('source') && (
+											<TableCell className='font-semibold text-ca-red'>
+												{source.type_sklad_name} / {source.brand_name} /{' '}
+												{source.product_category_name} / {formatNumber(source.size)} /{' '}
+												{source.type_name}
+											</TableCell>
+										)}
+										{cols.isVisible('source_quantity') && (
+											<TableCell className='font-semibold text-ca-red'>
+												-{formatNumber(item.source_quantity)}
+											</TableCell>
+										)}
+										{cols.isVisible('target') && (
+											<TableCell className='font-semibold text-ca-green'>
+												{target.type_sklad_name} / {target.brand_name} /{' '}
+												{target.product_category_name} / {formatNumber(target.size)} /{' '}
+												{target.type_name}
+											</TableCell>
+										)}
+										{cols.isVisible('target_quantity') && (
+											<TableCell className='font-semibold text-ca-green'>
+												+{formatNumber(item.target_quantity)}
+											</TableCell>
+										)}
 									</TableRow>
 								);
 							})

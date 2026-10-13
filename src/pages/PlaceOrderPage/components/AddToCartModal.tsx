@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { FaCartPlus } from 'react-icons/fa';
 import { z } from 'zod';
@@ -26,6 +26,7 @@ import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useCreateOrderCartMutation } from '@/services/order-cart/order-cart.queries';
+import { useWarehouseQuery } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
 export interface ProductVariant {
@@ -126,7 +127,22 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	const availableStock = stockByLocation.get(joyValue);
 	const lineTotal = (Number(countValue) || 0) * (Number(priceDollarValue) || 0);
 
+	// The price starts at the warehouse's worker_price (only the detail endpoint has it). It follows the
+	// chosen location until the user types a price of their own.
+	const priceEditedRef = useRef(false);
+	const selectedRowId = locationOptions.find((option) => option.value === joyValue)?.row.id;
+	const { data: selectedWarehouse } = useWarehouseQuery(selectedRowId);
+	const workerPrice = selectedWarehouse?.id === selectedRowId ? selectedWarehouse?.worker_price : undefined;
+
+	useEffect(() => {
+		if (priceEditedRef.current || workerPrice == null) return;
+		const dollar = Number(workerPrice) > 0 ? String(Number(Number(workerPrice).toFixed(2))) : '';
+		setValue('priceDollar', dollar);
+		setValue('priceSom', rate > 0 && dollar ? (Number(dollar) * rate).toFixed(0) : '');
+	}, [workerPrice, rate, setValue]);
+
 	function handlePriceSomChange(value: string) {
+		priceEditedRef.current = true;
 		setValue('priceSom', value);
 		setValue('priceDollar', rate > 0 && value ? (Number(value) / rate).toFixed(2) : '', {
 			shouldValidate: true,
@@ -134,6 +150,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	}
 
 	function handlePriceDollarChange(value: string) {
+		priceEditedRef.current = true;
 		setValue('priceDollar', value, { shouldValidate: true });
 		setValue('priceSom', rate > 0 && value ? (Number(value) * rate).toFixed(0) : '');
 	}

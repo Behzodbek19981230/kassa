@@ -27,7 +27,9 @@ import {
 	TableRow,
 	useNotification,
 } from '@/components/ui';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { useCurrentCompany } from '@/lib/company';
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { cn } from '@/lib/utils';
@@ -40,6 +42,15 @@ import { useCreateWarehouseTransferMutation } from '@/services/warehouse-transfe
 import TransferMethodPanel from '@/pages/WarehouseTransferPage/components/TransferMethodPanel';
 import type { TransferCartRow } from '@/pages/WarehouseTransferPage/types';
 
+const COLUMNS: ColumnVisibilityDef[] = [
+	{ id: 'index', label: '#', hideable: false },
+	{ id: 'brand', label: 'Model' },
+	{ id: 'category', label: 'Nomi' },
+	{ id: 'size', label: "O'lcham" },
+	{ id: 'type', label: 'Tip' },
+	{ id: 'available', label: 'Bor miqdor' },
+];
+
 interface WarehouseTransferPageState {
 	fromTypeSkladId?: number;
 	toTypeSkladId?: number;
@@ -47,6 +58,7 @@ interface WarehouseTransferPageState {
 
 export default function WarehouseTransferPage() {
 	const { canWrite } = useCurrentCompany();
+	const cols = useColumnVisibility('warehouse-transfer-products', COLUMNS);
 	const { notify } = useNotification();
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -315,36 +327,40 @@ export default function WarehouseTransferPage() {
 							</div>
 						</div>
 
+						<div className='mb-2 flex justify-end'>
+							<ColumnVisibilityMenu state={cols} />
+						</div>
+
 						<div className='overflow-x-auto'>
 							<Table>
 								<TableHeader>
 									<TableRow>
 										<TableHead className='bg-ca-theme text-white'>#</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Model</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Nomi</TableHead>
-										<TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Tip</TableHead>
-										<TableHead className='bg-ca-theme text-white'>Bor miqdor</TableHead>
+										{cols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+										{cols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+										{cols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
+										{cols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
+										{cols.isVisible('available') && <TableHead className='bg-ca-theme text-white'>Bor miqdor</TableHead>}
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{!fromTypeSkladId && (
 										<TableRow>
-											<TableCell colSpan={6} className='text-center text-ca-text'>
+											<TableCell colSpan={cols.visibleCount} className='text-center text-ca-text'>
 												Transfer qilinadigan sklad type tanlang
 											</TableCell>
 										</TableRow>
 									)}
 									{fromTypeSkladId && (isProductsLoading || isProductsFetching) && (
 										<TableRow>
-											<TableCell colSpan={6} className='text-center'>
+											<TableCell colSpan={cols.visibleCount} className='text-center'>
 												Yuklanmoqda...
 											</TableCell>
 										</TableRow>
 									)}
 									{fromTypeSkladId && !isProductsLoading && isProductsError && (
 										<TableRow>
-											<TableCell colSpan={6} className='text-center text-ca-red'>
+											<TableCell colSpan={cols.visibleCount} className='text-center text-ca-red'>
 												<FaExclamationTriangle className='mr-1.5 inline' />{' '}
 												{getApiErrorMessage(productsError, 'Xatolik yuz berdi')}
 											</TableCell>
@@ -355,7 +371,7 @@ export default function WarehouseTransferPage() {
 										!isProductsError &&
 										products.length === 0 && (
 											<TableRow>
-												<TableCell colSpan={6} className='text-center'>
+												<TableCell colSpan={cols.visibleCount} className='text-center'>
 													Ma'lumot topilmadi
 												</TableCell>
 											</TableRow>
@@ -380,13 +396,15 @@ export default function WarehouseTransferPage() {
 													)}
 												>
 													<TableCell>{index + 1}</TableCell>
-													<TableCell>{item.brand_detail?.name}</TableCell>
-													<TableCell>{item.product_category_detail?.name}</TableCell>
-													<TableCell>{formatNumber(item.size)}</TableCell>
-													<TableCell>{item.type_detail?.name}</TableCell>
-													<TableCell className='font-semibold'>
-														{formatNumber(available)} {item.type_detail?.name}
-													</TableCell>
+													{cols.isVisible('brand') && <TableCell>{item.brand_detail?.name}</TableCell>}
+													{cols.isVisible('category') && <TableCell>{item.product_category_detail?.name}</TableCell>}
+													{cols.isVisible('size') && <TableCell>{formatNumber(item.size)}</TableCell>}
+													{cols.isVisible('type') && <TableCell>{item.type_detail?.name}</TableCell>}
+													{cols.isVisible('available') && (
+														<TableCell className='font-semibold'>
+															{formatNumber(available)} {item.type_detail?.name}
+														</TableCell>
+													)}
 												</TableRow>
 											);
 										})}

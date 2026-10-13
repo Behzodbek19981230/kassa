@@ -11,12 +11,15 @@ import {
 	Tabs,
 	useNotification,
 } from '@/components/ui';
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
+import { useColumnVisibility } from '@/lib/useColumnVisibility';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAndDebtListQuery } from '@/services/order-account-history/order-account-history.queries';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
 import type { OrderAndDebtItem } from '@/services/order-account-history/order-account-history.types';
 import MainTab from '@/pages/OrderAndDebtPage/components/MainTab';
+import { ORDER_AND_DEBT_COLUMNS } from '@/pages/OrderAndDebtPage/components/OrderAndDebtTableHeader';
 import type { OrderAndDebtPrintRole } from '@/pages/OrderAndDebtPage/components/OrderAndDebtRow';
 import WorkerTypeTab from '@/pages/OrderAndDebtPage/components/WorkerTypeTab';
 
@@ -38,6 +41,8 @@ const USER_TYPE_OPTIONS: ComboboxLoadResult['options'] = [
 
 export default function OrderAndDebtPage() {
 	const { notify } = useNotification();
+	// Both tabs share one table layout, so they share the column choice too.
+	const cols = useColumnVisibility('order-and-debt', ORDER_AND_DEBT_COLUMNS);
 	const [searchParams, setSearchParams] = useSearchParams();
 	const activeTab = searchParams.get('tab') === 'worker' ? 'worker' : 'main';
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
@@ -195,6 +200,9 @@ export default function OrderAndDebtPage() {
 				<Button type='button' variant='white' size='sm' disabled={!hasAppliedFilters} onClick={handleClear}>
 					Tozalash
 				</Button>
+				<div className='ml-auto'>
+					<ColumnVisibilityMenu state={cols} />
+				</div>
 			</div>
 
 			<Tabs
@@ -211,6 +219,7 @@ export default function OrderAndDebtPage() {
 								isLoading={isLoading || isFetching}
 								isError={isError}
 								error={error}
+								cols={cols}
 								onPrint={handlePrintItem}
 							/>
 						),
@@ -224,6 +233,7 @@ export default function OrderAndDebtPage() {
 								isLoading={isLoading || isFetching}
 								isError={isError}
 								error={error}
+								cols={cols}
 								onPrint={handlePrintItem}
 							/>
 						),

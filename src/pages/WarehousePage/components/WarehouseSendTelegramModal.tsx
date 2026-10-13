@@ -26,7 +26,8 @@ import type { Warehouse } from '@/services/warehouse/warehouse.types';
 interface WarehouseSendTelegramModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
-	item: Warehouse;
+	/** Only the id is sent, so a warehouse-all list row works too. */
+	item: Pick<Warehouse, 'id'>;
 	productLabel: string;
 }
 

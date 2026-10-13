@@ -19,7 +19,9 @@ import {
   TableRow,
   useNotification,
 } from '@/components/ui'
+import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu'
 import OpenDialogButton from '@/components/OpenDialogButton'
+import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility'
 import DeleteBroadcastModal from '@/pages/TelegramBroadcastPage/components/DeleteBroadcastModal'
 import { BroadcastStatusBadge, DeliveryStatusBadge } from '@/pages/TelegramBroadcastPage/components/StatusBadge'
 import {
@@ -30,6 +32,18 @@ import {
 import type { TelegramBroadcastDelivery } from '@/services/telegram-broadcast/telegram-broadcast.types'
 
 const DELIVERY_LIMIT_OPTIONS = [50, 100, 200, 500]
+
+const DELIVERY_COLUMNS: ColumnVisibilityDef[] = [
+  { id: 'id', label: 'ID', hideable: false },
+  { id: 'client', label: 'Mijoz' },
+  { id: 'telegram_id', label: 'Telegram ID' },
+  { id: 'product', label: 'Tovar' },
+  { id: 'status', label: 'Holati' },
+  { id: 'message_id', label: 'Xabar ID' },
+  { id: 'error', label: 'Xato' },
+  { id: 'sent_time', label: 'Yuborilgan vaqt' },
+  { id: 'action', label: 'Amal' },
+]
 
 function formatDateTime(value?: string | null) {
   if (!value) return '-'
@@ -52,6 +66,7 @@ export default function TelegramBroadcastDetailPage() {
   const { id } = useParams()
   const jobId = id ? Number(id) : undefined
   const { notify } = useNotification()
+  const cols = useColumnVisibility('telegram-broadcast-deliveries', DELIVERY_COLUMNS)
 
   const [deliveryLimit, setDeliveryLimit] = useState(50)
   const [retryingDeliveryId, setRetryingDeliveryId] = useState<number | null>(null)
@@ -219,6 +234,7 @@ export default function TelegramBroadcastDetailPage() {
                 ))}
               </SelectContent>
             </Select>
+            <ColumnVisibilityMenu state={cols} />
           </div>
         }
       >
@@ -227,20 +243,20 @@ export default function TelegramBroadcastDetailPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>Mijoz</TableHead>
-                <TableHead>Telegram ID</TableHead>
-                <TableHead>Tovar</TableHead>
-                <TableHead>Holati</TableHead>
-                <TableHead>Xabar ID</TableHead>
-                <TableHead>Xato</TableHead>
-                <TableHead>Yuborilgan vaqt</TableHead>
-                <TableHead>Amal</TableHead>
+                {cols.isVisible('client') && <TableHead>Mijoz</TableHead>}
+                {cols.isVisible('telegram_id') && <TableHead>Telegram ID</TableHead>}
+                {cols.isVisible('product') && <TableHead>Tovar</TableHead>}
+                {cols.isVisible('status') && <TableHead>Holati</TableHead>}
+                {cols.isVisible('message_id') && <TableHead>Xabar ID</TableHead>}
+                {cols.isVisible('error') && <TableHead>Xato</TableHead>}
+                {cols.isVisible('sent_time') && <TableHead>Yuborilgan vaqt</TableHead>}
+                {cols.isVisible('action') && <TableHead>Amal</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {deliveries.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className='text-center text-ca-text'>
+                  <TableCell colSpan={cols.visibleCount} className='text-center text-ca-text'>
                     Yuborilgan xabarlar topilmadi
                   </TableCell>
                 </TableRow>
@@ -248,30 +264,34 @@ export default function TelegramBroadcastDetailPage() {
                 deliveries.map((delivery) => (
                   <TableRow key={delivery.id}>
                     <TableCell>{delivery.id}</TableCell>
-                    <TableCell>{delivery.client_detail?.fio ?? delivery.client}</TableCell>
-                    <TableCell>{delivery.telegram_id ?? '-'}</TableCell>
-                    <TableCell>{deliveryWarehouseLabel(delivery)}</TableCell>
-                    <TableCell>
-                      <DeliveryStatusBadge status={delivery.status} />
-                    </TableCell>
-                    <TableCell>{delivery.message_id ?? '-'}</TableCell>
-                    <TableCell className='text-ca-red'>{delivery.error ?? '-'}</TableCell>
-                    <TableCell>{formatDateTime(delivery.sent_time)}</TableCell>
-                    <TableCell>
-                      {delivery.status === 'delete_failed' ? (
-                        <Button
-                          type='button'
-                          variant='warning'
-                          size='xs'
-                          disabled={retryingDeliveryId === delivery.id}
-                          onClick={() => handleRetryDeleteDelivery(delivery.id)}
-                        >
-                          <FaRedo className='mr-1' /> Qayta o'chirish
-                        </Button>
-                      ) : (
-                        '-'
-                      )}
-                    </TableCell>
+                    {cols.isVisible('client') && <TableCell>{delivery.client_detail?.fio ?? delivery.client}</TableCell>}
+                    {cols.isVisible('telegram_id') && <TableCell>{delivery.telegram_id ?? '-'}</TableCell>}
+                    {cols.isVisible('product') && <TableCell>{deliveryWarehouseLabel(delivery)}</TableCell>}
+                    {cols.isVisible('status') && (
+                       <TableCell>
+                         <DeliveryStatusBadge status={delivery.status} />
+                       </TableCell>
+                    )}
+                    {cols.isVisible('message_id') && <TableCell>{delivery.message_id ?? '-'}</TableCell>}
+                    {cols.isVisible('error') && <TableCell className='text-ca-red'>{delivery.error ?? '-'}</TableCell>}
+                    {cols.isVisible('sent_time') && <TableCell>{formatDateTime(delivery.sent_time)}</TableCell>}
+                    {cols.isVisible('action') && (
+                       <TableCell>
+                         {delivery.status === 'delete_failed' ? (
+                           <Button
+                             type='button'
+                             variant='warning'
+                             size='xs'
+                             disabled={retryingDeliveryId === delivery.id}
+                             onClick={() => handleRetryDeleteDelivery(delivery.id)}
+                           >
+                             <FaRedo className='mr-1' /> Qayta o'chirish
+                           </Button>
+                         ) : (
+                           '-'
+                         )}
+                       </TableCell>
+                    )}
                   </TableRow>
                 ))
               )}

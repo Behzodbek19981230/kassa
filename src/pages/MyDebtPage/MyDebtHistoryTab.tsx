@@ -176,6 +176,8 @@ export default function MyDebtHistoryTab() {
 				enableSorting={false}
 				enableGlobalFilter={false}
 				enableColumnFilters={false}
+				enableColumnVisibility
+				columnVisibilityKey='my-debt-history'
 				enableStriping
 				isLoading={isLoading || isFetching}
 				emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
