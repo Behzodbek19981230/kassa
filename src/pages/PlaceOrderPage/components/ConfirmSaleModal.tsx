@@ -28,10 +28,10 @@ import { useCurrentCompany } from '@/lib/company';
 const confirmSaleFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
 	discount_amount: z.string().optional(),
-	sum_dollar: z.string().optional(),
-	sum_som: z.string().optional(),
-	sum_cart: z.string().optional(),
-	sum_transfers: z.string().optional(),
+	sum_dollar: z.string().trim().min(1, "To'langan summa ($) kiritilishi shart"),
+	sum_som: z.string().trim().min(1, "Summa so'mda kiritilishi shart"),
+	sum_cart: z.string().trim().min(1, "Summa kartada kiritilishi shart"),
+	sum_transfers: z.string().trim().min(1, "Summa transferda kiritilishi shart"),
 	zdacha_dollar: z.string().optional(),
 	zdacha_sum: z.string().optional(),
 	driver_info: z.string().optional(),
@@ -208,14 +208,14 @@ export default function ConfirmSaleModal({
 						</div>
 
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label="To'langan summa ($)" horizontal={false} className='mb-0'>
+							<FormField label="To'langan summa ($)" error={errors.sum_dollar?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='sum_dollar'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
-							<FormField label="Summa so'mda" horizontal={false} className='mb-0'>
+							<FormField label="Summa so'mda" error={errors.sum_som?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='sum_som'
 									control={control}
@@ -225,14 +225,14 @@ export default function ConfirmSaleModal({
 						</div>
 
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Summa kartada' horizontal={false} className='mb-0'>
+							<FormField label='Summa kartada' error={errors.sum_cart?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='sum_cart'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
-							<FormField label='Summa transferda' horizontal={false} className='mb-0'>
+							<FormField label='Summa transferda' error={errors.sum_transfers?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='sum_transfers'
 									control={control}

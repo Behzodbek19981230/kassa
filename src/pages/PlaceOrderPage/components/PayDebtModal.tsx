@@ -26,9 +26,9 @@ const payDebtFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
 	text: z.string().optional(),
 	discount_amount: z.string().optional(),
-	sum_som: z.string().optional(),
-	summ_dollar: z.string().optional(),
-	summ_cart: z.string().optional(),
+	sum_som: z.string().trim().min(1, "Summa so'm kiritilishi shart"),
+	summ_dollar: z.string().trim().min(1, 'Summa ($) kiritilishi shart'),
+	summ_cart: z.string().trim().min(1, 'Summa karta kiritilishi shart'),
 	zdacha_sum: z.string().optional(),
 	zdacha_dollar: z.string().optional(),
 });
@@ -158,21 +158,21 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 						</div>
 
 						<div className='mb-3 grid grid-cols-3 gap-3'>
-							<FormField label='Summa ($)' horizontal={false} className='mb-0'>
+							<FormField label='Summa ($)' error={errors.summ_dollar?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='summ_dollar'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
-							<FormField label="Summa so'm" horizontal={false} className='mb-0'>
+							<FormField label="Summa so'm" error={errors.sum_som?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='sum_som'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
-							<FormField label='Summa karta' horizontal={false} className='mb-0'>
+							<FormField label='Summa karta' error={errors.summ_cart?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='summ_cart'
 									control={control}
