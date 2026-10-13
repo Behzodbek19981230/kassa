@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
    Button,
@@ -104,8 +104,8 @@ export default function UzbekistanDispatchPage() {
    const { data: skladTypes } = useSkladTypeListQuery({ limit: 200 });
    const destinationOptions = (skladTypes?.results ?? []).map((t) => ({ value: String(t.id), label: t.name }));
 
-   // Carts are per (source warehouse, receiving sklad). The receiving sklad is picked first; with only
-   // it set, the backend returns that sklad's latest active cart, whose source is then prefilled below.
+   // Carts are per (source warehouse, receiving sklad). The fields are picked in order — receiving sklad,
+   // logistics company, then its warehouse — and none is prefilled from the cart.
    const destinationId = destination ? Number(destination) : undefined;
    const cartQuery = useImportCartQuery(
       { stage: STAGE, destination_type_sklad: destinationId, source_logistics_warehouse: logisticsWarehouseId },
@@ -116,20 +116,7 @@ export default function UzbekistanDispatchPage() {
    const cartItems = cartQuery.data?.items ?? [];
    const summary = cartQuery.data?.summary;
 
-   useEffect(() => {
-      if (!logisticsWarehouse && cart?.source_logistics_warehouse) {
-         setLogisticsWarehouse(String(cart.source_logistics_warehouse));
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [cart?.source_logistics_warehouse]);
-
    const { data: selectedWarehouse } = useLogisticsWarehouseQuery(logisticsWarehouseId);
-   useEffect(() => {
-      if (!logisticsCompany && selectedWarehouse?.logistics_company) {
-         setLogisticsCompany(String(selectedWarehouse.logistics_company));
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [selectedWarehouse?.logistics_company]);
 
    // New items go in with the cart's dispatch time (or now for a new cart); it's set when confirming the dispatch.
    const dispatchValue = cart ? fromApiDateTime(cart.dispatch_datetime) : defaultDispatch;
@@ -329,6 +316,8 @@ export default function UzbekistanDispatchPage() {
                            value={destination}
                            onChange={(value) => {
                               setDestination(value);
+                              setLogisticsCompany('');
+                              setLogisticsWarehouse('');
                            }}
                            options={destinationOptions}
                            placeholder='Qabul qiluvchini tanlang'
