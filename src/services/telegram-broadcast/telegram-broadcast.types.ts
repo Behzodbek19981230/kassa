@@ -34,43 +34,57 @@ export const DELIVERY_STATUS_OPTIONS: { value: TelegramBroadcastDeliveryStatus; 
   { value: 'delete_failed', label: "O'chmadi" },
 ]
 
-export interface TelegramBroadcastClientDetail {
+export interface TelegramBroadcastNamedDetail {
   id: number
-  fio: string
-  phone?: string
+  name: string
 }
 
-export interface TelegramBroadcastWarehouseDetail {
+export interface TelegramBroadcastWarehouse {
   id: number
-  brand_detail?: { id: number; name: string } | null
-  product_category_detail?: { id: number; name: string } | null
-  size?: number
+  company_detail?: TelegramBroadcastNamedDetail | null
+  brand_detail?: TelegramBroadcastNamedDetail | null
+  product_category_detail?: TelegramBroadcastNamedDetail | null
+  type_sklad_detail?: TelegramBroadcastNamedDetail | null
+  type_detail?: TelegramBroadcastNamedDetail | null
+  size: string
+  count: number
+  cr_date: string
+  real_price: string
+  worker_price: string
+  status_count: boolean
 }
 
 export interface TelegramBroadcastDelivery {
   id: number
-  client: number
-  client_detail?: TelegramBroadcastClientDetail | null
+  job: number
+  job_status: TelegramBroadcastStatus
+  client: number | null
   telegram_id?: string | number | null
   warehouse: number | null
-  warehouse_detail?: TelegramBroadcastWarehouseDetail | null
+  warehouse_name?: string | null
   status: TelegramBroadcastDeliveryStatus
   message_id: number | null
   error?: string | null
-  sent_time?: string | null
+  sent_at?: string | null
+  created_at: string
 }
 
 export interface TelegramBroadcastJob {
   id: number
+  company: number
   text: string | null
-  image: string | null
+  image?: string | null
   status: TelegramBroadcastStatus
-  clients_count: number
-  warehouses_count: number
   total_count: number
   sent_count: number
-  error_count: number
-  created_time: string
+  failed_count: number
+  warehouse_ids: number[]
+  warehouses?: TelegramBroadcastWarehouse[]
+  client_ids: number[]
+  error?: string | null
+  created_at: string
+  started_at?: string | null
+  finished_at?: string | null
   deliveries?: TelegramBroadcastDelivery[]
 }
 

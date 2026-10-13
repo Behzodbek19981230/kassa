@@ -63,9 +63,9 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 			date: new Date().toISOString().slice(0, 10),
 			text: '',
 			discount_amount: '0',
-			sum_som: '0',
-			summ_dollar: '0',
-			summ_cart: '0',
+			sum_som: '',
+			summ_dollar: '',
+			summ_cart: '',
 			zdacha_sum: '0',
 			zdacha_dollar: '0',
 		},
@@ -162,21 +162,21 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 								<Controller
 									name='summ_dollar'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 								/>
 							</FormField>
 							<FormField label="Summa so'm" error={errors.sum_som?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='sum_som'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 								/>
 							</FormField>
 							<FormField label='Summa karta' error={errors.summ_cart?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='summ_cart'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 								/>
 							</FormField>
 						</div>

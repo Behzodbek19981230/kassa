@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { Button, Checkbox, DatePicker, FormField, Input, PriceInput, Textarea, useNotification } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
-import { formatNumber } from '@/lib/number';
+import { formatNumber, roundMoney } from '@/lib/number';
 import { usePermissions } from '@/lib/permissions';
 import { generateId } from '@/lib/utils';
 import WarehouseProductRow, {
@@ -105,6 +105,7 @@ export default function OrderAccountHistoryEditPage() {
 		control,
 		register,
 		handleSubmit,
+		watch,
 		formState: { errors },
 	} = useForm<EditOrderFormValues>({
 		resolver: zodResolver(editOrderFormSchema),
@@ -124,6 +125,13 @@ export default function OrderAccountHistoryEditPage() {
 				}
 			: undefined,
 	});
+
+	// Som, card and transfer amounts are in so'm, so they are converted to dollars by the rate.
+	const rate = Number(watch('exchange_rate')) || 0;
+	const somTotal =
+		(Number(watch('sum_som')) || 0) + (Number(watch('sum_cart')) || 0) + (Number(watch('sum_transfers')) || 0);
+	const paidDollar = (Number(watch('sum_dollar')) || 0) + (rate > 0 ? somTotal / rate : 0);
+	const coveredDollar = paidDollar + (Number(watch('discount_amount')) || 0);
 
 	const updateSaleMutation = useUpdateSaleOrderAccountHistoryMutation();
 	const isSaving = updateSaleMutation.isPending;
@@ -160,7 +168,7 @@ export default function OrderAccountHistoryEditPage() {
 					date: values.date,
 					exchange_rate: values.exchange_rate,
 					discount_amount: values.discount_amount || '0',
-					all_summ_dollar: item.all_summ_dollar,
+					all_summ_dollar: String(roundMoney(coveredDollar)),
 					sum_dollar: values.sum_dollar || '0',
 					sum_som: values.sum_som || '0',
 					sum_cart: values.sum_cart || '0',
@@ -289,7 +297,7 @@ export default function OrderAccountHistoryEditPage() {
 				<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 					<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-6'>
 						<FormField label='Jami summa dollarda ($)' horizontal={false} className='mb-0'>
-							<PriceInput value={formatNumber(item.all_summ_dollar, 2)} disabled />
+							<PriceInput value={coveredDollar.toFixed(2)} disabled />
 						</FormField>
 						<FormField label='Jami chegirma ($)' horizontal={false} className='mb-0'>
 							<Controller

@@ -1,4 +1,4 @@
-import { Fragment, type UIEvent, useMemo, useState } from 'react';
+import { Fragment, type UIEvent, useMemo, useRef, useState } from 'react';
 import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
    Button,
@@ -26,12 +26,14 @@ import { cn } from '@/lib/utils';
 import { brandService } from '@/services/brand/brand.service';
 import { useClientQuery } from '@/services/client/client.queries';
 import { clientService } from '@/services/client/client.service';
+import type { Client } from '@/services/client/client.types';
 import { useDeleteOrderCartMutation, useOrderCartListQuery } from '@/services/order-cart/order-cart.queries';
 import type { ConfirmSaleSummary } from '@/services/order-cart/order-cart.types';
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useWarehouseAllListInfiniteQuery } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListBrandGroup } from '@/services/warehouse/warehouse.types';
 import ClientFormModal from '@/pages/settings/ClientPage/components/ClientFormModal';
+import BlockedClientModal from '@/pages/PlaceOrderPage/components/BlockedClientModal';
 import AddToCartModal, { type ProductVariant } from '@/pages/PlaceOrderPage/components/AddToCartModal';
 import ClearCartConfirmModal from '@/pages/PlaceOrderPage/components/ClearCartConfirmModal';
 import ConfirmSaleModal from '@/pages/PlaceOrderPage/components/ConfirmSaleModal';
@@ -115,6 +117,8 @@ export default function PlaceOrderPage() {
    const [brandFilter, setBrandFilter] = useState('');
    const [categoryFilter, setCategoryFilter] = useState('');
    const [clientId, setClientId] = useState('');
+   const [blockedClient, setBlockedClient] = useState<Client | null>(null);
+   const loadedClients = useRef(new Map<string, Client>());
    const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
    const [confirmSaleOpen, setConfirmSaleOpen] = useState(false);
    const [clearCartOpen, setClearCartOpen] = useState(false);
@@ -133,7 +137,7 @@ export default function PlaceOrderPage() {
       brand: brandFilter ? Number(brandFilter) : undefined,
       product_category: categoryFilter ? Number(categoryFilter) : undefined,
    });
-   const groups = data ?? [];
+   const groups = data?.groups ?? [];
 
    function handleScroll(e: UIEvent<HTMLDivElement>) {
       const el = e.currentTarget;
@@ -167,11 +171,34 @@ export default function PlaceOrderPage() {
 
    const loadClientOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
       const result = await clientService.list({ search: search || undefined, page, limit: 20 });
+      for (const c of result.results) loadedClients.current.set(String(c.id), c);
       return {
          options: result.results.map((c) => ({ value: String(c.id), label: c.fio })),
          hasMore: result.pagination.currentPage < result.pagination.lastPage,
       };
    };
+
+   // A blocked client can't get an order; show why instead of selecting them.
+   async function handleClientChange(value: string) {
+      if (!value) {
+         setClientId('');
+         return;
+      }
+      let client = loadedClients.current.get(value);
+      if (!client) {
+         try {
+            client = await clientService.get(Number(value));
+         } catch {
+            notify({ title: "Mijoz ma'lumotini yuklab bo'lmadi" });
+            return;
+         }
+      }
+      if (client.is_blocked) {
+         setBlockedClient(client);
+         return;
+      }
+      setClientId(value);
+   }
 
    function handleClear() {
       setBrandFilter('');
@@ -380,7 +407,7 @@ export default function PlaceOrderPage() {
                      <div className='min-w-[200px] flex-1'>
                         <Combobox
                            value={clientId}
-                           onChange={(value) => setClientId(value)}
+                           onChange={handleClientChange}
                            loadOptions={loadClientOptions}
                            selectedLabel={selectedClient?.fio}
                            placeholder='Mijozni tanlang'
@@ -548,15 +575,7 @@ export default function PlaceOrderPage() {
                      </Table>
                   </div>
 
-                  {clientId && !isCartLoading && cartItems.length > 0 && (
-                     <div className='mt-4 flex flex-wrap items-center justify-around gap-3 rounded-[3px] border border-ca-border bg-ca-silver px-4 py-3 text-sm'>
-                        <span className='text-ca-heading'>
-                           Jami: <span className='font-bold'>{formatNumber(cartTotalCount)} </span>
-                        </span>
-                        <span className='font-bold text-ca-green'>{formatNumber(cartTotalSum, 2)} $</span>
-                        {rate > 0 && <span className='font-bold text-ca-heading'>{formatNumber(cartTotalSum * rate, 0)} so'm</span>}
-                     </div>
-                  )}
+
 
                   {canWrite && (
                      <div className='mt-4 flex gap-2'>
@@ -604,6 +623,14 @@ export default function PlaceOrderPage() {
                cartCount={cartTotalCount}
                allSummDollar={cartTotalSum}
                onConfirmed={handleSaleConfirmed}
+            />
+         )}
+
+         {blockedClient && (
+            <BlockedClientModal
+               open={Boolean(blockedClient)}
+               setOpen={(open) => !open && setBlockedClient(null)}
+               client={blockedClient}
             />
          )}
 

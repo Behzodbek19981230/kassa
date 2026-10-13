@@ -10,7 +10,8 @@ import type { TelegramBroadcastJob } from '@/services/telegram-broadcast/telegra
 
 const columnHelper = createColumnHelper<TelegramBroadcastJob>();
 
-function formatDateTime(value: string) {
+function formatDateTime(value?: string | null) {
+	if (!value) return '-';
 	const d = new Date(value);
 	if (Number.isNaN(d.getTime())) return value;
 	const date = d.toLocaleDateString('ru-RU');
@@ -36,15 +37,15 @@ export default function TelegramBroadcastPage() {
 			header: 'Matn',
 			cell: (info) => info.getValue() || '-',
 		}),
-		columnHelper.accessor('warehouses_count', { header: 'Tovar soni', size: 130 }),
-		columnHelper.accessor('clients_count', { header: 'Mijoz soni', size: 110 }),
+		columnHelper.accessor((row) => row.warehouse_ids?.length ?? 0, { id: 'warehouses_count', header: 'Tovar soni', size: 130 }),
+		columnHelper.accessor((row) => row.client_ids?.length ?? 0, { id: 'clients_count', header: 'Mijoz soni', size: 110 }),
 		columnHelper.accessor('total_count', { header: 'Jami', size: 90 }),
 		columnHelper.accessor('sent_count', {
 			header: 'Yuborilgan',
 			size: 100,
 			cell: (info) => <span className='font-semibold text-ca-green'>{info.getValue()}</span>,
 		}),
-		columnHelper.accessor('error_count', {
+		columnHelper.accessor('failed_count', {
 			header: 'Xato',
 			size: 80,
 			cell: (info) => <span className='font-semibold text-ca-red'>{info.getValue()}</span>,
@@ -54,8 +55,18 @@ export default function TelegramBroadcastPage() {
 			size: 130,
 			cell: (info) => <BroadcastStatusBadge status={info.getValue()} />,
 		}),
-		columnHelper.accessor('created_time', {
+		columnHelper.accessor('created_at', {
 			header: 'Yaratilgan vaqt',
+			size: 140,
+			cell: (info) => formatDateTime(info.getValue()),
+		}),
+		columnHelper.accessor('started_at', {
+			header: 'Boshlangan vaqt',
+			size: 140,
+			cell: (info) => formatDateTime(info.getValue()),
+		}),
+		columnHelper.accessor('finished_at', {
+			header: 'Tugagan vaqt',
 			size: 140,
 			cell: (info) => formatDateTime(info.getValue()),
 		}),

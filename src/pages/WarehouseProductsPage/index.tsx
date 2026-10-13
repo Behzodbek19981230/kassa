@@ -70,7 +70,7 @@ export default function WarehouseProductsPage() {
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
-	const groups = data ?? [];
+	const groups = data?.groups ?? [];
 
 	function handleScroll(e: UIEvent<HTMLDivElement>) {
 		const el = e.currentTarget;
@@ -90,7 +90,7 @@ export default function WarehouseProductsPage() {
 
 	const totalCount = brandGroups.reduce((sum, g) => sum + g.items.reduce((s, w) => s + w.count, 0), 0);
 	const totalSum = brandGroups.reduce((sum, g) => sum + g.items.reduce((s, w) => s + Number(w.real_price) * w.count, 0), 0);
-	const modelCount = brandGroups.length;
+	const total = data?.total;
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
@@ -243,10 +243,13 @@ export default function WarehouseProductsPage() {
 
 				<div className='mb-4 flex flex-wrap gap-3'>
 					<div className='rounded-[3px] border-l-4 border-ca-orange bg-ca-silver-light px-4 py-2 text-xs shadow-[0_1px_3px_rgba(0,0,0,0.1)]'>
-						Barcha mahsulotlar soni: <span className='font-bold'>{formatNumber(totalCount)} ta</span>
+						Barcha mahsulotlar soni: <span className='font-bold'>{formatNumber(total?.warehouse_total ?? 0)} ta</span>
 					</div>
 					<div className='rounded-[3px] border-l-4 border-ca-theme bg-ca-silver-light px-4 py-2 text-xs shadow-[0_1px_3px_rgba(0,0,0,0.1)]'>
-						Modellar soni: <span className='font-bold'>{formatNumber(modelCount)} ta</span>
+						Modellar soni: <span className='font-bold'>{formatNumber(total?.brand_total ?? 0)} ta</span>
+					</div>
+					<div className='rounded-[3px] border-l-4 border-ca-green bg-ca-silver-light px-4 py-2 text-xs shadow-[0_1px_3px_rgba(0,0,0,0.1)]'>
+						Kategoriyalar soni: <span className='font-bold'>{formatNumber(total?.product_category_total ?? 0)} ta</span>
 					</div>
 				</div>
 

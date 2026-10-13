@@ -58,6 +58,7 @@ export interface Client {
   is_partner: number
   is_profit_loss: number
   is_blocked?: boolean
+  blocked_at?: string | null
   type: ClientType
   company: number
   company_detail?: ClientCompanyDetail | null

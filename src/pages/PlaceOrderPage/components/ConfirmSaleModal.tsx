@@ -78,10 +78,10 @@ export default function ConfirmSaleModal({
 		defaultValues: {
 			date: new Date().toISOString().slice(0, 10),
 			discount_amount: '0',
-			sum_dollar: '0',
-			sum_som: '0',
-			sum_cart: '0',
-			sum_transfers: '0',
+			sum_dollar: '',
+			sum_som: '',
+			sum_cart: '',
+			sum_transfers: '',
 			zdacha_dollar: '0',
 			zdacha_sum: '0',
 			driver_info: '',
@@ -97,6 +97,7 @@ export default function ConfirmSaleModal({
 	const sumCart = watch('sum_cart');
 	const sumTransfers = watch('sum_transfers');
 
+	// Som, card and transfer amounts are in so'm, so they are converted to dollars by the rate.
 	const somTotal = (Number(sumSom) || 0) + (Number(sumCart) || 0) + (Number(sumTransfers) || 0);
 	const paidDollar = (Number(sumDollar) || 0) + (rate > 0 ? somTotal / rate : 0);
 	const coveredDollar = paidDollar + (Number(discountAmount) || 0);
@@ -118,7 +119,7 @@ export default function ConfirmSaleModal({
 				date: values.date,
 				exchange_rate: rate,
 				discount_amount: values.discount_amount || '0',
-				all_summ_dollar: String(roundMoney(allSummDollar)),
+				all_summ_dollar: String(roundMoney(coveredDollar)),
 				sum_dollar: values.sum_dollar || '0',
 				sum_som: values.sum_som || '0',
 				sum_cart: values.sum_cart || '0',
@@ -212,14 +213,14 @@ export default function ConfirmSaleModal({
 								<Controller
 									name='sum_dollar'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 								/>
 							</FormField>
 							<FormField label="Summa so'mda" error={errors.sum_som?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='sum_som'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 								/>
 							</FormField>
 						</div>
@@ -229,14 +230,14 @@ export default function ConfirmSaleModal({
 								<Controller
 									name='sum_cart'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 								/>
 							</FormField>
 							<FormField label='Summa transferda' error={errors.sum_transfers?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='sum_transfers'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 								/>
 							</FormField>
 						</div>

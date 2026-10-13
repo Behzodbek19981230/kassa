@@ -5,12 +5,15 @@ import type {
   Warehouse,
   WarehouseAllListBrandGroup,
   WarehouseAllListParams,
+  WarehouseAllListTotal,
   WarehouseEditRealPricePayload,
   WarehouseListParams,
   WarehousePayload,
 } from '@/services/warehouse/warehouse.types'
 
-type AllListResponse = WarehouseAllListBrandGroup[] | ListResponse<WarehouseAllListBrandGroup>
+type AllListResponse =
+  | WarehouseAllListBrandGroup[]
+  | (ListResponse<WarehouseAllListBrandGroup> & { total?: WarehouseAllListTotal | null })
 
 const WAREHOUSE_ALL_LIST_PAGE_SIZE = 50
 
@@ -62,7 +65,9 @@ export const warehouseService = {
     return data
   },
   allListPage: async (params: WarehouseAllListParams | undefined, page: number) => {
-    return parseListPage(await fetchAllListPage(params, page), page)
+    const data = await fetchAllListPage(params, page)
+    const total = Array.isArray(data) ? null : (data.total ?? null)
+    return { ...parseListPage(data, page), total }
   },
   allList: async (params?: WarehouseAllListParams) => {
     return mergeBrandGroups(await fetchAllListGroups(params))

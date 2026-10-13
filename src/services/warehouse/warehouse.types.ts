@@ -124,6 +124,13 @@ export interface WarehouseAllListBrandGroup {
   product_categories: WarehouseAllListCategoryGroup[]
 }
 
+// Catalog-wide counts the backend sends with every `warehouse/all-list/` page.
+export interface WarehouseAllListTotal {
+  warehouse_total: number
+  brand_total: number
+  product_category_total: number
+}
+
 export interface WarehouseAllListParams {
   brand?: number
   product_category?: number

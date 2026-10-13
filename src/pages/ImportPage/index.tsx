@@ -134,7 +134,7 @@ export default function ImportPage() {
 		brand: brandFilter ? Number(brandFilter) : undefined,
 		product_category: categoryFilter ? Number(categoryFilter) : undefined,
 	});
-	const groups = data ?? [];
+	const groups = data?.groups ?? [];
 
 	function handleScroll(e: UIEvent<HTMLDivElement>) {
 		const el = e.currentTarget;

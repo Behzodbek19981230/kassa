@@ -23,13 +23,17 @@ import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu'
 import OpenDialogButton from '@/components/OpenDialogButton'
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility'
 import DeleteBroadcastModal from '@/pages/TelegramBroadcastPage/components/DeleteBroadcastModal'
+import DeliveryWarehouseModal from '@/pages/TelegramBroadcastPage/components/DeliveryWarehouseModal'
 import { BroadcastStatusBadge, DeliveryStatusBadge } from '@/pages/TelegramBroadcastPage/components/StatusBadge'
 import {
   useRetryDeleteTelegramBroadcastDeliveryMutation,
   useRetryDeleteTelegramBroadcastMutation,
   useTelegramBroadcastQuery,
 } from '@/services/telegram-broadcast/telegram-broadcast.queries'
-import type { TelegramBroadcastDelivery } from '@/services/telegram-broadcast/telegram-broadcast.types'
+import type {
+  TelegramBroadcastDelivery,
+  TelegramBroadcastWarehouse,
+} from '@/services/telegram-broadcast/telegram-broadcast.types'
 
 const DELIVERY_LIMIT_OPTIONS = [50, 100, 200, 500]
 
@@ -41,7 +45,7 @@ const DELIVERY_COLUMNS: ColumnVisibilityDef[] = [
   { id: 'status', label: 'Holati' },
   { id: 'message_id', label: 'Xabar ID' },
   { id: 'error', label: 'Xato' },
-  { id: 'sent_time', label: 'Yuborilgan vaqt' },
+  { id: 'sent_at', label: 'Yuborilgan vaqt' },
   { id: 'action', label: 'Amal' },
 ]
 
@@ -54,11 +58,10 @@ function formatDateTime(value?: string | null) {
   return `${date} ${time}`
 }
 
-function deliveryWarehouseLabel(delivery: TelegramBroadcastDelivery) {
-  const w = delivery.warehouse_detail
-  if (!w) return '-'
-  const parts = [w.brand_detail?.name, w.product_category_detail?.name].filter(Boolean)
-  return parts.length ? parts.join(' ') : '-'
+function deliveryWarehouseLabel(delivery: TelegramBroadcastDelivery, warehouse?: TelegramBroadcastWarehouse) {
+  const parts = [warehouse?.brand_detail?.name, warehouse?.product_category_detail?.name].filter(Boolean)
+  if (parts.length) return parts.join(' ')
+  return delivery.warehouse_name || '-'
 }
 
 export default function TelegramBroadcastDetailPage() {
@@ -112,6 +115,7 @@ export default function TelegramBroadcastDetailPage() {
   }
 
   const deliveries = job.deliveries ?? []
+  const warehouseById = new Map((job.warehouses ?? []).map((w) => [w.id, w]))
   const progressPercent = job.total_count > 0 ? (job.sent_count / job.total_count) * 100 : 0
   const showDeleteAction = ['pending', 'processing', 'done', 'partial', 'failed', 'deleting'].includes(job.status)
   const showRetryDeleteAction = job.status === 'partial_deleted'
@@ -147,19 +151,27 @@ export default function TelegramBroadcastDetailPage() {
             </div>
             <div className='flex items-center justify-between py-2.5'>
               <span className='font-semibold text-ca-heading'>Xato:</span>
-              <span className='font-bold text-ca-red'>{job.error_count}</span>
+              <span className='font-bold text-ca-red'>{job.failed_count}</span>
             </div>
             <div className='flex items-center justify-between py-2.5'>
               <span className='font-semibold text-ca-heading'>Tovarlar:</span>
-              <span className='font-bold text-ca-heading'>{job.warehouses_count} ta</span>
+              <span className='font-bold text-ca-heading'>{job.warehouse_ids?.length ?? 0} ta</span>
             </div>
             <div className='flex items-center justify-between py-2.5'>
               <span className='font-semibold text-ca-heading'>Mijozlar:</span>
-              <span className='font-bold text-ca-heading'>{job.clients_count} ta</span>
+              <span className='font-bold text-ca-heading'>{job.client_ids?.length ?? 0} ta</span>
             </div>
             <div className='flex items-center justify-between py-2.5'>
               <span className='font-semibold text-ca-heading'>Yaratilgan:</span>
-              <span className='font-bold text-ca-heading'>{formatDateTime(job.created_time)}</span>
+              <span className='font-bold text-ca-heading'>{formatDateTime(job.created_at)}</span>
+            </div>
+            <div className='flex items-center justify-between py-2.5'>
+              <span className='font-semibold text-ca-heading'>Boshlangan:</span>
+              <span className='font-bold text-ca-heading'>{formatDateTime(job.started_at)}</span>
+            </div>
+            <div className='flex items-center justify-between py-2.5'>
+              <span className='font-semibold text-ca-heading'>Tugagan:</span>
+              <span className='font-bold text-ca-heading'>{formatDateTime(job.finished_at)}</span>
             </div>
           </div>
 
@@ -249,7 +261,7 @@ export default function TelegramBroadcastDetailPage() {
                 {cols.isVisible('status') && <TableHead>Holati</TableHead>}
                 {cols.isVisible('message_id') && <TableHead>Xabar ID</TableHead>}
                 {cols.isVisible('error') && <TableHead>Xato</TableHead>}
-                {cols.isVisible('sent_time') && <TableHead>Yuborilgan vaqt</TableHead>}
+                {cols.isVisible('sent_at') && <TableHead>Yuborilgan vaqt</TableHead>}
                 {cols.isVisible('action') && <TableHead>Amal</TableHead>}
               </TableRow>
             </TableHeader>
@@ -264,17 +276,38 @@ export default function TelegramBroadcastDetailPage() {
                 deliveries.map((delivery) => (
                   <TableRow key={delivery.id}>
                     <TableCell>{delivery.id}</TableCell>
-                    {cols.isVisible('client') && <TableCell>{delivery.client_detail?.fio ?? delivery.client}</TableCell>}
+                    {cols.isVisible('client') && <TableCell>{delivery.client ?? '-'}</TableCell>}
                     {cols.isVisible('telegram_id') && <TableCell>{delivery.telegram_id ?? '-'}</TableCell>}
-                    {cols.isVisible('product') && <TableCell>{deliveryWarehouseLabel(delivery)}</TableCell>}
+                    {cols.isVisible('product') && (
+                      <TableCell>
+                        {delivery.warehouse ? (
+                          <OpenDialogButton
+                            element={(props) => (
+                              <button
+                                {...props}
+                                type='button'
+                                className='cursor-pointer font-semibold text-ca-theme hover:underline'
+                              />
+                            )}
+                            elementProps={{
+                              children: deliveryWarehouseLabel(delivery, warehouseById.get(delivery.warehouse)),
+                            }}
+                            dialog={DeliveryWarehouseModal}
+                            dialogProps={{ delivery, warehouse: warehouseById.get(delivery.warehouse) }}
+                          />
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                    )}
                     {cols.isVisible('status') && (
                        <TableCell>
                          <DeliveryStatusBadge status={delivery.status} />
                        </TableCell>
                     )}
                     {cols.isVisible('message_id') && <TableCell>{delivery.message_id ?? '-'}</TableCell>}
-                    {cols.isVisible('error') && <TableCell className='text-ca-red'>{delivery.error ?? '-'}</TableCell>}
-                    {cols.isVisible('sent_time') && <TableCell>{formatDateTime(delivery.sent_time)}</TableCell>}
+                    {cols.isVisible('error') && <TableCell className='text-ca-red'>{delivery.error || '-'}</TableCell>}
+                    {cols.isVisible('sent_at') && <TableCell>{formatDateTime(delivery.sent_at)}</TableCell>}
                     {cols.isVisible('action') && (
                        <TableCell>
                          {delivery.status === 'delete_failed' ? (

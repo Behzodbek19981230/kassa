@@ -36,8 +36,11 @@ export function useWarehouseAllListQuery(params?: WarehouseAllListParams, enable
 type AllListPage = Awaited<ReturnType<typeof warehouseService.allListPage>>
 
 // Every loaded page holds some brand groups, so they are merged before the table renders them.
-const selectBrandGroups = (data: InfiniteData<AllListPage>) =>
-  mergeBrandGroups(data.pages.flatMap((page) => page.results))
+// `total` covers the whole filtered catalog, not just the loaded pages.
+const selectBrandGroups = (data: InfiniteData<AllListPage>) => ({
+  groups: mergeBrandGroups(data.pages.flatMap((page) => page.results)),
+  total: data.pages[0]?.total ?? null,
+})
 
 // Loads the warehouse list 50 rows at a time; call fetchNextPage when the table is scrolled to the bottom.
 export function useWarehouseAllListInfiniteQuery(params?: WarehouseAllListParams) {
