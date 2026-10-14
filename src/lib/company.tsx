@@ -90,6 +90,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 				region: region || 0,
 				district: district || 0,
 				role: role,
+				type: userInfo.type ?? undefined,
 				trade_company: userInfo.trade_company ?? undefined,
 				current_company: id,
 				companies: userInfo.companies,

@@ -73,7 +73,7 @@ export interface UserPayload {
 	region: number;
 	district: number;
 	role: number;
-	type: number;
+	type?: number;
 	trade_company?: number;
 	current_company?: number;
 	companies: number[];
