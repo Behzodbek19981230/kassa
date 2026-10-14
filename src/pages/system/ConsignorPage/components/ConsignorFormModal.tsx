@@ -54,7 +54,7 @@ export default function ConsignorFormModal({ open, setOpen, mode, item }: Consig
 		resolver: zodResolver(consignorFormSchema),
 		defaultValues:
 			mode === 'edit' && item
-				? { name: item.name, phone: item.phone, address: item.address, type: item.type ?? '' }
+				? { name: item.name, phone: formatUzPhone(item.phone ?? ''), address: item.address, type: item.type ?? '' }
 				: { name: '', phone: '+998', address: '', type: '' },
 	});
 

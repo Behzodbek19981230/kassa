@@ -61,7 +61,7 @@ export default function LogisticsCompanyFormModal({ open, setOpen, mode, item }:
 		defaultValues: {
 			name: mode === 'edit' && item ? item.name : '',
 			country: mode === 'edit' && item?.country ? String(item.country) : '',
-			phone: mode === 'edit' && item?.phone ? item.phone : '',
+			phone: mode === 'edit' && item?.phone ? formatUzPhone(item.phone) : '',
 			contactPerson: mode === 'edit' && item?.contact_person ? item.contact_person : '',
 			address: mode === 'edit' && item?.address ? item.address : '',
 		},

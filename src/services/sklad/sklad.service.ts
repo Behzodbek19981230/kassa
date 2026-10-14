@@ -21,4 +21,7 @@ export const skladService = {
 		const { data } = await apiClient.put<SkladItem>(`/sklad/${id}/`, payload);
 		return data;
 	},
+	remove: async (id: number) => {
+		await apiClient.delete(`/sklad/${id}/`, { data: { sklad: 'Sklad' } });
+	},
 };

@@ -34,7 +34,7 @@ export default function BlockedClientModal({ open, setOpen, client }: BlockedCli
                   </p>
                   <p className='text-xs text-ca-text'>
                      Bloklangan vaqt:{' '}
-                     <span className='font-semibold text-ca-red'>{formatDateTime(client.blocked_at)}</span>
+                     <span className='font-semibold text-ca-red'>{formatDateTime(client.is_blocked_date)}</span>
                   </p>
                </div>
             </ModalBody>

@@ -81,7 +81,7 @@ export default function LogisticsWarehouseFormModal({
 			logisticsCompany: String(
 				presetLogisticsCompany?.id ?? (mode === 'edit' && item?.logistics_company ? item.logistics_company : ''),
 			),
-			phone: mode === 'edit' && item?.phone ? item.phone : '',
+			phone: mode === 'edit' && item?.phone ? formatUzPhone(item.phone) : '',
 			contactPerson: mode === 'edit' && item?.contact_person ? item.contact_person : '',
 			address: mode === 'edit' && item?.address ? item.address : '',
 			isActive: mode === 'edit' && item ? (item.is_active ?? true) : true,

@@ -293,7 +293,12 @@ export default function TelegramBroadcastDetailPage() {
                               children: deliveryWarehouseLabel(delivery, warehouseById.get(delivery.warehouse)),
                             }}
                             dialog={DeliveryWarehouseModal}
-                            dialogProps={{ delivery, warehouse: warehouseById.get(delivery.warehouse) }}
+                            dialogProps={{
+                              delivery,
+                              warehouses: [warehouseById.get(delivery.warehouse)].filter(
+                                (w): w is TelegramBroadcastWarehouse => !!w,
+                              ),
+                            }}
                           />
                         ) : (
                           '-'

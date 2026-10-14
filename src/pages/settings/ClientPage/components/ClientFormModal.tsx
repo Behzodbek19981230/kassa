@@ -32,26 +32,22 @@ import { districtService } from '@/services/district/district.service';
 import { useCurrentCompany } from '@/lib/company';
 import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
 import { regionService } from '@/services/region/region.service';
-import { userService } from '@/services/user/user.service';
 
 const clientFormSchema = z.object({
 	fio: z.string().min(1, 'F.I.Sh kiritilishi shart'),
 	phone: z.string().regex(UZ_PHONE_REGEX, "Telefon raqami to'liq kiritilishi shart"),
-	address: z.string().min(1, 'Manzil kiritilishi shart'),
+	address: z.string(),
 	total_debt: z.string().min(1, 'Qarz miqdori kiritilishi shart'),
 	keshbek: z
 		.string()
-		.min(1, 'Keshbek foizi kiritilishi shart')
 		.refine((v) => {
+			if (!v.trim()) return true;
 			const n = Number(v);
 			return !Number.isNaN(n) && n >= 0 && n <= 100;
 		}, 'Keshbek foizi 0 dan 100 gacha bo\'lishi kerak'),
 	type: z.string().min(1, 'Turi tanlanishi shart'),
 	region: z.string().min(1, 'Viloyat tanlanishi shart'),
 	district: z.string().min(1, 'Tuman tanlanishi shart'),
-	is_worker: z.boolean(),
-	worker_user: z.string().optional(),
-	is_partner: z.boolean(),
 	is_profit_loss: z.boolean(),
 	is_blocked: z.boolean(),
 });
@@ -68,16 +64,13 @@ interface ClientFormModalProps {
 function clientToFormValues(client: Client): ClientFormValues {
 	return {
 		fio: client.fio,
-		phone: client.phone,
-		address: client.address,
+		phone: formatUzPhone(client.phone ?? ''),
+		address: client.address ?? '',
 		total_debt: client.total_debt ?? '0',
 		keshbek: client.keshbek ?? '0',
 		type: client.type,
 		region: client.region ? String(client.region) : '',
 		district: client.district ? String(client.district) : '',
-		is_worker: Boolean(client.is_worker),
-		worker_user: client.worker_user ? String(client.worker_user) : '',
-		is_partner: Boolean(client.is_partner),
 		is_profit_loss: Boolean(client.is_profit_loss),
 		is_blocked: Boolean(client.is_blocked),
 	};
@@ -113,9 +106,6 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 						type: '',
 						region: '',
 						district: '',
-						is_worker: false,
-						worker_user: '',
-						is_partner: false,
 						is_profit_loss: false,
 						is_blocked: false,
 					},
@@ -129,7 +119,6 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 	}, [mode, clientQuery.data]);
 
 	const regionValue = watch('region');
-	const isWorker = watch('is_worker');
 
 	const createMutation = useCreateClientMutation();
 	const updateMutation = useUpdateClientMutation();
@@ -157,26 +146,10 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 		};
 	};
 
-	const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await userService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.map((u) => ({
-				value: String(u.id),
-				label: `${u.last_name} ${u.first_name}`.trim() || u.username,
-			})),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
-
 	const handleRegionChange = (value: string) => {
 		setValue('region', value);
 		setValue('district', '');
 	};
-
-	const workerUserDetail = currentClient?.worker_user_detail;
-	const workerUserLabel = workerUserDetail
-		? `${workerUserDetail.last_name} ${workerUserDetail.first_name}`.trim() || workerUserDetail.username
-		: undefined;
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
@@ -195,9 +168,10 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 			type: values.type as ClientType,
 			region: Number(values.region),
 			district: Number(values.district),
-			is_worker: values.is_worker ? 1 : 0,
-			worker_user: values.is_worker && values.worker_user ? Number(values.worker_user) : null,
-			is_partner: values.is_partner ? 1 : 0,
+			// Ishchi/Hamkor are no longer edited in this form; keep the client's existing values.
+			is_worker: currentClient?.is_worker ? 1 : 0,
+			worker_user: currentClient?.worker_user ?? null,
+			is_partner: currentClient?.is_partner ? 1 : 0,
 			is_profit_loss: values.is_profit_loss ? 1 : 0,
 			is_blocked: values.is_blocked,
 			company,
@@ -305,7 +279,6 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 							<FormField
 								label='Keshbek (%)'
 								error={errors.keshbek?.message}
-								required
 								horizontal={false}
 								className='mb-0'
 							>
@@ -379,7 +352,6 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 						<FormField
 							label='Manzil'
 							error={errors.address?.message}
-							required
 							horizontal={false}
 							className='mb-3'
 						>
@@ -387,30 +359,6 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 						</FormField>
 
 						<div className='mb-3 flex flex-wrap gap-4'>
-							<Controller
-								name='is_worker'
-								control={control}
-								render={({ field }) => (
-									<Checkbox
-										inline
-										label='Ishchi'
-										checked={field.value}
-										onCheckedChange={(v) => field.onChange(!!v)}
-									/>
-								)}
-							/>
-							<Controller
-								name='is_partner'
-								control={control}
-								render={({ field }) => (
-									<Checkbox
-										inline
-										label='Hamkor'
-										checked={field.value}
-										onCheckedChange={(v) => field.onChange(!!v)}
-									/>
-								)}
-							/>
 							<Controller
 								name='is_profit_loss'
 								control={control}
@@ -436,25 +384,6 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 								)}
 							/>
 						</div>
-						{isWorker && (
-							<FormField label='Foydalanuvchi' horizontal={false} className='mb-3'>
-								<Controller
-									name='worker_user'
-									control={control}
-									render={({ field }) => (
-										<Combobox
-											value={field.value ?? ''}
-											onChange={field.onChange}
-											loadOptions={loadUserOptions}
-											selectedLabel={workerUserLabel}
-											placeholder='Tanlang...'
-											searchPlaceholder='Foydalanuvchi qidirish...'
-											clearable
-										/>
-									)}
-								/>
-							</FormField>
-						)}
 					</ModalBody>
 					<ModalFooter>
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>

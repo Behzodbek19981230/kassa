@@ -85,7 +85,7 @@ function userToFormValues(user: User): UserFormValues {
 		second_name: user.second_name ?? '',
 		gender: user.gender ?? '',
 		date_of_birthday: user.date_of_birthday ?? '',
-		phone_number: user.phone_number,
+		phone_number: formatUzPhone(user.phone_number ?? ''),
 		email: user.email,
 		region: user.region ? String(user.region) : '',
 		district: user.district ? String(user.district) : '',

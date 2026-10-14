@@ -70,7 +70,7 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 				? {
 						name: item.name,
 						code: item.code,
-						phone: item.phone,
+						phone: formatUzPhone(item.phone ?? ''),
 						region: item.region ? String(item.region) : '',
 						district: item.district ? String(item.district) : '',
 						address: item.address,

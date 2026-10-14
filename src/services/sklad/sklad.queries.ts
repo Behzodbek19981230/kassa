@@ -33,3 +33,13 @@ export function useUpdateSkladMutation() {
 		},
 	});
 }
+
+export function useDeleteSkladMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: number) => skladService.remove(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: skladKeys.all });
+		},
+	});
+}

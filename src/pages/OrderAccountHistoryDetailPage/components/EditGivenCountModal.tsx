@@ -39,8 +39,17 @@ export default function EditGivenCountModal({ open, setOpen, item, orderId }: Ed
 		setOpen(next);
 	}
 
+	const maxCount = item?.count ?? 0;
+	const numericValue = Number(value);
+	const valueError =
+		value.trim() === '' || !Number.isInteger(numericValue) || numericValue < 0
+			? 'Butun son kiriting'
+			: numericValue > maxCount
+				? `Berilgan soni buyurtma sonidan (${maxCount} ta) oshmasligi kerak`
+				: '';
+
 	async function handleSubmit() {
-		if (!item) return;
+		if (!item || valueError) return;
 		setFormError('');
 		try {
 			await updateMutation.mutateAsync({
@@ -67,11 +76,19 @@ export default function EditGivenCountModal({ open, setOpen, item, orderId }: Ed
 							{formError}
 						</div>
 					)}
-					<FormField label='Mijozga berilgan mahsulot soni' horizontal={false}>
+					<FormField
+						label={`Mijozga berilgan mahsulot soni (maks. ${maxCount} ta)`}
+						error={value !== '' ? valueError || undefined : undefined}
+						horizontal={false}
+					>
 						<Input
 							type='number'
+							min={0}
+							max={maxCount}
+							step={1}
 							value={value}
 							onChange={(e) => setValue(e.target.value)}
+							onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
 						/>
 					</FormField>
 				</ModalBody>
@@ -79,7 +96,13 @@ export default function EditGivenCountModal({ open, setOpen, item, orderId }: Ed
 					<Button type='button' variant='default' onClick={() => setOpen(false)}>
 						Yopish
 					</Button>
-					<Button type='button' variant='theme' onClick={handleSubmit} loading={updateMutation.isPending}>
+					<Button
+						type='button'
+						variant='theme'
+						onClick={handleSubmit}
+						disabled={Boolean(valueError)}
+						loading={updateMutation.isPending}
+					>
 						O'zgartirish
 					</Button>
 				</ModalFooter>

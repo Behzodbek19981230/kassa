@@ -377,9 +377,9 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
    );
 
    const [expanded, setExpanded] = useState<Set<string>>(() => new Set(collectExpandedIds(menu, pathname)));
+   // On navigation keep only the groups leading to the current page open, so other opened groups collapse.
    useEffect(() => {
-      const activeIds = collectExpandedIds(menu, pathname);
-      setExpanded((prev) => new Set([...prev, ...activeIds]));
+      setExpanded(new Set(collectExpandedIds(menu, pathname)));
    }, [pathname, menu]);
 
    const toggleExpanded = (id: string) => {
