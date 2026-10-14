@@ -203,7 +203,7 @@ export interface OrderAccountHistoryGroupedListParams extends ListParams {
 	client?: number;
 	created_by?: number;
 	is_vozvrat?: boolean;
-	is_debtor?: 1 | 0;
+	is_debtor?: boolean;
 	date?: string;
 	start_date?: string;
 	end_date?: string;

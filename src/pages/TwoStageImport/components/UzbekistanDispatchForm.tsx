@@ -47,6 +47,7 @@ interface UzbekistanDispatchFormProps {
    cartId?: number;
    /** The cart's current dispatch time (API format); the date picked here is saved back to the cart. */
    cartDispatchDatetime?: string;
+   consignor?: number;
    /** Receiving sklad of the cart being dispatched — chosen on the cart panel, so it's not asked here. */
    destinationTypeSklad?: number;
    disabled?: boolean;
@@ -57,6 +58,7 @@ export default function UzbekistanDispatchForm({
    setOpen,
    cartId,
    cartDispatchDatetime,
+   consignor,
    destinationTypeSklad,
    disabled,
 }: UzbekistanDispatchFormProps) {
@@ -98,6 +100,10 @@ export default function UzbekistanDispatchForm({
          setFormError("Savat bo'sh. Avval mahsulot qo'shing.");
          return;
       }
+      if (!consignor) {
+         setFormError("Yuk jo'natuvchi tanlanmagan");
+         return;
+      }
       if (!destinationTypeSklad) {
          setFormError('Qabul qiluvchi sklad tanlanmagan');
          return;
@@ -110,6 +116,7 @@ export default function UzbekistanDispatchForm({
          }
          const result = await dispatchMutation.mutateAsync({
             cart: cartId,
+            consignor,
             carrier_logistics: Number(values.carrierLogistics),
             destination_type_sklad: destinationTypeSklad,
             truck_number: values.truckNumber.trim(),

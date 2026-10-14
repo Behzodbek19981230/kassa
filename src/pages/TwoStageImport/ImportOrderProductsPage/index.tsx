@@ -9,6 +9,7 @@ import {
    FaExchangeAlt,
    FaExclamationTriangle,
    FaFileAlt,
+   FaHistory,
    FaImage,
    FaInfoCircle,
    FaDatabase,
@@ -37,8 +38,10 @@ import {
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
+import OpenDialogButton from '@/components/OpenDialogButton';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import InfoItem from '@/pages/TwoStageImport/components/InfoItem';
+import PriceHistoryModal from '@/pages/TwoStageImport/LogisticsPartnerStockPage/PriceHistoryModal';
 import StatCard from '@/pages/TwoStageImport/components/StatCard';
 import {
    ORDER_STATUS_LABELS,
@@ -274,7 +277,32 @@ export default function ImportOrderProductsPage() {
                                        {cols.isVisible('size') && <TableCell>{item.size ? formatNumber(item.size) : '—'}</TableCell>}
                                        {cols.isVisible('type') && <TableCell>{item.type_name ?? '—'}</TableCell>}
                                        {cols.isVisible('count') && <TableCell className='font-semibold'>{formatNumber(item.count)}</TableCell>}
-                                       {cols.isVisible('price') && <TableCell className='text-ca-theme'>{item.price.display}</TableCell>}
+                                       {cols.isVisible('price') && (
+                                          <TableCell>
+                                             {order?.carrier_logistics ? (
+                                                <OpenDialogButton
+                                                   element={(props) => (
+                                                      <button
+                                                         type='button'
+                                                         {...props}
+                                                         className='inline-flex items-center gap-1.5 text-ca-theme underline hover:opacity-80'
+                                                      />
+                                                   )}
+                                                   elementProps={{
+                                                      children: (
+                                                         <>
+                                                            {item.price.display} <FaHistory />
+                                                         </>
+                                                      ),
+                                                   }}
+                                                   dialog={PriceHistoryModal}
+                                                   dialogProps={{ partnerId: order.carrier_logistics, stockId: item.id }}
+                                                />
+                                             ) : (
+                                                <span className='text-ca-theme'>{item.price.display}</span>
+                                             )}
+                                          </TableCell>
+                                       )}
                                        {cols.isVisible('total') && <TableCell className='font-semibold text-ca-theme'>{item.total.display}</TableCell>}
                                     </TableRow>
                                  );

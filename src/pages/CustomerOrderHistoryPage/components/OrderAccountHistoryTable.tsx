@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
-import { FaCheck, FaEdit, FaExclamationTriangle, FaExpand, FaTrash } from 'react-icons/fa';
+import { FaCheck, FaEdit, FaExclamationTriangle, FaExpand, FaTimesCircle, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
 	Badge,
@@ -71,7 +71,7 @@ export default function OrderAccountHistoryTable({
 		client: clientFilter ? Number(clientFilter) : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 		is_vozvrat: vozvratFilter ? vozvratFilter === 'true' : undefined,
-		is_debtor: isDebtorOnly ? 1 : undefined,
+		is_debtor: isDebtorOnly ? true : undefined,
 	});
 
 	useEffect(() => {
@@ -148,6 +148,11 @@ export default function OrderAccountHistoryTable({
 			cell: (info) => (
 				<span className='inline-flex items-center gap-1.5'>
 					{info.row.original.client_name ?? info.getValue()}
+					{!!info.row.original.is_debtor && (
+						<Tooltip content='Berilgan sonda tafovut'>
+							<FaTimesCircle className='text-ca-red' />
+						</Tooltip>
+					)}
 					{info.row.original.is_price_diff && (
 						<Tooltip content='Narxlarda tafovut'>
 							<FaExclamationTriangle className='text-ca-orange' />

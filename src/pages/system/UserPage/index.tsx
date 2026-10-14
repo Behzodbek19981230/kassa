@@ -15,7 +15,7 @@ import TelegramBotRegisterModal from '@/pages/system/UserPage/components/Telegra
 import UnblockUserModal from '@/pages/system/UserPage/components/UnblockUserModal';
 import UserFormModal from '@/pages/system/UserPage/components/UserFormModal';
 import { useUserListQuery } from '@/services/user/user.queries';
-import type { User } from '@/services/user/user.types';
+import { USER_TYPE_OPTIONS, type User } from '@/services/user/user.types';
 
 const columnHelper = createColumnHelper<User>();
 
@@ -72,6 +72,12 @@ export default function UserPage() {
 		columnHelper.accessor((row) => row.roles?.name ?? '', {
 			id: 'role',
 			header: 'Rol',
+			enableColumnFilter: false,
+			cell: (info) => info.getValue() || '—',
+		}),
+		columnHelper.accessor((row) => USER_TYPE_OPTIONS.find((o) => o.value === String(row.type))?.label ?? '', {
+			id: 'type',
+			header: 'Turi',
 			enableColumnFilter: false,
 			cell: (info) => info.getValue() || '—',
 		}),

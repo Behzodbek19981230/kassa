@@ -60,6 +60,7 @@ const COLUMNS: ColumnVisibilityDef[] = [
    { id: 'direction', label: "Yo'nalish" },
    { id: 'total_quantity', label: 'Jami soni' },
    { id: 'total_dollar', label: 'Jami ($)' },
+   { id: 'service_price', label: 'Xizmat narxi' },
    { id: 'truck', label: 'Fura' },
    { id: 'status', label: 'Holati' },
    { id: 'actions', label: 'Amal', hideable: false },
@@ -264,6 +265,7 @@ export default function ImportOrdersPage() {
                         {cols.isVisible('direction') && <TableHead className='bg-ca-theme text-white'>Yo'nalish</TableHead>}
                         {cols.isVisible('total_quantity') && <TableHead className='bg-ca-theme text-white'>Jami soni</TableHead>}
                         {cols.isVisible('total_dollar') && <TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>}
+                        {cols.isVisible('service_price') && <TableHead className='bg-ca-theme text-white'>Xizmat narxi</TableHead>}
                         {cols.isVisible('truck') && <TableHead className='bg-ca-theme text-white'>Fura</TableHead>}
                         {cols.isVisible('status') && <TableHead className='bg-ca-theme text-white'>Holati</TableHead>}
                         <TableHead className='bg-ca-theme text-white'>Amal</TableHead>
@@ -301,6 +303,12 @@ export default function ImportOrdersPage() {
                            {cols.isVisible('direction') && <TableCell>{order.direction_name || '-'}</TableCell>}
                            {cols.isVisible('total_quantity') && <TableCell>{formatNumber(order.total_quantity ?? 0)}</TableCell>}
                            {cols.isVisible('total_dollar') && <TableCell className='font-semibold'>{formatNumber(order.total_dollar ?? 0, 2)} $</TableCell>}
+                           {cols.isVisible('service_price') && (
+                              <TableCell className='whitespace-nowrap'>
+                                 {formatNumber(order.service_price_dollar ?? 0, 2)} $
+                                 <span className='ml-1 text-ca-text'>({formatNumber(order.service_price_yuan ?? 0, 2)} ¥)</span>
+                              </TableCell>
+                           )}
                            {cols.isVisible('truck') && <TableCell>{order.truck_number ?? '-'}</TableCell>}
                            {cols.isVisible('status') && (
                               <TableCell>

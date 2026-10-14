@@ -36,7 +36,7 @@ import { regionService } from '@/services/region/region.service';
 import { useRegionQuery } from '@/services/region/region.queries';
 import { roleService } from '@/services/role/role.service';
 import { useCreateUserMutation, useUpdateUserMutation, useUserQuery } from '@/services/user/user.queries';
-import type { User, UserPayload } from '@/services/user/user.types';
+import { USER_TYPE_OPTIONS, type User, type UserPayload } from '@/services/user/user.types';
 
 const GENDER_OPTIONS = [
 	{ value: 'male', label: 'Erkak' },
@@ -59,6 +59,7 @@ function buildUserFormSchema(mode: 'create' | 'edit') {
 			region: z.string().min(1, 'Viloyat tanlanishi shart'),
 			district: z.string().min(1, 'Tuman tanlanishi shart'),
 			role: z.string().min(1, 'Rol tanlanishi shart'),
+			type: z.string().min(1, 'Turi tanlanishi shart'),
 			companies: z.array(z.string()).min(1, 'Kamida bitta tashkilot tanlanishi shart'),
 			trade_company: z.string().min(1, 'Asosiy tashkilot tanlanishi shart'),
 			address: z.string().min(1, 'Manzil kiritilishi shart'),
@@ -89,6 +90,7 @@ function userToFormValues(user: User): UserFormValues {
 		region: user.region ? String(user.region) : '',
 		district: user.district ? String(user.district) : '',
 		role: user.role ? String(user.role) : '',
+		type: user.type ? String(user.type) : '',
 		companies: user.companies.map(String),
 		trade_company: user.trade_company ? String(user.trade_company) : '',
 		address: user.address ?? '',
@@ -143,6 +145,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 						region: '',
 						district: '',
 						role: '',
+						type: '',
 						companies: [],
 						trade_company: '',
 						address: '',
@@ -282,6 +285,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 			region: Number(values.region),
 			district: Number(values.district),
 			role: Number(values.role),
+			type: Number(values.type),
 			companies: values.companies.map(Number),
 			trade_company: Number(values.trade_company),
 			address: values.address.trim(),
@@ -519,29 +523,53 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								/>
 							</FormField>
 						</div>
-						<FormField
-							label='Rol'
-							error={errors.role?.message}
-							required
-							horizontal={false}
-							className='mb-3'
-						>
-							<Controller
-								name='role'
-								control={control}
-								render={({ field }) => (
-									<Combobox
-										value={field.value}
-										onChange={handleRoleChange}
-										loadOptions={loadRoleOptions}
-										selectedLabel={currentUser?.roles?.name}
-										placeholder='Tanlang...'
-										searchPlaceholder='Rol qidirish...'
-										clearable
-									/>
-								)}
-							/>
-						</FormField>
+						<div className='mb-3 grid grid-cols-2 gap-3'>
+							<FormField
+								label='Rol'
+								error={errors.role?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
+								<Controller
+									name='role'
+									control={control}
+									render={({ field }) => (
+										<Combobox
+											value={field.value}
+											onChange={handleRoleChange}
+											loadOptions={loadRoleOptions}
+											selectedLabel={currentUser?.roles?.name}
+											placeholder='Tanlang...'
+											searchPlaceholder='Rol qidirish...'
+											clearable
+										/>
+									)}
+								/>
+							</FormField>
+							<FormField
+								label='Turi'
+								error={errors.type?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
+								<Controller
+									name='type'
+									control={control}
+									render={({ field }) => (
+										<Combobox
+											value={field.value}
+											onChange={(value) => field.onChange(value)}
+											options={USER_TYPE_OPTIONS}
+											placeholder='Tanlang...'
+											searchPlaceholder='Turi qidirish...'
+											clearable
+										/>
+									)}
+								/>
+							</FormField>
+						</div>
 						{isMultiCompanyRole && (
 							<FormField
 								label='Tashkilotlar'

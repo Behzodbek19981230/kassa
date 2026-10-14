@@ -35,6 +35,7 @@ export interface User {
 	date_joined: string;
 	role: number | null;
 	roles?: UserRoleDetail | null;
+	type: number | null;
 	region: number | null;
 	region_detail?: UserRegionDetail | null;
 	district: number | null;
@@ -72,6 +73,7 @@ export interface UserPayload {
 	region: number;
 	district: number;
 	role: number;
+	type: number;
 	trade_company?: number;
 	current_company?: number;
 	companies: number[];
@@ -80,3 +82,10 @@ export interface UserPayload {
 }
 
 export type UserListParams = ListParams;
+
+// users_user.type — hodim turi (role'dan alohida).
+export const USER_TYPE_OPTIONS = [
+	{ value: '1', label: "Do'kon sotuvchisi" },
+	{ value: '2', label: 'Sklad sotuvchisi' },
+	{ value: '3', label: 'Dastavka sotuvchisi' },
+];

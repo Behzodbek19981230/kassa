@@ -20,6 +20,7 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
+import { useConsignorQuery } from '@/services/consignor/consignor.queries';
 import { useLogisticsDebtListQuery } from '@/services/logistics-debt/logistics-debt.queries';
 import { useLogisticsWarehouseQuery } from '@/services/logistics-warehouse/logistics-warehouse.queries';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
@@ -33,6 +34,7 @@ import {
    createCategoryLoader,
    createLogisticsWarehouseLoader,
    loadBrandOptions,
+   loadConsignorOptions,
    loadLogisticsCompanyOptions,
 } from '@/pages/TwoStageImport/options';
 import AddToUzCartModal from '@/pages/TwoStageImport/components/AddToUzCartModal';
@@ -78,6 +80,7 @@ export default function UzbekistanDispatchPage() {
    const cartCols = useColumnVisibility('logistics-uz-cart', CART_COLUMNS);
    const { notify } = useNotification();
 
+   const [consignor, setConsignor] = useState('');
    const [destination, setDestination] = useState('');
    const [logisticsCompany, setLogisticsCompany] = useState('');
    const [logisticsWarehouse, setLogisticsWarehouse] = useState('');
@@ -104,12 +107,19 @@ export default function UzbekistanDispatchPage() {
    const { data: skladTypes } = useSkladTypeListQuery({ limit: 200 });
    const destinationOptions = (skladTypes?.results ?? []).map((t) => ({ value: String(t.id), label: t.name }));
 
-   // Carts are per (source warehouse, receiving sklad). The fields are picked in order — receiving sklad,
-   // logistics company, then its warehouse — and none is prefilled from the cart.
+   // Carts are per (consignor, source warehouse, receiving sklad). The fields are picked in order — consignor,
+   // receiving sklad, logistics company, then its warehouse — and none is prefilled from the cart.
+   const consignorId = consignor ? Number(consignor) : undefined;
+   const { data: selectedConsignor } = useConsignorQuery(consignorId);
    const destinationId = destination ? Number(destination) : undefined;
    const cartQuery = useImportCartQuery(
-      { stage: STAGE, destination_type_sklad: destinationId, source_logistics_warehouse: logisticsWarehouseId },
-      destinationId != null,
+      {
+         stage: STAGE,
+         consignor: consignorId,
+         destination_type_sklad: destinationId,
+         source_logistics_warehouse: logisticsWarehouseId,
+      },
+      consignorId != null && destinationId != null,
    );
 
    const cart = cartQuery.data?.cart ?? null;
@@ -156,9 +166,10 @@ export default function UzbekistanDispatchPage() {
       return true;
    });
 
-   const canPick = canWrite && Boolean(destination);
+   const canPick = canWrite && Boolean(consignor) && Boolean(destination);
 
    const headerErrors = {
+      consignor: submitAttempted && !consignor ? "Yuk jo'natuvchini tanlang" : '',
       destination: submitAttempted && !destination ? 'Qabul qiluvchi skladni tanlang' : '',
       logisticsCompany: submitAttempted && !logisticsCompany ? 'Logistikani tanlang' : '',
       logisticsWarehouse: submitAttempted && !logisticsWarehouse ? 'Logistika skladini tanlang' : '',
@@ -166,7 +177,7 @@ export default function UzbekistanDispatchPage() {
 
    function handleContinue() {
       setSubmitAttempted(true);
-      if (!destination || !logisticsCompany || !logisticsWarehouse) return;
+      if (!consignor || !destination || !logisticsCompany || !logisticsWarehouse) return;
       setDispatchOpen(true);
    }
 
@@ -310,6 +321,25 @@ export default function UzbekistanDispatchPage() {
                   <div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
                      <div className='w-full px-2.5 sm:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>
+                           Yuk jo'natuvchi: <span className='text-ca-red'>*</span>
+                        </label>
+                        <Combobox
+                           value={consignor}
+                           onChange={(value) => {
+                              setConsignor(value);
+                              setDestination('');
+                              setLogisticsCompany('');
+                              setLogisticsWarehouse('');
+                           }}
+                           loadOptions={loadConsignorOptions}
+                           selectedLabel={selectedConsignor?.name}
+                           placeholder="Yuk jo'natuvchini tanlang"
+                           clearable
+                        />
+                        {headerErrors.consignor && <p className='mt-1 text-xs text-ca-red'>{headerErrors.consignor}</p>}
+                     </div>
+                     <div className='w-full px-2.5 sm:w-1/2'>
+                        <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                            Qabul qiluvchi sklad: <span className='text-ca-red'>*</span>
                         </label>
                         <Combobox
@@ -320,7 +350,8 @@ export default function UzbekistanDispatchPage() {
                               setLogisticsWarehouse('');
                            }}
                            options={destinationOptions}
-                           placeholder='Qabul qiluvchini tanlang'
+                           disabled={!consignor}
+                           placeholder={consignor ? 'Qabul qiluvchini tanlang' : "Avval yuk jo'natuvchini tanlang"}
                            clearable
                         />
                         {headerErrors.destination && <p className='mt-1 text-xs text-ca-red'>{headerErrors.destination}</p>}
@@ -417,7 +448,11 @@ export default function UzbekistanDispatchPage() {
                            {!cartQuery.isLoading && cartItems.length === 0 && (
                               <TableRow>
                                  <TableCell colSpan={cartCols.visibleCount} className='text-center'>
-                                    {destination ? "Jo'natish savati bo'sh" : 'Avval qabul qiluvchi skladni tanlang'}
+                                    {!consignor
+                                       ? "Avval yuk jo'natuvchini tanlang"
+                                       : destination
+                                         ? "Jo'natish savati bo'sh"
+                                         : 'Avval qabul qiluvchi skladni tanlang'}
                                  </TableCell>
                               </TableRow>
                            )}
@@ -494,6 +529,7 @@ export default function UzbekistanDispatchPage() {
                setOpen={setDispatchOpen}
                cartId={cart?.id}
                cartDispatchDatetime={cart?.dispatch_datetime}
+               consignor={consignorId}
                destinationTypeSklad={cart?.destination_type_sklad ?? destinationId}
                disabled={cartItems.length === 0}
             />
@@ -503,11 +539,12 @@ export default function UzbekistanDispatchPage() {
             <ClearImportCartConfirmModal open={clearCartOpen} setOpen={setClearCartOpen} stage={STAGE} cartId={cart.id} />
          )}
 
-         {selected && destinationId != null && (
+         {selected && consignorId != null && destinationId != null && (
             <AddToUzCartModal
                open
                setOpen={(open) => !open && setSelected(null)}
                stock={selected}
+               consignor={consignorId}
                destinationTypeSklad={destinationId}
                dispatchDatetime={toApiDateTime(dispatchValue)}
             />

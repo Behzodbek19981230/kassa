@@ -77,6 +77,7 @@ export interface ChinaCartItemPayload {
 
 export interface UzbekistanCartItemPayload {
 	stage: 'TRANSIT_TO_UZBEKISTAN';
+	consignor: number;
 	source_logistics_warehouse: number;
 	destination_type_sklad: number;
 	dispatch_datetime: string;
@@ -122,6 +123,7 @@ export interface ChinaDispatchResponse {
 
 export interface UzbekistanDispatchPayload {
 	cart: number;
+	consignor: number;
 	carrier_logistics: number;
 	destination_type_sklad: number;
 	truck_number: string;
