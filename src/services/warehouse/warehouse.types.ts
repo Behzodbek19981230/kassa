@@ -86,6 +86,10 @@ export interface WarehouseListParams extends ListParams {
 // Shape of one warehouse row in `warehouse/all-list/` and `design/china-products/`. Decimals arrive as strings.
 export interface WarehouseAllListItem {
   id: number
+  /** Product card id, when the row's `id` is its stock row; read through `catalogCardId`. */
+  warehouse_id?: number | null
+  /** This row's stock in its sklad; read through `resolveCatalogStockId`. */
+  sklad_product_id?: number | null
   company_id: number
   brand_id: number
   brand_name: string

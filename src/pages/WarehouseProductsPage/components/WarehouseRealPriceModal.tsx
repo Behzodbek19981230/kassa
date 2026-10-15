@@ -12,7 +12,8 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
-import { useEditWarehouseRealPriceMutation } from '@/services/warehouse/warehouse.queries';
+import { resolveCatalogStockId } from '@/services/sklad-product/catalog-stock';
+import { useUpdateSkladProductMutation } from '@/services/sklad-product/sklad-product.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
 interface WarehouseRealPriceModalProps {
@@ -26,12 +27,16 @@ export default function WarehouseRealPriceModal({ open, setOpen, item }: Warehou
 	const [realPrice, setRealPrice] = useState(String(item.real_price ?? ''));
 	const [formError, setFormError] = useState('');
 
-	const editMutation = useEditWarehouseRealPriceMutation();
+	const editMutation = useUpdateSkladProductMutation();
+	const [isResolving, setIsResolving] = useState(false);
 
+	// The price belongs to the product's stock row in this sklad.
 	async function handleSubmit() {
 		setFormError('');
 		try {
-			await editMutation.mutateAsync({ id: item.id, payload: { real_price: Number(realPrice) || 0 } });
+			setIsResolving(true);
+			const stockId = await resolveCatalogStockId(item).finally(() => setIsResolving(false));
+			await editMutation.mutateAsync({ id: stockId, payload: { real_price: realPrice || '0' } });
 			notify({ title: 'Asl narx yangilandi' });
 			setOpen(false);
 		} catch (err) {
@@ -62,7 +67,7 @@ export default function WarehouseRealPriceModal({ open, setOpen, item }: Warehou
 					<Button type='button' variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button type='button' variant='primary' onClick={handleSubmit} loading={editMutation.isPending}>
+					<Button type='button' variant='primary' onClick={handleSubmit} loading={isResolving || editMutation.isPending}>
 						Saqlash
 					</Button>
 				</ModalFooter>

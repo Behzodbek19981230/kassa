@@ -10,6 +10,7 @@ import 'yet-another-react-lightbox/plugins/thumbnails.css';
 import { Modal, ModalBody, ModalContent, ModalHeader, ModalTitle } from '@/components/ui';
 import { useWarehouseImageListQuery } from '@/services/warehouse-image/warehouse-image.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
+import { catalogCardId } from '@/services/sklad-product/catalog-stock';
 
 interface WarehouseProductImagesModalProps {
 	open: boolean;
@@ -20,7 +21,7 @@ interface WarehouseProductImagesModalProps {
 export default function WarehouseProductImagesModal({ open, setOpen, item }: WarehouseProductImagesModalProps) {
 	const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-	const { data, isLoading, isFetching } = useWarehouseImageListQuery({ warehouse: item.id, limit: 100 });
+	const { data, isLoading, isFetching } = useWarehouseImageListQuery({ warehouse: catalogCardId(item), limit: 100 });
 	const galleryImages = (data?.results ?? []).map((img) => img.image);
 	const images = galleryImages.length > 0 ? galleryImages : item.image ? [item.image] : [];
 	const slides = images.map((src) => ({ src }));

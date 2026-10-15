@@ -22,6 +22,7 @@ import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVi
 import { useOrderAccountHistoryProductsQuery } from '@/services/order-account-history/order-account-history.queries';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
 import type { OrderAccountHistoryProductItem } from '@/services/order-account-history/order-account-history.types';
+import { resolveStockId } from '@/services/sklad-product/catalog-stock';
 import { useVozvratCalculateMutation } from '@/services/vozvrat/vozvrat.queries';
 import type { VozvratCalculateResponse, VozvratCartItemInput } from '@/services/vozvrat/vozvrat.types';
 import EditGivenCountModal from '@/pages/OrderAccountHistoryDetailPage/components/EditGivenCountModal';
@@ -67,12 +68,14 @@ export default function OrderAccountHistoryDetailPage() {
    const [calcResult, setCalcResult] = useState<VozvratCalculateResponse | null>(null);
    const calculateMutation = useVozvratCalculateMutation();
 
-   const vozvratItems: VozvratCartItemInput[] = useMemo(() => {
+   // The lines still returnable; each goes back to the stock row it was sold from (resolved on open).
+   const returnableItems = useMemo(() => {
       if (!data) return [];
       return data.products.groups.flatMap((g) =>
          g.items
             .filter((item) => item.remaining_after_vozvrat > 0)
             .map((item) => ({
+               sklad_product: item.sklad_product,
                warehouse: item.warehouse,
                brand: item.brand,
                product_category: item.product_category,
@@ -85,14 +88,29 @@ export default function OrderAccountHistoryDetailPage() {
       );
    }, [data]);
 
-   function handleOpenVozvrat() {
+   const [vozvratItems, setVozvratItems] = useState<VozvratCartItemInput[]>([]);
+
+   async function handleOpenVozvrat() {
       if (!data) return;
-      if (vozvratItems.length === 0) {
+      if (returnableItems.length === 0) {
          notify({ title: "Vozvrat qilib bo'lmaydi", text: 'Bu buyurtmada qaytariladigan mahsulot topilmadi.' });
          return;
       }
+      let items: VozvratCartItemInput[];
+      try {
+         items = await Promise.all(
+            returnableItems.map(async (item) => ({
+               ...item,
+               sklad_product: await resolveStockId(item.sklad_product, item.warehouse, item.type_sklad),
+            })),
+         );
+      } catch (err) {
+         notify({ title: 'Xatolik', text: getApiErrorMessage(err, "Mahsulotning sklad qoldig'i topilmadi") });
+         return;
+      }
+      setVozvratItems(items);
       calculateMutation.mutate(
-         { client: data.order.client, date: today, items: vozvratItems },
+         { client: data.order.client, date: today, items },
          {
             onSuccess: (result) => {
                setCalcResult(result);

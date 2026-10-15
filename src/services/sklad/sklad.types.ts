@@ -102,6 +102,8 @@ export interface SkladViewFilters {
 export interface SkladViewItem {
 	id: number;
 	warehouse: number;
+	/** The product's stock row in `type_sklad`. */
+	sklad_product?: number | null;
 	brand: number;
 	brand_name: string;
 	product_category: number;

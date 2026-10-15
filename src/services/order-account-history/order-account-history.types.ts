@@ -111,6 +111,8 @@ export interface OrderAccountHistoryUpdatePayload {
 
 export interface OrderAccountHistoryUpdateSaleItemPayload {
 	warehouse: number;
+	/** The stock row the line is sold from; a changed count is taken from or returned to it. */
+	sklad_product: number;
 	count: number;
 	price: string | number;
 }
@@ -281,6 +283,7 @@ export interface OrderAccountHistoryProductItem {
 	number: number;
 	id: number;
 	warehouse: number;
+	sklad_product?: number | null;
 	type_sklad: number;
 	type_sklad_name: string;
 	brand: number;

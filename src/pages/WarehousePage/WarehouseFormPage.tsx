@@ -3,6 +3,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, DatePicker, Input, PageHeader, Panel, useNotification } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
 import { usePermissions } from '@/lib/permissions';
 import { generateId } from '@/lib/utils';
 import WarehouseProductRow, {
@@ -10,11 +11,12 @@ import WarehouseProductRow, {
 	type WarehouseRowValue,
 } from '@/pages/WarehousePage/components/WarehouseProductRow';
 import {
-	useCreateWarehouseMutation,
-	useEditWarehouseRealPriceMutation,
-	useUpdateWarehouseMutation,
-	useWarehouseQuery,
-} from '@/services/warehouse/warehouse.queries';
+	useCreateSkladProductMutation,
+	useSkladProductQuery,
+	useUpdateSkladProductMutation,
+} from '@/services/sklad-product/sklad-product.queries';
+import { useCreateWarehouseMutation } from '@/services/warehouse/warehouse.queries';
+import { warehouseService } from '@/services/warehouse/warehouse.service';
 import type { WarehousePayload } from '@/services/warehouse/warehouse.types';
 
 interface WarehouseFormPageProps {
@@ -24,12 +26,13 @@ interface WarehouseFormPageProps {
 export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 	const navigate = useNavigate();
 	const { id } = useParams();
-	const warehouseId = id ? Number(id) : undefined;
+	// In edit mode the route id is a SkladProduct (one product's price in one sklad).
+	const skladProductId = id ? Number(id) : undefined;
 
 	const { notify } = useNotification();
 	const { companyId, canWrite } = useCurrentCompany();
 	const { canManageWarehouse } = usePermissions();
-	const warehouseQuery = useWarehouseQuery(mode === 'edit' ? warehouseId : undefined);
+	const skladProductQuery = useSkladProductQuery(mode === 'edit' ? skladProductId : undefined);
 
 	useEffect(() => {
 		if (!canWrite || !canManageWarehouse) navigate('/warehouse-prices', { replace: true });
@@ -42,12 +45,17 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 	const [formError, setFormError] = useState('');
 	const [duplicateRowKeys, setDuplicateRowKeys] = useState<Record<string | number, boolean>>({});
 
-	const createMutation = useCreateWarehouseMutation();
-	const updateMutation = useUpdateWarehouseMutation();
-	const editRealPriceMutation = useEditWarehouseRealPriceMutation();
-	const isSaving = createMutation.isPending || updateMutation.isPending || editRealPriceMutation.isPending;
+	const createCardMutation = useCreateWarehouseMutation();
+	const createStockMutation = useCreateSkladProductMutation();
+	const updateStockMutation = useUpdateSkladProductMutation();
+	const [isResolvingCards, setIsResolvingCards] = useState(false);
+	const isSaving =
+		isResolvingCards ||
+		createCardMutation.isPending ||
+		createStockMutation.isPending ||
+		updateStockMutation.isPending;
 
-	const company = (mode === 'edit' ? warehouseQuery.data?.company : undefined) ?? companyId ?? undefined;
+	const company = (mode === 'edit' ? skladProductQuery.data?.company : undefined) ?? companyId ?? undefined;
 	const hasDuplicate = Object.values(duplicateRowKeys).some(Boolean);
 
 	const handleDuplicateChange = (key: string | number, isDuplicate: boolean) => {
@@ -58,25 +66,25 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 	};
 
 	useEffect(() => {
-		const w = warehouseQuery.data;
-		if (mode === 'edit' && w) {
-			setDate(w.cr_date);
-			setComment(w.comment ?? '');
+		const stock = skladProductQuery.data;
+		const card = stock?.warehouse_detail;
+		if (mode === 'edit' && stock && card) {
+			if (stock.cr_date) setDate(stock.cr_date);
 			setRows([
 				{
 					key: generateId(),
-					brand: String(w.brand),
-					product_category: String(w.product_category),
+					brand: String(card.brand),
+					product_category: String(card.product_category),
 					brandSize: '',
-					size: Number(w.size),
-					type: w.type,
-					type_sklad: w.type_sklad ? String(w.type_sklad) : '',
-					price: String(w.real_price ?? ''),
+					size: Number(card.size),
+					type: card.type,
+					type_sklad: String(stock.type_sklad),
+					price: String(stock.real_price ?? ''),
 				},
 			]);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [mode, warehouseQuery.data]);
+	}, [mode, skladProductQuery.data]);
 
 	const updateRow = (index: number, next: WarehouseRowValue) => {
 		setRows((prev) => prev.map((row, i) => (i === index ? next : row)));
@@ -108,7 +116,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 			return;
 		}
 		if (hasDuplicate) {
-			setFormError('Bu tovar bazada mavjud');
+			setFormError("Bu mahsulot ushbu skladga oldin qo'shilgan");
 			return;
 		}
 
@@ -125,59 +133,52 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 		setRowErrors({});
 
 		try {
-			if (mode === 'edit' && warehouseId) {
-				const row = rows[0];
-				const w = warehouseQuery.data;
-				const payload: WarehousePayload = {
-					cr_date: date,
-					size: row.size ?? 0,
-					count: 0,
-					price: Number(row.price) || 0,
-					real_price: Number(row.price) || 0,
-					worker_price: w?.worker_price ?? 0,
-					status_count: w?.status_count ?? false,
-					company,
-					brand: Number(row.brand),
-					product_category: Number(row.product_category),
-					type: row.type,
-					type_sklad: row.type_sklad ? Number(row.type_sklad) : null,
-					all_sum_dollar: w?.all_sum_dollar ?? 0,
-					all_discount_amount: w?.all_discount_amount ?? 0,
-					all_my_total_debt: w?.all_my_total_debt ?? 0,
-					comment: comment || undefined,
-				};
-				await updateMutation.mutateAsync({ id: warehouseId, payload });
-				await editRealPriceMutation.mutateAsync({ id: warehouseId, payload: { real_price: payload.real_price ?? 0 } });
+			if (mode === 'edit' && skladProductId) {
+				// The product and sklad of a stock row are fixed; only its price and date change here.
+				await updateStockMutation.mutateAsync({
+					id: skladProductId,
+					payload: { real_price: rows[0].price, cr_date: date },
+				});
 				notify({ title: 'Tovar yangilandi' });
 			} else {
 				for (const row of rows) {
-					const payload: WarehousePayload = {
-						cr_date: date,
-						size: row.size ?? 0,
-						count: 0,
-						price: Number(row.price) || 0,
-						real_price: Number(row.price) || 0,
-						worker_price: 0,
-						status_count: false,
-						company,
+					const variant = {
 						brand: Number(row.brand),
 						product_category: Number(row.product_category),
 						type: row.type,
-						type_sklad: row.type_sklad ? Number(row.type_sklad) : null,
-						all_sum_dollar: 0,
-						all_discount_amount: 0,
-						all_my_total_debt: 0,
-						comment: comment || undefined,
+						size: row.size ?? 0,
 					};
-					const created = await createMutation.mutateAsync(payload);
-					// Backend create endpoint ignores real_price, so set it explicitly
-					await editRealPriceMutation.mutateAsync({ id: created.id, payload: { real_price: payload.real_price ?? 0 } });
+					// The card is shared by every sklad, so an existing one is reused.
+					setIsResolvingCards(true);
+					let card = await warehouseService.findCard(variant).finally(() => setIsResolvingCards(false));
+					if (!card) {
+						const cardPayload: WarehousePayload = {
+							...variant,
+							cr_date: date,
+							count: 0,
+							price: 0,
+							worker_price: 0,
+							status_count: false,
+							company,
+							type_sklad: null,
+							comment: comment || undefined,
+						};
+						card = await createCardMutation.mutateAsync(cardPayload);
+					}
+					await createStockMutation.mutateAsync({
+						warehouse: card.id,
+						type_sklad: Number(row.type_sklad),
+						count: 0,
+						real_price: row.price,
+						cr_date: date,
+						status_count: false,
+					});
 				}
 				notify({ title: "Tovar(lar) qo'shildi" });
 			}
 			goBack();
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	};
 
@@ -224,7 +225,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 							showRemove={mode === 'create' && rows.length > 1}
 							onRemove={() => removeRow(index)}
 							companyId={company}
-							excludeId={mode === 'edit' ? warehouseId : undefined}
+							excludeId={mode === 'edit' ? skladProductId : undefined}
 							onDuplicateChange={handleDuplicateChange}
 						/>
 					))}

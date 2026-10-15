@@ -32,6 +32,7 @@ import type { ConfirmSaleSummary } from '@/services/order-cart/order-cart.types'
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useWarehouseAllListInfiniteQuery } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListBrandGroup } from '@/services/warehouse/warehouse.types';
+import { cartItemSkladName } from '@/services/order-cart/order-cart.utils';
 import ClientFormModal from '@/pages/settings/ClientPage/components/ClientFormModal';
 import BlockedClientModal from '@/pages/PlaceOrderPage/components/BlockedClientModal';
 import AddToCartModal, { type ProductVariant } from '@/pages/PlaceOrderPage/components/AddToCartModal';
@@ -484,7 +485,7 @@ export default function PlaceOrderPage() {
                                        <TableCell>{index + 1}</TableCell>
                                        {cartCols.isVisible('location') && (
                                           <TableCell>
-                                             {item.warehouse_detail?.type_sklad_name ??
+                                             {cartItemSkladName(item) ??
                                                 DEFAULT_LOCATION_LABEL}
                                           </TableCell>
                                        )}

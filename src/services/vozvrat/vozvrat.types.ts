@@ -8,6 +8,8 @@ export interface VozvratClientSummary {
 
 export interface VozvratProductItem {
 	warehouse: number;
+	/** The stock row the product was sold from; a return goes back to it. */
+	sklad_product?: number | null;
 	brand: number;
 	brand_name: string;
 	product_category: number;
@@ -50,6 +52,7 @@ export interface VozvratProductsParams {
 
 export interface VozvratCartItemInput {
 	warehouse: number;
+	sklad_product: number;
 	brand: number;
 	product_category: number;
 	size: number;
@@ -68,6 +71,7 @@ export interface VozvratCalculatePayload {
 export interface VozvratCalculateItem {
 	number: number;
 	warehouse: number;
+	sklad_product?: number | null;
 	brand: number;
 	product_category: number;
 	size: number;
@@ -226,6 +230,7 @@ export interface VozvratOrderUpdatePayload {
 
 export interface VozvratUpdateVozvratItemPayload {
 	warehouse: number;
+	sklad_product: number;
 	brand: number;
 	product_category: number;
 	size: number | string;
@@ -316,6 +321,7 @@ export interface VozvratOrderProductItem {
 	number: number;
 	id: number;
 	warehouse: number;
+	sklad_product?: number | null;
 	type_sklad: number;
 	type_sklad_name: string;
 	brand: number;

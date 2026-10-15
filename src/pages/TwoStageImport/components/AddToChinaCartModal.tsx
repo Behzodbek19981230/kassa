@@ -25,6 +25,7 @@ import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types'
 import { nonNegativeNumber, positiveNumber } from '@/pages/TwoStageImport/utils';
 import YuanRateHint from '@/pages/TwoStageImport/components/YuanRateHint';
 import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
+import { catalogCardId } from '@/services/sklad-product/catalog-stock';
 
 const addToChinaCartSchema = z.object({
    typeQuantity: positiveNumber('Tip donani kiriting'),
@@ -97,7 +98,7 @@ export default function AddToChinaCartModal({
             stage: 'CHINA_TO_TRANSIT',
             consignor: consignorId,
             dispatch_datetime: dispatchDatetime,
-            warehouse: product.id,
+            warehouse: catalogCardId(product),
             type_quantity: Number(values.typeQuantity).toFixed(4),
             quantity: Number(values.quantity),
             unit_price_yuan: Number(values.priceYuan).toFixed(2),

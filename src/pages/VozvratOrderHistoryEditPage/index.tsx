@@ -27,6 +27,7 @@ import {
 	useVozvratOrderProductsQuery,
 	useVozvratOrderQuery,
 } from '@/services/vozvrat/vozvrat.queries';
+import { resolveStockId } from '@/services/sklad-product/catalog-stock';
 import type { VozvratProductItem, VozvratUpdateVozvratItemPayload } from '@/services/vozvrat/vozvrat.types';
 
 const editVozvratFormSchema = z.object({
@@ -76,6 +77,7 @@ export default function VozvratOrderHistoryEditPage() {
 				const key = generateId();
 				fallbacks[key] = {
 					warehouse: productItem.warehouse,
+					sklad_product: productItem.sklad_product,
 					brand: productItem.brand,
 					brand_name: productItem.brand_name,
 					product_category: productItem.product_category,
@@ -163,10 +165,25 @@ export default function VozvratOrderHistoryEditPage() {
 		}
 		setRowErrors({});
 
-		const items: VozvratUpdateVozvratItemPayload[] = rows.map((row) => {
+		// Each returned line goes back to the stock row it was sold from.
+		let skladProducts: number[];
+		try {
+			skladProducts = await Promise.all(
+				rows.map((row) => {
+					const resolved = resolvedByKey[row.key]!;
+					return resolveStockId(resolved.sklad_product, resolved.warehouse, resolved.type_sklad);
+				}),
+			);
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, "Mahsulotning sklad qoldig'i topilmadi"));
+			return;
+		}
+
+		const items: VozvratUpdateVozvratItemPayload[] = rows.map((row, index) => {
 			const resolved = resolvedByKey[row.key]!;
 			return {
 				warehouse: resolved.warehouse,
+				sklad_product: skladProducts[index],
 				brand: resolved.brand,
 				product_category: resolved.product_category,
 				size: resolved.size,

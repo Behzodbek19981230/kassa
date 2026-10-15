@@ -15,20 +15,19 @@ import {
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
-import { useWarehouseListQuery } from '@/services/warehouse/warehouse.queries';
-import type { Warehouse } from '@/services/warehouse/warehouse.types';
+import { useProductCardNames } from '@/lib/useProductCardNames';
+import {
+	useSkladProductByPairQuery,
+	useSkladProductListQuery,
+} from '@/services/sklad-product/sklad-product.queries';
+import type { SkladProduct } from '@/services/sklad-product/sklad-product.types';
 import { useValidateTransferItemMutation } from '@/services/warehouse-transfer/warehouse-transfer.queries';
 import type { TransferMode } from '@/services/warehouse-transfer/warehouse-transfer.types';
 import type { TransferCartRow } from '@/pages/WarehouseTransferPage/types';
 
-function warehouseOptionLabel(w: Warehouse) {
-	return `${w.brand_detail?.name ?? ''} / ${w.product_category_detail?.name ?? ''} / ${formatNumber(w.size)} / ${
-		w.type_detail?.name ?? ''
-	} / ${w.type_sklad_detail?.name ?? ''}`;
-}
-
 interface TransferMethodPanelProps {
-	sourceItem: Warehouse;
+	/** The product's stock row in the source sklad. */
+	sourceItem: SkladProduct;
 	fromTypeSkladId: number;
 	fromTypeSkladName?: string;
 	toTypeSkladId: number;
@@ -64,38 +63,29 @@ export default function TransferMethodPanel({
 		setError('');
 	}, [sourceItem.id]);
 
-	const sameModeQuery = useWarehouseListQuery(
-		{
-			type_sklad: toTypeSkladId,
-			brand: sourceItem.brand,
-			product_category: sourceItem.product_category,
-			type: sourceItem.type ?? undefined,
-			limit: 100,
-		},
-		mode === 'same',
-	);
+	const names = useProductCardNames();
+	const sourceCard = sourceItem.warehouse_detail;
+	const stockLabel = (stock: SkladProduct) =>
+		`${names.brandName(stock.warehouse_detail)} / ${names.categoryName(stock.warehouse_detail)} / ${formatNumber(
+			stock.warehouse_detail?.size ?? 0,
+		)} / ${names.typeName(stock.warehouse_detail)} / ${stock.type_sklad_detail?.name ?? toTypeSkladName ?? ''}`;
 
-	const spreadModeQuery = useWarehouseListQuery(
-		{
-			type_sklad: toTypeSkladId,
-			brand: sourceItem.brand,
-			product_category: sourceItem.product_category,
-			limit: 100,
-		},
-		mode === 'spread',
-	);
+	// "Same": the same product card, in the target sklad.
+	const sameModeQuery = useSkladProductByPairQuery(mode === 'same' ? sourceItem.warehouse : undefined, toTypeSkladId);
+	const sameTarget = sameModeQuery.data ?? null;
 
-	// warehouse/ doesn't filter by size server-side, so the exact "same" match
-	// (identical brand/category/type/size) has to be narrowed down client-side.
-	const sameTarget = useMemo(() => {
-		const results = sameModeQuery.data?.results ?? [];
-		return results.find((w) => Number(w.size) === Number(sourceItem.size)) ?? null;
-	}, [sameModeQuery.data, sourceItem.size]);
-
+	// "Spread": any product of the same model and nomi in the target sklad. The stock list can't filter by
+	// model or nomi, so it is narrowed down here.
+	const spreadModeQuery = useSkladProductListQuery({ type_sklad: toTypeSkladId, limit: 1000 }, mode === 'spread');
 	const spreadOptions = useMemo(() => {
-		const results = spreadModeQuery.data?.results ?? [];
-		return results.map((w) => ({ value: String(w.id), label: warehouseOptionLabel(w), row: w }));
-	}, [spreadModeQuery.data]);
+		const results = (spreadModeQuery.data?.results ?? []).filter(
+			(stock) =>
+				stock.warehouse_detail?.brand === sourceCard?.brand &&
+				stock.warehouse_detail?.product_category === sourceCard?.product_category,
+		);
+		return results.map((stock) => ({ value: String(stock.id), label: stockLabel(stock), row: stock }));
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [spreadModeQuery.data, sourceCard?.brand, sourceCard?.product_category]);
 
 	const spreadTarget = spreadOptions.find((o) => o.value === spreadTargetKey)?.row ?? null;
 
@@ -138,8 +128,8 @@ export default function TransferMethodPanel({
 			{
 				from_type_sklad_id: fromTypeSkladId,
 				to_type_sklad_id: toTypeSkladId,
-				source_warehouse_id: sourceItem.id,
-				target_warehouse_id: target.id,
+				source_sklad_product_id: sourceItem.id,
+				target_sklad_product_id: target.id,
 				mode,
 				source_quantity: sourceQty,
 				target_quantity: targetQty,
@@ -150,21 +140,21 @@ export default function TransferMethodPanel({
 						key: `${sourceItem.id}-${target.id}-${mode}-${Date.now()}`,
 						mode,
 						source: {
-							warehouseId: sourceItem.id,
+							skladProductId: sourceItem.id,
 							typeSkladName: fromTypeSkladName ?? sourceItem.type_sklad_detail?.name ?? '',
-							brandName: sourceItem.brand_detail?.name ?? '',
-							categoryName: sourceItem.product_category_detail?.name ?? '',
-							size: sourceItem.size,
-							typeName: sourceItem.type_detail?.name ?? '',
+							brandName: names.brandName(sourceCard),
+							categoryName: names.categoryName(sourceCard),
+							size: Number(sourceCard?.size ?? 0),
+							typeName: names.typeName(sourceCard),
 							quantity: sourceQty,
 						},
 						target: {
-							warehouseId: target.id,
+							skladProductId: target.id,
 							typeSkladName: toTypeSkladName ?? target.type_sklad_detail?.name ?? '',
-							brandName: target.brand_detail?.name ?? '',
-							categoryName: target.product_category_detail?.name ?? '',
-							size: target.size,
-							typeName: target.type_detail?.name ?? '',
+							brandName: names.brandName(target.warehouse_detail),
+							categoryName: names.categoryName(target.warehouse_detail),
+							size: Number(target.warehouse_detail?.size ?? 0),
+							typeName: names.typeName(target.warehouse_detail),
 							quantity: targetQty,
 						},
 					});
@@ -189,14 +179,14 @@ export default function TransferMethodPanel({
 						<div className='flex items-center justify-between'>
 							<span className='font-semibold text-ca-heading'>Tovar:</span>
 							<span className='truncate font-bold text-ca-red'>
-								{sourceItem.brand_detail?.name} / {sourceItem.product_category_detail?.name} /{' '}
-								{formatNumber(sourceItem.size)} / {sourceItem.type_detail?.name}
+								{names.brandName(sourceCard)} / {names.categoryName(sourceCard)} /{' '}
+								{formatNumber(sourceCard?.size ?? 0)} / {names.typeName(sourceCard)}
 							</span>
 						</div>
 						<div className='mt-1 flex items-center justify-between'>
 							<span className='font-semibold text-ca-heading'>Bor miqdor:</span>
 							<span className='font-bold text-ca-heading'>
-								{formatNumber(availableCount)} {sourceItem.type_detail?.name}
+								{formatNumber(availableCount)} {names.typeName(sourceCard)}
 							</span>
 						</div>
 					</div>
@@ -252,7 +242,7 @@ export default function TransferMethodPanel({
 								/>
 								<Input
 									type='text'
-									value={sourceItem.type_detail?.name ?? ''}
+									value={names.typeName(sourceCard)}
 									disabled
 									className='w-20 text-center'
 								/>
@@ -272,7 +262,7 @@ export default function TransferMethodPanel({
 									/>
 									<Input
 										type='text'
-										value={spreadTarget?.type_detail?.name ?? ''}
+										value={names.typeName(spreadTarget?.warehouse_detail)}
 										disabled
 										className='w-20 text-center'
 									/>

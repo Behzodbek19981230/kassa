@@ -26,12 +26,13 @@ import {
    useWarehouseImageListQuery,
 } from '@/services/warehouse-image/warehouse-image.queries';
 import type { WarehouseImage } from '@/services/warehouse-image/warehouse-image.types';
-import type { Warehouse } from '@/services/warehouse/warehouse.types';
 
 interface WarehouseImagesModalProps {
    open: boolean;
    setOpen: (open: boolean) => void;
-   item: Warehouse;
+   /** The product card; images belong to it, not to a sklad's stock row. */
+   item: { id: number };
+   productLabel: string;
 }
 
 // Images without a number keep the order the API returned them in.
@@ -41,7 +42,7 @@ function sortByNumber(list: WarehouseImage[]): WarehouseImage[] {
    );
 }
 
-export default function WarehouseImagesModal({ open, setOpen, item }: WarehouseImagesModalProps) {
+export default function WarehouseImagesModal({ open, setOpen, item, productLabel }: WarehouseImagesModalProps) {
    const { notify } = useNotification();
    const [isUploading, setIsUploading] = useState(false);
    const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -130,7 +131,7 @@ export default function WarehouseImagesModal({ open, setOpen, item }: WarehouseI
             <ModalHeader>
                <ModalTitle>Tovar rasmlari</ModalTitle>
                <p className='mt-0.5 text-[11px] font-normal text-ca-text'>
-                  {item.brand_detail?.name ?? item.brand} &middot; {images.length} ta rasm
+                  {productLabel} &middot; {images.length} ta rasm
                </p>
             </ModalHeader>
             <ModalBody>

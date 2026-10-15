@@ -18,6 +18,8 @@ export interface ImportCartDraftItem {
 	company: number;
 	consignor: number;
 	warehouse: number;
+	type_sklad?: number | null;
+	type_sklad_detail?: { id: number; name: string } | null;
 	count: number;
 	price_dollar: string;
 	price_som: string;
@@ -30,7 +32,9 @@ export interface ImportCartDraftItem {
 export interface ImportCartDraftPayload {
 	company: number;
 	consignor: number;
+	/** Product card; on confirm the backend finds or creates its stock row in `type_sklad`. */
 	warehouse: number;
+	type_sklad: number;
 	count: number;
 	price_dollar: string | number;
 	price_som: string | number;

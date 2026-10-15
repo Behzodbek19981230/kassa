@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui'
 import { formatNumber } from '@/lib/number'
+import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries'
 import { useWarehouseImageListQuery } from '@/services/warehouse-image/warehouse-image.queries'
 import type {
   TelegramBroadcastDelivery,
@@ -55,6 +56,25 @@ function WarehouseImages({ warehouseId }: { warehouseId: number }) {
   )
 }
 
+// The broadcast is about a product card; its stock and price are per sklad.
+function WarehouseStocks({ warehouseId }: { warehouseId: number }) {
+  const { data } = useSkladProductListQuery({ warehouse: warehouseId, limit: 100 })
+  const stocks = data?.results ?? []
+
+  if (stocks.length === 0) return <span className='text-ca-text'>-</span>
+
+  return (
+    <div className='flex flex-col gap-0.5 whitespace-nowrap'>
+      {stocks.map((stock) => (
+        <span key={stock.id}>
+          {stock.type_sklad_detail?.name ?? stock.type_sklad}: {formatNumber(stock.count)} ta ·{' '}
+          <span className='font-semibold'>{formatNumber(stock.real_price ?? 0, 2)} $</span>
+        </span>
+      ))}
+    </div>
+  )
+}
+
 export default function DeliveryWarehouseModal({ open, setOpen, delivery, warehouses }: DeliveryWarehouseModalProps) {
   return (
     <Modal open={open} onOpenChange={setOpen}>
@@ -79,10 +99,8 @@ export default function DeliveryWarehouseModal({ open, setOpen, delivery, wareho
                     <TableHead>Brend</TableHead>
                     <TableHead>Kategoriya</TableHead>
                     <TableHead>Turi</TableHead>
-                    <TableHead>Sklad turi</TableHead>
                     <TableHead className='text-right'>O'lcham</TableHead>
-                    <TableHead className='text-right'>Soni</TableHead>
-                    <TableHead className='text-right'>Narxi</TableHead>
+                    <TableHead>Skladlar (soni · narxi)</TableHead>
                     <TableHead>Sana</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -96,10 +114,10 @@ export default function DeliveryWarehouseModal({ open, setOpen, delivery, wareho
                       <TableCell className='font-semibold'>{warehouse.brand_detail?.name ?? '-'}</TableCell>
                       <TableCell>{warehouse.product_category_detail?.name ?? '-'}</TableCell>
                       <TableCell>{warehouse.type_detail?.name ?? '-'}</TableCell>
-                      <TableCell>{warehouse.type_sklad_detail?.name ?? '-'}</TableCell>
                       <TableCell className='text-right'>{formatNumber(warehouse.size, 2)}</TableCell>
-                      <TableCell className='text-right'>{formatNumber(warehouse.count)} ta</TableCell>
-                      <TableCell className='text-right font-semibold'>{formatNumber(warehouse.real_price, 2)} $</TableCell>
+                      <TableCell>
+                        <WarehouseStocks warehouseId={warehouse.id} />
+                      </TableCell>
                       <TableCell className='whitespace-nowrap'>{warehouse.cr_date}</TableCell>
                     </TableRow>
                   ))}

@@ -28,6 +28,7 @@ import { useCurrentCompany } from '@/lib/company';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { cartItemSkladName } from '@/services/order-cart/order-cart.utils';
 import {
 	useClearOrderCartMutation,
 	useDeleteOrderCartMutation,
@@ -224,7 +225,7 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 												<TableRow key={item.id} className='bg-red-50'>
 													{cols.isVisible('location') && (
 														<TableCell>
-															{item.warehouse_detail?.type_sklad_name ?? DEFAULT_LOCATION_LABEL}
+															{cartItemSkladName(item) ?? DEFAULT_LOCATION_LABEL}
 														</TableCell>
 													)}
 													{cols.isVisible('brand') && <TableCell>{item.warehouse_detail?.brand_name ?? '-'}</TableCell>}

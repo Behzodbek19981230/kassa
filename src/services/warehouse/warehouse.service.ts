@@ -87,6 +87,18 @@ export const warehouseService = {
   remove: async (id: number) => {
     await apiClient.delete(`/warehouse/${id}/`)
   },
+  // The product card for a variant (cards no longer carry a sklad), or null when it isn't registered yet.
+  findCard: async (variant: { brand: number; product_category: number; type: number | null; size: number }) => {
+    const { data } = await apiClient.get<PaginatedResponse<Warehouse>>('/warehouse/', {
+      params: {
+        brand: variant.brand,
+        product_category: variant.product_category,
+        type: variant.type ?? undefined,
+        limit: 100,
+      },
+    })
+    return data.results.find((w) => Number(w.size) === variant.size) ?? null
+  },
   editRealPrice: async (id: number, payload: WarehouseEditRealPricePayload) => {
     const { data } = await apiClient.patch<Warehouse>(`/warehouse/${id}/edit-real-price/`, payload)
     return data

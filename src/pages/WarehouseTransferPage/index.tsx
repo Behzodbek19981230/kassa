@@ -28,6 +28,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
+import { useProductCardNames } from '@/lib/useProductCardNames';
 import { useCurrentCompany } from '@/lib/company';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -36,8 +37,8 @@ import { cn } from '@/lib/utils';
 import { brandService } from '@/services/brand/brand.service';
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
-import { useWarehouseListQuery } from '@/services/warehouse/warehouse.queries';
-import type { Warehouse } from '@/services/warehouse/warehouse.types';
+import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
+import type { SkladProduct } from '@/services/sklad-product/sklad-product.types';
 import { useCreateWarehouseTransferMutation } from '@/services/warehouse-transfer/warehouse-transfer.queries';
 import TransferMethodPanel from '@/pages/WarehouseTransferPage/components/TransferMethodPanel';
 import type { TransferCartRow } from '@/pages/WarehouseTransferPage/types';
@@ -72,7 +73,7 @@ export default function WarehouseTransferPage() {
 	);
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
-	const [selectedSourceItem, setSelectedSourceItem] = useState<Warehouse | null>(null);
+	const [selectedSourceItem, setSelectedSourceItem] = useState<SkladProduct | null>(null);
 	const [cartRows, setCartRows] = useState<TransferCartRow[]>([]);
 	const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -108,21 +109,22 @@ export default function WarehouseTransferPage() {
 		isError: isProductsError,
 		error: productsError,
 		refetch: refetchProducts,
-	} = useWarehouseListQuery(
-		{
-			type_sklad: fromTypeSkladId ? Number(fromTypeSkladId) : undefined,
-			brand: brandFilter ? Number(brandFilter) : undefined,
-			product_category: categoryFilter ? Number(categoryFilter) : undefined,
-			limit: 200,
-		},
+	} = useSkladProductListQuery(
+		{ type_sklad: fromTypeSkladId ? Number(fromTypeSkladId) : undefined, limit: 1000 },
 		Boolean(fromTypeSkladId),
 	);
-	const products = productsData?.results ?? [];
+	// The source sklad's stock rows. The stock list can't filter by model or nomi, so those filters apply here.
+	const products = (productsData?.results ?? []).filter(
+		(item) =>
+			(!brandFilter || item.warehouse_detail?.brand === Number(brandFilter)) &&
+			(!categoryFilter || item.warehouse_detail?.product_category === Number(categoryFilter)),
+	);
+	const cardNames = useProductCardNames();
 
-	const reservedByWarehouseId = useMemo(() => {
+	const reservedBySkladProductId = useMemo(() => {
 		const map = new Map<number, number>();
 		for (const row of cartRows) {
-			map.set(row.source.warehouseId, (map.get(row.source.warehouseId) ?? 0) + row.source.quantity);
+			map.set(row.source.skladProductId, (map.get(row.source.skladProductId) ?? 0) + row.source.quantity);
 		}
 		return map;
 	}, [cartRows]);
@@ -176,8 +178,8 @@ export default function WarehouseTransferPage() {
 				from_type_sklad_id: Number(fromTypeSkladId),
 				to_type_sklad_id: Number(toTypeSkladId),
 				items: cartRows.map((row) => ({
-					source_warehouse_id: row.source.warehouseId,
-					target_warehouse_id: row.target.warehouseId,
+					source_sklad_product_id: row.source.skladProductId,
+					target_sklad_product_id: row.target.skladProductId,
 					mode: row.mode,
 					source_quantity: row.source.quantity,
 					target_quantity: row.target.quantity,
@@ -380,7 +382,7 @@ export default function WarehouseTransferPage() {
 										!isProductsLoading &&
 										!isProductsError &&
 										products.map((item, index) => {
-											const available = item.count - (reservedByWarehouseId.get(item.id) ?? 0);
+											const available = item.count - (reservedBySkladProductId.get(item.id) ?? 0);
 											const disabled =
 												!canWrite || !toTypeSkladId || sameSkladType || available <= 0;
 											const isSelected = selectedSourceItem?.id === item.id;
@@ -396,13 +398,21 @@ export default function WarehouseTransferPage() {
 													)}
 												>
 													<TableCell>{index + 1}</TableCell>
-													{cols.isVisible('brand') && <TableCell>{item.brand_detail?.name}</TableCell>}
-													{cols.isVisible('category') && <TableCell>{item.product_category_detail?.name}</TableCell>}
-													{cols.isVisible('size') && <TableCell>{formatNumber(item.size)}</TableCell>}
-													{cols.isVisible('type') && <TableCell>{item.type_detail?.name}</TableCell>}
+													{cols.isVisible('brand') && (
+														<TableCell>{cardNames.brandName(item.warehouse_detail)}</TableCell>
+													)}
+													{cols.isVisible('category') && (
+														<TableCell>{cardNames.categoryName(item.warehouse_detail)}</TableCell>
+													)}
+													{cols.isVisible('size') && (
+														<TableCell>{formatNumber(item.warehouse_detail?.size ?? 0)}</TableCell>
+													)}
+													{cols.isVisible('type') && (
+														<TableCell>{cardNames.typeName(item.warehouse_detail)}</TableCell>
+													)}
 													{cols.isVisible('available') && (
 														<TableCell className='font-semibold'>
-															{formatNumber(available)} {item.type_detail?.name}
+															{formatNumber(available)} {cardNames.typeName(item.warehouse_detail)}
 														</TableCell>
 													)}
 												</TableRow>
@@ -421,7 +431,7 @@ export default function WarehouseTransferPage() {
 							toTypeSkladId={Number(toTypeSkladId)}
 							toTypeSkladName={toTypeSkladName}
 							availableCount={
-								selectedSourceItem.count - (reservedByWarehouseId.get(selectedSourceItem.id) ?? 0)
+								selectedSourceItem.count - (reservedBySkladProductId.get(selectedSourceItem.id) ?? 0)
 							}
 							onAdd={handleAddToCart}
 							onCancel={() => setSelectedSourceItem(null)}

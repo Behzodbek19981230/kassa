@@ -26,7 +26,8 @@ import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useCreateOrderCartMutation } from '@/services/order-cart/order-cart.queries';
-import { useWarehouseQuery } from '@/services/warehouse/warehouse.queries';
+import { catalogCardId, resolveCatalogStockId } from '@/services/sklad-product/catalog-stock';
+import { useSkladProductByPairQuery } from '@/services/sklad-product/sklad-product.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
 export interface ProductVariant {
@@ -127,12 +128,15 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	const availableStock = stockByLocation.get(joyValue);
 	const lineTotal = (Number(countValue) || 0) * (Number(priceDollarValue) || 0);
 
-	// The price starts at the warehouse's worker_price (only the detail endpoint has it). It follows the
+	// The price starts at the worker_price of the product's stock in the chosen sklad. It follows the
 	// chosen location until the user types a price of their own.
 	const priceEditedRef = useRef(false);
-	const selectedRowId = locationOptions.find((option) => option.value === joyValue)?.row.id;
-	const { data: selectedWarehouse } = useWarehouseQuery(selectedRowId);
-	const workerPrice = selectedWarehouse?.id === selectedRowId ? selectedWarehouse?.worker_price : undefined;
+	const selectedRow = locationOptions.find((option) => option.value === joyValue)?.row;
+	const { data: selectedStock } = useSkladProductByPairQuery(
+		selectedRow ? catalogCardId(selectedRow) : undefined,
+		selectedRow?.type_sklad_id ?? undefined,
+	);
+	const workerPrice = selectedStock?.type_sklad === selectedRow?.type_sklad_id ? selectedStock?.worker_price : undefined;
 
 	useEffect(() => {
 		if (priceEditedRef.current || workerPrice == null) return;
@@ -162,6 +166,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	}, [rate, getValues, setValue]);
 
 	const createMutation = useCreateOrderCartMutation();
+	const [isResolvingStock, setIsResolvingStock] = useState(false);
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
@@ -172,9 +177,12 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 		}
 
 		try {
+			setIsResolvingStock(true);
+			const skladProduct = await resolveCatalogStockId(location.row).finally(() => setIsResolvingStock(false));
 			await createMutation.mutateAsync({
 				client: clientId,
-				warehouse: location.row.id,
+				warehouse: catalogCardId(location.row),
+				sklad_product: skladProduct,
 				count: Number(values.count),
 				price: Number(values.priceDollar).toFixed(2),
 			});
@@ -321,7 +329,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish
 						</Button>
-						<Button type='submit' variant='danger' loading={createMutation.isPending}>
+						<Button type='submit' variant='danger' loading={isResolvingStock || createMutation.isPending}>
 							<FaCartPlus className='mr-1.5' /> Buyurtmaga qo'shish
 						</Button>
 					</ModalFooter>

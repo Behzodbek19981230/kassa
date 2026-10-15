@@ -23,6 +23,7 @@ import { formatNumber } from '@/lib/number';
 import { brandService } from '@/services/brand/brand.service';
 import { clientService } from '@/services/client/client.service';
 import { productCategoryService } from '@/services/product-category/product-category.service';
+import { resolveStockId } from '@/services/sklad-product/catalog-stock';
 import { useVozvratCalculateMutation, useVozvratProductsQuery } from '@/services/vozvrat/vozvrat.queries';
 import type {
 	VozvratCalculateResponse,
@@ -63,6 +64,7 @@ const CART_LABEL_COLUMNS = ['index', 'location', 'brand', 'category', 'size', 't
 interface VozvratCartRow {
 	key: string;
 	warehouse: number;
+	sklad_product: number;
 	brand: number;
 	brand_name: string;
 	product_category: number;
@@ -79,6 +81,7 @@ interface VozvratCartRow {
 function toCartItemInput(row: VozvratCartRow): VozvratCartItemInput {
 	return {
 		warehouse: row.warehouse,
+		sklad_product: row.sklad_product,
 		brand: row.brand,
 		product_category: row.product_category,
 		size: row.size,
@@ -136,7 +139,15 @@ export default function VozvratPage() {
 		setCalcResult(null);
 	}
 
-	function handleAddToCart(product: VozvratProductItem, count: number, price: number) {
+	async function handleAddToCart(product: VozvratProductItem, count: number, price: number) {
+		// The return goes back to the stock row the product was sold from.
+		let skladProduct: number;
+		try {
+			skladProduct = await resolveStockId(product.sklad_product, product.warehouse, product.type_sklad);
+		} catch (err) {
+			notify({ title: getApiErrorMessage(err, "Mahsulotning sklad qoldig'i topilmadi") });
+			return;
+		}
 		const key = rowKey(product);
 		setCartRows((prev) => {
 			const existingIndex = prev.findIndex((r) => r.key === key);
@@ -148,6 +159,7 @@ export default function VozvratPage() {
 							{
 								key,
 								warehouse: product.warehouse,
+								sklad_product: skladProduct,
 								brand: product.brand,
 								brand_name: product.brand_name,
 								product_category: product.product_category,

@@ -3,7 +3,7 @@ import { FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Combobox, DatePicker, Input, PageHeader, Panel, PriceInput, useNotification } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
-import { getApiErrorMessage } from '@/lib/errors';
+import { getApiErrorMessage, UserFacingError } from '@/lib/errors';
 import { generateId } from '@/lib/utils';
 import WarehouseProductRow, {
 	emptyWarehouseRow,
@@ -11,15 +11,21 @@ import WarehouseProductRow, {
 } from '@/pages/WarehousePage/components/WarehouseProductRow';
 import { useSkladViewQuery, useUpdateSkladMutation } from '@/services/sklad/sklad.queries';
 import type { SkladUpdatePayload } from '@/services/sklad/sklad.types';
+import { resolveStockId } from '@/services/sklad-product/catalog-stock';
 import {
-	useCreateWarehouseMutation,
-	useDeleteWarehouseMutation,
-	useUpdateWarehouseMutation,
-} from '@/services/warehouse/warehouse.queries';
-import type { WarehousePayload } from '@/services/warehouse/warehouse.types';
+	useCreateSkladProductMutation,
+	useDeleteSkladProductMutation,
+	useUpdateSkladProductMutation,
+} from '@/services/sklad-product/sklad-product.queries';
+import { skladProductService } from '@/services/sklad-product/sklad-product.service';
+import { warehouseService } from '@/services/warehouse/warehouse.service';
 
+// A line of the import: one product's stock in one sklad (SkladProduct).
 interface EditableRow extends WarehouseRowValue {
-	warehouseId?: number;
+	/** The stock row the line was loaded with; new lines have none. */
+	skladProductId?: number;
+	/** The product card the line was loaded with. */
+	cardId?: number;
 }
 
 export default function WarehouseAccountEditPage() {
@@ -42,20 +48,22 @@ export default function WarehouseAccountEditPage() {
 	const [carNumber, setCarNumber] = useState('');
 	const [comment, setComment] = useState('');
 	const [rows, setRows] = useState<EditableRow[]>([]);
-	const [removedWarehouseIds, setRemovedWarehouseIds] = useState<number[]>([]);
+	const [removedRows, setRemovedRows] = useState<EditableRow[]>([]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
 	const [unmatchedRowKeys, setUnmatchedRowKeys] = useState<Record<string | number, boolean>>({});
 	const [formError, setFormError] = useState('');
 
 	const updateSkladMutation = useUpdateSkladMutation();
-	const createWarehouseMutation = useCreateWarehouseMutation();
-	const updateWarehouseMutation = useUpdateWarehouseMutation();
-	const deleteWarehouseMutation = useDeleteWarehouseMutation();
+	const createStockMutation = useCreateSkladProductMutation();
+	const updateStockMutation = useUpdateSkladProductMutation();
+	const deleteStockMutation = useDeleteSkladProductMutation();
+	const [isResolving, setIsResolving] = useState(false);
 	const isSaving =
+		isResolving ||
 		updateSkladMutation.isPending ||
-		createWarehouseMutation.isPending ||
-		updateWarehouseMutation.isPending ||
-		deleteWarehouseMutation.isPending;
+		createStockMutation.isPending ||
+		updateStockMutation.isPending ||
+		deleteStockMutation.isPending;
 
 	const hasUnmatchedRow = Object.values(unmatchedRowKeys).some(Boolean);
 
@@ -71,7 +79,8 @@ export default function WarehouseAccountEditPage() {
 		setRows(
 			items.map((item) => ({
 				key: generateId(),
-				warehouseId: item.warehouse,
+				skladProductId: item.sklad_product ?? undefined,
+				cardId: item.warehouse,
 				brand: String(item.brand),
 				product_category: String(item.product_category),
 				brandSize: '',
@@ -82,7 +91,7 @@ export default function WarehouseAccountEditPage() {
 				count: item.count,
 			})),
 		);
-		setRemovedWarehouseIds([]);
+		setRemovedRows([]);
 	}, [data]);
 
 	const handleCatalogMatchChange = (key: string | number, matched: boolean) => {
@@ -99,8 +108,8 @@ export default function WarehouseAccountEditPage() {
 	const addRow = () => setRows((prev) => [...prev, { ...emptyWarehouseRow(), count: null }]);
 	const removeRow = (index: number) => {
 		const row = rows[index];
-		if (row?.warehouseId) {
-			setRemovedWarehouseIds((prev) => [...prev, row.warehouseId!]);
+		if (row?.cardId) {
+			setRemovedRows((prev) => [...prev, row]);
 		}
 		if (row?.key !== undefined) {
 			setUnmatchedRowKeys((keys) => {
@@ -171,32 +180,40 @@ export default function WarehouseAccountEditPage() {
 			await updateSkladMutation.mutateAsync({ id: skladId!, payload: skladPayload });
 
 			for (const row of rows) {
-				const warehousePayload: WarehousePayload = {
-					cr_date: date,
-					size: row.size ?? 0,
-					count: row.count ?? 0,
-					price: Number(row.price) || 0,
-					worker_price: 0,
-					status_count: false,
-					company,
-					brand: Number(row.brand),
-					product_category: Number(row.product_category),
-					type: row.type,
-					type_sklad: row.type_sklad ? Number(row.type_sklad) : null,
-					all_sum_dollar: Number(givenSumDollar) || 0,
-					all_discount_amount: Number(discountAmount) || 0,
-					all_my_total_debt: data.report.my_total_debt,
-					comment: comment.trim() || undefined,
-				};
-				if (row.warehouseId) {
-					await updateWarehouseMutation.mutateAsync({ id: row.warehouseId, payload: warehousePayload });
+				setIsResolving(true);
+				const typeSklad = Number(row.type_sklad);
+				const stockPayload = { count: row.count ?? 0, real_price: row.price, cr_date: date };
+				// The product card must already exist (the row checks that); its stock row in this sklad may not.
+				const stock = await (async () => {
+					const card = await warehouseService.findCard({
+						brand: Number(row.brand),
+						product_category: Number(row.product_category),
+						type: row.type,
+						size: row.size ?? 0,
+					});
+					if (!card) return { cardId: undefined, stockId: undefined };
+					const sameStock = card.id === row.cardId && String(typeSklad) === row.type_sklad;
+					const existing =
+						sameStock && row.skladProductId
+							? row.skladProductId
+							: (await skladProductService.findByPair(card.id, typeSklad))?.id;
+					return { cardId: card.id, stockId: existing };
+				})().finally(() => setIsResolving(false));
+
+				if (!stock.cardId) throw new UserFacingError("Bu tovar bazada topilmadi. Tovarlar va narxlarga o'tib bu tovarni qo'shing");
+				if (stock.stockId) {
+					await updateStockMutation.mutateAsync({ id: stock.stockId, payload: stockPayload });
 				} else {
-					await createWarehouseMutation.mutateAsync(warehousePayload);
+					await createStockMutation.mutateAsync({ warehouse: stock.cardId, type_sklad: typeSklad, ...stockPayload });
 				}
 			}
 
-			for (const warehouseId of removedWarehouseIds) {
-				await deleteWarehouseMutation.mutateAsync(warehouseId);
+			for (const row of removedRows) {
+				setIsResolving(true);
+				const stockId = await resolveStockId(row.skladProductId, row.cardId!, Number(row.type_sklad)).finally(() =>
+					setIsResolving(false),
+				);
+				await deleteStockMutation.mutateAsync(stockId);
 			}
 
 			notify({ title: 'Tovar yangilandi' });

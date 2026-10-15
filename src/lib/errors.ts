@@ -12,8 +12,12 @@ function firstFieldError(data: Exclude<ApiErrorData, string | undefined>): strin
 	return undefined;
 }
 
+/** An error raised by the frontend whose message is written for the user. */
+export class UserFacingError extends Error {}
+
 /** Extracts a human-readable message from a DRF-style API error response, falling back to `fallback`. */
 export function getApiErrorMessage(err: unknown, fallback: string): string {
+	if (err instanceof UserFacingError) return err.message;
 	if (!isAxiosError(err)) return fallback;
 
 	const data = err.response?.data as ApiErrorData;

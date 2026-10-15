@@ -32,6 +32,7 @@ import {
 import { useMyDebtListQuery } from '@/services/my-debt/my-debt.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useWarehouseAllListInfiniteQuery } from '@/services/warehouse/warehouse.queries';
+import { catalogCardId } from '@/services/sklad-product/catalog-stock';
 import type { WarehouseAllListBrandGroup, WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import ConsignorFormModal from '@/pages/system/ConsignorPage/components/ConsignorFormModal';
 import MyDebtPayModal from '@/pages/MyDebtPage/components/MyDebtPayModal';
@@ -143,12 +144,13 @@ export default function ImportPage() {
 		}
 	}
 
-	// Only the pages loaded so far; cart rows outside them fall back to their own warehouse_detail.
+	// Product cards from the pages loaded so far; cart rows outside them fall back to their own warehouse_detail.
+	// A card is in several sklads, so the cart line's own sklad is shown, not the card's.
 	const warehouseById = useMemo(() => {
 		const map = new Map<number, WarehouseAllListItem>();
 		for (const g of groups) {
 			for (const pc of g.product_categories) {
-				for (const row of pc.warehouses) map.set(row.id, row);
+				for (const row of pc.warehouses) map.set(catalogCardId(row), row);
 			}
 		}
 		return map;
@@ -476,7 +478,7 @@ export default function ImportPage() {
 													<TableCell>{index + 1}</TableCell>
 													{cartCols.isVisible('location') && (
 														<TableCell>
-															{warehouse?.type_sklad_name ??
+															{item.type_sklad_detail?.name ??
 																item.warehouse_detail?.type_sklad_name ??
 																DEFAULT_LOCATION_LABEL}
 														</TableCell>

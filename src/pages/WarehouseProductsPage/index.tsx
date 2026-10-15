@@ -30,6 +30,7 @@ import WarehouseProductImagesModal from '@/pages/WarehouseProductsPage/component
 import WarehouseProductThumbnail from '@/pages/WarehouseProductsPage/components/WarehouseProductThumbnail';
 import WarehouseRealPriceModal from '@/pages/WarehouseProductsPage/components/WarehouseRealPriceModal';
 import WarehouseSendTelegramModal from '@/pages/WarehousePage/components/WarehouseSendTelegramModal';
+import { catalogCardId } from '@/services/sklad-product/catalog-stock';
 
 const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'image', label: 'Rasm' },
@@ -360,7 +361,7 @@ export default function WarehouseProductsPage() {
 																	}}
 																	dialog={WarehouseSendTelegramModal}
 																	dialogProps={{
-																		item,
+																		item: { id: catalogCardId(item) },
 																		productLabel: `${group.brand.name} ${item.product_category_name}`,
 																	}}
 																/>

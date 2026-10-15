@@ -10,8 +10,9 @@ import { useProductCategoryListQuery } from '@/services/product-category/product
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import { skladTypeService } from '@/services/sklad-type/sklad-type.service';
+import { useSkladProductByPairQuery } from '@/services/sklad-product/sklad-product.queries';
+import type { SkladProduct } from '@/services/sklad-product/sklad-product.types';
 import { useWarehouseListQuery } from '@/services/warehouse/warehouse.queries';
-import type { Warehouse } from '@/services/warehouse/warehouse.types';
 import { formatNumber } from '@/lib/number';
 import { generateId } from '@/lib/utils';
 
@@ -48,6 +49,7 @@ interface WarehouseProductRowProps {
 	showRemove?: boolean;
 	onRemove?: () => void;
 	companyId?: number;
+	/** SkladProduct id that doesn't count as a duplicate (the row being edited). */
 	excludeId?: number;
 	onDuplicateChange?: (key: string | number, isDuplicate: boolean) => void;
 	/** Shows an editable "Soni" (count) field — used by the sklad batch edit form, not the price catalog form. */
@@ -57,8 +59,8 @@ interface WarehouseProductRowProps {
 	 * exact stock line to sell from), not a "duplicate" error like in the price catalog form.
 	 */
 	resolveStock?: boolean;
-	/** Reports the resolved existing warehouse row for this variant — only fires when `resolveStock` is set. */
-	onResolveStock?: (key: string | number, warehouse: Warehouse | undefined) => void;
+	/** Reports this variant's stock row in the chosen sklad — only fires when `resolveStock` is set. */
+	onResolveStock?: (key: string | number, stock: SkladProduct | undefined) => void;
 	/**
 	 * Sklad batch (kirim) context: the variant must already exist as a catalog product (any
 	 * batch/location) — new products aren't defined ad hoc here, they're registered first via
@@ -118,23 +120,26 @@ export default function WarehouseProductRow({
 
 	const lineTotal = (Number(value.count) || 0) * (Number(value.price) || 0);
 
+	// A variant is a product card (model, nomi, o'lcham, tip); its stock in the chosen sklad is a SkladProduct.
 	const isVariantComplete = Boolean(companyId && brandId && categoryId && typeSkladId && value.brandSize);
-	const { data: duplicateData } = useWarehouseListQuery(
+	const { data: cardData } = useWarehouseListQuery(
 		{
 			brand: brandId,
 			product_category: categoryId,
-			type_sklad: typeSkladId,
 			type: value.type ?? undefined,
 			limit: 100,
 		},
 		isVariantComplete,
 	);
-	const duplicateItem = isVariantComplete
-		? duplicateData?.results.find((w) => Number(w.size) === value.size && (resolveStock || w.id !== excludeId))
-		: undefined;
 	const catalogMatch = isVariantComplete
-		? duplicateData?.results.find((w) => Number(w.size) === value.size)
+		? cardData?.results.find((w) => Number(w.size) === value.size)
 		: undefined;
+	const { data: stockData } = useSkladProductByPairQuery(
+		isVariantComplete ? catalogMatch?.id : undefined,
+		typeSkladId,
+	);
+	const stock = catalogMatch && stockData ? stockData : undefined;
+	const duplicateItem = stock && (resolveStock || stock.id !== excludeId) ? stock : undefined;
 
 	useEffect(() => {
 		if (requireCatalogMatch) {
@@ -349,7 +354,7 @@ export default function WarehouseProductRow({
 				))}
 
 			{onDuplicateChange && !resolveStock && duplicateItem && (
-				<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar bazada mavjud</p>
+				<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu mahsulot ushbu skladga oldin qo'shilgan</p>
 			)}
 
 			{requireCatalogMatch && isVariantComplete && !catalogMatch && (

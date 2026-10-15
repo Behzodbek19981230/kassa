@@ -20,7 +20,7 @@ import {
 	useUpdateSaleOrderAccountHistoryMutation,
 } from '@/services/order-account-history/order-account-history.queries';
 import type { OrderAccountHistoryUpdateSaleItemPayload } from '@/services/order-account-history/order-account-history.types';
-import type { Warehouse } from '@/services/warehouse/warehouse.types';
+import type { SkladProduct } from '@/services/sklad-product/sklad-product.types';
 
 const editOrderFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
@@ -62,9 +62,10 @@ export default function OrderAccountHistoryEditPage() {
 
 	const [rows, setRows] = useState<EditableProductRow[]>([]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
-	const [resolvedWarehouseByKey, setResolvedWarehouseByKey] = useState<Record<string | number, number | undefined>>(
-		{},
-	);
+	// The stock row (product in a sklad) each line is sold from, resolved by the product row.
+	const [resolvedStockByKey, setResolvedStockByKey] = useState<
+		Record<string | number, Pick<SkladProduct, 'id' | 'warehouse'> | undefined>
+	>({});
 
 	useEffect(() => {
 		if (!productsData) return;
@@ -94,10 +95,10 @@ export default function OrderAccountHistoryEditPage() {
 
 	const rowsTotal = rows.reduce((sum, row) => sum + (Number(row.count) || 0) * (Number(row.price) || 0), 0);
 
-	function handleResolveStock(key: string | number, warehouse: Warehouse | undefined) {
-		setResolvedWarehouseByKey((prev) => {
-			if (prev[key] === warehouse?.id) return prev;
-			return { ...prev, [key]: warehouse?.id };
+	function handleResolveStock(key: string | number, stock: SkladProduct | undefined) {
+		setResolvedStockByKey((prev) => {
+			if (prev[key]?.id === stock?.id) return prev;
+			return { ...prev, [key]: stock ? { id: stock.id, warehouse: stock.warehouse } : undefined };
 		});
 	}
 
@@ -144,7 +145,7 @@ export default function OrderAccountHistoryEditPage() {
 		rows.forEach((row, i) => {
 			if (!row.brand || !row.product_category || !row.brandSize || !row.price || !row.type_sklad || !row.count) {
 				rowErrs[i] = "Barcha maydonlar to'ldirilishi shart";
-			} else if (!resolvedWarehouseByKey[row.key]) {
+			} else if (!resolvedStockByKey[row.key]) {
 				rowErrs[i] = 'Bu tovar omborda topilmadi';
 			}
 		});
@@ -156,7 +157,8 @@ export default function OrderAccountHistoryEditPage() {
 		setRowErrors({});
 
 		const items: OrderAccountHistoryUpdateSaleItemPayload[] = rows.map((row) => ({
-			warehouse: resolvedWarehouseByKey[row.key]!,
+			warehouse: resolvedStockByKey[row.key]!.warehouse,
+			sklad_product: resolvedStockByKey[row.key]!.id,
 			count: row.count ?? 0,
 			price: row.price,
 		}));

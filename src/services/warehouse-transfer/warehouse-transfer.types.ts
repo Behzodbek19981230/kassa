@@ -10,11 +10,12 @@ export type TransferMode = 'same' | 'spread';
 
 export type WarehouseTransferStatus = 'completed' | 'reversed' | 'reverse';
 
+// Stock moves between two stock rows (SkladProduct): the product in the source sklad and in the target sklad.
 export interface ValidateTransferItemPayload {
 	from_type_sklad_id: number;
 	to_type_sklad_id: number;
-	source_warehouse_id: number;
-	target_warehouse_id: number;
+	source_sklad_product_id: number;
+	target_sklad_product_id: number;
 	mode: TransferMode;
 	source_quantity: number;
 	target_quantity: number;
@@ -24,13 +25,13 @@ export interface ValidateTransferItemResponse {
 	success: boolean;
 	message: string;
 	source_available: number;
-	source_warehouse_id: number;
-	target_warehouse_id: number;
+	source_sklad_product_id?: number;
+	target_sklad_product_id?: number;
 }
 
 export interface WarehouseTransferItemPayload {
-	source_warehouse_id: number;
-	target_warehouse_id: number;
+	source_sklad_product_id: number;
+	target_sklad_product_id: number;
 	mode: TransferMode;
 	source_quantity: number;
 	target_quantity: number;

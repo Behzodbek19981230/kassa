@@ -314,9 +314,9 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
    const stockQuery = useTransitStockQuery(sourceId);
    const products = useMemo<ProductOption[]>(() => {
       if (isChina) {
-         return [...catalog.byId.values()].map((w) => ({
-            key: String(w.id),
-            warehouse: w.id,
+         return [...catalog.byId.entries()].map(([cardId, w]) => ({
+            key: String(cardId),
+            warehouse: cardId,
             brand: String(w.brand_id),
             brandName: w.brand_name,
             category: String(w.product_category_id),

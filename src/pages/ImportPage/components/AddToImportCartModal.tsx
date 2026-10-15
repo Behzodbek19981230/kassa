@@ -26,6 +26,7 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useCurrentCompany } from '@/lib/company';
 import { useCreateImportCartDraftMutation } from '@/services/import-cart-draft/import-cart-draft.queries';
+import { catalogCardId } from '@/services/sklad-product/catalog-stock';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
 export interface ImportProductVariant {
@@ -140,7 +141,7 @@ export default function AddToImportCartModal({
    const onSubmit = handleSubmit(async (values) => {
       setFormError('');
       const location = locationOptions.find((option) => option.value === values.joy);
-      if (!location) {
+      if (!location || location.row.type_sklad_id === null) {
          setFormError('Joy topilmadi');
          return;
       }
@@ -149,7 +150,8 @@ export default function AddToImportCartModal({
          await createMutation.mutateAsync({
             company: companyId,
             consignor: consignorId,
-            warehouse: location.row.id,
+            warehouse: catalogCardId(location.row),
+            type_sklad: location.row.type_sklad_id,
             count: Number(values.count),
             price_dollar: Number(values.priceDollar).toFixed(2),
             price_som: values.priceSom || '0',

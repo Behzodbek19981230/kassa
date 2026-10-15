@@ -13,21 +13,32 @@ export interface OrderCartWarehouseDetail {
 	type_sklad_name?: string | null;
 }
 
+// The stock row a cart line is sold from: one product in one sklad.
+export interface OrderCartSkladProductDetail {
+	id: number;
+	type_sklad_id?: number | null;
+	type_sklad_name?: string | null;
+	count?: number;
+}
+
 export interface OrderCartItem {
 	id: number;
 	client: number;
 	warehouse: number;
+	sklad_product?: number | null;
 	company?: number;
 	count: number;
 	price: string;
 	total_price: string;
 	is_active: boolean;
 	warehouse_detail?: OrderCartWarehouseDetail | null;
+	sklad_product_detail?: OrderCartSkladProductDetail | null;
 }
 
 export interface OrderCartPayload {
 	client: number;
 	warehouse: number;
+	sklad_product: number;
 	count: number;
 	price: string | number;
 	is_active?: boolean;
