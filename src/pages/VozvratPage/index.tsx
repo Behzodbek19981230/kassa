@@ -374,7 +374,7 @@ export default function VozvratPage() {
                                                    <TableCell>
                                                       {variant.brandName}
                                                       {variant.orderDateLabel && (
-                                                         <div className='text-[12px] font-semibold text-ca-orange'>
+                                                         <div className='text-[10px] font-semibold text-ca-orange'>
                                                             Buyurtma sana:{variant.orderDateLabel}
                                                          </div>
                                                       )}

@@ -184,7 +184,7 @@ export function MultiCombobox({
               >
                 <span className="max-w-[140px] truncate">{labelFor(v)}</span>
                 <FaTimes
-                  className="shrink-0 text-[11px] text-ca-text hover:text-ca-heading"
+                  className="shrink-0 text-[9px] text-ca-text hover:text-ca-heading"
                   onClick={(e) => {
                     e.stopPropagation()
                     e.preventDefault()
@@ -194,7 +194,7 @@ export function MultiCombobox({
               </span>
             ))
           )}
-          <FaChevronDown className="ml-auto shrink-0 text-[12px] text-ca-text" />
+          <FaChevronDown className="ml-auto shrink-0 text-[10px] text-ca-text" />
         </button>
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
@@ -211,7 +211,7 @@ export function MultiCombobox({
           )}
         >
           <div className="flex items-center gap-2 border-b border-ca-border px-2 py-1.5">
-            <FaSearch className="shrink-0 text-[12px] text-ca-text" />
+            <FaSearch className="shrink-0 text-[10px] text-ca-text" />
             <input
               autoFocus
               value={search}
@@ -238,7 +238,7 @@ export function MultiCombobox({
                   )}
                 >
                   <span className="truncate">{option.label}</span>
-                  {selected && <FaCheck className="shrink-0 text-[12px] text-ca-theme" />}
+                  {selected && <FaCheck className="shrink-0 text-[10px] text-ca-theme" />}
                 </div>
               )
             })}

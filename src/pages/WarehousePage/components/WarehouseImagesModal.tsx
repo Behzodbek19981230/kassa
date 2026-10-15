@@ -130,7 +130,7 @@ export default function WarehouseImagesModal({ open, setOpen, item, productLabel
          <ModalContent className='max-w-4xl'>
             <ModalHeader>
                <ModalTitle>Tovar rasmlari</ModalTitle>
-               <p className='mt-0.5 text-[13px] font-normal text-ca-text'>
+               <p className='mt-0.5 text-[11px] font-normal text-ca-text'>
                   {productLabel} &middot; {images.length} ta rasm
                </p>
             </ModalHeader>
@@ -178,12 +178,12 @@ export default function WarehouseImagesModal({ open, setOpen, item, productLabel
                            />
                            <div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100' />
                            <div className='absolute left-2 top-2 flex gap-1'>
-                              <span className='rounded bg-black/60 px-1.5 py-0.5 text-[12px] font-semibold text-white'>
+                              <span className='rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white'>
                                  {idx + 1}
                               </span>
                               {img.is_main && (
-                                 <span className='flex items-center gap-1 rounded bg-ca-theme px-1.5 py-0.5 text-[12px] font-semibold text-white'>
-                                    <FaStar className='text-[10px]' /> Asosiy
+                                 <span className='flex items-center gap-1 rounded bg-ca-theme px-1.5 py-0.5 text-[10px] font-semibold text-white'>
+                                    <FaStar className='text-[8px]' /> Asosiy
                                  </span>
                               )}
                            </div>

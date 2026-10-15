@@ -148,7 +148,7 @@ export default function AddToVozvratCartModal({
 							value={count}
 							onChange={(e) => setCount(e.target.value)}
 						/>
-						<p className='mt-1 text-[13px] text-ca-text'>
+						<p className='mt-1 text-[11px] text-ca-text'>
 							Mijozda mavjud:{' '}
 							<span className='font-semibold text-ca-heading'>{formatNumber(availableCount)} ta</span>
 						</p>

@@ -60,7 +60,7 @@ export function Pagination({ page, totalPages, onPageChange, className, siblingC
           className="border-ca-border px-2"
           aria-label="Birinchi sahifa"
         >
-          <FaAngleDoubleLeft className="text-[12px]" />
+          <FaAngleDoubleLeft className="text-[10px]" />
         </Button>
       </li>
       <li>
@@ -73,7 +73,7 @@ export function Pagination({ page, totalPages, onPageChange, className, siblingC
           className="border-ca-border px-2"
           aria-label="Oldingi sahifa"
         >
-          <FaChevronLeft className="text-[12px]" />
+          <FaChevronLeft className="text-[10px]" />
         </Button>
       </li>
       {pages.map((pageNumber, index) =>
@@ -106,7 +106,7 @@ export function Pagination({ page, totalPages, onPageChange, className, siblingC
           className="border-ca-border px-2"
           aria-label="Keyingi sahifa"
         >
-          <FaChevronRight className="text-[12px]" />
+          <FaChevronRight className="text-[10px]" />
         </Button>
       </li>
       <li>
@@ -119,7 +119,7 @@ export function Pagination({ page, totalPages, onPageChange, className, siblingC
           className="border-ca-border px-2"
           aria-label="Oxirgi sahifa"
         >
-          <FaAngleDoubleRight className="text-[12px]" />
+          <FaAngleDoubleRight className="text-[10px]" />
         </Button>
       </li>
     </ul>

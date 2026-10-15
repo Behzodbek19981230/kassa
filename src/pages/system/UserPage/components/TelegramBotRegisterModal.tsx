@@ -146,7 +146,7 @@ export default function TelegramBotRegisterModal({ open, setOpen, item }: Telegr
 								<FaCopy />
 							</Button>
 						</div>
-						{copied && <p className='mt-1 text-[13px] text-ca-green'>Nusxalandi</p>}
+						{copied && <p className='mt-1 text-[11px] text-ca-green'>Nusxalandi</p>}
 					</div>
 
 					<div>

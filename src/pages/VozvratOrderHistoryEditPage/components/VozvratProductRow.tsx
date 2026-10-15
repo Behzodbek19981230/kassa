@@ -156,7 +156,7 @@ export default function VozvratProductRow({
 						Narxi ($) <span className='text-ca-red'>*</span>
 					</label>
 					<PriceInput value={value.price} onChange={(price) => onChange({ ...value, price })} />
-					{error && <p className='mt-1 text-[13px] text-ca-red'>{error}</p>}
+					{error && <p className='mt-1 text-[11px] text-ca-red'>{error}</p>}
 				</div>
 				<div className='flex w-16 shrink-0 self-end justify-end gap-1'>
 					{showRemove && (
@@ -179,14 +179,14 @@ export default function VozvratProductRow({
 			</div>
 			{value.variantKey &&
 				(selectedRow ? (
-					<p className='mt-1 text-[13px] text-ca-text'>
+					<p className='mt-1 text-[11px] text-ca-text'>
 						Qoldiq:{' '}
 						<span className='font-semibold text-ca-heading'>
 							{formatNumber(selectedRow.remaining_count)} ta
 						</span>
 					</p>
 				) : productsData ? (
-					<p className='mt-1 text-[13px] font-semibold text-ca-red'>Bu tovar mijozda topilmadi</p>
+					<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar mijozda topilmadi</p>
 				) : null)}
 		</div>
 	);

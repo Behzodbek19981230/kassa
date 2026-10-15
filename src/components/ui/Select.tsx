@@ -26,7 +26,7 @@ const SelectTrigger = forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <FaChevronDown className="shrink-0 text-[12px] text-ca-text" />
+      <FaChevronDown className="shrink-0 text-[10px] text-ca-text" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -83,7 +83,7 @@ const SelectItem = forwardRef<
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <FaCheck className="text-[12px] text-ca-theme" />
+        <FaCheck className="text-[10px] text-ca-theme" />
       </SelectPrimitive.ItemIndicator>
     </span>
   </SelectPrimitive.Item>

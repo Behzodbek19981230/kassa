@@ -333,7 +333,7 @@ export function DatePicker({ value, onChange, placeholder, disabled, className, 
                     className={cn(HEADER_BUTTON, view === 'months' && 'bg-ca-silver')}
                   >
                     {MONTH_NAMES[viewMonthIndex]}
-                    <FaChevronDown className={cn('text-[12px] text-ca-text transition-transform', view === 'months' && 'rotate-180')} />
+                    <FaChevronDown className={cn('text-[10px] text-ca-text transition-transform', view === 'months' && 'rotate-180')} />
                   </button>
                   <button
                     type='button'
@@ -341,7 +341,7 @@ export function DatePicker({ value, onChange, placeholder, disabled, className, 
                     className={cn(HEADER_BUTTON, view === 'years' && 'bg-ca-silver')}
                   >
                     {viewYear}
-                    <FaChevronDown className={cn('text-[12px] text-ca-text transition-transform', view === 'years' && 'rotate-180')} />
+                    <FaChevronDown className={cn('text-[10px] text-ca-text transition-transform', view === 'years' && 'rotate-180')} />
                   </button>
                 </div>
                 <div className='flex items-center gap-1'>
@@ -352,7 +352,7 @@ export function DatePicker({ value, onChange, placeholder, disabled, className, 
                     onClick={() => shiftMonth(-1)}
                     className={NAV_BUTTON}
                   >
-                    <FaChevronLeft className='text-[12px]' />
+                    <FaChevronLeft className='text-[10px]' />
                   </button>
                   <button
                     type='button'
@@ -361,7 +361,7 @@ export function DatePicker({ value, onChange, placeholder, disabled, className, 
                     onClick={() => shiftMonth(1)}
                     className={NAV_BUTTON}
                   >
-                    <FaChevronRight className='text-[12px]' />
+                    <FaChevronRight className='text-[10px]' />
                   </button>
                 </div>
               </div>
@@ -391,7 +391,7 @@ export function DatePicker({ value, onChange, placeholder, disabled, className, 
                       month_caption: 'hidden',
                       month_grid: 'w-full border-collapse',
                       weekdays: '',
-                      weekday: 'w-8 pb-1 text-center text-[13px] font-medium text-ca-text',
+                      weekday: 'w-8 pb-1 text-center text-[11px] font-medium text-ca-text',
                       week: '',
                       day: 'p-0 text-center',
                       day_button: 'flex h-8 w-8 items-center justify-center rounded-full text-xs text-ca-heading hover:bg-ca-silver',

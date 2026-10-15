@@ -161,7 +161,7 @@ export default function AddToChinaCartModal({
                            />
                         )}
                      />
-                     <p className='mt-1 text-[13px] text-ca-text'>Float qiymat</p>
+                     <p className='mt-1 text-[11px] text-ca-text'>Float qiymat</p>
                   </FormField>
 
                   <FormField label='Soni' error={errors.quantity?.message} required horizontal={false} className='mb-3'>

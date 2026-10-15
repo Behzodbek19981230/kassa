@@ -40,7 +40,7 @@ function TableCell({ className, ...props }: React.TdHTMLAttributes<HTMLTableCell
   return (
     <td
       className={cn(
-        'border-t border-ca-border bg-ca-silver-light px-[15px] py-2.5 align-middle text-ca-text',
+        'border-t border-ca-border bg-ca-silver-light px-[15px] py-2.5 align-middle text-sm text-ca-text',
         className,
       )}
       {...props}

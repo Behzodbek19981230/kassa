@@ -214,7 +214,7 @@ export default function TransferMethodPanel({
 								clearable
 							/>
 							{noSpreadOptions && (
-								<p className='mt-1 text-[13px] text-ca-red'>
+								<p className='mt-1 text-[11px] text-ca-red'>
 									Bu skladda bu tovar mavjud emas.Tavar va narxlarga o'tib qo'shib qoyishingiz mumkin
 								</p>
 							)}
@@ -222,7 +222,7 @@ export default function TransferMethodPanel({
 					)}
 
 					{noSameTarget && (
-						<p className='mb-3 text-[13px] text-ca-red'>
+						<p className='mb-3 text-[11px] text-ca-red'>
 							Bu skladda bu tovar mavjud emas.Tavar va narxlarga o'tib qo'shib qoyishingiz mumkin
 						</p>
 					)}

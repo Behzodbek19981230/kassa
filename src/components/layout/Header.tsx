@@ -218,7 +218,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                                  onClick={() => setRateModalCurrency('dollar')}
                                  className='rounded-full p-1.5 text-ca-nav-text/70 transition-colors hover:bg-white/10 hover:text-ca-theme focus:outline-none'
                               >
-                                 <FaPencilAlt className='text-[13px]' />
+                                 <FaPencilAlt className='text-[11px]' />
                               </button>
                            </Tooltip>
                         )}
@@ -256,7 +256,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                                  onClick={() => setRateModalCurrency('yuan')}
                                  className='rounded-full p-1.5 text-ca-nav-text/70 transition-colors hover:bg-white/10 hover:text-ca-theme focus:outline-none'
                               >
-                                 <FaPencilAlt className='text-[13px]' />
+                                 <FaPencilAlt className='text-[11px]' />
                               </button>
                            </Tooltip>
                         )}
@@ -389,14 +389,14 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                                        {company.id === ownCompanyId && (
                                           <Badge
                                              variant='info'
-                                             className='px-1.5 py-0 text-[12px] font-normal'
+                                             className='px-1.5 py-0 text-[10px] font-normal'
                                           >
                                              Ishchi
                                           </Badge>
                                        )}
                                     </span>
                                     {switchingCompanyId === company.id ? (
-                                       <span className='text-[12px] text-ca-text'>...</span>
+                                       <span className='text-[10px] text-ca-text'>...</span>
                                     ) : (
                                        company.id === companyId && <FaCheck className='text-ca-green' />
                                     )}

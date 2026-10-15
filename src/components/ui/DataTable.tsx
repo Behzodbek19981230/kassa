@@ -567,7 +567,7 @@ export function DataTable<TData>({
 												>
 													{flexRender(header.column.columnDef.header, header.getContext())}
 													{enableSorting && header.column.getCanSort() && (
-														<span className='text-[12px] text-ca-text'>
+														<span className='text-[10px] text-ca-text'>
 															{{
 																asc: <FaSortUp />,
 																desc: <FaSortDown />,
@@ -624,7 +624,7 @@ export function DataTable<TData>({
 														}
 														disabled={header.column.columnDef.meta?.filterDisabled}
 														searchPlaceholder='Qidirish...'
-														className='h-[26px] text-[13px]'
+														className='h-[26px] text-[11px]'
 														contentClassName='w-[280px] min-w-[var(--radix-popover-trigger-width)] max-w-[90vw]'
 														wrapOptions
 													/>
@@ -636,7 +636,7 @@ export function DataTable<TData>({
 															table.setPageIndex(0);
 														}}
 														placeholder='Filtr...'
-														className='h-[26px] text-[13px]'
+														className='h-[26px] text-[11px]'
 													/>
 												)
 											) : null}
@@ -764,9 +764,9 @@ export function createExpandColumn<TData>(): ColumnDef<TData, unknown> {
 				aria-label={row.getIsExpanded() ? "Qatorni yig'ish" : 'Qatorni yozish'}
 			>
 				{row.getIsExpanded() ? (
-					<FaChevronDown className='text-[12px]' />
+					<FaChevronDown className='text-[10px]' />
 				) : (
-					<FaChevronRight className='text-[12px]' />
+					<FaChevronRight className='text-[10px]' />
 				)}
 			</button>
 		),

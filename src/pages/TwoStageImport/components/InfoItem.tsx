@@ -13,7 +13,7 @@ export default function InfoItem({ icon, label, value }: InfoItemProps) {
             {icon}
          </div>
          <div className='min-w-0'>
-            <div className='text-[13px] text-ca-text'>{label}</div>
+            <div className='text-[11px] text-ca-text'>{label}</div>
             <div className='truncate text-sm font-semibold text-ca-heading'>{value || '—'}</div>
          </div>
       </div>

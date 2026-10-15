@@ -341,11 +341,11 @@ export default function WarehouseProductRow({
 					</label>
 					<PriceInput value={value.price} onChange={(price) => onChange({ ...value, price })} />
 					{showCount && (
-						<p className='mt-1 text-[13px] text-ca-text'>
+						<p className='mt-1 text-[11px] text-ca-text'>
 							Summa: <span className='font-semibold text-ca-heading'>{formatNumber(lineTotal, 2)} $</span>
 						</p>
 					)}
-					{error && <p className='mt-1 text-[13px] text-ca-red'>{error}</p>}
+					{error && <p className='mt-1 text-[11px] text-ca-red'>{error}</p>}
 				</div>
 				<div className='w-16 shrink-0'>
 					<label className='mb-1 block text-xs font-semibold text-transparent select-none'>_</label>
@@ -379,16 +379,16 @@ export default function WarehouseProductRow({
 			{resolveStock &&
 				isVariantComplete &&
 				(duplicateItem ? (
-					<p className='mt-1 text-[13px] text-ca-text'>
+					<p className='mt-1 text-[11px] text-ca-text'>
 						Qoldiq:{' '}
 						<span className='font-semibold text-ca-heading'>{formatNumber(duplicateItem.count)} ta</span>
 					</p>
 				) : (
-					<p className='mt-1 text-[13px] font-semibold text-ca-red'>Bu tovar omborda topilmadi</p>
+					<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu tovar omborda topilmadi</p>
 				))}
 
 			{onDuplicateChange && !resolveStock && duplicateItem && (
-				<p className='mt-1 text-[13px] font-semibold text-ca-red'>
+				<p className='mt-1 text-[11px] font-semibold text-ca-red'>
 					{multiSklad
 						? `Bu mahsulot oldin qo'shilgan: ${duplicateSkladNames.join(', ')}`
 						: "Bu mahsulot ushbu skladga oldin qo'shilgan"}
@@ -396,7 +396,7 @@ export default function WarehouseProductRow({
 			)}
 
 			{requireCatalogMatch && isVariantComplete && !catalogMatch && (
-				<p className='mt-1 text-[13px] font-semibold text-ca-red'>
+				<p className='mt-1 text-[11px] font-semibold text-ca-red'>
 					Bu tovar bazada topilmadi.{' '}
 					<Link to='/warehouse-prices/create' className='underline'>
 						Tovarlar va narxlarga o'tib bu tovarni qo'shing

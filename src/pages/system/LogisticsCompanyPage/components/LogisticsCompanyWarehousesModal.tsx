@@ -56,7 +56,7 @@ export default function LogisticsCompanyWarehousesModal({ open, setOpen, company
 			<ModalContent className='max-w-4xl'>
 				<ModalHeader>
 					<ModalTitle>{company.name} — skladlar</ModalTitle>
-					<p className='mt-0.5 text-[13px] font-normal text-ca-text'>{warehouses.length} ta sklad</p>
+					<p className='mt-0.5 text-[11px] font-normal text-ca-text'>{warehouses.length} ta sklad</p>
 				</ModalHeader>
 				<ModalBody>
 					{canWrite && (

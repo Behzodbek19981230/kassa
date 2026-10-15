@@ -44,7 +44,7 @@ export function Checkbox({
         )}
       >
         <CheckboxPrimitive.Indicator>
-          <FaCheck className="text-[10px] text-white" />
+          <FaCheck className="text-[8px] text-white" />
         </CheckboxPrimitive.Indicator>
       </CheckboxPrimitive.Root>
       {label && <span>{label}</span>}

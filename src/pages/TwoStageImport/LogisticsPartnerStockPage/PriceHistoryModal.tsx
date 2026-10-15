@@ -62,7 +62,7 @@ export default function PriceHistoryModal({ open, setOpen, partnerId, stockId }:
                            className='h-24 w-24 shrink-0 rounded border border-ca-border object-cover'
                         />
                      ) : (
-                        <div className='flex h-24 w-24 shrink-0 items-center justify-center rounded border border-ca-border text-[12px] text-ca-text'>
+                        <div className='flex h-24 w-24 shrink-0 items-center justify-center rounded border border-ca-border text-[10px] text-ca-text'>
                            Rasm yo'q
                         </div>
                      )}

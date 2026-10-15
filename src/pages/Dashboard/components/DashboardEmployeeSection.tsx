@@ -71,11 +71,11 @@ export default function DashboardEmployeeSection() {
 		<div>
 			<div className='mb-4 flex flex-wrap items-end gap-2'>
 				<div className='w-40'>
-					<label className='mb-1 block text-[13px] font-semibold text-ca-heading'>Boshlanish sana</label>
+					<label className='mb-1 block text-[11px] font-semibold text-ca-heading'>Boshlanish sana</label>
 					<DatePicker value={draftFrom} onChange={setDraftFrom} />
 				</div>
 				<div className='w-40'>
-					<label className='mb-1 block text-[13px] font-semibold text-ca-heading'>Tugash sana</label>
+					<label className='mb-1 block text-[11px] font-semibold text-ca-heading'>Tugash sana</label>
 					<DatePicker value={draftTo} onChange={setDraftTo} />
 				</div>
 				<Button type='button' variant='theme' size='sm' onClick={handleSearch}>

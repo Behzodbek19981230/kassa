@@ -83,7 +83,7 @@ export default function LoginPage() {
 								/>
 							</div>
 							{errors.username && (
-								<p className='mt-1.5 text-[13px] text-ca-red'>{errors.username.message}</p>
+								<p className='mt-1.5 text-[11px] text-ca-red'>{errors.username.message}</p>
 							)}
 						</div>
 						<div className='mb-5'>
@@ -106,7 +106,7 @@ export default function LoginPage() {
 								</button>
 							</div>
 							{errors.password && (
-								<p className='mt-1.5 text-[13px] text-ca-red'>{errors.password.message}</p>
+								<p className='mt-1.5 text-[11px] text-ca-red'>{errors.password.message}</p>
 							)}
 						</div>
 						<label className='mb-5 flex cursor-pointer items-center gap-2 text-xs text-ca-text select-none'>
