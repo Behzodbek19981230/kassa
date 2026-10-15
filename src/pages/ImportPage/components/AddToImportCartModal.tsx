@@ -141,7 +141,7 @@ export default function AddToImportCartModal({
    const onSubmit = handleSubmit(async (values) => {
       setFormError('');
       const location = locationOptions.find((option) => option.value === values.joy);
-      if (!location || location.row.type_sklad_id === null) {
+      if (!location) {
          setFormError('Joy topilmadi');
          return;
       }

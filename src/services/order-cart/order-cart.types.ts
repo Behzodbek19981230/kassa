@@ -38,7 +38,7 @@ export interface OrderCartItem {
 export interface OrderCartPayload {
 	client: number;
 	warehouse: number;
-	sklad_product: number;
+	sklad_product: number | null;
 	count: number;
 	price: string | number;
 	is_active?: boolean;

@@ -64,7 +64,7 @@ const CART_LABEL_COLUMNS = ['index', 'location', 'brand', 'category', 'size', 't
 interface VozvratCartRow {
 	key: string;
 	warehouse: number;
-	sklad_product: number;
+	sklad_product: number | null;
 	brand: number;
 	brand_name: string;
 	product_category: number;
@@ -141,11 +141,11 @@ export default function VozvratPage() {
 
 	async function handleAddToCart(product: VozvratProductItem, count: number, price: number) {
 		// The return goes back to the stock row the product was sold from.
-		let skladProduct: number;
+		let skladProduct: number | null;
 		try {
 			skladProduct = await resolveStockId(product.sklad_product, product.warehouse, product.type_sklad);
 		} catch (err) {
-			notify({ title: getApiErrorMessage(err, "Mahsulotning sklad qoldig'i topilmadi") });
+			notify({ title: getApiErrorMessage(err, "Sklad qoldig'ini qidirishda xatolik yuz berdi") });
 			return;
 		}
 		const key = rowKey(product);

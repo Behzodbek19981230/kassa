@@ -14,6 +14,7 @@ import {
 import { getApiErrorMessage } from '@/lib/errors';
 import { resolveCatalogStockId } from '@/services/sklad-product/catalog-stock';
 import { useUpdateSkladProductMutation } from '@/services/sklad-product/sklad-product.queries';
+import { useEditWarehouseRealPriceMutation } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
 interface WarehouseRealPriceModalProps {
@@ -28,15 +29,20 @@ export default function WarehouseRealPriceModal({ open, setOpen, item }: Warehou
 	const [formError, setFormError] = useState('');
 
 	const editMutation = useUpdateSkladProductMutation();
+	const editCardPriceMutation = useEditWarehouseRealPriceMutation();
 	const [isResolving, setIsResolving] = useState(false);
 
-	// The price belongs to the product's stock row in this sklad.
+	// The price belongs to the product's stock row in this sklad; a row without one keeps the old endpoint.
 	async function handleSubmit() {
 		setFormError('');
 		try {
 			setIsResolving(true);
 			const stockId = await resolveCatalogStockId(item).finally(() => setIsResolving(false));
-			await editMutation.mutateAsync({ id: stockId, payload: { real_price: realPrice || '0' } });
+			if (stockId) {
+				await editMutation.mutateAsync({ id: stockId, payload: { real_price: realPrice || '0' } });
+			} else {
+				await editCardPriceMutation.mutateAsync({ id: item.id, payload: { real_price: Number(realPrice) || 0 } });
+			}
 			notify({ title: 'Asl narx yangilandi' });
 			setOpen(false);
 		} catch (err) {
@@ -67,7 +73,7 @@ export default function WarehouseRealPriceModal({ open, setOpen, item }: Warehou
 					<Button type='button' variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button type='button' variant='primary' onClick={handleSubmit} loading={isResolving || editMutation.isPending}>
+					<Button type='button' variant='primary' onClick={handleSubmit} loading={isResolving || editMutation.isPending || editCardPriceMutation.isPending}>
 						Saqlash
 					</Button>
 				</ModalFooter>

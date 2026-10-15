@@ -213,7 +213,8 @@ export default function WarehouseAccountEditPage() {
 				const stockId = await resolveStockId(row.skladProductId, row.cardId!, Number(row.type_sklad)).finally(() =>
 					setIsResolving(false),
 				);
-				await deleteStockMutation.mutateAsync(stockId);
+				// No stock row in that sklad means there is nothing to remove.
+				if (stockId) await deleteStockMutation.mutateAsync(stockId);
 			}
 
 			notify({ title: 'Tovar yangilandi' });

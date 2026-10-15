@@ -11,8 +11,6 @@ import {
    Button,
    buttonProps,
    buttonVariants,
-   type ComboboxLoadParams,
-   type ComboboxLoadResult,
    DataTable,
    PageHeader,
    Panel,
@@ -30,20 +28,11 @@ import WarehouseSendTelegramModal from '@/pages/WarehousePage/components/Warehou
 import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
 import type { SkladProduct } from '@/services/sklad-product/sklad-product.types';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
-import { skladTypeService } from '@/services/sklad-type/sklad-type.service';
 
 // Each row is one product's stock and price in one sklad (SkladProduct); the product itself is its card.
 const columnHelper = createColumnHelper<SkladProduct>();
 
 const SEARCH_DEBOUNCE_MS = 400;
-
-const loadSkladTypeOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-   const result = await skladTypeService.list({ search: search || undefined, page, limit: 20 });
-   return {
-      options: result.results.map((s) => ({ value: String(s.id), label: s.name })),
-      hasMore: result.pagination.currentPage < result.pagination.lastPage,
-   };
-};
 
 export default function WarehousePage() {
    const { canWrite } = useCurrentCompany();
@@ -55,7 +44,6 @@ export default function WarehousePage() {
 
    // The backend sorts stock rows by id or count only.
    const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
-   const skladTypeFilter = columnFilters.find((f) => f.id === 'type_sklad')?.value as string | undefined;
    // Model and nomi are searched by name on the backend (`search`).
    const searchFilter = (columnFilters.find((f) => f.id === 'product')?.value as string | undefined) ?? '';
    const [search, setSearch] = useState('');
@@ -67,7 +55,6 @@ export default function WarehousePage() {
    const { data, isLoading, isFetching, isError, error, refetch } = useSkladProductListQuery({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      type_sklad: skladTypeFilter ? Number(skladTypeFilter) : undefined,
       status_count: onlyConfirmed ? true : undefined,
       search: search || undefined,
       ordering,
@@ -95,17 +82,6 @@ export default function WarehousePage() {
          enableSorting: false,
          enableColumnFilter: false,
          cell: ({ row }) => pagination.pageIndex * pagination.pageSize + row.index + 1,
-      }),
-      columnHelper.accessor('type_sklad', {
-         header: 'Sklad',
-         enableSorting: false,
-         cell: (info) => skladName(info.row.original),
-         meta: {
-            filterVariant: 'select',
-            filterLoadOptions: loadSkladTypeOptions,
-            filterSelectedLabel: (value) => skladNameById.get(Number(value)),
-            filterPlaceholder: 'Barchasi',
-         },
       }),
       columnHelper.accessor((row) => row.warehouse, {
          id: 'product',

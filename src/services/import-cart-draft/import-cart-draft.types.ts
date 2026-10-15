@@ -34,7 +34,7 @@ export interface ImportCartDraftPayload {
 	consignor: number;
 	/** Product card; on confirm the backend finds or creates its stock row in `type_sklad`. */
 	warehouse: number;
-	type_sklad: number;
+	type_sklad: number | null;
 	count: number;
 	price_dollar: string | number;
 	price_som: string | number;

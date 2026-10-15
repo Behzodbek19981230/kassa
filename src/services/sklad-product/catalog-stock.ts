@@ -1,4 +1,3 @@
-import { UserFacingError } from '@/lib/errors';
 import { skladProductService } from '@/services/sklad-product/sklad-product.service';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
@@ -10,19 +9,19 @@ export function catalogCardId(row: CatalogRow): number {
 	return row.warehouse_id ?? row.id;
 }
 
-// Uses the stock id a record already carries, else looks the stock row up by card + sklad.
+// Uses the stock id a record already carries, else looks the stock row up by card + sklad. Returns null when
+// it can't be found; the request then goes out without it and the backend decides.
 export async function resolveStockId(
 	knownId: number | null | undefined,
 	warehouse: number,
 	typeSklad: number | null | undefined,
-): Promise<number> {
+): Promise<number | null> {
 	if (knownId) return knownId;
-	if (typeSklad === null || typeSklad === undefined) throw new UserFacingError("Mahsulotning skladi ko'rsatilmagan");
+	if (typeSklad === null || typeSklad === undefined) return null;
 	const stock = await skladProductService.findByPair(warehouse, typeSklad);
-	if (!stock) throw new UserFacingError('Bu mahsulot ushbu skladda topilmadi');
-	return stock.id;
+	return stock?.id ?? null;
 }
 
-export function resolveCatalogStockId(row: CatalogRow): Promise<number> {
+export function resolveCatalogStockId(row: CatalogRow): Promise<number | null> {
 	return resolveStockId(row.sklad_product_id, catalogCardId(row), row.type_sklad_id);
 }

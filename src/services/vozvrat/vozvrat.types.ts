@@ -52,7 +52,7 @@ export interface VozvratProductsParams {
 
 export interface VozvratCartItemInput {
 	warehouse: number;
-	sklad_product: number;
+	sklad_product: number | null;
 	brand: number;
 	product_category: number;
 	size: number;
@@ -230,7 +230,7 @@ export interface VozvratOrderUpdatePayload {
 
 export interface VozvratUpdateVozvratItemPayload {
 	warehouse: number;
-	sklad_product: number;
+	sklad_product: number | null;
 	brand: number;
 	product_category: number;
 	size: number | string;

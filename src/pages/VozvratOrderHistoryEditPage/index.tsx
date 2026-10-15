@@ -166,7 +166,7 @@ export default function VozvratOrderHistoryEditPage() {
 		setRowErrors({});
 
 		// Each returned line goes back to the stock row it was sold from.
-		let skladProducts: number[];
+		let skladProducts: (number | null)[];
 		try {
 			skladProducts = await Promise.all(
 				rows.map((row) => {
@@ -175,7 +175,7 @@ export default function VozvratOrderHistoryEditPage() {
 				}),
 			);
 		} catch (err) {
-			setFormError(getApiErrorMessage(err, "Mahsulotning sklad qoldig'i topilmadi"));
+			setFormError(getApiErrorMessage(err, "Sklad qoldig'ini qidirishda xatolik yuz berdi"));
 			return;
 		}
 

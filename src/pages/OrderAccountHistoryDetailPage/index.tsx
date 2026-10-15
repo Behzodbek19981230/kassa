@@ -105,7 +105,7 @@ export default function OrderAccountHistoryDetailPage() {
             })),
          );
       } catch (err) {
-         notify({ title: 'Xatolik', text: getApiErrorMessage(err, "Mahsulotning sklad qoldig'i topilmadi") });
+         notify({ title: 'Xatolik', text: getApiErrorMessage(err, "Sklad qoldig'ini qidirishda xatolik yuz berdi") });
          return;
       }
       setVozvratItems(items);
