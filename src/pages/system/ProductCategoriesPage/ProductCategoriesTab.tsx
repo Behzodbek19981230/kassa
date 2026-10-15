@@ -1,23 +1,29 @@
-import {
-	createColumnHelper,
-	type ColumnFiltersState,
-	type PaginationState,
-	type SortingState,
-} from '@tanstack/react-table';
+import { createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
-import { Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
+import {
+	Button,
+	buttonProps,
+	type ComboboxLoadParams,
+	type ComboboxLoadResult,
+	DataTable,
+	Panel,
+} from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
-import BrandFormModal from '@/pages/system/ModelsPage/components/BrandFormModal';
-import DeleteBrandModal from '@/pages/system/ModelsPage/components/DeleteBrandModal';
+import CategoryFormModal from '@/pages/system/ProductCategoriesPage/components/CategoryFormModal';
+import DeleteCategoryModal from '@/pages/system/ProductCategoriesPage/components/DeleteCategoryModal';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
-import type { Brand } from '@/services/brand/brand.types';
+import { brandService } from '@/services/brand/brand.service';
+import { useProductCategoryListQuery } from '@/services/product-category/product-category.queries';
+import type { ProductCategory } from '@/services/product-category/product-category.types';
+import type { ColumnFiltersState, PaginationState } from '@tanstack/react-table';
+import type { SortingState } from '@tanstack/react-table';
 
-const columnHelper = createColumnHelper<Brand>();
+const columnHelper = createColumnHelper<ProductCategory>();
 
-export default function ModelsPage() {
+export default function ProductCategoriesTab() {
 	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
@@ -25,13 +31,24 @@ export default function ModelsPage() {
 
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const nameFilter = columnFilters.find((f) => f.id === 'name')?.value as string | undefined;
-	const sortingFilter = columnFilters.find((f) => f.id === 'sorting')?.value as string | undefined;
+	const brandFilter = columnFilters.find((f) => f.id === 'brand')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, error, refetch } = useBrandListQuery({
+	const { data: brandData } = useBrandListQuery({ limit: 100 });
+	const brands = brandData?.results ?? [];
+
+	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
+		return {
+			options: result.results.map((b) => ({ value: String(b.id), label: b.name })),
+			hasMore: result.pagination.currentPage < result.pagination.lastPage,
+		};
+	};
+
+	const { data, isLoading, isError, error, isFetching, refetch } = useProductCategoryListQuery({
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
-		sorting: sortingFilter && !Number.isNaN(Number(sortingFilter)) ? Number(sortingFilter) : undefined,
+		brand: brandFilter ? Number(brandFilter) : undefined,
 		ordering,
 	});
 
@@ -39,17 +56,31 @@ export default function ModelsPage() {
 	const paginationMeta = data?.pagination;
 
 	const columns = [
-		columnHelper.accessor('sorting', { header: 'Tartibi', size: 100 }),
-		columnHelper.accessor('name', { header: 'Nomi', meta: { align: 'left' } }),
+		columnHelper.accessor('sorting', { header: 'Tartibi', size: 90 }),
+		columnHelper.accessor('brand', {
+			header: 'Model',
+			size: 220,
+			cell: ({row}) =>row.original?.brand_detail?.name,
+			meta: {
+				filterVariant: 'select',
+				filterLoadOptions: loadBrandOptions,
+				filterPlaceholder: 'Barcha modellar',
+			},
+		}),
+		columnHelper.accessor('name', { header: 'Nomi' }),
 		columnHelper.display({
 			id: 'actions',
 			header: 'Harakatlar',
-			meta: { align: 'right' },
 			enableSorting: false,
-			enableColumnFilter: false,
-			size: 150,
+			meta: { align: 'right' },
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
+					{/* <OpenDialogButton
+						element={(props) => <Button {...props} />}
+						elementProps={{ ...buttonProps(<FaEye />, 'info', 'icon'), 'aria-label': "Ko'rish" }}
+						dialog={CategoryViewModal}
+						dialogProps={{ item: row.original }}
+					/> */}
 					{canWrite && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
@@ -57,7 +88,7 @@ export default function ModelsPage() {
 								...buttonProps(<FaEdit />, 'warning', 'icon'),
 								'aria-label': 'Tahrirlash',
 							}}
-							dialog={BrandFormModal}
+							dialog={CategoryFormModal}
 							dialogProps={{ mode: 'edit' as const, item: row.original }}
 						/>
 					)}
@@ -68,7 +99,7 @@ export default function ModelsPage() {
 								...buttonProps(<FaTrash />, 'danger', 'icon'),
 								'aria-label': "O'chirish",
 							}}
-							dialog={DeleteBrandModal}
+							dialog={DeleteCategoryModal}
 							dialogProps={{ item: row.original }}
 						/>
 					)}
@@ -79,14 +110,6 @@ export default function ModelsPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Modellar'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Modellar', active: true },
-				]}
-			/>
-
 			<Panel
 				title="Ro'yxat"
 				actions={
@@ -94,13 +117,13 @@ export default function ModelsPage() {
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
-							dialog={BrandFormModal}
-							dialogProps={{ mode: 'create' as const }}
+							dialog={CategoryFormModal}
+							dialogProps={{ mode: 'create' as const, defaultBrand: brandFilter || undefined }}
 						/>
 					)
 				}
 				onReload={() => {
-					refetch();
+					void refetch();
 				}}
 			>
 				<DataTable
@@ -121,7 +144,7 @@ export default function ModelsPage() {
 					enableGlobalFilter={false}
 					enableColumnFilters
 					enableColumnVisibility
-					columnVisibilityKey='models'
+					columnVisibilityKey='product-categories'
 					enableSorting
 					enableStriping
 					isLoading={isLoading || isFetching}

@@ -1,12 +1,10 @@
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
 import LoginPage from '@/pages/LoginPage';
 
-import ModelsPage from '@/pages/system/ModelsPage';
 import ProductCategoriesPage from '@/pages/system/ProductCategoriesPage';
-import ProductMeasurementPage from '@/pages/system/ProductMeasurementPage';
 import ConsignorPage from '@/pages/system/ConsignorPage';
 import UserPage from '@/pages/system/UserPage';
 import CompanyPage from '@/pages/system/CompanyPage';
@@ -101,8 +99,7 @@ export default function App() {
 
 					{/* System management */}
 					<Route path='system/product-categories' element={<ProductCategoriesPage />} />
-					<Route path='system/models' element={<ModelsPage />} />
-					<Route path='system/product-measurement' element={<ProductMeasurementPage />} />
+					<Route path='system/models' element={<Navigate to='/system/product-categories' replace />} />
 					<Route path='system/consignors' element={<ConsignorPage />} />
 					<Route path='system/users' element={<UserPage />} />
 

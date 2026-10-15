@@ -74,13 +74,6 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				label: 'Mahsulot toifalari',
 				path: '/system/product-categories',
 			},
-			{ id: 'models', icon: 'bookmark', label: 'Modellar', path: '/system/models' },
-			{
-				id: 'product-measurement',
-				icon: 'ruler-combined',
-				label: "Mahsulot o'lchami",
-				path: '/system/product-measurement',
-			},
 			{
 				id: 'shippers',
 				icon: 'shipping-fast',
