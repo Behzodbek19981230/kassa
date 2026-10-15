@@ -67,12 +67,46 @@ export interface WarehouseBulkCreatePayload {
   items: WarehouseBulkCreateItem[]
 }
 
+export interface WarehouseBulkCreateRef {
+  id: number
+  name: string
+}
+
+/** A sklad row that already existed (left untouched) or was created by the request. */
+export interface WarehouseBulkCreateSkladRow {
+  sklad_product_id: number
+  warehouse_id: number
+  type_sklad: WarehouseBulkCreateRef
+  count: number
+  real_price: string | null
+  cr_date: string | null
+  message?: string
+}
+
+export interface WarehouseBulkCreateResult {
+  item_index: number
+  warehouse_id: number
+  product_created: boolean
+  product: {
+    brand: WarehouseBulkCreateRef
+    product_category: WarehouseBulkCreateRef
+    type: WarehouseBulkCreateRef | null
+    size: string
+  }
+  /** Skladlar that already held the product; nothing was changed there. */
+  existing: WarehouseBulkCreateSkladRow[]
+  created: WarehouseBulkCreateSkladRow[]
+}
+
+/** 201 when something was created, 200 when everything already existed - both are a success. */
 export interface WarehouseBulkCreateResponse {
-  results: {
-    warehouse: number
-    warehouse_created: boolean
-    sklad_products: { id: number; type_sklad: number; real_price: string | null }[]
-  }[]
+  success: boolean
+  summary: {
+    created_products: number
+    created_sklad_products: number
+    existing_sklad_products: number
+  }
+  results: WarehouseBulkCreateResult[]
 }
 
 export interface WarehousePayload {

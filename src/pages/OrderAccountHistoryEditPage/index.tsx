@@ -38,8 +38,8 @@ const editOrderFormSchema = z.object({
 
 type EditOrderFormValues = z.infer<typeof editOrderFormSchema>;
 
-/** "0.00" -> "0", "12.50" -> "12.5"; empty values become "0". */
-const plainNumber = (value?: string | number | null) => String(Number(value) || 0);
+/** "12.50" -> "12.5"; zero and empty values stay empty. */
+const plainNumber = (value?: string | number | null) => (Number(value) ? String(Number(value)) : '');
 
 type EditableProductRow = OrderLineValue;
 
@@ -315,7 +315,7 @@ export default function OrderAccountHistoryEditPage() {
                      <Controller
                         name='discount_amount'
                         control={control}
-                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
+                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
                      />
                   </FormField>
                   <FormField
@@ -328,7 +328,7 @@ export default function OrderAccountHistoryEditPage() {
                      <Controller
                         name='sum_dollar'
                         control={control}
-                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
+                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
                      />
                   </FormField>
                   <FormField
@@ -341,7 +341,7 @@ export default function OrderAccountHistoryEditPage() {
                      <Controller
                         name='sum_som'
                         control={control}
-                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
+                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
                      />
                   </FormField>
                   <FormField
@@ -354,7 +354,7 @@ export default function OrderAccountHistoryEditPage() {
                      <Controller
                         name='sum_cart'
                         control={control}
-                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
+                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
                      />
                   </FormField>
                   <FormField
@@ -367,7 +367,7 @@ export default function OrderAccountHistoryEditPage() {
                      <Controller
                         name='sum_transfers'
                         control={control}
-                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
+                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
                      />
                   </FormField>
                </div>

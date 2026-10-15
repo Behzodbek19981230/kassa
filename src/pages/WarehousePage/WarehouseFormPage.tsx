@@ -165,7 +165,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 				notify({ title: 'Tovar yangilandi' });
 			} else {
 				// The backend finds or creates each product card and adds it to every chosen sklad in one transaction.
-				await bulkCreateMutation.mutateAsync({
+				const response = await bulkCreateMutation.mutateAsync({
 								type_sklads: skladIds.map(Number),
 					cr_date: date,
 					comment: comment.trim() || undefined,
@@ -177,7 +177,15 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 						real_price: row.price,
 					})),
 				});
-				notify({ title: "Tovar(lar) qo'shildi" });
+				// Products that were already in a chosen sklad are left as they were; the user is told about them.
+				const { created_sklad_products: created, existing_sklad_products: existing } = response.summary;
+				notify({
+					title: created > 0 ? "Tovar(lar) qo'shildi" : "Yangi tovar qo'shilmadi",
+					text:
+						existing > 0
+							? `\ ta yangi qo'shildi, \ tasi avvaldan mavjud edi (o'zgartirilmadi)`
+							: undefined,
+				});
 			}
 			goBack();
 		} catch (err) {
@@ -246,7 +254,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 							companyId={company}
 							skladIds={mode === 'create' ? skladIds : undefined}
 							excludeId={mode === 'edit' ? skladProductId : undefined}
-							onDuplicateChange={handleDuplicateChange}
+							onDuplicateChange={mode === 'edit' ? handleDuplicateChange : undefined}
 						/>
 					))}
 
