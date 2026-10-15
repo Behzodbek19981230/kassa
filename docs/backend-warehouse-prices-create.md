@@ -1,5 +1,7 @@
 # Backend uchun qo'llanma: "Tovar qo'shish" (`/warehouse-prices/create`) API
 
+> **Holat: backendda amalga oshirilgan** (`POST /api/v1/warehouse/bulk-create/`). Haqiqiy shartnoma backend hujjatida (`warehouse_bulk_create_api_2026-10-15_23-56-08.md`). Quyidagi matn dastlabki talab sifatida qoldirildi; farqlar: dublikat **xato emas** (mavjud sklad yozuvlari o'zgartirilmay `existing` ichida qaytadi), javob `success/summary/results[{existing, created}]` shaklida, `200` ham `201` ham muvaffaqiyat.
+
 ## Hozir nima bo'lyapti (frontda)
 
 Formada avval **sklad(lar)** tanlanadi (multiselect, butun forma uchun bitta, sanadan oldin), keyin sana va bir nechta mahsulot qatori: model (brand), nomi (product_category), o'lcham (+ tip), narx. Tanlangan skladlarning **hammasiga** shu qatorlarning hammasi qo'shiladi. Saqlashda front har qator uchun bir nechta so'rov yuboradi:

@@ -166,7 +166,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 			} else {
 				// The backend finds or creates each product card and adds it to every chosen sklad in one transaction.
 				const response = await bulkCreateMutation.mutateAsync({
-								type_sklads: skladIds.map(Number),
+					type_sklads: skladIds.map(Number),
 					cr_date: date,
 					comment: comment.trim() || undefined,
 					items: rows.map((row) => ({
@@ -183,7 +183,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 					title: created > 0 ? "Tovar(lar) qo'shildi" : "Yangi tovar qo'shilmadi",
 					text:
 						existing > 0
-							? `\ ta yangi qo'shildi, \ tasi avvaldan mavjud edi (o'zgartirilmadi)`
+							? `${created} ta yangi qo'shildi, ${existing} tasi avvaldan mavjud edi (o'zgartirilmadi)`
 							: undefined,
 				});
 			}
