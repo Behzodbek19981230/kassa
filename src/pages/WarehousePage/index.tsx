@@ -25,6 +25,7 @@ import DeleteWarehouseModal from '@/pages/WarehousePage/components/DeleteWarehou
 import WarehouseEditModal from '@/pages/WarehousePage/components/WarehouseEditModal';
 import WarehouseImagesModal from '@/pages/WarehousePage/components/WarehouseImagesModal';
 import WarehouseSendTelegramModal from '@/pages/WarehousePage/components/WarehouseSendTelegramModal';
+import WarehouseStocksModal from '@/pages/WarehousePage/components/WarehouseStocksModal';
 import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
 import type { SkladProduct } from '@/services/sklad-product/sklad-product.types';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
@@ -115,7 +116,21 @@ export default function WarehousePage() {
          header: 'Soni',
          size: 90,
          enableColumnFilter: false,
-         cell: (info) => formatNumber(info.getValue()),
+         // Opens the product's stock in every sklad.
+         cell: (info) => (
+            <OpenDialogButton
+               element={(props) => <Button {...props} />}
+               elementProps={{
+                  variant: 'link' as const,
+                  size: 'xs' as const,
+                  className: 'h-auto p-0 font-semibold text-ca-theme underline',
+                  children: formatNumber(info.getValue()),
+                  'aria-label': "Skladlar bo'yicha soni",
+               }}
+               dialog={WarehouseStocksModal}
+               dialogProps={{ warehouseId: info.row.original.warehouse, productLabel: productLabel(info.row.original) }}
+            />
+         ),
       }),
       columnHelper.accessor('real_price', {
          header: 'Asl narxi ($)',
