@@ -715,7 +715,7 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                               onChange={({ dollar, yuan }) => updateRow(row.key, { priceDollar: dollar, priceYuan: yuan })}
                            />
                         </FormField>
-                        <p className='mt-1 text-[11px] text-ca-text'>
+                        <p className='mt-1 text-[13px] text-ca-text'>
                            Summa:{' '}
                            <span className='font-semibold text-ca-heading'>
                               {formatNumber(rowTotals[index].dollar, 2)} $ / {formatNumber(rowTotals[index].yuan, 2)} ¥

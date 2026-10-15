@@ -175,7 +175,7 @@ export default function ImportOrderProductsPage() {
                </div>
             )}
 
-            <p className='mb-4 flex items-center gap-1.5 rounded-[3px] border border-ca-border bg-ca-silver-light px-3 py-2 text-[11px] text-ca-text'>
+            <p className='mb-4 flex items-center gap-1.5 rounded-[3px] border border-ca-border bg-ca-silver-light px-3 py-2 text-[13px] text-ca-text'>
                <FaInfoCircle className='text-ca-theme' />
                Jo'natilgan mahsulotlar va narxlar buyurtma paytidagi qiymatlar bilan ko'rsatilgan.
             </p>

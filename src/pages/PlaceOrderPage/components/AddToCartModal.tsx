@@ -270,7 +270,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 								)}
 							/>
 							{availableStock !== undefined && (
-								<p className='mt-1 text-[11px] text-ca-text'>
+								<p className='mt-1 text-[13px] text-ca-text'>
 									Omborda mavjud:{' '}
 									<span className='font-semibold text-ca-heading'>
 										{formatNumber(availableStock)} ta

@@ -125,7 +125,7 @@ export function DropdownMediaItem({
         <div>
           <h6 className="m-0 font-semibold text-ca-heading">{title}</h6>
           {description && <p className="m-0 mb-1 text-xs text-ca-text">{description}</p>}
-          {time && <div className="text-[11px] text-ca-text">{time}</div>}
+          {time && <div className="text-[13px] text-ca-text">{time}</div>}
         </div>
       </div>
     </DropdownMenuPrimitive.Item>

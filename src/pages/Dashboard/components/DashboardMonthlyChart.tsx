@@ -26,13 +26,13 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 
 	return (
 		<div className='rounded-[3px] border border-ca-border bg-ca-silver-light px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.12)]'>
-			<div className='mb-1.5 text-[11px] font-semibold text-ca-heading'>{label}</div>
+			<div className='mb-1.5 text-[13px] font-semibold text-ca-heading'>{label}</div>
 			<div className='flex flex-col gap-1'>
 				{SERIES.map((s) => {
 					const row = rows.find((r) => r.dataKey === s.key);
 					if (!row) return null;
 					return (
-						<div key={s.key} className='flex items-center gap-2 text-[11px]'>
+						<div key={s.key} className='flex items-center gap-2 text-[13px]'>
 							<span className='inline-block h-0.5 w-3 shrink-0' style={{ backgroundColor: s.color }} />
 							<span className='text-ca-text'>{s.name}</span>
 							<span className='ml-auto font-semibold text-ca-heading'>
@@ -102,12 +102,12 @@ export default function DashboardMonthlyChart({ monthly, isLoading, isFetching }
 								<CartesianGrid stroke={GRID_COLOR} vertical={false} />
 								<XAxis
 									dataKey='month_label'
-									tick={{ fontSize: 11, fill: AXIS_TEXT_COLOR }}
+									tick={{ fontSize: 13, fill: AXIS_TEXT_COLOR }}
 									axisLine={{ stroke: GRID_COLOR }}
 									tickLine={false}
 								/>
 								<YAxis
-									tick={{ fontSize: 11, fill: AXIS_TEXT_COLOR }}
+									tick={{ fontSize: 13, fill: AXIS_TEXT_COLOR }}
 									axisLine={false}
 									tickLine={false}
 									width={64}
@@ -116,7 +116,7 @@ export default function DashboardMonthlyChart({ monthly, isLoading, isFetching }
 								<Tooltip content={<CustomTooltip />} cursor={{ fill: GRID_COLOR, opacity: 0.4 }} />
 								<Legend
 									iconType='plainline'
-									wrapperStyle={{ fontSize: 11, color: AXIS_TEXT_COLOR, paddingTop: 12 }}
+									wrapperStyle={{ fontSize: 13, color: AXIS_TEXT_COLOR, paddingTop: 12 }}
 								/>
 								{SERIES.map((s) => (
 									<Bar

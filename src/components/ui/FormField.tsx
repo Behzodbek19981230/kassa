@@ -30,7 +30,7 @@ export function FormField({
           {required && <span className="text-ca-red"> *</span>}
         </label>
         {children}
-        {error && <p className="mt-1 text-[11px] text-ca-red">{error}</p>}
+        {error && <p className="mt-1 text-[13px] text-ca-red">{error}</p>}
       </div>
     )
   }
@@ -55,7 +55,7 @@ export function FormField({
       </label>
       <div className="w-full px-4 sm:w-2/3">
         {children}
-        {error && <p className="mt-1 text-[11px] text-ca-red">{error}</p>}
+        {error && <p className="mt-1 text-[13px] text-ca-red">{error}</p>}
       </div>
     </div>
   )

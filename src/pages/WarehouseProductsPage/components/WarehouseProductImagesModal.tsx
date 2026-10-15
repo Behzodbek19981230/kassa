@@ -31,7 +31,7 @@ export default function WarehouseProductImagesModal({ open, setOpen, item }: War
 			<ModalContent className='max-w-4xl'>
 				<ModalHeader>
 					<ModalTitle>Tovar rasmlari</ModalTitle>
-					<p className='mt-0.5 text-[11px] font-normal text-ca-text'>
+					<p className='mt-0.5 text-[13px] font-normal text-ca-text'>
 						{item.brand_name} &middot; {item.product_category_name} &middot; {images.length} ta rasm
 					</p>
 				</ModalHeader>

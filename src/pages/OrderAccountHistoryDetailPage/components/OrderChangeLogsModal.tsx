@@ -69,7 +69,7 @@ function ChangeRow({ change, index }: { change: OrderAccountHistoryChangeLogChan
 function ChangeLogCard({ log }: { log: OrderAccountHistoryChangeLog }) {
 	return (
 		<div className='rounded border border-ca-border p-3'>
-			<div className='mb-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-ca-text'>
+			<div className='mb-2 flex flex-wrap items-center justify-between gap-2 text-[13px] text-ca-text'>
 				<span className='font-semibold text-ca-heading'>{log.created_time_label}</span>
 				<span>Hodim: {log.user_name}</span>
 			</div>

@@ -38,7 +38,7 @@ export function Accordion({
           <AccordionPrimitive.Header>
             <AccordionPrimitive.Trigger className="group flex w-full items-center justify-between bg-ca-silver px-[15px] py-2.5 text-left text-xs font-semibold text-ca-heading hover:bg-ca-border/50">
               {item.title}
-              <FaChevronDown className="text-[10px] transition-transform group-data-[state=open]:rotate-180" />
+              <FaChevronDown className="text-[12px] transition-transform group-data-[state=open]:rotate-180" />
             </AccordionPrimitive.Trigger>
           </AccordionPrimitive.Header>
           <AccordionPrimitive.Content className="overflow-hidden px-[15px] py-3 text-xs text-ca-text">

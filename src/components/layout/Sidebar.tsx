@@ -84,7 +84,7 @@ const iconMap: Record<SidebarIcon, ReactNode> = {
 function SubMenuBullet({ active }: { active: boolean }) {
    return (
       <FaCircle
-         className={`absolute top-1/2 left-1 -translate-y-1/2 text-[7px] ${active ? 'text-ca-theme drop-shadow-[0_0_5px_rgba(52,143,226,0.5)]' : 'text-ca-border'
+         className={`absolute top-1/2 left-1 -translate-y-1/2 text-[9px] ${active ? 'text-ca-theme drop-shadow-[0_0_5px_rgba(52,143,226,0.5)]' : 'text-ca-border'
             }`}
       />
    );
@@ -94,7 +94,7 @@ function SubMenuMarker({ icon, active }: { icon?: SidebarIcon; active: boolean }
    if (icon) {
       return (
          <span
-            className={`absolute top-1/2 left-1 w-3.5 -translate-y-1/2 text-center text-[11px] ${active ? 'text-ca-theme' : 'text-ca-sidebar-muted'
+            className={`absolute top-1/2 left-1 w-3.5 -translate-y-1/2 text-center text-[13px] ${active ? 'text-ca-theme' : 'text-ca-sidebar-muted'
                }`}
          >
             {iconMap[icon]}
@@ -148,7 +148,7 @@ function SubMenuItem({
                <SubMenuMarker icon={item.icon} active={branchActive} />
                <span className='flex-1 pl-4'>{item.label}</span>
                <FaCaretRight
-                  className={`text-[9px] opacity-80 transition-transform duration-200 ${isVisible ? 'rotate-90' : ''
+                  className={`text-[11px] opacity-80 transition-transform duration-200 ${isVisible ? 'rotate-90' : ''
                      }`}
                />
             </button>
@@ -220,7 +220,7 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
    if (item.type === 'header') {
       if (minified) return null;
       return (
-         <li className='list-none px-5 py-2.5 text-[11px] leading-5 font-normal text-ca-nav-header'>{item.label}</li>
+         <li className='list-none px-5 py-2.5 text-[13px] leading-5 font-normal text-ca-nav-header'>{item.label}</li>
       );
    }
 
@@ -291,7 +291,7 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
                      {item.label}
                      {item.tag && (
                         <span
-                           className={`ml-1.5 rounded-[3px] px-1.5 py-0.5 text-[10px] font-semibold ${branchActive ? 'bg-black/40 text-white' : 'bg-ca-theme text-white'
+                           className={`ml-1.5 rounded-[3px] px-1.5 py-0.5 text-[12px] font-semibold ${branchActive ? 'bg-black/40 text-white' : 'bg-ca-theme text-white'
                               }`}
                         >
                            {item.tag}
@@ -300,7 +300,7 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
                   </span>
                   {item.badge ? (
                      <span
-                        className={`rounded-[3px] px-2 py-[3px] text-[10px] font-light ${branchActive ? 'bg-black/40 text-white' : 'bg-ca-badge-bg text-white'
+                        className={`rounded-[3px] px-2 py-[3px] text-[12px] font-light ${branchActive ? 'bg-black/40 text-white' : 'bg-ca-badge-bg text-white'
                            }`}
                      >
                         {item.badge}
@@ -431,7 +431,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
 							{!minified && (
 								<div className='text-sm leading-snug text-white'>
 									{fullName ?? 'Foydalanuvchi'}
-									<small className='mt-0 block text-[11px] text-white/70'>{roleLabel}</small>
+									<small className='mt-0 block text-[13px] text-white/70'>{roleLabel}</small>
 								</div>
 							)}
 						</div>

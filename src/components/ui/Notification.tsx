@@ -94,7 +94,7 @@ function NotificationToast({
         )}
         <div className="min-w-0 flex-1">
           <div className="mb-1.5 text-sm font-bold">{item.title}</div>
-          {item.text && <p className="m-0 text-[11px] leading-relaxed text-ca-text">{item.text}</p>}
+          {item.text && <p className="m-0 text-[13px] leading-relaxed text-ca-text">{item.text}</p>}
         </div>
       </div>
       <button
@@ -103,7 +103,7 @@ function NotificationToast({
         className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded text-ca-text opacity-70 transition-opacity hover:opacity-100"
         aria-label="Close notification"
       >
-        <FaTimes className="text-[10px]" />
+        <FaTimes className="text-[12px]" />
       </button>
     </div>
   )

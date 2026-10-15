@@ -152,7 +152,7 @@ export default function YuanDebtPayModal({ open, setOpen, target, name, currentD
                               }}
                            />
                         </InputGroup>
-                        <p className='mt-1 text-[11px] text-ca-text'>Qarz shu summaga kamayadi</p>
+                        <p className='mt-1 text-[13px] text-ca-text'>Qarz shu summaga kamayadi</p>
                      </FormField>
                   </div>
                   <div className='mb-3 grid grid-cols-2 gap-3'>

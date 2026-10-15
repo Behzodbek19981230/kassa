@@ -114,7 +114,7 @@ export default function CompanyEventLogDetailModal({ id, setId }: CompanyEventLo
 							{item.metadata && Object.keys(item.metadata).length > 0 && (
 								<div>
 									<h4 className='mb-1.5 text-xs font-semibold text-ca-heading'>Qo'shimcha ma'lumot</h4>
-									<pre className='overflow-x-auto rounded border border-ca-border bg-ca-body p-2 text-[11px] whitespace-pre-wrap'>
+									<pre className='overflow-x-auto rounded border border-ca-border bg-ca-body p-2 text-[13px] whitespace-pre-wrap'>
 										{JSON.stringify(item.metadata, null, 2)}
 									</pre>
 								</div>

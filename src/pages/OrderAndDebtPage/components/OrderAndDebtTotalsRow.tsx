@@ -26,7 +26,7 @@ export default function OrderAndDebtTotalsRow({ label, totals, totalDebtSum, col
 				</TableCell>
 			)}
 			{cols.isVisible('paid_sum') && (
-				<TableCell className='text-[11px] leading-5'>
+				<TableCell className='text-[13px] leading-5'>
 					<div className='font-semibold text-ca-green'>Jami ($): {formatNumber(paidJami, 2)}</div>
 					<div className='font-semibold text-ca-red'>Dollar ($): {formatNumber(totals.sum_dollar, 2)}</div>
 					<div>Naqt: {formatNumber(totals.sum_som, 2)}</div>
@@ -37,7 +37,7 @@ export default function OrderAndDebtTotalsRow({ label, totals, totalDebtSum, col
 				</TableCell>
 			)}
 			{cols.isVisible('paid_debt') && (
-				<TableCell className='text-[11px] leading-5'>
+				<TableCell className='text-[13px] leading-5'>
 					<div className='font-semibold text-ca-green'>Jami ($): {formatNumber(totals.paid_debt, 2)}</div>
 					<div>O'tkazma: {formatNumber(totals.debt_sum_transfers, 2)}</div>
 					<div>Naqt: {formatNumber(totals.debt_sum_som, 2)}</div>

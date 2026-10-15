@@ -105,7 +105,7 @@ export default function DebtRepaymentDraftPage() {
 				<div>
 					<div>{info.getValue()}</div>
 					{info.row.original.client_phone && (
-						<div className='text-[11px] text-ca-text'>{info.row.original.client_phone}</div>
+						<div className='text-[13px] text-ca-text'>{info.row.original.client_phone}</div>
 					)}
 				</div>
 			),

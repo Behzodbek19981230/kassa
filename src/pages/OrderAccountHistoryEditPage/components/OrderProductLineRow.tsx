@@ -172,10 +172,10 @@ export default function OrderProductLineRow({
                   Narxi <span className='text-ca-red'>*</span>
                </label>
                <PriceInput value={value.price} onChange={(price) => onChange({ ...value, price })} />
-               <p className='mt-1 text-[11px] text-ca-text'>
+               <p className='mt-1 text-[13px] text-ca-text'>
                   Summa: <span className='font-semibold text-ca-heading'>{formatNumber(lineTotal, 2)} $</span>
                </p>
-               {error && <p className='mt-1 text-[11px] text-ca-red'>{error}</p>}
+               {error && <p className='mt-1 text-[13px] text-ca-red'>{error}</p>}
             </div>
             <div className='w-16 shrink-0'>
                <label className='mb-1 block text-xs font-semibold text-transparent select-none'>_</label>

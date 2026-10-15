@@ -384,7 +384,7 @@ export default function OrderAccountHistoryDetailPage() {
                                        <TableRow key={vp.id} className='bg-ca-orange/10'>
                                           <TableCell
                                              colSpan={cols.visibleCount}
-                                             className='py-1.5 text-[11px] text-ca-orange'
+                                             className='py-1.5 text-[13px] text-ca-orange'
                                           >
                                              <span className='inline-flex flex-wrap items-center gap-1.5'>
                                                 <FaUndo />

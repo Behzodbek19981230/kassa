@@ -188,7 +188,7 @@ export function Combobox({
 					</span>
 					{clearable && value ? (
 						<FaTimes
-							className='shrink-0 text-[10px] text-ca-text hover:text-ca-heading'
+							className='shrink-0 text-[12px] text-ca-text hover:text-ca-heading'
 							onClick={(e) => {
 								e.stopPropagation()
 								e.preventDefault()
@@ -196,7 +196,7 @@ export function Combobox({
 							}}
 						/>
 					) : (
-						<FaChevronDown className='shrink-0 text-[10px] text-ca-text' />
+						<FaChevronDown className='shrink-0 text-[12px] text-ca-text' />
 					)}
 				</button>
 			</PopoverPrimitive.Trigger>
@@ -211,7 +211,7 @@ export function Combobox({
 					)}
 				>
 					<div className='flex items-center gap-2 border-b border-ca-border px-2 py-1.5'>
-						<FaSearch className='shrink-0 text-[10px] text-ca-text' />
+						<FaSearch className='shrink-0 text-[12px] text-ca-text' />
 						<input
 							autoFocus
 							value={search}
@@ -238,7 +238,7 @@ export function Combobox({
 								<span className={wrapOptions ? 'break-words whitespace-normal' : 'truncate'}>
 									{option.label}
 								</span>
-								{option.value === value && <FaCheck className='shrink-0 text-[10px] text-ca-theme' />}
+								{option.value === value && <FaCheck className='shrink-0 text-[12px] text-ca-theme' />}
 							</div>
 						))}
 						{!loading && filteredItems.length === 0 && (

@@ -46,7 +46,7 @@ export default function DashboardStatTiles({ cards, isLoading }: DashboardStatTi
 								{tile.icon}
 							</div>
 							<div className='min-w-0'>
-								<div className='truncate text-[11px] font-medium text-ca-text'>{tile.label}</div>
+								<div className='truncate text-[13px] font-medium text-ca-text'>{tile.label}</div>
 								<div className={cn('text-2xl font-semibold', accent.value)}>
 									{isLoading ? (
 										<span className='inline-block h-6 w-14 animate-pulse rounded bg-ca-silver' />
