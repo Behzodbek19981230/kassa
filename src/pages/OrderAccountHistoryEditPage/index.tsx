@@ -10,17 +10,17 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber, roundMoney } from '@/lib/number';
 import { usePermissions } from '@/lib/permissions';
 import { generateId } from '@/lib/utils';
-import WarehouseProductRow, {
-	emptyWarehouseRow,
-	type WarehouseRowValue,
-} from '@/pages/WarehousePage/components/WarehouseProductRow';
+import { skladProductService } from '@/services/sklad-product/sklad-product.service';
+import OrderProductLineRow, {
+	emptyOrderLine,
+	type OrderLineValue,
+} from '@/pages/OrderAccountHistoryEditPage/components/OrderProductLineRow';
 import {
-	useOrderAccountHistoryProductsQuery,
 	useOrderAccountHistoryQuery,
 	useUpdateSaleOrderAccountHistoryMutation,
 } from '@/services/order-account-history/order-account-history.queries';
 import type { OrderAccountHistoryUpdateSaleItemPayload } from '@/services/order-account-history/order-account-history.types';
-import type { SkladProduct } from '@/services/sklad-product/sklad-product.types';
+import { useProductAccountHistoryListQuery } from '@/services/product-account-history/product-account-history.queries';
 
 const editOrderFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
@@ -38,7 +38,7 @@ const editOrderFormSchema = z.object({
 
 type EditOrderFormValues = z.infer<typeof editOrderFormSchema>;
 
-type EditableProductRow = WarehouseRowValue;
+type EditableProductRow = OrderLineValue;
 
 export default function OrderAccountHistoryEditPage() {
 	const navigate = useNavigate();
@@ -54,7 +54,10 @@ export default function OrderAccountHistoryEditPage() {
 	}, [canWrite, navigate]);
 
 	const { data: item, isLoading, isError } = useOrderAccountHistoryQuery(orderId);
-	const { data: productsData } = useOrderAccountHistoryProductsQuery(orderId);
+	const { data: linesData } = useProductAccountHistoryListQuery(
+		{ order_account_history: orderId, limit: 500 },
+		orderId !== undefined,
+	);
 
 	useEffect(() => {
 		if (item && !canEditOwned(item)) navigate('/customer-order-history', { replace: true });
@@ -62,45 +65,52 @@ export default function OrderAccountHistoryEditPage() {
 
 	const [rows, setRows] = useState<EditableProductRow[]>([]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
-	// The stock row (product in a sklad) each line is sold from, resolved by the product row.
-	const [resolvedStockByKey, setResolvedStockByKey] = useState<
-		Record<string | number, Pick<SkladProduct, 'id' | 'warehouse'> | undefined>
-	>({});
-
 	useEffect(() => {
-		if (!productsData) return;
-		const items = productsData.products.groups.flatMap((g) => g.items);
-		setRows(
-			items.map((productItem) => ({
-				key: generateId(),
-				brand: String(productItem.brand),
-				product_category: String(productItem.product_category),
-				brandSize: '',
-				size: productItem.size,
-				type: productItem.type,
-				type_sklad: String(productItem.type_sklad),
-				price: String(productItem.price),
-				count: productItem.count,
-			})),
-		);
-	}, [productsData]);
+		if (!linesData) return;
+		let cancelled = false;
+		(async () => {
+			// Older lines carry no sklad_product, so their stock row is looked up by product + sklad.
+			const next = await Promise.all(
+				linesData.results.map(async (line): Promise<EditableProductRow> => {
+					const stock =
+						line.sklad_product == null && line.type_sklad != null
+							? await skladProductService.findByPair(line.warehouse, line.type_sklad).catch(() => null)
+							: null;
+					return {
+						key: generateId(),
+						type_sklad: line.type_sklad != null ? String(line.type_sklad) : '',
+						skladLabel: line.type_sklad_detail?.name ?? '',
+						stockId: line.sklad_product != null ? String(line.sklad_product) : stock ? String(stock.id) : '',
+						warehouse: line.warehouse,
+						productLabel: [
+							line.brand_detail?.name,
+							line.product_category_detail?.name,
+							formatNumber(line.size),
+							line.type_detail?.name,
+						]
+							.filter(Boolean)
+							.join(' '),
+						count: line.count,
+						price: String(line.price),
+					};
+				}),
+			);
+			if (!cancelled) setRows(next);
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [linesData]);
 
 	const updateRow = (index: number, next: EditableProductRow) => {
 		setRows((prev) => prev.map((row, i) => (i === index ? next : row)));
 	};
-	const addRow = () => setRows((prev) => [...prev, { ...emptyWarehouseRow(), count: null }]);
+	const addRow = () => setRows((prev) => [...prev, emptyOrderLine()]);
 	const removeRow = (index: number) => {
 		setRows((prev) => prev.filter((_, i) => i !== index));
 	};
 
 	const rowsTotal = rows.reduce((sum, row) => sum + (Number(row.count) || 0) * (Number(row.price) || 0), 0);
-
-	function handleResolveStock(key: string | number, stock: SkladProduct | undefined) {
-		setResolvedStockByKey((prev) => {
-			if (prev[key]?.id === stock?.id) return prev;
-			return { ...prev, [key]: stock ? { id: stock.id, warehouse: stock.warehouse } : undefined };
-		});
-	}
 
 	const {
 		control,
@@ -143,10 +153,12 @@ export default function OrderAccountHistoryEditPage() {
 
 		const rowErrs: Record<number, string> = {};
 		rows.forEach((row, i) => {
-			if (!row.brand || !row.product_category || !row.brandSize || !row.price || !row.type_sklad || !row.count) {
+			if (!row.warehouse || !row.price || !row.count) {
 				rowErrs[i] = "Barcha maydonlar to'ldirilishi shart";
-			} else if (!resolvedStockByKey[row.key]) {
-				rowErrs[i] = 'Bu tovar omborda topilmadi';
+			} else if (!row.type_sklad) {
+				rowErrs[i] = 'Skladni tanlang';
+			} else if (!row.stockId) {
+				rowErrs[i] = 'Bu tovar tanlangan skladda topilmadi';
 			}
 		});
 		if (Object.keys(rowErrs).length) {
@@ -157,8 +169,8 @@ export default function OrderAccountHistoryEditPage() {
 		setRowErrors({});
 
 		const items: OrderAccountHistoryUpdateSaleItemPayload[] = rows.map((row) => ({
-			warehouse: resolvedStockByKey[row.key]!.warehouse,
-			sklad_product: resolvedStockByKey[row.key]!.id,
+			warehouse: row.warehouse!,
+			sklad_product: Number(row.stockId),
 			count: row.count ?? 0,
 			price: row.price,
 		}));
@@ -264,19 +276,14 @@ export default function OrderAccountHistoryEditPage() {
 
 				<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 					{rows.map((row, index) => (
-						<WarehouseProductRow
+						<OrderProductLineRow
 							key={row.key}
 							value={row}
-							onChange={(next) => updateRow(index, next as EditableProductRow)}
+							onChange={(next) => updateRow(index, next)}
 							error={rowErrors[index]}
 							showAdd={index === rows.length - 1}
 							onAdd={addRow}
-							showRemove
 							onRemove={() => removeRow(index)}
-							companyId={item.company}
-							showCount
-							resolveStock
-							onResolveStock={handleResolveStock}
 						/>
 					))}
 					{rows.length === 0 && (

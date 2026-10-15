@@ -1,9 +1,19 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { productAccountHistoryService } from '@/services/product-account-history/product-account-history.service';
 import type {
 	ProductAccountHistoryCreatePayload,
+	ProductAccountHistoryListParams,
 	ProductAccountHistoryUpdateCountPayload,
 } from '@/services/product-account-history/product-account-history.types';
+
+// The sold lines of one order, with the sklad each was sold from.
+export function useProductAccountHistoryListQuery(params: ProductAccountHistoryListParams, enabled = true) {
+	return useQuery({
+		queryKey: ['order-account-history', 'product-lines', params] as const,
+		queryFn: () => productAccountHistoryService.list(params),
+		enabled,
+	});
+}
 
 export function useUpdateProductCountMutation() {
 	const queryClient = useQueryClient();

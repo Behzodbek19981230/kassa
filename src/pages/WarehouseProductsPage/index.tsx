@@ -29,13 +29,13 @@ import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types'
 import WarehouseProductImagesModal from '@/pages/WarehouseProductsPage/components/WarehouseProductImagesModal';
 import WarehouseProductThumbnail from '@/pages/WarehouseProductsPage/components/WarehouseProductThumbnail';
 import WarehouseRealPriceModal from '@/pages/WarehouseProductsPage/components/WarehouseRealPriceModal';
+import WarehouseStocksModal from '@/pages/WarehousePage/components/WarehouseStocksModal';
 import WarehouseSendTelegramModal from '@/pages/WarehousePage/components/WarehouseSendTelegramModal';
 import { catalogCardId } from '@/services/sklad-product/catalog-stock';
 
 const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'image', label: 'Rasm' },
 	{ id: 'index', label: '#', hideable: false },
-	{ id: 'sklad', label: 'Sklad' },
 	{ id: 'brand', label: 'Model' },
 	{ id: 'category', label: 'Nomi' },
 	{ id: 'size', label: "O'lchami" },
@@ -47,7 +47,7 @@ const COLUMNS: ColumnVisibilityDef[] = [
 ];
 
 /** Columns before "Soni"; the "Jami:" label of the total rows goes in the last visible one. */
-const LABEL_COLUMNS = ['index', 'sklad', 'brand', 'category', 'size', 'type'];
+const LABEL_COLUMNS = ['index', 'brand', 'category', 'size', 'type'];
 
 export default function WarehouseProductsPage() {
 	const { canWrite } = useCurrentCompany();
@@ -55,6 +55,7 @@ export default function WarehouseProductsPage() {
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
 	const [imagesItem, setImagesItem] = useState<WarehouseAllListItem | null>(null);
+	const [stocksItem, setStocksItem] = useState<{ item: WarehouseAllListItem; label: string } | null>(null);
 	const [realPriceItem, setRealPriceItem] = useState<WarehouseAllListItem | null>(null);
 
 	const {
@@ -264,7 +265,6 @@ export default function WarehouseProductsPage() {
 							<TableRow>
 								{cols.isVisible('image') && <TableHead className='bg-ca-theme text-white'>Rasm</TableHead>}
 								<TableHead className='bg-ca-theme text-white'>#</TableHead>
-								{cols.isVisible('sklad') && <TableHead className='bg-ca-theme text-white'>Sklad</TableHead>}
 								{cols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
 								{cols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
 								{cols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>}
@@ -322,13 +322,28 @@ export default function WarehouseProductsPage() {
 															</TableCell>
 														)}
 														<TableCell>{rowIndex}</TableCell>
-														{cols.isVisible('sklad') && <TableCell>{item.type_sklad_name ?? ''}</TableCell>}
 														{cols.isVisible('brand') && <TableCell>{group.brand.name}</TableCell>}
 														{cols.isVisible('category') && <TableCell>{item.product_category_name}</TableCell>}
 														{cols.isVisible('size') && <TableCell>{formatNumber(item.size)}</TableCell>}
 														{cols.isVisible('type') && <TableCell>{item.type_name ?? ''}</TableCell>}
 
-														{cols.isVisible('count') && <TableCell>{formatNumber(item.count)}</TableCell>}
+														{cols.isVisible('count') && (
+																<TableCell>
+																	<button
+																		type='button'
+																		className='font-semibold text-ca-theme hover:underline'
+																		aria-label="Skladlar bo'yicha soni"
+																		onClick={() =>
+																			setStocksItem({
+																				item,
+																				label: `${group.brand.name} ${item.product_category_name}`,
+																			})
+																		}
+																	>
+																		{formatNumber(item.count)}
+																	</button>
+																</TableCell>
+															)}
 														{cols.isVisible('real_price') && (
 															<TableCell>
 																{canWrite ? (
@@ -396,6 +411,15 @@ export default function WarehouseProductsPage() {
 					open={Boolean(imagesItem)}
 					setOpen={(open) => !open && setImagesItem(null)}
 					item={imagesItem}
+				/>
+			)}
+
+			{stocksItem && (
+				<WarehouseStocksModal
+					open
+					setOpen={(open) => !open && setStocksItem(null)}
+					warehouseId={catalogCardId(stocksItem.item)}
+					productLabel={stocksItem.label}
 				/>
 			)}
 

@@ -26,8 +26,8 @@ import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { useCreateOrderCartMutation } from '@/services/order-cart/order-cart.queries';
-import { catalogCardId, resolveCatalogStockId } from '@/services/sklad-product/catalog-stock';
-import { useSkladProductByPairQuery } from '@/services/sklad-product/sklad-product.queries';
+import { catalogCardId } from '@/services/sklad-product/catalog-stock';
+import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
 export interface ProductVariant {
@@ -37,8 +37,6 @@ export interface ProductVariant {
 	typeName: string | null;
 	rows: WarehouseAllListItem[];
 }
-
-const DEFAULT_LOCATION_LABEL = 'Dokon';
 
 interface AddToCartModalProps {
 	open: boolean;
@@ -55,19 +53,23 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	const { exchangeRate } = useCurrentCompany();
 	const rate = Number(exchangeRate?.dollar ?? 0);
 
-	const locationOptions = useMemo(() => {
-		const seen = new Map<string, { value: string; label: string; row: WarehouseAllListItem }>();
-		for (const row of variant.rows) {
-			const key = String(row.type_sklad_id ?? 'null');
-			if (!seen.has(key)) {
-				seen.set(key, { value: key, label: row.type_sklad_name ?? DEFAULT_LOCATION_LABEL, row });
-			}
-		}
-		return Array.from(seen.values());
-	}, [variant.rows]);
+	// Every sklad that holds this product, with its own count and worker price.
+	const { data: stocksData, isLoading: isStocksLoading } = useSkladProductListQuery({
+		warehouse: variant.rows[0] ? catalogCardId(variant.rows[0]) : undefined,
+		limit: 100,
+	});
+	const locationOptions = useMemo(
+		() =>
+			(stocksData?.results ?? []).map((stock) => ({
+				value: String(stock.type_sklad),
+				label: stock.type_sklad_detail?.name ?? `#${stock.type_sklad}`,
+				stock,
+			})),
+		[stocksData],
+	);
 
 	const stockByLocation = useMemo(
-		() => new Map(locationOptions.map((option) => [option.value, option.row.count])),
+		() => new Map(locationOptions.map((option) => [option.value, option.stock.count])),
 		[locationOptions],
 	);
 
@@ -115,7 +117,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	} = useForm<AddToCartFormValues>({
 		resolver: zodResolver(addToCartSchema),
 		defaultValues: {
-			joy: locationOptions[0]?.value ?? '',
+			joy: '',
 			count: '0',
 			priceSom: '',
 			priceDollar: '',
@@ -131,12 +133,13 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	// The price starts at the worker_price of the product's stock in the chosen sklad. It follows the
 	// chosen location until the user types a price of their own.
 	const priceEditedRef = useRef(false);
-	const selectedRow = locationOptions.find((option) => option.value === joyValue)?.row;
-	const { data: selectedStock } = useSkladProductByPairQuery(
-		selectedRow ? catalogCardId(selectedRow) : undefined,
-		selectedRow?.type_sklad_id ?? undefined,
-	);
-	const workerPrice = selectedStock?.type_sklad === selectedRow?.type_sklad_id ? selectedStock?.worker_price : undefined;
+	const selectedOption = locationOptions.find((option) => option.value === joyValue);
+	const workerPrice = selectedOption?.stock.worker_price;
+
+	// Preselect the first sklad once the list has loaded.
+	useEffect(() => {
+		if (!getValues('joy') && locationOptions[0]) setValue('joy', locationOptions[0].value);
+	}, [locationOptions, getValues, setValue]);
 
 	useEffect(() => {
 		if (priceEditedRef.current || workerPrice == null) return;
@@ -166,7 +169,18 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	}, [rate, getValues, setValue]);
 
 	const createMutation = useCreateOrderCartMutation();
-	const [isResolvingStock, setIsResolvingStock] = useState(false);
+
+	// The sklad dropdown is portaled out of the dialog, so picking an item can reach the dialog as an
+	// "outside" interaction and close it. Ignore close requests while the dropdown is open or was just used.
+	const joyInteractionRef = useRef({ open: false, at: 0 });
+	function handleJoyOpenChange(isOpen: boolean) {
+		joyInteractionRef.current = { open: isOpen, at: Date.now() };
+	}
+	function handleModalOpenChange(next: boolean) {
+		const { open: joyOpen, at } = joyInteractionRef.current;
+		if (!next && (joyOpen || Date.now() - at < 500)) return;
+		setOpen(next);
+	}
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
@@ -177,12 +191,10 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 		}
 
 		try {
-			setIsResolvingStock(true);
-			const skladProduct = await resolveCatalogStockId(location.row).finally(() => setIsResolvingStock(false));
 			await createMutation.mutateAsync({
 				client: clientId,
-				warehouse: catalogCardId(location.row),
-				sklad_product: skladProduct,
+				warehouse: catalogCardId(variant.rows[0]),
+				sklad_product: location.stock.id,
 				count: Number(values.count),
 				price: Number(values.priceDollar).toFixed(2),
 			});
@@ -194,7 +206,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	});
 
 	return (
-		<Modal open={open} onOpenChange={setOpen}>
+		<Modal open={open} onOpenChange={handleModalOpenChange}>
 			<ModalContent className='max-w-[500px]'>
 				<ModalHeader>
 					<ModalTitle>Mijoz buyurtmasiga qo'shish</ModalTitle>
@@ -236,6 +248,8 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 								control={control}
 								render={({ field }) => (
 									<Select
+											onOpenChange={handleJoyOpenChange}
+											disabled={isStocksLoading}
 										value={field.value}
 										onValueChange={(value) => field.onChange(value)}
 									>
@@ -247,7 +261,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 												<SelectItem key={option.value} value={option.value}>
 													{option.label}
 													<span className='ml-2 text-ca-text'>
-														({formatNumber(option.row.count)} ta)
+														({formatNumber(option.stock.count)} ta)
 													</span>
 												</SelectItem>
 											))}
@@ -329,7 +343,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish
 						</Button>
-						<Button type='submit' variant='danger' loading={isResolvingStock || createMutation.isPending}>
+						<Button type='submit' variant='danger' loading={createMutation.isPending}>
 							<FaCartPlus className='mr-1.5' /> Buyurtmaga qo'shish
 						</Button>
 					</ModalFooter>
