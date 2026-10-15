@@ -304,8 +304,9 @@ export default function PlaceOrderPage() {
                               {productCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
                               {productCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
                               {productCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>}
-                              {productCols.isVisible('stock') && <TableHead className='bg-ca-theme text-white'>Sklad soni</TableHead>}
                               {productCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
+                              {productCols.isVisible('stock') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
+
                            </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -367,10 +368,11 @@ export default function PlaceOrderPage() {
                                                 {productCols.isVisible('brand') && <TableCell>{variant.brandName}</TableCell>}
                                                 {productCols.isVisible('category') && <TableCell>{variant.categoryName}</TableCell>}
                                                 {productCols.isVisible('size') && <TableCell>{formatNumber(variant.size)}</TableCell>}
+
+                                                {productCols.isVisible('type') && <TableCell>{variant.typeName ?? ''}</TableCell>}
                                                 {productCols.isVisible('stock') && (
                                                    <TableCell className='font-semibold'>{formatNumber(stockCount)}</TableCell>
                                                 )}
-                                                {productCols.isVisible('type') && <TableCell>{variant.typeName ?? ''}</TableCell>}
                                              </TableRow>
                                           );
                                        })}

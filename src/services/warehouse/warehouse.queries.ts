@@ -2,6 +2,7 @@ import { type InfiniteData, useInfiniteQuery, useMutation, useQueries, useQuery,
 import { mergeBrandGroups, warehouseService } from '@/services/warehouse/warehouse.service'
 import type {
   WarehouseAllListParams,
+  WarehouseBulkCreatePayload,
   WarehouseEditRealPricePayload,
   WarehouseListParams,
   WarehousePayload,
@@ -78,6 +79,17 @@ export function useCreateWarehouseMutation() {
     mutationFn: (payload: WarehousePayload) => warehouseService.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
+    },
+  })
+}
+
+export function useBulkCreateWarehouseMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: WarehouseBulkCreatePayload) => warehouseService.bulkCreate(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
+      queryClient.invalidateQueries({ queryKey: ['sklad-products'] })
     },
   })
 }

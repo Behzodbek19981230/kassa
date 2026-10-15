@@ -1,5 +1,19 @@
 import { FaSpinner } from 'react-icons/fa';
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalTitle } from '@/components/ui';
+import {
+	Button,
+	Modal,
+	ModalBody,
+	ModalContent,
+	ModalFooter,
+	ModalHeader,
+	ModalTitle,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/components/ui';
 import { formatNumber } from '@/lib/number';
 import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
 
@@ -34,26 +48,28 @@ export default function WarehouseStocksModal({ open, setOpen, warehouseId, produ
 					) : stocks.length === 0 ? (
 						<p className='text-xs text-ca-text'>Bu tovar hech qaysi skladda yo'q</p>
 					) : (
-						<ul className='flex flex-col gap-2 text-xs'>
-							{stocks.map((stock) => (
-								<li key={stock.id} className='rounded-[3px] bg-ca-silver px-3 py-2'>
-									<span className='font-bold text-ca-heading'>
-										{stock.type_sklad_detail?.name ?? `#${stock.type_sklad}`}
-									</span>
-									<span className='ml-2 text-ca-text'>
-										Soni: <span className='font-semibold text-ca-heading'>{formatNumber(stock.count)}</span>,
-										Haqiqiy narx:{' '}
-										<span className='font-semibold text-ca-heading'>
-											{formatNumber(stock.real_price ?? 0, 2)} $
-										</span>
-										, Ishchi uchun narx:{' '}
-										<span className='font-semibold text-ca-heading'>
-											{formatNumber(stock.worker_price ?? 0, 2)} $
-										</span>
-									</span>
-								</li>
-							))}
-						</ul>
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Sklad</TableHead>
+									<TableHead className='text-right'>Soni</TableHead>
+									<TableHead className='text-right'>Haqiqiy narx</TableHead>
+									<TableHead className='text-right'>Ishchi uchun narx</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{stocks.map((stock) => (
+									<TableRow key={stock.id}>
+										<TableCell className='font-bold text-ca-heading'>
+											{stock.type_sklad_detail?.name ?? `#${stock.type_sklad}`}
+										</TableCell>
+										<TableCell className='text-right font-semibold text-ca-heading'>{formatNumber(stock.count)}</TableCell>
+										<TableCell className='text-right font-semibold text-ca-heading'>{formatNumber(stock.real_price ?? 0, 2)} $</TableCell>
+										<TableCell className='text-right font-semibold text-ca-heading'>{formatNumber(stock.worker_price ?? 0, 2)} $</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
 					)}
 				</ModalBody>
 				<ModalFooter>

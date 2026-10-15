@@ -197,7 +197,7 @@ export default function ConfirmSaleModal({
 
 						<div className='mb-3 grid grid-cols-2 gap-3'>
 							<FormField label='Jami summa ($)' horizontal={false} className='mb-0'>
-								<PriceInput value={coveredDollar.toFixed(2)} disabled />
+								<PriceInput value={String(Number(coveredDollar.toFixed(2)))} disabled />
 							</FormField>
 							<FormField label='Chegirma ($)' horizontal={false} className='mb-0'>
 								<Controller

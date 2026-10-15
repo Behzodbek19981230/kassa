@@ -35,11 +35,14 @@ const editVozvratFormSchema = z.object({
 	sum_dollar: z.string().optional(),
 	sum_som: z.string().optional(),
 	sum_cart: z.string().optional(),
-	comment: z.string().optional(),
+	comment: z.string().trim().min(1, 'Izoh kiritilishi shart'),
 	confirmation: z.boolean(),
 });
 
 type EditVozvratFormValues = z.infer<typeof editVozvratFormSchema>;
+
+/** "0.00" -> "0", "12.50" -> "12.5"; empty values become "0". */
+const plainNumber = (value?: string | number | null) => String(Number(value) || 0);
 
 type EditableVozvratRow = VozvratRowValue;
 
@@ -95,8 +98,6 @@ export default function VozvratOrderHistoryEditPage() {
 				};
 				return {
 					key,
-					brand: String(productItem.brand),
-					product_category: String(productItem.product_category),
 					variantKey: `${productItem.brand}-${productItem.product_category}-${productItem.size}-${productItem.type}`,
 					locationKey: String(productItem.type_sklad),
 					count: productItem.count,
@@ -134,9 +135,9 @@ export default function VozvratOrderHistoryEditPage() {
 		values: item
 			? {
 					date: item.date,
-					sum_dollar: String(item.sum_dollar),
-					sum_som: String(item.sum_som),
-					sum_cart: String(item.sum_cart),
+					sum_dollar: plainNumber(item.sum_dollar),
+					sum_som: plainNumber(item.sum_som),
+					sum_cart: plainNumber(item.sum_cart),
 					comment: item.comment ?? '',
 					confirmation: Boolean(item.confirmation),
 				}
@@ -152,7 +153,7 @@ export default function VozvratOrderHistoryEditPage() {
 
 		const rowErrs: Record<number, string> = {};
 		rows.forEach((row, i) => {
-			if (!row.brand || !row.product_category || !row.variantKey || !row.locationKey || !row.price || !row.count) {
+			if (!row.variantKey || !row.locationKey || !row.price || !row.count) {
 				rowErrs[i] = "Barcha maydonlar to'ldirilishi shart";
 			} else if (!resolvedByKey[row.key]) {
 				rowErrs[i] = 'Bu tovar mijozda topilmadi';
@@ -304,19 +305,19 @@ export default function VozvratOrderHistoryEditPage() {
 				<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 					<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-4'>
 						<FormField label='Qaytgan mahsulot summasi ($)' horizontal={false} className='mb-0'>
-							<PriceInput value={formatNumber(item.product_summ_dollar, 2)} disabled />
+							<PriceInput value={plainNumber(item.product_summ_dollar)} disabled />
 						</FormField>
 						<FormField label='Mijozga qaytarilgan summa ($)' horizontal={false} className='mb-0'>
-							<PriceInput value={formatNumber(item.all_summ_dollar, 2)} disabled />
+							<PriceInput value={plainNumber(item.all_summ_dollar)} disabled />
 						</FormField>
 						<FormField label='Jami chegirma ($)' horizontal={false} className='mb-0'>
-							<PriceInput value={formatNumber(item.discount_amount ?? 0)} disabled />
+							<PriceInput value={plainNumber(item.discount_amount)} disabled />
 						</FormField>
 						<FormField label='Summa dollarda ($)' horizontal={false} className='mb-0'>
 							<Controller
 								name='sum_dollar'
 								control={control}
-								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 							/>
 						</FormField>
 					</div>
@@ -326,17 +327,17 @@ export default function VozvratOrderHistoryEditPage() {
 							<Controller
 								name='sum_som'
 								control={control}
-								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 							/>
 						</FormField>
 						<FormField label='Summa kartada' horizontal={false} className='mb-0'>
 							<Controller
 								name='sum_cart'
 								control={control}
-								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+								render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 							/>
 						</FormField>
-						<FormField label='Izoh' horizontal={false} className='mb-0'>
+						<FormField label='Izoh' error={errors.comment?.message} required horizontal={false} className='mb-0'>
 							<Input {...register('comment')} />
 						</FormField>
 					</div>

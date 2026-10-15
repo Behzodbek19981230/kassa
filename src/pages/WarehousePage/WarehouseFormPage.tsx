@@ -1,7 +1,17 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, DatePicker, Input, PageHeader, Panel, useNotification } from '@/components/ui';
+import {
+	Button,
+	DatePicker,
+	Input,
+	MultiCombobox,
+	PageHeader,
+	Panel,
+	type ComboboxLoadParams,
+	type ComboboxLoadResult,
+	useNotification,
+} from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { usePermissions } from '@/lib/permissions';
@@ -10,14 +20,9 @@ import WarehouseProductRow, {
 	emptyWarehouseRow,
 	type WarehouseRowValue,
 } from '@/pages/WarehousePage/components/WarehouseProductRow';
-import {
-	useCreateSkladProductMutation,
-	useSkladProductQuery,
-	useUpdateSkladProductMutation,
-} from '@/services/sklad-product/sklad-product.queries';
-import { useCreateWarehouseMutation } from '@/services/warehouse/warehouse.queries';
-import { warehouseService } from '@/services/warehouse/warehouse.service';
-import type { WarehousePayload } from '@/services/warehouse/warehouse.types';
+import { useSkladProductQuery, useUpdateSkladProductMutation } from '@/services/sklad-product/sklad-product.queries';
+import { skladTypeService } from '@/services/sklad-type/sklad-type.service';
+import { useBulkCreateWarehouseMutation } from '@/services/warehouse/warehouse.queries';
 
 interface WarehouseFormPageProps {
 	mode: 'create' | 'edit';
@@ -40,20 +45,16 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 
 	const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 	const [comment, setComment] = useState('');
+	// One sklad choice for the whole form (create mode): every product below is added to each of them.
+	const [skladIds, setSkladIds] = useState<string[]>([]);
 	const [rows, setRows] = useState<WarehouseRowValue[]>([emptyWarehouseRow()]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
 	const [formError, setFormError] = useState('');
 	const [duplicateRowKeys, setDuplicateRowKeys] = useState<Record<string | number, boolean>>({});
 
-	const createCardMutation = useCreateWarehouseMutation();
-	const createStockMutation = useCreateSkladProductMutation();
+	const bulkCreateMutation = useBulkCreateWarehouseMutation();
 	const updateStockMutation = useUpdateSkladProductMutation();
-	const [isResolvingCards, setIsResolvingCards] = useState(false);
-	const isSaving =
-		isResolvingCards ||
-		createCardMutation.isPending ||
-		createStockMutation.isPending ||
-		updateStockMutation.isPending;
+	const isSaving = bulkCreateMutation.isPending || updateStockMutation.isPending;
 
 	const company = (mode === 'edit' ? skladProductQuery.data?.company : undefined) ?? companyId ?? undefined;
 	const hasDuplicate = Object.values(duplicateRowKeys).some(Boolean);
@@ -101,6 +102,23 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 		setRows((prev) => prev.filter((_, i) => i !== index));
 	};
 
+	const loadSkladTypeOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+		const result = await skladTypeService.list({ search: search || undefined, page, limit: 20 });
+		return {
+			options: result.results.map((s) => ({ value: String(s.id), label: s.name })),
+			hasMore: result.pagination.currentPage < result.pagination.lastPage,
+		};
+	};
+
+	// Model/nomi/o'lcham lists are narrowed by the sklad only while exactly one is picked, so the rows
+	// start over when that narrowing appears or goes away.
+	const handleSkladIdsChange = (next: string[]) => {
+		if (next.length === 1 || skladIds.length === 1) {
+			setRows((prev) => prev.map((row) => ({ ...emptyWarehouseRow(), key: row.key, price: row.price })));
+		}
+		setSkladIds(next);
+	};
+
 	const goBack = () => navigate('/warehouse-prices');
 
 	const handleSubmit = async (e: FormEvent) => {
@@ -120,9 +138,14 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 			return;
 		}
 
+		if (mode === 'create' && skladIds.length === 0) {
+			setFormError('Kamida bitta sklad tanlang');
+			return;
+		}
+
 		const errors: Record<number, string> = {};
 		rows.forEach((row, i) => {
-			if (!row.brand || !row.product_category || !row.brandSize || !row.price || !row.type_sklad) {
+			if (!row.brand || !row.product_category || !row.brandSize || !row.price || (mode === 'edit' && !row.type_sklad)) {
 				errors[i] = "Barcha maydonlar to'ldirilishi shart";
 			}
 		});
@@ -141,39 +164,19 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 				});
 				notify({ title: 'Tovar yangilandi' });
 			} else {
-				for (const row of rows) {
-					const variant = {
+				// The backend finds or creates each product card and adds it to every chosen sklad in one transaction.
+				await bulkCreateMutation.mutateAsync({
+								type_sklads: skladIds.map(Number),
+					cr_date: date,
+					comment: comment.trim() || undefined,
+					items: rows.map((row) => ({
 						brand: Number(row.brand),
 						product_category: Number(row.product_category),
 						type: row.type,
 						size: row.size ?? 0,
-					};
-					// The card is shared by every sklad, so an existing one is reused.
-					setIsResolvingCards(true);
-					let card = await warehouseService.findCard(variant).finally(() => setIsResolvingCards(false));
-					if (!card) {
-						const cardPayload: WarehousePayload = {
-							...variant,
-							cr_date: date,
-							count: 0,
-							price: 0,
-							worker_price: 0,
-							status_count: false,
-							company,
-							type_sklad: null,
-							comment: comment || undefined,
-						};
-						card = await createCardMutation.mutateAsync(cardPayload);
-					}
-					await createStockMutation.mutateAsync({
-						warehouse: card.id,
-						type_sklad: Number(row.type_sklad),
-						count: 0,
 						real_price: row.price,
-						cr_date: date,
-						status_count: false,
-					});
-				}
+					})),
+				});
 				notify({ title: "Tovar(lar) qo'shildi" });
 			}
 			goBack();
@@ -209,9 +212,25 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 						</div>
 					)}
 
-					<div className='mb-4 max-w-xs'>
-						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sana</label>
-						<DatePicker value={date} onChange={setDate} />
+					<div className='mb-4 flex flex-wrap items-start gap-3'>
+						<div className='w-full max-w-xs'>
+							<label className='mb-1 block text-xs font-semibold text-ca-heading'>Sana</label>
+							<DatePicker value={date} onChange={setDate} />
+						</div>
+						{mode === 'create' && (
+							<div className='min-w-64 flex-1'>
+								<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+								Sklad <span className='text-ca-red'>*</span>
+								</label>
+								<MultiCombobox
+								value={skladIds}
+								onChange={handleSkladIdsChange}
+								loadOptions={loadSkladTypeOptions}
+								placeholder='Tanlang...'
+								searchPlaceholder='Qidirish...'
+								/>
+							</div>
+						)}
 					</div>
 
 					{rows.map((row, index) => (
@@ -225,6 +244,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 							showRemove={mode === 'create' && rows.length > 1}
 							onRemove={() => removeRow(index)}
 							companyId={company}
+							skladIds={mode === 'create' ? skladIds : undefined}
 							excludeId={mode === 'edit' ? skladProductId : undefined}
 							onDuplicateChange={handleDuplicateChange}
 						/>

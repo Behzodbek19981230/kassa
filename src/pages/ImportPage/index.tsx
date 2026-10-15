@@ -1,19 +1,19 @@
 import { Fragment, type UIEvent, useMemo, useState } from 'react';
 import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
-	Button,
-	buttonProps,
-	Combobox,
-	type ComboboxLoadParams,
-	type ComboboxLoadResult,
-	PageHeader,
-	Panel,
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
+   Button,
+   buttonProps,
+   Combobox,
+   type ComboboxLoadParams,
+   type ComboboxLoadResult,
+   PageHeader,
+   Panel,
+   Table,
+   TableBody,
+   TableCell,
+   TableHead,
+   TableHeader,
+   TableRow,
 } from '@/components/ui';
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import OpenDialogButton from '@/components/OpenDialogButton';
@@ -26,8 +26,8 @@ import { brandService } from '@/services/brand/brand.service';
 import { consignorService } from '@/services/consignor/consignor.service';
 import { useConsignorQuery } from '@/services/consignor/consignor.queries';
 import {
-	useDeleteImportCartDraftMutation,
-	useImportCartDraftListQuery,
+   useDeleteImportCartDraftMutation,
+   useImportCartDraftListQuery,
 } from '@/services/import-cart-draft/import-cart-draft.queries';
 import { useMyDebtListQuery } from '@/services/my-debt/my-debt.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
@@ -43,576 +43,578 @@ import ConfirmImportModal from '@/pages/ImportPage/components/ConfirmImportModal
 const DEFAULT_LOCATION_LABEL = 'Dokon';
 
 const PRODUCT_COLUMNS: ColumnVisibilityDef[] = [
-	{ id: 'index', label: '#', hideable: false },
-	{ id: 'brand', label: 'Model' },
-	{ id: 'category', label: 'Nomi' },
-	{ id: 'size', label: "O'lchami" },
-	{ id: 'stock', label: 'Sklad soni' },
-	{ id: 'type', label: 'Tip' },
+   { id: 'index', label: '#', hideable: false },
+   { id: 'brand', label: 'Model' },
+   { id: 'category', label: 'Nomi' },
+   { id: 'size', label: "O'lchami" },
+   { id: 'stock', label: 'Sklad soni' },
+   { id: 'type', label: 'Tip' },
 ];
 
 const CART_COLUMNS: ColumnVisibilityDef[] = [
-	{ id: 'index', label: '#', hideable: false },
-	{ id: 'location', label: 'Joy' },
-	{ id: 'brand', label: 'Model' },
-	{ id: 'category', label: 'Nomi' },
-	{ id: 'size', label: "O'lcham" },
-	{ id: 'type', label: 'Tip' },
-	{ id: 'price', label: 'Narxi ($)' },
-	{ id: 'count', label: 'Soni' },
-	{ id: 'total', label: 'Umum.narxi ($)' },
-	{ id: 'actions', label: '', hideable: false },
+   { id: 'index', label: '#', hideable: false },
+   { id: 'location', label: 'Joy' },
+   { id: 'brand', label: 'Model' },
+   { id: 'category', label: 'Nomi' },
+   { id: 'size', label: "O'lcham" },
+   { id: 'type', label: 'Tip' },
+   { id: 'price', label: 'Narxi ($)' },
+   { id: 'count', label: 'Soni' },
+   { id: 'total', label: 'Umum.narxi ($)' },
+   { id: 'actions', label: '', hideable: false },
 ];
 
 /** Cart columns the "Jami" label of the total row spans. */
 const CART_LABEL_COLUMNS = ['index', 'location', 'brand', 'category', 'size', 'type', 'price'];
 
 interface BrandVariants {
-	brandId: number;
-	brandName: string;
-	variants: ImportProductVariant[];
+   brandId: number;
+   brandName: string;
+   variants: ImportProductVariant[];
 }
 
 function buildBrandVariants(groups: WarehouseAllListBrandGroup[]): BrandVariants[] {
-	const brands = new Map<number, { name: string; variants: Map<string, ImportProductVariant> }>();
+   const brands = new Map<number, { name: string; variants: Map<string, ImportProductVariant> }>();
 
-	for (const group of groups) {
-		if (!brands.has(group.brand.id)) {
-			brands.set(group.brand.id, { name: group.brand.name, variants: new Map() });
-		}
-		const brandEntry = brands.get(group.brand.id)!;
+   for (const group of groups) {
+      if (!brands.has(group.brand.id)) {
+         brands.set(group.brand.id, { name: group.brand.name, variants: new Map() });
+      }
+      const brandEntry = brands.get(group.brand.id)!;
 
-		for (const pc of group.product_categories) {
-			for (const row of pc.warehouses) {
-				const key = `${row.product_category_id}-${row.size}-${row.type_id ?? 'null'}`;
-				const existing = brandEntry.variants.get(key);
-				if (existing) {
-					existing.rows.push(row);
-				} else {
-					brandEntry.variants.set(key, {
-						brandName: row.brand_name,
-						categoryName: row.product_category_name,
-						size: row.size,
-						typeName: row.type_name,
-						rows: [row],
-					});
-				}
-			}
-		}
-	}
+      for (const pc of group.product_categories) {
+         for (const row of pc.warehouses) {
+            const key = `${row.product_category_id}-${row.size}-${row.type_id ?? 'null'}`;
+            const existing = brandEntry.variants.get(key);
+            if (existing) {
+               existing.rows.push(row);
+            } else {
+               brandEntry.variants.set(key, {
+                  brandName: row.brand_name,
+                  categoryName: row.product_category_name,
+                  size: row.size,
+                  typeName: row.type_name,
+                  rows: [row],
+               });
+            }
+         }
+      }
+   }
 
-	return Array.from(brands.entries()).map(([brandId, entry]) => ({
-		brandId,
-		brandName: entry.name,
-		variants: Array.from(entry.variants.values()),
-	}));
+   return Array.from(brands.entries()).map(([brandId, entry]) => ({
+      brandId,
+      brandName: entry.name,
+      variants: Array.from(entry.variants.values()),
+   }));
 }
 
 export default function ImportPage() {
-	const { companyId, canWrite } = useCurrentCompany();
-	const productCols = useColumnVisibility('import-products', PRODUCT_COLUMNS);
-	const cartCols = useColumnVisibility('import-cart', CART_COLUMNS);
-	const cartLabelSpan = CART_LABEL_COLUMNS.filter((id) => cartCols.isVisible(id)).length;
+   const { companyId, canWrite } = useCurrentCompany();
+   const productCols = useColumnVisibility('import-products', PRODUCT_COLUMNS);
+   const cartCols = useColumnVisibility('import-cart', CART_COLUMNS);
+   const cartLabelSpan = CART_LABEL_COLUMNS.filter((id) => cartCols.isVisible(id)).length;
 
-	const [brandFilter, setBrandFilter] = useState('');
-	const [categoryFilter, setCategoryFilter] = useState('');
-	const [consignorId, setConsignorId] = useState('');
-	const [selectedVariant, setSelectedVariant] = useState<ImportProductVariant | null>(null);
-	const [confirmImportOpen, setConfirmImportOpen] = useState(false);
-	const [clearCartOpen, setClearCartOpen] = useState(false);
+   const [brandFilter, setBrandFilter] = useState('');
+   const [categoryFilter, setCategoryFilter] = useState('');
+   const [consignorId, setConsignorId] = useState('');
+   const [selectedVariant, setSelectedVariant] = useState<ImportProductVariant | null>(null);
+   const [confirmImportOpen, setConfirmImportOpen] = useState(false);
+   const [clearCartOpen, setClearCartOpen] = useState(false);
 
-	const {
-		data,
-		isLoading,
-		isFetching,
-		isFetchingNextPage,
-		hasNextPage,
-		fetchNextPage,
-		isError,
-		error,
-		refetch,
-	} = useWarehouseAllListInfiniteQuery({
-		brand: brandFilter ? Number(brandFilter) : undefined,
-		product_category: categoryFilter ? Number(categoryFilter) : undefined,
-	});
-	const groups = data?.groups ?? [];
+   const {
+      data,
+      isLoading,
+      isFetching,
+      isFetchingNextPage,
+      hasNextPage,
+      fetchNextPage,
+      isError,
+      error,
+      refetch,
+   } = useWarehouseAllListInfiniteQuery({
+      brand: brandFilter ? Number(brandFilter) : undefined,
+      product_category: categoryFilter ? Number(categoryFilter) : undefined,
+   });
+   const groups = data?.groups ?? [];
 
-	function handleScroll(e: UIEvent<HTMLDivElement>) {
-		const el = e.currentTarget;
-		if (hasNextPage && !isFetchingNextPage && el.scrollTop + el.clientHeight >= el.scrollHeight - 40) {
-			fetchNextPage();
-		}
-	}
+   function handleScroll(e: UIEvent<HTMLDivElement>) {
+      const el = e.currentTarget;
+      if (hasNextPage && !isFetchingNextPage && el.scrollTop + el.clientHeight >= el.scrollHeight - 40) {
+         fetchNextPage();
+      }
+   }
 
-	// Product cards from the pages loaded so far; cart rows outside them fall back to their own warehouse_detail.
-	// A card is in several sklads, so the cart line's own sklad is shown, not the card's.
-	const warehouseById = useMemo(() => {
-		const map = new Map<number, WarehouseAllListItem>();
-		for (const g of groups) {
-			for (const pc of g.product_categories) {
-				for (const row of pc.warehouses) map.set(catalogCardId(row), row);
-			}
-		}
-		return map;
-	}, [groups]);
+   // Product cards from the pages loaded so far; cart rows outside them fall back to their own warehouse_detail.
+   // A card is in several sklads, so the cart line's own sklad is shown, not the card's.
+   const warehouseById = useMemo(() => {
+      const map = new Map<number, WarehouseAllListItem>();
+      for (const g of groups) {
+         for (const pc of g.product_categories) {
+            for (const row of pc.warehouses) map.set(catalogCardId(row), row);
+         }
+      }
+      return map;
+   }, [groups]);
 
-	const brandVariants = useMemo(() => buildBrandVariants(groups).filter((b) => b.variants.length > 0), [groups]);
+   const brandVariants = useMemo(() => buildBrandVariants(groups).filter((b) => b.variants.length > 0), [groups]);
 
-	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.map((b) => ({ value: String(b.id), label: b.name })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
+   const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+      const result = await brandService.list({ search: search || undefined, page, limit: 20 });
+      return {
+         options: result.results.map((b) => ({ value: String(b.id), label: b.name })),
+         hasMore: result.pagination.currentPage < result.pagination.lastPage,
+      };
+   };
 
-	const loadCategoryOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await productCategoryService.list({
-			search: search || undefined,
-			page,
-			limit: 20,
-			brand: brandFilter ? Number(brandFilter) : undefined,
-		});
-		return {
-			options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
+   const loadCategoryOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+      const result = await productCategoryService.list({
+         search: search || undefined,
+         page,
+         limit: 20,
+         brand: brandFilter ? Number(brandFilter) : undefined,
+      });
+      return {
+         options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
+         hasMore: result.pagination.currentPage < result.pagination.lastPage,
+      };
+   };
 
-	const loadConsignorOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await consignorService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
+   const loadConsignorOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+      const result = await consignorService.list({ search: search || undefined, page, limit: 20 });
+      return {
+         options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
+         hasMore: result.pagination.currentPage < result.pagination.lastPage,
+      };
+   };
 
-	function handleClear() {
-		setBrandFilter('');
-		setCategoryFilter('');
-	}
+   function handleClear() {
+      setBrandFilter('');
+      setCategoryFilter('');
+   }
 
-	const { data: selectedConsignor } = useConsignorQuery(consignorId ? Number(consignorId) : undefined);
+   const { data: selectedConsignor } = useConsignorQuery(consignorId ? Number(consignorId) : undefined);
 
-	function handleConsignorChange(value: string) {
-		setConsignorId(value);
-	}
+   function handleConsignorChange(value: string) {
+      setConsignorId(value);
+   }
 
-	const { data: myDebtData } = useMyDebtListQuery({ consignor: Number(consignorId), limit: 1 }, Boolean(consignorId));
-	const consignorDebt = consignorId ? myDebtData?.results?.[0] : undefined;
+   const { data: myDebtData } = useMyDebtListQuery({ consignor: Number(consignorId), limit: 1 }, Boolean(consignorId));
+   const consignorDebt = consignorId ? myDebtData?.results?.[0] : undefined;
 
-	const { data: cartData, isLoading: isCartLoading } = useImportCartDraftListQuery(
-		{ consignor: consignorId ? Number(consignorId) : undefined, is_active: true },
-		Boolean(consignorId),
-	);
-	const cartItems = cartData?.results ?? [];
+   const { data: cartData, isLoading: isCartLoading } = useImportCartDraftListQuery(
+      { consignor: consignorId ? Number(consignorId) : undefined, is_active: true },
+      Boolean(consignorId),
+   );
+   const cartItems = cartData?.results ?? [];
 
-	const deleteCartMutation = useDeleteImportCartDraftMutation();
+   const deleteCartMutation = useDeleteImportCartDraftMutation();
 
-	const cartTotalCount = cartItems.reduce((sum, item) => sum + item.count, 0);
-	const cartTotalSum = cartItems.reduce(
-		(sum, item) => sum + (Number(item.total_price_dollar) || item.count * Number(item.price_dollar)),
-		0,
-	);
+   const cartTotalCount = cartItems.reduce((sum, item) => sum + item.count, 0);
+   const cartTotalSum = cartItems.reduce(
+      (sum, item) => sum + (Number(item.total_price_dollar) || item.count * Number(item.price_dollar)),
+      0,
+   );
 
-	function handleRemoveCartItem(id: number) {
-		deleteCartMutation.mutate(id);
-	}
+   function handleRemoveCartItem(id: number) {
+      deleteCartMutation.mutate(id);
+   }
 
-	function handleImportConfirmed() {
-		setConsignorId('');
-	}
+   function handleImportConfirmed() {
+      setConsignorId('');
+   }
 
-	return (
-		<>
-			<PageHeader
-				title='Import qilish'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Import qilish', active: true },
-				]}
-			/>
+   return (
+      <>
+         <PageHeader
+            title='Import qilish'
+            breadcrumb={[
+               { label: 'Asosiy', path: '/' },
+               { label: 'Import qilish', active: true },
+            ]}
+         />
 
-			<div className='-mx-2.5 flex flex-wrap'>
-				<div className='w-full px-2.5 lg:w-1/2'>
-					<Panel title='Ombordagi mahsulotlar' onReload={() => refetch()}>
-						<div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
-							<div className='w-full px-2.5 sm:w-1/2'>
-								<label className='mb-1 block text-xs font-semibold text-ca-heading'>
-									Modelni tanlang:
-								</label>
-								<Combobox
-									value={brandFilter}
-									onChange={(value) => {
-										setBrandFilter(value);
-										setCategoryFilter('');
-									}}
-									loadOptions={loadBrandOptions}
-									placeholder='Modelni tanlang'
-									clearable
-								/>
-							</div>
-							<div className='w-full px-2.5 sm:w-1/2'>
-								<label className='mb-1 block text-xs font-semibold text-ca-heading'>Kategoriya:</label>
-								<div className='flex gap-2'>
-									<div className='flex-1'>
-										<Combobox
-											value={categoryFilter}
-											onChange={(value) => setCategoryFilter(value)}
-											loadOptions={loadCategoryOptions}
-											disabled={!brandFilter}
-											placeholder={brandFilter ? 'Kategoriyani tanlang' : 'Avval modelni tanlang'}
-											clearable
-										/>
-									</div>
-									<Button
-										type='button'
-										variant='default'
-										size='sm'
-										disabled={!brandFilter && !categoryFilter}
-										onClick={handleClear}
-									>
-										Tozalash
-									</Button>
-								</div>
-							</div>
-						</div>
+         <div className='-mx-2.5 flex flex-wrap'>
+            <div className='w-full px-2.5 lg:w-1/2'>
+               <Panel title='Ombordagi mahsulotlar' onReload={() => refetch()}>
+                  <div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
+                     <div className='w-full px-2.5 sm:w-1/2'>
+                        <label className='mb-1 block text-xs font-semibold text-ca-heading'>
+                           Modelni tanlang:
+                        </label>
+                        <Combobox
+                           value={brandFilter}
+                           onChange={(value) => {
+                              setBrandFilter(value);
+                              setCategoryFilter('');
+                           }}
+                           loadOptions={loadBrandOptions}
+                           placeholder='Modelni tanlang'
+                           clearable
+                        />
+                     </div>
+                     <div className='w-full px-2.5 sm:w-1/2'>
+                        <label className='mb-1 block text-xs font-semibold text-ca-heading'>Kategoriya:</label>
+                        <div className='flex gap-2'>
+                           <div className='flex-1'>
+                              <Combobox
+                                 value={categoryFilter}
+                                 onChange={(value) => setCategoryFilter(value)}
+                                 loadOptions={loadCategoryOptions}
+                                 disabled={!brandFilter}
+                                 placeholder={brandFilter ? 'Kategoriyani tanlang' : 'Avval modelni tanlang'}
+                                 clearable
+                              />
+                           </div>
+                           <Button
+                              type='button'
+                              variant='default'
+                              size='sm'
+                              disabled={!brandFilter && !categoryFilter}
+                              onClick={handleClear}
+                           >
+                              Tozalash
+                           </Button>
+                        </div>
+                     </div>
+                  </div>
 
-						<div className='mb-2 flex justify-end'>
-							<ColumnVisibilityMenu state={productCols} />
-						</div>
+                  <div className='mb-2 flex justify-end'>
+                     <ColumnVisibilityMenu state={productCols} />
+                  </div>
 
-						<div className='max-h-[calc(100vh-320px)] min-h-[300px] overflow-auto' onScroll={handleScroll}>
-							<Table>
-								<TableHeader className='sticky top-0 z-10'>
-									<TableRow>
-										<TableHead className='bg-ca-theme text-white'>#</TableHead>
-										{productCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
-										{productCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
-										{productCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>}
-										{productCols.isVisible('stock') && <TableHead className='bg-ca-theme text-white'>Sklad soni</TableHead>}
-										{productCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{(isLoading || (isFetching && !isFetchingNextPage)) && (
-										<TableRow>
-											<TableCell colSpan={productCols.visibleCount} className='text-center'>
-												Yuklanmoqda...
-											</TableCell>
-										</TableRow>
-									)}
-									{!isLoading && isError && (
-										<TableRow>
-											<TableCell colSpan={productCols.visibleCount} className='text-center text-ca-red'>
-												<FaExclamationTriangle className='mr-1.5 inline' />{' '}
-												{getApiErrorMessage(error, 'Xatolik yuz berdi')}
-											</TableCell>
-										</TableRow>
-									)}
-									{!isLoading && !isFetching && !isError && brandVariants.length === 0 && (
-										<TableRow>
-											<TableCell colSpan={productCols.visibleCount} className='text-center'>
-												Ma'lumot topilmadi
-											</TableCell>
-										</TableRow>
-									)}
-									{!isLoading &&
-										!isError &&
-										brandVariants.map((brand) => {
-											let rowIndex = 0;
-											return (
-												<Fragment key={brand.brandId}>
-													<TableRow>
-														<TableCell
-															colSpan={productCols.visibleCount}
-															className='bg-cyan-100 font-bold text-ca-red'
-														>
-															{brand.brandName}
-														</TableCell>
-													</TableRow>
-													{brand.variants.map((variant, vIndex) => {
-														rowIndex += 1;
-														const stockCount = variant.rows.reduce(
-															(s, r) => s + r.count,
-															0,
-														);
-														const disabled = !consignorId || !canWrite;
-														return (
-															<TableRow
-																key={`${brand.brandId}-${vIndex}`}
-																onClick={() => !disabled && setSelectedVariant(variant)}
-																className={cn(
-																	'bg-red-50',
-																	disabled
-																		? 'cursor-not-allowed opacity-50'
-																		: 'cursor-pointer hover:bg-red-100',
-																)}
-															>
-																<TableCell>{rowIndex}</TableCell>
-																{productCols.isVisible('brand') && <TableCell>{variant.brandName}</TableCell>}
-																{productCols.isVisible('category') && <TableCell>{variant.categoryName}</TableCell>}
-																{productCols.isVisible('size') && <TableCell>{formatNumber(variant.size)}</TableCell>}
-																{productCols.isVisible('stock') && (
-																	<TableCell className='font-semibold'>
-																		{formatNumber(stockCount)}
-																	</TableCell>
-																)}
-																{productCols.isVisible('type') && <TableCell>{variant.typeName ?? ''}</TableCell>}
-															</TableRow>
-														);
-													})}
-												</Fragment>
-											);
-										})}
-								{isFetchingNextPage && (
-									<TableRow>
-										<TableCell colSpan={productCols.visibleCount} className='text-center'>
-											Yuklanmoqda...
-										</TableCell>
-									</TableRow>
-								)}
-								</TableBody>
-							</Table>
-						</div>
-					</Panel>
-				</div>
+                  <div className='max-h-[calc(100vh-320px)] min-h-[300px] overflow-auto' onScroll={handleScroll}>
+                     <Table>
+                        <TableHeader className='sticky top-0 z-10'>
+                           <TableRow>
+                              <TableHead className='bg-ca-theme text-white'>#</TableHead>
+                              {productCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+                              {productCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+                              {productCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>}
+                              {productCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
+                              {productCols.isVisible('stock') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
 
-				<div className='w-full px-2.5 lg:w-1/2'>
-					<Panel
-						title='Mening buyurtmam'
-						actions={
-							<OpenDialogButton
-								element={(props) => <Button {...props} />}
-								elementProps={buttonProps("+ Yuk jo'natuvchi qo'shish", 'warning', 'xs')}
-								dialog={ConsignorFormModal}
-								dialogProps={{ mode: 'create' as const }}
-							/>
-						}
-					>
-						<div className='mb-4 flex flex-wrap items-center gap-3'>
-							<div className='min-w-[200px] flex-1'>
-								<Combobox
-									value={consignorId}
-									onChange={handleConsignorChange}
-									loadOptions={loadConsignorOptions}
-									selectedLabel={selectedConsignor?.name}
-									placeholder="Yuk jo'natuvchini tanlang"
-									clearable
-								/>
-							</div>
-							{consignorId && (
-								<div className='flex items-center gap-2 text-xs whitespace-nowrap text-ca-heading'>
-									Qarzim ($):{' '}
-									<span className='font-bold text-ca-red'>
-										{formatNumber(consignorDebt?.total_debt ?? 0, 2)}
-									</span>
-									{canWrite && companyId && (
-										<OpenDialogButton
-											element={(props) => <Button {...props} />}
-											elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
-											dialog={MyDebtPayModal}
-											dialogProps={{
-												companyId,
-												consignorId: Number(consignorId),
-												consignorName: selectedConsignor?.name,
-												currentDebt: Number(consignorDebt?.total_debt ?? 0),
-											}}
-										/>
-									)}
-								</div>
-							)}
-						</div>
+                           </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                           {(isLoading || (isFetching && !isFetchingNextPage)) && (
+                              <TableRow>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center'>
+                                    Yuklanmoqda...
+                                 </TableCell>
+                              </TableRow>
+                           )}
+                           {!isLoading && isError && (
+                              <TableRow>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center text-ca-red'>
+                                    <FaExclamationTriangle className='mr-1.5 inline' />{' '}
+                                    {getApiErrorMessage(error, 'Xatolik yuz berdi')}
+                                 </TableCell>
+                              </TableRow>
+                           )}
+                           {!isLoading && !isFetching && !isError && brandVariants.length === 0 && (
+                              <TableRow>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center'>
+                                    Ma'lumot topilmadi
+                                 </TableCell>
+                              </TableRow>
+                           )}
+                           {!isLoading &&
+                              !isError &&
+                              brandVariants.map((brand) => {
+                                 let rowIndex = 0;
+                                 return (
+                                    <Fragment key={brand.brandId}>
+                                       <TableRow>
+                                          <TableCell
+                                             colSpan={productCols.visibleCount}
+                                             className='bg-cyan-100 font-bold text-ca-red'
+                                          >
+                                             {brand.brandName}
+                                          </TableCell>
+                                       </TableRow>
+                                       {brand.variants.map((variant, vIndex) => {
+                                          rowIndex += 1;
+                                          const stockCount = variant.rows.reduce(
+                                             (s, r) => s + r.count,
+                                             0,
+                                          );
+                                          const disabled = !consignorId || !canWrite;
+                                          return (
+                                             <TableRow
+                                                key={`${brand.brandId}-${vIndex}`}
+                                                onClick={() => !disabled && setSelectedVariant(variant)}
+                                                className={cn(
+                                                   'bg-red-50',
+                                                   disabled
+                                                      ? 'cursor-not-allowed opacity-50'
+                                                      : 'cursor-pointer hover:bg-red-100',
+                                                )}
+                                             >
+                                                <TableCell>{rowIndex}</TableCell>
+                                                {productCols.isVisible('brand') && <TableCell>{variant.brandName}</TableCell>}
+                                                {productCols.isVisible('category') && <TableCell>{variant.categoryName}</TableCell>}
+                                                {productCols.isVisible('size') && <TableCell>{formatNumber(variant.size)}</TableCell>}
 
-						<div className='mb-2 flex justify-end'>
-							<ColumnVisibilityMenu state={cartCols} />
-						</div>
+                                                {productCols.isVisible('type') && <TableCell>{variant.typeName ?? ''}</TableCell>}
+                                                {productCols.isVisible('stock') && (
+                                                   <TableCell className='font-semibold'>
+                                                      {formatNumber(stockCount)}
+                                                   </TableCell>
+                                                )}
+                                             </TableRow>
+                                          );
+                                       })}
+                                    </Fragment>
+                                 );
+                              })}
+                           {isFetchingNextPage && (
+                              <TableRow>
+                                 <TableCell colSpan={productCols.visibleCount} className='text-center'>
+                                    Yuklanmoqda...
+                                 </TableCell>
+                              </TableRow>
+                           )}
+                        </TableBody>
+                     </Table>
+                  </div>
+               </Panel>
+            </div>
 
-						<div className='overflow-x-auto'>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead className='bg-ca-theme text-white'>#</TableHead>
-										{cartCols.isVisible('location') && <TableHead className='bg-ca-theme text-white'>Joy</TableHead>}
-										{cartCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
-										{cartCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
-										{cartCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
-										{cartCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
-										{cartCols.isVisible('price') && <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>}
-										{cartCols.isVisible('count') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
-										{cartCols.isVisible('total') && <TableHead className='bg-ca-theme text-white'>Umum.narxi ($)</TableHead>}
-										<TableHead className='bg-ca-theme text-white' />
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{!consignorId && (
-										<TableRow>
-											<TableCell colSpan={cartCols.visibleCount} className='text-center'>
-												Yuk jo'natuvchini tanlang
-											</TableCell>
-										</TableRow>
-									)}
-									{consignorId && isCartLoading && (
-										<TableRow>
-											<TableCell colSpan={cartCols.visibleCount} className='text-center'>
-												Yuklanmoqda...
-											</TableCell>
-										</TableRow>
-									)}
-									{consignorId && !isCartLoading && cartItems.length === 0 && (
-										<TableRow>
-											<TableCell colSpan={cartCols.visibleCount} className='text-center'>
-												Import savati bo'sh
-											</TableCell>
-										</TableRow>
-									)}
-									{consignorId &&
-										!isCartLoading &&
-										cartItems.map((item, index) => {
-											const warehouse = warehouseById.get(item.warehouse);
-											const totalPrice =
-												Number(item.total_price_dollar) ||
-												item.count * Number(item.price_dollar);
-											return (
-												<TableRow key={item.id} className='bg-red-50'>
-													<TableCell>{index + 1}</TableCell>
-													{cartCols.isVisible('location') && (
-														<TableCell>
-															{item.type_sklad_detail?.name ??
-																item.warehouse_detail?.type_sklad_name ??
-																DEFAULT_LOCATION_LABEL}
-														</TableCell>
-													)}
-													{cartCols.isVisible('brand') && (
-														<TableCell>
-															{warehouse?.brand_name ??
-																item.warehouse_detail?.brand_name ??
-																'-'}
-														</TableCell>
-													)}
-													{cartCols.isVisible('category') && (
-														<TableCell>
-															{warehouse?.product_category_name ??
-																item.warehouse_detail?.product_category_name ??
-																'-'}
-														</TableCell>
-													)}
-													{cartCols.isVisible('size') && (
-														<TableCell>
-															{formatNumber(
-																warehouse?.size ?? item.warehouse_detail?.size ?? '',
-															)}
-														</TableCell>
-													)}
-													{cartCols.isVisible('type') && (
-														<TableCell>
-															{warehouse?.type_name ?? item.warehouse_detail?.type_name ?? ''}
-														</TableCell>
-													)}
-													{cartCols.isVisible('price') && (
-														<TableCell className='font-semibold text-ca-green'>
-															{formatNumber(item.price_dollar, 2)} $
-														</TableCell>
-													)}
-													{cartCols.isVisible('count') && <TableCell>{formatNumber(item.count)}</TableCell>}
-													{cartCols.isVisible('total') && (
-														<TableCell className='font-semibold'>
-															{formatNumber(totalPrice, 2)} $
-														</TableCell>
-													)}
-													<TableCell>
-														{canWrite && (
-															<Button
-																type='button'
-																{...buttonProps(<FaTrash />, 'danger', 'icon')}
-																aria-label="O'chirish"
-																onClick={() => handleRemoveCartItem(item.id)}
-															/>
-														)}
-													</TableCell>
-												</TableRow>
-											);
-										})}
-									{consignorId && !isCartLoading && cartItems.length > 0 && (
-										<TableRow className='bg-ca-heading dark:bg-ca-header'>
-											<TableCell className='bg-ca-heading dark:bg-ca-header text-white' colSpan={cartLabelSpan}>
-												Jami
-											</TableCell>
-											{cartCols.isVisible('count') && (
-												<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
-													{formatNumber(cartTotalCount)}
-												</TableCell>
-											)}
-											{cartCols.isVisible('total') && (
-												<TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
-													{formatNumber(cartTotalSum, 2)} $
-												</TableCell>
-											)}
-											<TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
-										</TableRow>
-									)}
-								</TableBody>
-							</Table>
-						</div>
+            <div className='w-full px-2.5 lg:w-1/2'>
+               <Panel
+                  title='Mening buyurtmam'
+                  actions={
+                     <OpenDialogButton
+                        element={(props) => <Button {...props} />}
+                        elementProps={buttonProps("+ Yuk jo'natuvchi qo'shish", 'warning', 'xs')}
+                        dialog={ConsignorFormModal}
+                        dialogProps={{ mode: 'create' as const }}
+                     />
+                  }
+               >
+                  <div className='mb-4 flex flex-wrap items-center gap-3'>
+                     <div className='min-w-[200px] flex-1'>
+                        <Combobox
+                           value={consignorId}
+                           onChange={handleConsignorChange}
+                           loadOptions={loadConsignorOptions}
+                           selectedLabel={selectedConsignor?.name}
+                           placeholder="Yuk jo'natuvchini tanlang"
+                           clearable
+                        />
+                     </div>
+                     {consignorId && (
+                        <div className='flex items-center gap-2 text-xs whitespace-nowrap text-ca-heading'>
+                           Qarzim ($):{' '}
+                           <span className='font-bold text-ca-red'>
+                              {formatNumber(consignorDebt?.total_debt ?? 0, 2)}
+                           </span>
+                           {canWrite && companyId && (
+                              <OpenDialogButton
+                                 element={(props) => <Button {...props} />}
+                                 elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
+                                 dialog={MyDebtPayModal}
+                                 dialogProps={{
+                                    companyId,
+                                    consignorId: Number(consignorId),
+                                    consignorName: selectedConsignor?.name,
+                                    currentDebt: Number(consignorDebt?.total_debt ?? 0),
+                                 }}
+                              />
+                           )}
+                        </div>
+                     )}
+                  </div>
 
-						{canWrite && (
-							<div className='mt-4 flex gap-2'>
-								<Button
-									type='button'
-									variant='white'
-									className='flex-1'
-									size='lg'
-									disabled={!consignorId || cartItems.length === 0}
-									onClick={() => setClearCartOpen(true)}
-								>
-									Bekor qilish
-								</Button>
-								<Button
-									type='button'
-									variant='danger'
-									className='flex-1'
-									size='lg'
-									disabled={!consignorId || cartItems.length === 0}
-									onClick={() => setConfirmImportOpen(true)}
-								>
-									Import qilish
-								</Button>
-							</div>
-						)}
-					</Panel>
-				</div>
-			</div>
+                  <div className='mb-2 flex justify-end'>
+                     <ColumnVisibilityMenu state={cartCols} />
+                  </div>
 
-			{selectedVariant && companyId && (
-				<AddToImportCartModal
-					open={Boolean(selectedVariant)}
-					setOpen={(open) => !open && setSelectedVariant(null)}
-					variant={selectedVariant}
-					companyId={companyId}
-					consignorId={Number(consignorId)}
-				/>
-			)}
+                  <div className='overflow-x-auto'>
+                     <Table>
+                        <TableHeader>
+                           <TableRow>
+                              <TableHead className='bg-ca-theme text-white'>#</TableHead>
+                              {cartCols.isVisible('location') && <TableHead className='bg-ca-theme text-white'>Joy</TableHead>}
+                              {cartCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+                              {cartCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
+                              {cartCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
+                              {cartCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
+                              {cartCols.isVisible('price') && <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>}
+                              {cartCols.isVisible('count') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
+                              {cartCols.isVisible('total') && <TableHead className='bg-ca-theme text-white'>Umum.narxi ($)</TableHead>}
+                              <TableHead className='bg-ca-theme text-white' />
+                           </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                           {!consignorId && (
+                              <TableRow>
+                                 <TableCell colSpan={cartCols.visibleCount} className='text-center'>
+                                    Yuk jo'natuvchini tanlang
+                                 </TableCell>
+                              </TableRow>
+                           )}
+                           {consignorId && isCartLoading && (
+                              <TableRow>
+                                 <TableCell colSpan={cartCols.visibleCount} className='text-center'>
+                                    Yuklanmoqda...
+                                 </TableCell>
+                              </TableRow>
+                           )}
+                           {consignorId && !isCartLoading && cartItems.length === 0 && (
+                              <TableRow>
+                                 <TableCell colSpan={cartCols.visibleCount} className='text-center'>
+                                    Import savati bo'sh
+                                 </TableCell>
+                              </TableRow>
+                           )}
+                           {consignorId &&
+                              !isCartLoading &&
+                              cartItems.map((item, index) => {
+                                 const warehouse = warehouseById.get(item.warehouse);
+                                 const totalPrice =
+                                    Number(item.total_price_dollar) ||
+                                    item.count * Number(item.price_dollar);
+                                 return (
+                                    <TableRow key={item.id} className='bg-red-50'>
+                                       <TableCell>{index + 1}</TableCell>
+                                       {cartCols.isVisible('location') && (
+                                          <TableCell>
+                                             {item.type_sklad_detail?.name ??
+                                                item.warehouse_detail?.type_sklad_name ??
+                                                DEFAULT_LOCATION_LABEL}
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('brand') && (
+                                          <TableCell>
+                                             {warehouse?.brand_name ??
+                                                item.warehouse_detail?.brand_name ??
+                                                '-'}
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('category') && (
+                                          <TableCell>
+                                             {warehouse?.product_category_name ??
+                                                item.warehouse_detail?.product_category_name ??
+                                                '-'}
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('size') && (
+                                          <TableCell>
+                                             {formatNumber(
+                                                warehouse?.size ?? item.warehouse_detail?.size ?? '',
+                                             )}
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('type') && (
+                                          <TableCell>
+                                             {warehouse?.type_name ?? item.warehouse_detail?.type_name ?? ''}
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('price') && (
+                                          <TableCell className='font-semibold text-ca-green'>
+                                             {formatNumber(item.price_dollar, 2)} $
+                                          </TableCell>
+                                       )}
+                                       {cartCols.isVisible('count') && <TableCell>{formatNumber(item.count)}</TableCell>}
+                                       {cartCols.isVisible('total') && (
+                                          <TableCell className='font-semibold'>
+                                             {formatNumber(totalPrice, 2)} $
+                                          </TableCell>
+                                       )}
+                                       <TableCell>
+                                          {canWrite && (
+                                             <Button
+                                                type='button'
+                                                {...buttonProps(<FaTrash />, 'danger', 'icon')}
+                                                aria-label="O'chirish"
+                                                onClick={() => handleRemoveCartItem(item.id)}
+                                             />
+                                          )}
+                                       </TableCell>
+                                    </TableRow>
+                                 );
+                              })}
+                           {consignorId && !isCartLoading && cartItems.length > 0 && (
+                              <TableRow className='bg-ca-heading dark:bg-ca-header'>
+                                 <TableCell className='bg-ca-heading dark:bg-ca-header text-white' colSpan={cartLabelSpan}>
+                                    Jami
+                                 </TableCell>
+                                 {cartCols.isVisible('count') && (
+                                    <TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
+                                       {formatNumber(cartTotalCount)}
+                                    </TableCell>
+                                 )}
+                                 {cartCols.isVisible('total') && (
+                                    <TableCell className='bg-ca-heading dark:bg-ca-header font-semibold text-white'>
+                                       {formatNumber(cartTotalSum, 2)} $
+                                    </TableCell>
+                                 )}
+                                 <TableCell className='bg-ca-heading dark:bg-ca-header text-white' />
+                              </TableRow>
+                           )}
+                        </TableBody>
+                     </Table>
+                  </div>
 
-			{confirmImportOpen && companyId && consignorId && (
-				<ConfirmImportModal
-					open={confirmImportOpen}
-					setOpen={setConfirmImportOpen}
-					companyId={companyId}
-					consignorId={Number(consignorId)}
-					cartCount={cartTotalCount}
-					allImportDollar={cartTotalSum}
-					onConfirmed={handleImportConfirmed}
-				/>
-			)}
+                  {canWrite && (
+                     <div className='mt-4 flex gap-2'>
+                        <Button
+                           type='button'
+                           variant='white'
+                           className='flex-1'
+                           size='lg'
+                           disabled={!consignorId || cartItems.length === 0}
+                           onClick={() => setClearCartOpen(true)}
+                        >
+                           Bekor qilish
+                        </Button>
+                        <Button
+                           type='button'
+                           variant='danger'
+                           className='flex-1'
+                           size='lg'
+                           disabled={!consignorId || cartItems.length === 0}
+                           onClick={() => setConfirmImportOpen(true)}
+                        >
+                           Import qilish
+                        </Button>
+                     </div>
+                  )}
+               </Panel>
+            </div>
+         </div>
 
-			{clearCartOpen && companyId && consignorId && (
-				<ClearImportCartConfirmModal
-					open={clearCartOpen}
-					setOpen={setClearCartOpen}
-					companyId={companyId}
-					consignorId={Number(consignorId)}
-				/>
-			)}
-		</>
-	);
+         {selectedVariant && companyId && (
+            <AddToImportCartModal
+               open={Boolean(selectedVariant)}
+               setOpen={(open) => !open && setSelectedVariant(null)}
+               variant={selectedVariant}
+               companyId={companyId}
+               consignorId={Number(consignorId)}
+            />
+         )}
+
+         {confirmImportOpen && companyId && consignorId && (
+            <ConfirmImportModal
+               open={confirmImportOpen}
+               setOpen={setConfirmImportOpen}
+               companyId={companyId}
+               consignorId={Number(consignorId)}
+               cartCount={cartTotalCount}
+               allImportDollar={cartTotalSum}
+               onConfirmed={handleImportConfirmed}
+            />
+         )}
+
+         {clearCartOpen && companyId && consignorId && (
+            <ClearImportCartConfirmModal
+               open={clearCartOpen}
+               setOpen={setClearCartOpen}
+               companyId={companyId}
+               consignorId={Number(consignorId)}
+            />
+         )}
+      </>
+   );
 }

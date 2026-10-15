@@ -1,7 +1,13 @@
 import { useEffect } from 'react';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import { Button, Combobox, type ComboboxLoadParams, type ComboboxLoadResult, PriceInput } from '@/components/ui';
+import {
+	Button,
+	Combobox,
+	type ComboboxLoadParams,
+	type ComboboxLoadResult,
+	PriceInput,
+} from '@/components/ui';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
 import { brandService } from '@/services/brand/brand.service';
 import { useBrandSizeListQuery } from '@/services/brand-size/brand-size.queries';
@@ -10,7 +16,7 @@ import { useProductCategoryListQuery } from '@/services/product-category/product
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import { skladTypeService } from '@/services/sklad-type/sklad-type.service';
-import { useSkladProductByPairQuery } from '@/services/sklad-product/sklad-product.queries';
+import { useSkladProductByPairQuery, useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
 import type { SkladProduct } from '@/services/sklad-product/sklad-product.types';
 import { useWarehouseListQuery } from '@/services/warehouse/warehouse.queries';
 import { formatNumber } from '@/lib/number';
@@ -49,6 +55,11 @@ interface WarehouseProductRowProps {
 	showRemove?: boolean;
 	onRemove?: () => void;
 	companyId?: number;
+	/**
+	 * Skladlar chosen once for the whole form (price catalog create form). When set, the row has no sklad
+	 * field of its own and the product is added to every one of them.
+	 */
+	skladIds?: string[];
 	/** SkladProduct id that doesn't count as a duplicate (the row being edited). */
 	excludeId?: number;
 	onDuplicateChange?: (key: string | number, isDuplicate: boolean) => void;
@@ -80,6 +91,7 @@ export default function WarehouseProductRow({
 	showRemove,
 	onRemove,
 	companyId,
+	skladIds,
 	excludeId,
 	onDuplicateChange,
 	showCount,
@@ -88,7 +100,11 @@ export default function WarehouseProductRow({
 	requireCatalogMatch,
 	onCatalogMatchChange,
 }: WarehouseProductRowProps) {
-	const typeSkladId = value.type_sklad ? Number(value.type_sklad) : undefined;
+	const multiSklad = skladIds !== undefined;
+	const selectedSklads = skladIds ?? (value.type_sklad ? [value.type_sklad] : []);
+	// Model/nomi/o'lcham lists are narrowed by the sklad only while exactly one is picked.
+	const typeSkladId = selectedSklads.length === 1 ? Number(selectedSklads[0]) : undefined;
+	const hasSklad = selectedSklads.length > 0;
 
 	const { data: brandData } = useBrandListQuery({ type_sklad: typeSkladId, limit: 100 });
 	const brandNameById = new Map((brandData?.results ?? []).map((b) => [b.id, b.name]));
@@ -121,7 +137,7 @@ export default function WarehouseProductRow({
 	const lineTotal = (Number(value.count) || 0) * (Number(value.price) || 0);
 
 	// A variant is a product card (model, nomi, o'lcham, tip); its stock in the chosen sklad is a SkladProduct.
-	const isVariantComplete = Boolean(companyId && brandId && categoryId && typeSkladId && value.brandSize);
+	const isVariantComplete = Boolean(companyId && brandId && categoryId && hasSklad && value.brandSize);
 	const { data: cardData } = useWarehouseListQuery(
 		{
 			brand: brandId,
@@ -135,11 +151,27 @@ export default function WarehouseProductRow({
 		? cardData?.results.find((w) => Number(w.size) === value.size)
 		: undefined;
 	const { data: stockData } = useSkladProductByPairQuery(
-		isVariantComplete ? catalogMatch?.id : undefined,
+		isVariantComplete && !multiSklad ? catalogMatch?.id : undefined,
 		typeSkladId,
 	);
 	const stock = catalogMatch && stockData ? stockData : undefined;
-	const duplicateItem = stock && (resolveStock || stock.id !== excludeId) ? stock : undefined;
+	// With several skladlar, the ones that already hold this product are found from its stock rows.
+	const { data: cardStocksData } = useSkladProductListQuery(
+		{ warehouse: catalogMatch?.id, limit: 100 },
+		Boolean(multiSklad && isVariantComplete && catalogMatch),
+	);
+	const duplicateSkladNames = multiSklad
+		? (cardStocksData?.results ?? [])
+				.filter((s) => selectedSklads.includes(String(s.type_sklad)))
+				.map((s) => s.type_sklad_detail?.name ?? `#${s.type_sklad}`)
+		: [];
+	const duplicateItem = multiSklad
+		? duplicateSkladNames.length > 0
+			? cardStocksData?.results[0]
+			: undefined
+		: stock && (resolveStock || stock.id !== excludeId)
+			? stock
+			: undefined;
 
 	useEffect(() => {
 		if (requireCatalogMatch) {
@@ -158,7 +190,7 @@ export default function WarehouseProductRow({
 	}, [duplicateItem, value.key, resolveStock]);
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		if (!typeSkladId) return { options: [], hasMore: false };
+		if (!hasSklad) return { options: [], hasMore: false };
 		const result = await brandService.list({
 			type_sklad: typeSkladId,
 			search: search || undefined,
@@ -222,20 +254,22 @@ export default function WarehouseProductRow({
 	return (
 		<div className='mb-3'>
 			<div className='flex flex-wrap items-start gap-3'>
-				<div className='min-w-37.5 flex-1'>
-					<label className='mb-1 block text-xs font-semibold text-ca-heading'>
-						Sklad <span className='text-ca-red'>*</span>
-					</label>
-					<Combobox
-						value={value.type_sklad}
-						onChange={handleSkladChange}
-						loadOptions={loadSkladTypeOptions}
-						selectedLabel={skladTypeNameById.get(Number(value.type_sklad))}
-						placeholder='Tanlang...'
-						searchPlaceholder='Qidirish...'
-						clearable
-					/>
-				</div>
+				{!multiSklad && (
+					<div className='min-w-37.5 flex-1'>
+						<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+							Sklad <span className='text-ca-red'>*</span>
+						</label>
+						<Combobox
+							value={value.type_sklad}
+							onChange={handleSkladChange}
+							loadOptions={loadSkladTypeOptions}
+							selectedLabel={skladTypeNameById.get(Number(value.type_sklad))}
+							placeholder='Tanlang...'
+							searchPlaceholder='Qidirish...'
+							clearable
+						/>
+					</div>
+				)}
 				<div className='min-w-45 flex-1'>
 					<label className='mb-1 block text-xs font-semibold text-ca-heading'>
 						Model <span className='text-ca-red'>*</span>
@@ -247,7 +281,7 @@ export default function WarehouseProductRow({
 						selectedLabel={brandNameById.get(Number(value.brand))}
 						placeholder='Tanlang...'
 						searchPlaceholder='Model qidirish...'
-						disabled={!value.type_sklad}
+						disabled={!hasSklad}
 					/>
 				</div>
 				<div className='min-w-45 flex-1'>
@@ -354,7 +388,11 @@ export default function WarehouseProductRow({
 				))}
 
 			{onDuplicateChange && !resolveStock && duplicateItem && (
-				<p className='mt-1 text-[11px] font-semibold text-ca-red'>Bu mahsulot ushbu skladga oldin qo'shilgan</p>
+				<p className='mt-1 text-[11px] font-semibold text-ca-red'>
+					{multiSklad
+						? `Bu mahsulot oldin qo'shilgan: ${duplicateSkladNames.join(', ')}`
+						: "Bu mahsulot ushbu skladga oldin qo'shilgan"}
+				</p>
 			)}
 
 			{requireCatalogMatch && isVariantComplete && !catalogMatch && (

@@ -6,6 +6,8 @@ import type {
   WarehouseAllListBrandGroup,
   WarehouseAllListParams,
   WarehouseAllListTotal,
+  WarehouseBulkCreatePayload,
+  WarehouseBulkCreateResponse,
   WarehouseEditRealPricePayload,
   WarehouseListParams,
   WarehousePayload,
@@ -78,6 +80,11 @@ export const warehouseService = {
   },
   create: async (payload: WarehousePayload) => {
     const { data } = await apiClient.post<Warehouse>('/warehouse/', payload)
+    return data
+  },
+  // Adds products to one or several skladlar in a single transaction; the backend finds or creates the cards.
+  bulkCreate: async (payload: WarehouseBulkCreatePayload) => {
+    const { data } = await apiClient.post<WarehouseBulkCreateResponse>('/warehouse/bulk-create/', payload)
     return data
   },
   update: async (id: number, payload: WarehousePayload) => {

@@ -5,40 +5,40 @@ import { Button } from '@/components/ui/Button';
 import { useRef, useState } from 'react';
 
 export function Panel({
-	title,
-	children,
-	actions,
-	toolbar,
-	footer,
-	className = '',
-	bodyClassName = '',
-	headerClassName = '',
-	onReload,
+   title,
+   children,
+   actions,
+   toolbar,
+   footer,
+   className = '',
+   bodyClassName = '',
+   headerClassName = '',
+   onReload,
 }: PanelProps) {
-	const [collapsed, setCollapsed] = useState(false);
-	const [expanded, setExpanded] = useState(false);
-	const itemRef = useRef<HTMLDivElement>(null);
-	const onExpand = () => setExpanded((e) => !e);
+   const [collapsed, setCollapsed] = useState(false);
+   const [expanded, setExpanded] = useState(false);
+   const itemRef = useRef<HTMLDivElement>(null);
+   const onExpand = () => setExpanded((e) => !e);
 
-	const onRemoveClick = () => {
-		if (itemRef.current) {
-			itemRef.current.remove();
-		}
-	};
+   const onRemoveClick = () => {
+      if (itemRef.current) {
+         itemRef.current.remove();
+      }
+   };
 
-	return (
-		<div
-			className={cn(
-				'mb-5 overflow-hidden rounded-[3px] bg-ca-silver-light shadow-none',
-				expanded && 'fixed inset-0 z-1040 m-0 overflow-y-auto rounded-none',
-				className,
-			)}
-			ref={itemRef}
-		>
-			<div className={cn('flex items-center bg-ca-panel-inverse px-[15px] py-[10px] text-white', headerClassName)}>
-				<div className='order-2 ml-auto flex items-center gap-2'>
-					{actions}
-					<Button
+   return (
+      <div
+         className={cn(
+            'mb-5 overflow-hidden rounded-[3px] bg-ca-silver-light shadow-none',
+            expanded && 'fixed inset-0 z-1040 m-0 overflow-y-auto rounded-none',
+            className,
+         )}
+         ref={itemRef}
+      >
+         <div className={cn('flex items-center bg-ca-panel-inverse px-[15px] py-[10px] text-white', headerClassName)}>
+            <div className='order-2 ml-auto flex items-center gap-2'>
+               {actions}
+               {/* <Button
 						variant='default'
 						size='icon-xs'
 						type='button'
@@ -67,17 +67,17 @@ export function Panel({
 						onClick={onRemoveClick}
 					>
 						<FaTimes />
-					</Button>
-				</div>
-				<h4 className='order-1 flex-1 text-sm leading-5 font-normal text-ca-nav-text'>{title}</h4>
-			</div>
-			{toolbar && !collapsed && (
-				<div className='border-t border-ca-border bg-ca-silver-light px-[15px] py-[10px]'>{toolbar}</div>
-			)}
-			{!collapsed && <div className={cn('p-[15px]', bodyClassName)}>{children}</div>}
-			{footer && !collapsed && (
-				<div className='border-t border-ca-border bg-ca-silver-light px-[15px] py-[14px]'>{footer}</div>
-			)}
-		</div>
-	);
+					</Button> */}
+            </div>
+            <h4 className='order-1 flex-1 text-sm leading-5 font-normal text-ca-nav-text'>{title}</h4>
+         </div>
+         {toolbar && !collapsed && (
+            <div className='border-t border-ca-border bg-ca-silver-light px-[15px] py-[10px]'>{toolbar}</div>
+         )}
+         {!collapsed && <div className={cn('p-[15px]', bodyClassName)}>{children}</div>}
+         {footer && !collapsed && (
+            <div className='border-t border-ca-border bg-ca-silver-light px-[15px] py-[14px]'>{footer}</div>
+         )}
+      </div>
+   );
 }

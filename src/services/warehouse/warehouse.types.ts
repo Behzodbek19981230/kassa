@@ -50,6 +50,31 @@ export interface Warehouse {
   comment?: string | null
 }
 
+/** One product (card) of a bulk create; see docs/backend-warehouse-prices-create.md. */
+export interface WarehouseBulkCreateItem {
+  brand: number
+  product_category: number
+  type: number | null
+  size: number | string
+  real_price: string | number
+}
+
+export interface WarehouseBulkCreatePayload {
+  /** Every product in items is added to each of these skladlar. */
+  type_sklads: number[]
+  cr_date: string
+  comment?: string
+  items: WarehouseBulkCreateItem[]
+}
+
+export interface WarehouseBulkCreateResponse {
+  results: {
+    warehouse: number
+    warehouse_created: boolean
+    sklad_products: { id: number; type_sklad: number; real_price: string | null }[]
+  }[]
+}
+
 export interface WarehousePayload {
   cr_date: string
   size: number

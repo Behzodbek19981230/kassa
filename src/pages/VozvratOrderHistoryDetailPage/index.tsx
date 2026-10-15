@@ -101,41 +101,41 @@ export default function VozvratOrderHistoryDetailPage() {
 			<div className='mb-5 rounded-[3px] bg-ca-silver-light p-5 shadow-sm'>
 				<h4 className='mb-4 text-sm font-semibold text-ca-heading'>Hisobot</h4>
 
-				<div className='divide-y divide-ca-border text-xs'>
-					<div className='flex items-center justify-between py-2.5'>
+				<div className='grid grid-cols-1 gap-x-8 text-xs md:grid-cols-2'>
+					<div className='flex items-center justify-between gap-3 border-b border-ca-border py-2.5'>
 						<span className='font-semibold text-ca-orange'>Dollar kursi:</span>
 						<span className='font-bold text-ca-orange'>{formatNumber(report.exchange_rate)}</span>
 					</div>
-					<div className='flex items-center justify-between py-2.5'>
+					<div className='flex items-center justify-between gap-3 border-b border-ca-border py-2.5'>
 						<span className='font-semibold text-ca-orange'>Qaytgan mahsulot summasi ($):</span>
 						<span className='font-bold text-ca-orange'>{formatNumber(report.product_summ_dollar, 2)} $</span>
 					</div>
-					<div className='flex items-center justify-between py-2.5'>
+					<div className='flex items-center justify-between gap-3 border-b border-ca-border py-2.5'>
 						<span className='font-semibold text-ca-orange'>Mijozga qaytarilgan summa ($):</span>
 						<span className='font-bold text-ca-orange'>{formatNumber(report.all_summ_dollar, 2)} $</span>
 					</div>
-					<div className='flex items-center justify-between py-2.5'>
+					<div className='flex items-center justify-between gap-3 border-b border-ca-border py-2.5'>
 						<span className='font-semibold text-ca-heading'>Qaytarilgan summa dollarda ($):</span>
 						<span className='font-bold text-ca-heading'>{formatNumber(report.sum_dollar, 2)} $</span>
 					</div>
-					<div className='flex items-center justify-between py-2.5'>
+					<div className='flex items-center justify-between gap-3 border-b border-ca-border py-2.5'>
 						<span className='font-semibold text-ca-heading'>Qaytarilgan summa so'mda:</span>
 						<span className='font-bold text-ca-heading'>{formatNumber(report.sum_som)}</span>
 					</div>
-					<div className='flex items-center justify-between py-2.5'>
+					<div className='flex items-center justify-between gap-3 border-b border-ca-border py-2.5'>
 						<span className='font-semibold text-ca-orange'>Chegirma ($):</span>
 						<span className='font-bold text-ca-orange'>{formatNumber(report.discount_amount, 2)} $</span>
 					</div>
-					<div className='flex items-center justify-between py-2.5'>
+					<div className='flex items-center justify-between gap-3 border-b border-ca-border py-2.5'>
 						<span className='font-semibold text-ca-heading'>Eski qarz ($):</span>
 						<span className='font-bold text-ca-heading'>{formatNumber(report.old_total_debt, 2)} $</span>
 					</div>
-					<div className='flex items-center justify-between py-2.5'>
+					<div className='flex items-center justify-between gap-3 border-b border-ca-border py-2.5'>
 						<span className='font-semibold text-ca-red'>Qolgan umumiy qarz ($):</span>
 						<span className='font-bold text-ca-red'>{formatNumber(report.total_debt, 2)} $</span>
 					</div>
 					{order.comment && (
-						<div className='flex items-center justify-between py-2.5'>
+						<div className='flex items-center justify-between gap-3 border-b border-ca-border py-2.5'>
 							<span className='font-semibold text-ca-heading'>Izoh:</span>
 							<span className='font-bold text-ca-heading'>{order.comment}</span>
 						</div>
