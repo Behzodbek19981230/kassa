@@ -118,7 +118,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 		resolver: zodResolver(addToCartSchema),
 		defaultValues: {
 			joy: '',
-			count: '0',
+			count: '',
 			priceSom: '',
 			priceDollar: '',
 		},

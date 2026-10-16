@@ -31,7 +31,7 @@ export default function WarehouseStocksModal({ open, setOpen, warehouseId, produ
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
-			<ModalContent>
+			<ModalContent className='max-w-2xl'>
 				<ModalHeader>
 					<ModalTitle>
 						<span className='font-bold text-ca-red'>{productLabel}</span>{' '}
@@ -48,28 +48,34 @@ export default function WarehouseStocksModal({ open, setOpen, warehouseId, produ
 					) : stocks.length === 0 ? (
 						<p className='text-xs text-ca-text'>Bu tovar hech qaysi skladda yo'q</p>
 					) : (
-						<Table>
+						<div className='overflow-hidden rounded-lg border border-ca-border'>
+						<Table className='text-sm'>
 							<TableHeader>
-								<TableRow>
-									<TableHead>Sklad</TableHead>
-									<TableHead className='text-right'>Soni</TableHead>
-									<TableHead className='text-right'>Haqiqiy narx</TableHead>
-									<TableHead className='text-right'>Ishchi uchun narx</TableHead>
+								<TableRow className='bg-ca-silver'>
+									<TableHead className='py-3'>Sklad</TableHead>
+									<TableHead className='py-3 text-center'>Soni</TableHead>
+									<TableHead className='py-3 text-right'>Haqiqiy narx</TableHead>
+									<TableHead className='py-3 text-right'>Ishchi uchun narx</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
 								{stocks.map((stock) => (
 									<TableRow key={stock.id}>
-										<TableCell className='font-bold text-ca-heading'>
+										<TableCell className='py-3 text-base font-bold text-ca-heading'>
 											{stock.type_sklad_detail?.name ?? `#${stock.type_sklad}`}
 										</TableCell>
-										<TableCell className='text-right font-semibold text-ca-heading'>{formatNumber(stock.count)}</TableCell>
-										<TableCell className='text-right font-semibold text-ca-heading'>{formatNumber(stock.real_price ?? 0, 2)} $</TableCell>
-										<TableCell className='text-right font-semibold text-ca-heading'>{formatNumber(stock.worker_price ?? 0, 2)} $</TableCell>
+										<TableCell className='py-3 text-center'>
+											<span className='inline-block min-w-10 rounded-md border border-ca-theme/30 bg-ca-theme/15 px-3 py-1 font-semibold text-ca-theme'>
+												{formatNumber(stock.count)}
+											</span>
+										</TableCell>
+										<TableCell className='py-3 text-right font-semibold text-ca-heading'>{formatNumber(stock.real_price ?? 0, 2)} $</TableCell>
+										<TableCell className='py-3 text-right font-semibold text-ca-heading'>{formatNumber(stock.worker_price ?? 0, 2)} $</TableCell>
 									</TableRow>
 								))}
 							</TableBody>
 						</Table>
+						</div>
 					)}
 				</ModalBody>
 				<ModalFooter>
