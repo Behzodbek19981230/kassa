@@ -122,8 +122,6 @@ export interface WarehousePayload {
   product_category: number
   type: number | null
   type_sklad?: number | null
-  /** Edit form: the full set of skladlar the product should be in (added/removed to match). */
-  type_sklads?: number[]
   all_sum_dollar?: number
   all_discount_amount?: number
   all_my_total_debt?: number
@@ -203,4 +201,46 @@ export interface WarehouseAllListParams {
 
 export interface WarehouseEditRealPricePayload {
   real_price: number
+}
+
+/** GET/PUT /warehouse/{id}/sklad-products/ — the product's stock rows in every sklad, edited together. */
+export interface WarehouseSkladProductsRef {
+  id: number
+  name: string
+}
+
+export interface WarehouseSkladProductRow {
+  id: number
+  type_sklad: number
+  type_sklad_name: string
+  count: number
+  real_price: string | null
+  worker_price: string | null
+  updated_time: string
+}
+
+export interface WarehouseSkladProductsResponse {
+  warehouse: {
+    id: number
+    model: WarehouseSkladProductsRef
+    product_category: WarehouseSkladProductsRef
+    size: string
+    type: WarehouseSkladProductsRef | null
+    total_count: number
+  }
+  sklad_products: WarehouseSkladProductRow[]
+}
+
+/** Existing rows send back `id` and `updated_time` (409 when stale); new rows send `id: null`; omitted rows are deleted. */
+export interface WarehouseSkladProductsPayloadRow {
+  id: number | null
+  type_sklad: number
+  count: number
+  real_price: string
+  worker_price: string
+  updated_time?: string
+}
+
+export interface WarehouseSkladProductsPayload {
+  sklad_products: WarehouseSkladProductsPayloadRow[]
 }

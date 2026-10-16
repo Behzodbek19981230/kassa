@@ -11,6 +11,8 @@ import type {
   WarehouseEditRealPricePayload,
   WarehouseListParams,
   WarehousePayload,
+  WarehouseSkladProductsPayload,
+  WarehouseSkladProductsResponse,
 } from '@/services/warehouse/warehouse.types'
 
 type AllListResponse =
@@ -93,6 +95,14 @@ export const warehouseService = {
   },
   remove: async (id: number) => {
     await apiClient.delete(`/warehouse/${id}/`)
+  },
+  getSkladProducts: async (id: number) => {
+    const { data } = await apiClient.get<WarehouseSkladProductsResponse>(`/warehouse/${id}/sklad-products/`)
+    return data
+  },
+  updateSkladProducts: async (id: number, payload: WarehouseSkladProductsPayload) => {
+    const { data } = await apiClient.put<WarehouseSkladProductsResponse>(`/warehouse/${id}/sklad-products/`, payload)
+    return data
   },
   // The product card for a variant (cards no longer carry a sklad), or null when it isn't registered yet.
   findCard: async (variant: { brand: number; product_category: number; type: number | null; size: number }) => {

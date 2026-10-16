@@ -7,6 +7,7 @@ import type {
   WarehouseEditRealPricePayload,
   WarehouseListParams,
   WarehousePayload,
+  WarehouseSkladProductsPayload,
 } from '@/services/warehouse/warehouse.types'
 
 const warehouseKeys = {
@@ -15,6 +16,7 @@ const warehouseKeys = {
   allList: (params?: WarehouseAllListParams) => ['warehouse', 'all-list', params] as const,
   allListInfinite: (params?: WarehouseAllListParams) => ['warehouse', 'all-list', 'infinite', params] as const,
   detail: (id: number) => ['warehouse', 'detail', id] as const,
+  skladProducts: (id: number) => ['warehouse', 'sklad-products', id] as const,
 }
 
 export function useWarehouseListQuery(params?: WarehouseListParams, enabled = true) {
@@ -123,6 +125,26 @@ export function useEditWarehouseRealPriceMutation() {
       warehouseService.editRealPrice(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
+    },
+  })
+}
+
+export function useWarehouseSkladProductsQuery(id: number) {
+  return useQuery({
+    queryKey: warehouseKeys.skladProducts(id),
+    queryFn: () => warehouseService.getSkladProducts(id),
+  })
+}
+
+export function useUpdateWarehouseSkladProductsMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: WarehouseSkladProductsPayload }) =>
+      warehouseService.updateSkladProducts(id, payload),
+    onSuccess: (data, { id }) => {
+      queryClient.setQueryData(warehouseKeys.skladProducts(id), data)
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
+      queryClient.invalidateQueries({ queryKey: skladProductKeys.list })
     },
   })
 }

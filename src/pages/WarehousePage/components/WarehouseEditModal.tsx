@@ -1,11 +1,11 @@
+import { isAxiosError } from 'axios';
 import { useEffect, useState } from 'react';
+import { FaPlus, FaSpinner, FaTrash } from 'react-icons/fa';
 import {
 	Button,
-	Checkbox,
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
-	FormField,
 	Input,
 	Modal,
 	ModalBody,
@@ -13,21 +13,24 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalTitle,
-	MultiCombobox,
 	PriceInput,
-	Textarea,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
 	useNotification,
 } from '@/components/ui';
-import { useBrandListQuery } from '@/services/brand/brand.queries';
-import { brandService } from '@/services/brand/brand.service';
-import { useBrandSizeListQuery } from '@/services/brand-size/brand-size.queries';
-import { useBrandSizeTypeListQuery } from '@/services/brand-size-type/brand-size-type.queries';
-import { useProductCategoryListQuery } from '@/services/product-category/product-category.queries';
-import { productCategoryService } from '@/services/product-category/product-category.service';
-import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
+import { getApiErrorMessage } from '@/lib/errors';
+import { formatNumber } from '@/lib/number';
+import { generateId } from '@/lib/utils';
 import { skladTypeService } from '@/services/sklad-type/sklad-type.service';
-import { useUpdateWarehouseMutation, useWarehouseQuery } from '@/services/warehouse/warehouse.queries';
-import type { Warehouse, WarehousePayload } from '@/services/warehouse/warehouse.types';
+import {
+	useUpdateWarehouseSkladProductsMutation,
+	useWarehouseSkladProductsQuery,
+} from '@/services/warehouse/warehouse.queries';
+import type { Warehouse, WarehouseSkladProductRow } from '@/services/warehouse/warehouse.types';
 
 interface WarehouseEditModalProps {
 	open: boolean;
@@ -35,185 +38,127 @@ interface WarehouseEditModalProps {
 	item: Warehouse;
 }
 
+interface SkladRow {
+	key: string;
+	/** null for a row added in this modal. */
+	id: number | null;
+	typeSklad: string;
+	typeSkladName: string;
+	count: string;
+	realPrice: string;
+	workerPrice: string;
+	updatedTime?: string;
+	/** The stock on the server; only a row with no stock can be deleted. */
+	savedCount: number;
+}
+
+function toRow(p: WarehouseSkladProductRow): SkladRow {
+	return {
+		key: String(p.id),
+		id: p.id,
+		typeSklad: String(p.type_sklad),
+		typeSkladName: p.type_sklad_name,
+		count: String(p.count),
+		realPrice: p.real_price ?? '',
+		workerPrice: p.worker_price ?? '',
+		updatedTime: p.updated_time,
+		savedCount: p.count,
+	};
+}
+
+const emptyRow = (): SkladRow => ({
+	key: generateId(),
+	id: null,
+	typeSklad: '',
+	typeSkladName: '',
+	count: '0',
+	realPrice: '',
+	workerPrice: '',
+	savedCount: 0,
+});
+
 export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEditModalProps) {
 	const { notify } = useNotification();
+	const query = useWarehouseSkladProductsQuery(item.id);
+	const updateMutation = useUpdateWarehouseSkladProductsMutation();
 
-	const [brand, setBrand] = useState(String(item.brand));
-	const [productCategory, setProductCategory] = useState(String(item.product_category));
-	const [brandSize, setBrandSize] = useState('');
-	const [size, setSize] = useState<number | null>(item.size);
-	const [type, setType] = useState<number | null>(item.type);
-	const [skladIds, setSkladIds] = useState<string[]>(item.type_sklad ? [String(item.type_sklad)] : []);
-	const [count, setCount] = useState(String(item.count));
-	const [realPrice, setRealPrice] = useState(String(item.real_price ?? ''));
-	const [workerPrice, setWorkerPrice] = useState(String(item.worker_price));
-	const [comment, setComment] = useState(item.comment ?? '');
-	const [statusCount, setStatusCount] = useState(item.status_count);
-	const [commentError, setCommentError] = useState('');
-	const [skladError, setSkladError] = useState('');
+	const [rows, setRows] = useState<SkladRow[] | null>(null);
 	const [formError, setFormError] = useState('');
 
-	const { data: brandData } = useBrandListQuery({ limit: 100 });
-	const brandNameById = new Map((brandData?.results ?? []).map((b) => [b.id, b.name]));
-
-	const brandId = brand ? Number(brand) : undefined;
-	const { data: categoryData } = useProductCategoryListQuery({ brand: brandId, limit: 100 });
-	const categoryNameById = new Map((categoryData?.results ?? []).map((c) => [c.id, c.name]));
-
-	const categoryId = productCategory ? Number(productCategory) : undefined;
-	const { data: brandSizeData } = useBrandSizeListQuery({ brand: brandId, product_category: categoryId, limit: 100 });
-	const brandSizes = brandSizeData?.results ?? [];
-	const brandSizeOptions = brandSizes.map((bs) => ({ value: String(bs.id), label: bs.size }));
-	const selectedBrandSize = brandSizes.find((bs) => bs.id === Number(brandSize));
-
-	const { data: typeData } = useBrandSizeTypeListQuery({ limit: 100 });
-	const typeNameById = new Map((typeData?.results ?? []).map((t) => [t.id, t.name]));
-
-	// The skladlar the product is already in are its stock rows.
-	const { data: stocksData } = useSkladProductListQuery({ warehouse: item.id, limit: 100 });
-	const skladLabels = Object.fromEntries(
-		(stocksData?.results ?? []).map((s) => [String(s.type_sklad), s.type_sklad_detail?.name ?? `#${s.type_sklad}`]),
-	);
-
-	const updateMutation = useUpdateWarehouseMutation();
-	const warehouseQuery = useWarehouseQuery(item.id);
-
+	// Rows are taken from the server once (and again after a 409), so a background refetch doesn't wipe edits.
 	useEffect(() => {
-		const w = warehouseQuery.data;
-		if (!w) return;
-		setBrand(String(w.brand));
-		setProductCategory(String(w.product_category));
-		setBrandSize('');
-		setSize(Number(w.size));
-		setType(w.type);
-		setCount(String(w.count));
-		setWorkerPrice(String(w.worker_price));
-		setRealPrice(String(w.real_price ?? ''));
-		setComment(w.comment ?? '');
+		if (query.data && rows === null) setRows(query.data.sklad_products.map(toRow));
+	}, [query.data, rows]);
 
-		setStatusCount(w.status_count);
-	}, [warehouseQuery.data]);
+	const warehouse = query.data?.warehouse;
+	const totalCount = (rows ?? []).reduce((sum, r) => sum + (Number(r.count) || 0), 0);
 
-	useEffect(() => {
-		if (!brandSize && size !== null && type !== null && brandSizes.length > 0) {
-			const match = brandSizes.find((bs) => Number(bs.size) === size && bs.type === type);
-			if (match) setBrandSize(String(match.id));
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [brandSizes, size, type, brandSize]);
+	const updateRow = (key: string, patch: Partial<SkladRow>) =>
+		setRows((prev) => prev && prev.map((r) => (r.key === key ? { ...r, ...patch } : r)));
 
-	// Prefill once, so a background refetch doesn't wipe the user's changes.
-	const [skladsPrefilled, setSkladsPrefilled] = useState(false);
-	useEffect(() => {
-		if (!stocksData || skladsPrefilled) return;
-		setSkladIds(stocksData.results.map((s) => String(s.type_sklad)));
-		setSkladsPrefilled(true);
-	}, [stocksData, skladsPrefilled]);
-
-	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.map((b) => ({ value: String(b.id), label: b.name })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
+	const loadSkladOptions =
+		(rowKey: string) =>
+		async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+			const taken = new Set((rows ?? []).filter((r) => r.key !== rowKey).map((r) => r.typeSklad));
+			const result = await skladTypeService.list({ search: search || undefined, page, limit: 20 });
+			return {
+				options: result.results
+					.filter((s) => !taken.has(String(s.id)))
+					.map((s) => ({ value: String(s.id), label: s.name })),
+				hasMore: result.pagination.currentPage < result.pagination.lastPage,
+			};
 		};
-	};
-
-	const loadCategoryOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		if (!brandId) return { options: [], hasMore: false };
-		const result = await productCategoryService.list({
-			brand: brandId,
-			search: search || undefined,
-			page,
-			limit: 20,
-		});
-		return {
-			options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
-
-	const loadSkladTypeOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await skladTypeService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.map((s) => ({ value: String(s.id), label: s.name })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
-
-	const handleBrandChange = (value: string) => {
-		setBrand(value);
-		setProductCategory('');
-		setBrandSize('');
-		setSize(null);
-		setType(null);
-	};
-
-	const handleCategoryChange = (value: string) => {
-		setProductCategory(value);
-		setBrandSize('');
-		setSize(null);
-		setType(null);
-	};
-
-	const handleBrandSizeChange = (value: string) => {
-		const bs = brandSizes.find((item) => item.id === Number(value));
-		setBrandSize(value);
-		setSize(bs ? Number(bs.size) : null);
-		setType(bs ? bs.type : null);
-	};
 
 	const handleSubmit = async () => {
+		if (!rows) return;
 		setFormError('');
-		setCommentError('');
-		setSkladError('');
 
-		if (skladIds.length === 0) {
-			setSkladError('Sklad tanlanishi shart');
+		if (rows.some((r) => !r.typeSklad)) {
+			setFormError('Har bir qatorda sklad tanlanishi shart');
+			return;
+		}
+		const skladIds = rows.map((r) => r.typeSklad);
+		if (new Set(skladIds).size !== skladIds.length) {
+			setFormError('Bir xil skladni ikki marta tanlab bo\'lmaydi');
 			return;
 		}
 
-		if (!comment.trim()) {
-			setCommentError('Izoh kiritilishi shart');
-			return;
-		}
-
-		const w = warehouseQuery.data ?? item;
-		const payload: WarehousePayload = {
-			cr_date: w.cr_date,
-			size: size ?? w.size,
-			count: Number(count) || 0,
-			price: w.price,
-			worker_price: Number(workerPrice) || 0,
-			real_price: Number(realPrice) || 0,
-			status_count: statusCount,
-			company: w.company,
-			brand: Number(brand),
-			product_category: Number(productCategory),
-			type,
-			type_sklads: skladIds.map(Number),
-			all_sum_dollar: w.all_sum_dollar,
-			all_discount_amount: w.all_discount_amount,
-			all_my_total_debt: w.all_my_total_debt,
-			comment: comment.trim(),
+		const payload = {
+			sklad_products: rows.map((r) => ({
+				id: r.id,
+				type_sklad: Number(r.typeSklad),
+				count: Number(r.count) || 0,
+				real_price: r.realPrice || '0',
+				worker_price: r.workerPrice || '0',
+				...(r.id !== null && { updated_time: r.updatedTime }),
+			})),
 		};
 
 		try {
 			await updateMutation.mutateAsync({ id: item.id, payload });
 			notify({ title: 'Tovar yangilandi' });
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			if (isAxiosError(err) && err.response?.status === 409) {
+				const fresh = await query.refetch();
+				if (fresh.data) setRows(fresh.data.sklad_products.map(toRow));
+			}
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	};
 
+	const summary = [
+		{ label: 'Model', value: warehouse?.model.name ?? item.brand_detail?.name },
+		{ label: 'Nomi', value: warehouse?.product_category.name ?? item.product_category_detail?.name },
+		{ label: "O'lcham", value: formatNumber(warehouse?.size ?? item.size, 2) },
+		{ label: 'Tip', value: warehouse?.type?.name ?? item.type_detail?.name },
+	];
+
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
-			<ModalContent className='max-w-2xl'>
+			<ModalContent className='max-w-4xl'>
 				<ModalHeader>
-					<ModalTitle>
-						<span className='font-bold text-ca-red'>{item.brand_detail?.name ?? item.brand}</span>{' '}
-						<span className='text-ca-text'>nomli modelni o'zgartirmoqchimisiz ?</span>
-					</ModalTitle>
+					<ModalTitle>Mahsulotni o'zgartirish</ModalTitle>
 				</ModalHeader>
 				<ModalBody>
 					{formError && (
@@ -221,102 +166,122 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 							{formError}
 						</div>
 					)}
-					<FormField label='Sklad' error={skladError} required horizontal={false}>
-						<MultiCombobox
-							value={skladIds}
-							onChange={(values) => {
-								setSkladIds(values);
-								if (values.length > 0) setSkladError('');
-							}}
-							loadOptions={loadSkladTypeOptions}
-							selectedLabels={skladLabels}
-							placeholder='Tanlang...'
-							searchPlaceholder='Qidirish...'
-						/>
-					</FormField>
-					<div className='grid grid-cols-1 gap-x-4 sm:grid-cols-2'>
-						<FormField label='Model' horizontal={false}>
-							<Combobox
-								value={brand}
-								onChange={handleBrandChange}
-								loadOptions={loadBrandOptions}
-								selectedLabel={brandNameById.get(Number(brand))}
-								placeholder='Tanlang...'
-								searchPlaceholder='Model qidirish...'
-								disabled
-							/>
-						</FormField>
-						<FormField label='Nomi' horizontal={false}>
-							<Combobox
-								value={productCategory}
-								onChange={handleCategoryChange}
-								loadOptions={loadCategoryOptions}
-								selectedLabel={categoryNameById.get(Number(productCategory))}
-								placeholder='Tanlang...'
-								searchPlaceholder='Nomi qidirish...'
-								disabled
-							/>
-						</FormField>
-						<FormField label="O'lchami" horizontal={false}>
-							<Combobox
-								value={brandSize}
-								onChange={handleBrandSizeChange}
-								options={brandSizeOptions}
-								selectedLabel={selectedBrandSize?.size}
-								placeholder='Tanlang...'
-								searchPlaceholder='Qidirish...'
-								disabled
-							/>
-						</FormField>
-						<FormField label='Tip' horizontal={false}>
-							<Combobox
-								value={type ? String(type) : ''}
-								onChange={() => {}}
-								options={[]}
-								selectedLabel={type ? typeNameById.get(type) : undefined}
-								placeholder='Tanlang...'
-								disabled
-							/>
-						</FormField>
 
-						<div className='grid grid-cols-3 gap-3 sm:col-span-2'>
-							<FormField label='Soni' horizontal={false}>
-								<Input
-									type='number'
-									inputMode='numeric'
-									value={count}
-									onChange={(e) => setCount(e.target.value)}
-								/>
-							</FormField>
-							<FormField label='Asl narxi ($)' horizontal={false}>
-								<PriceInput value={realPrice} onChange={setRealPrice} />
-							</FormField>
-
-							<FormField label='Ishchi Uchun Narx ($)' horizontal={false}>
-								<PriceInput value={workerPrice} onChange={setWorkerPrice} />
-							</FormField>
-						</div>
+					<div className='mb-4 grid grid-cols-2 gap-3 rounded bg-ca-silver px-4 py-3 sm:grid-cols-4'>
+						{summary.map((s) => (
+							<div key={s.label}>
+								<div className='text-xs text-ca-text'>{s.label}</div>
+								<div className='font-semibold text-ca-heading'>{s.value || '—'}</div>
+							</div>
+						))}
 					</div>
 
-					<FormField label='Izoh' error={commentError} required horizontal={false}>
-						<Textarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} />
-					</FormField>
+					<h5 className='mb-2 font-bold text-ca-heading'>Skladlar va qoldiqlar</h5>
 
-					<Checkbox
-						inline
-						label='Mahsulot sanalganligini tasdiqlaysimi?'
-						className='font-semibold text-ca-red'
-						checked={statusCount}
-						onCheckedChange={(v) => setStatusCount(!!v)}
-					/>
+					{query.isError ? (
+						<p className='text-xs text-ca-red'>Ma'lumotni yuklashda xatolik yuz berdi</p>
+					) : rows === null ? (
+						<div className='flex justify-center py-4 text-ca-text'>
+							<FaSpinner className='animate-spin' />
+						</div>
+					) : (
+						<>
+							<div className='overflow-x-auto'>
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead className='min-w-50'>Sklad</TableHead>
+											<TableHead className='min-w-25'>Soni</TableHead>
+											<TableHead className='min-w-30'>Haqiqiy narx ($)</TableHead>
+											<TableHead className='min-w-30'>Ishchi uchun narx ($)</TableHead>
+											<TableHead className='w-10' />
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{rows.map((row) => {
+											const canDelete = row.id === null || row.savedCount === 0;
+											return (
+												<TableRow key={row.key}>
+													<TableCell>
+														<Combobox
+															value={row.typeSklad}
+															onChange={(value, option) =>
+																updateRow(row.key, { typeSklad: value, typeSkladName: option?.label ?? '' })
+															}
+															loadOptions={loadSkladOptions(row.key)}
+															selectedLabel={row.typeSkladName || undefined}
+															placeholder='Tanlang...'
+															searchPlaceholder='Qidirish...'
+															disabled={row.id !== null}
+														/>
+													</TableCell>
+													<TableCell>
+														<Input
+															type='number'
+															inputMode='numeric'
+															value={row.count}
+															onChange={(e) => updateRow(row.key, { count: e.target.value })}
+														/>
+													</TableCell>
+													<TableCell>
+														<PriceInput
+															value={row.realPrice}
+															onChange={(v) => updateRow(row.key, { realPrice: v })}
+														/>
+													</TableCell>
+													<TableCell>
+														<PriceInput
+															value={row.workerPrice}
+															onChange={(v) => updateRow(row.key, { workerPrice: v })}
+														/>
+													</TableCell>
+													<TableCell>
+														<Button
+															type='button'
+															variant='danger'
+															size='icon'
+															aria-label="O'chirish"
+															disabled={!canDelete}
+															title={canDelete ? undefined : "Qoldig'i bor skladni o'chirib bo'lmaydi"}
+															onClick={() => setRows((prev) => prev && prev.filter((r) => r.key !== row.key))}
+														>
+															<FaTrash />
+														</Button>
+													</TableCell>
+												</TableRow>
+											);
+										})}
+									</TableBody>
+								</Table>
+							</div>
+							<button
+								type='button'
+								className='mt-2 flex w-full items-center justify-center gap-2 rounded border-2 border-dashed border-ca-border py-2 font-semibold text-ca-theme transition-colors hover:border-ca-theme hover:bg-ca-theme/5'
+								onClick={() => setRows((prev) => [...(prev ?? []), emptyRow()])}
+							>
+								<FaPlus /> Yangi sklad qo'shish
+							</button>
+						</>
+					)}
 				</ModalBody>
-				<ModalFooter>
-					<Button type='button' variant='white' onClick={() => setOpen(false)}>
-						Yopish
-					</Button>
-					<Button type='button' variant='primary' onClick={handleSubmit} loading={updateMutation.isPending}>
-						Saqlash
-					</Button>
+				<ModalFooter className='justify-between'>
+					<span className='text-ca-text'>
+						Jami qoldiq: <b className='text-ca-heading'>{formatNumber(totalCount)} dona</b>
+					</span>
+					<div className='flex gap-2'>
+						<Button type='button' variant='white' onClick={() => setOpen(false)}>
+							Bekor qilish
+						</Button>
+						<Button
+							type='button'
+							variant='primary'
+							onClick={handleSubmit}
+							loading={updateMutation.isPending}
+							disabled={rows === null}
+						>
+							Saqlash
+						</Button>
+					</div>
 				</ModalFooter>
 			</ModalContent>
 		</Modal>
