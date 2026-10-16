@@ -121,7 +121,9 @@ export interface WarehousePayload {
   brand: number
   product_category: number
   type: number | null
-  type_sklad: number | null
+  type_sklad?: number | null
+  /** Edit form: the full set of skladlar the product should be in (added/removed to match). */
+  type_sklads?: number[]
   all_sum_dollar?: number
   all_discount_amount?: number
   all_my_total_debt?: number

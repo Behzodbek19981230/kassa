@@ -13,6 +13,7 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalTitle,
+	MultiCombobox,
 	PriceInput,
 	Textarea,
 	useNotification,
@@ -23,7 +24,7 @@ import { useBrandSizeListQuery } from '@/services/brand-size/brand-size.queries'
 import { useBrandSizeTypeListQuery } from '@/services/brand-size-type/brand-size-type.queries';
 import { useProductCategoryListQuery } from '@/services/product-category/product-category.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
-import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
+import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
 import { skladTypeService } from '@/services/sklad-type/sklad-type.service';
 import { useUpdateWarehouseMutation, useWarehouseQuery } from '@/services/warehouse/warehouse.queries';
 import type { Warehouse, WarehousePayload } from '@/services/warehouse/warehouse.types';
@@ -42,7 +43,7 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 	const [brandSize, setBrandSize] = useState('');
 	const [size, setSize] = useState<number | null>(item.size);
 	const [type, setType] = useState<number | null>(item.type);
-	const [typeSklad, setTypeSklad] = useState(item.type_sklad ? String(item.type_sklad) : '');
+	const [skladIds, setSkladIds] = useState<string[]>(item.type_sklad ? [String(item.type_sklad)] : []);
 	const [count, setCount] = useState(String(item.count));
 	const [realPrice, setRealPrice] = useState(String(item.real_price ?? ''));
 	const [workerPrice, setWorkerPrice] = useState(String(item.worker_price));
@@ -68,8 +69,11 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 	const { data: typeData } = useBrandSizeTypeListQuery({ limit: 100 });
 	const typeNameById = new Map((typeData?.results ?? []).map((t) => [t.id, t.name]));
 
-	const { data: skladTypeData } = useSkladTypeListQuery({ limit: 100 });
-	const skladTypeNameById = new Map((skladTypeData?.results ?? []).map((s) => [s.id, s.name]));
+	// The skladlar the product is already in are its stock rows.
+	const { data: stocksData } = useSkladProductListQuery({ warehouse: item.id, limit: 100 });
+	const skladLabels = Object.fromEntries(
+		(stocksData?.results ?? []).map((s) => [String(s.type_sklad), s.type_sklad_detail?.name ?? `#${s.type_sklad}`]),
+	);
 
 	const updateMutation = useUpdateWarehouseMutation();
 	const warehouseQuery = useWarehouseQuery(item.id);
@@ -82,7 +86,6 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 		setBrandSize('');
 		setSize(Number(w.size));
 		setType(w.type);
-		setTypeSklad(w.type_sklad ? String(w.type_sklad) : '');
 		setCount(String(w.count));
 		setWorkerPrice(String(w.worker_price));
 		setRealPrice(String(w.real_price ?? ''));
@@ -98,6 +101,14 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [brandSizes, size, type, brandSize]);
+
+	// Prefill once, so a background refetch doesn't wipe the user's changes.
+	const [skladsPrefilled, setSkladsPrefilled] = useState(false);
+	useEffect(() => {
+		if (!stocksData || skladsPrefilled) return;
+		setSkladIds(stocksData.results.map((s) => String(s.type_sklad)));
+		setSkladsPrefilled(true);
+	}, [stocksData, skladsPrefilled]);
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
@@ -156,7 +167,7 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 		setCommentError('');
 		setSkladError('');
 
-		if (!typeSklad) {
+		if (skladIds.length === 0) {
 			setSkladError('Sklad tanlanishi shart');
 			return;
 		}
@@ -179,7 +190,7 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 			brand: Number(brand),
 			product_category: Number(productCategory),
 			type,
-			type_sklad: typeSklad ? Number(typeSklad) : null,
+			type_sklads: skladIds.map(Number),
 			all_sum_dollar: w.all_sum_dollar,
 			all_discount_amount: w.all_discount_amount,
 			all_my_total_debt: w.all_my_total_debt,
@@ -211,17 +222,16 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 						</div>
 					)}
 					<FormField label='Sklad' error={skladError} required horizontal={false}>
-						<Combobox
-							value={typeSklad}
-							onChange={(value) => {
-								setTypeSklad(value);
-								if (value) setSkladError('');
+						<MultiCombobox
+							value={skladIds}
+							onChange={(values) => {
+								setSkladIds(values);
+								if (values.length > 0) setSkladError('');
 							}}
 							loadOptions={loadSkladTypeOptions}
-							selectedLabel={skladTypeNameById.get(Number(typeSklad))}
+							selectedLabels={skladLabels}
 							placeholder='Tanlang...'
 							searchPlaceholder='Qidirish...'
-							clearable
 						/>
 					</FormField>
 					<div className='grid grid-cols-1 gap-x-4 sm:grid-cols-2'>

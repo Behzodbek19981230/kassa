@@ -169,7 +169,6 @@ export default function WarehousePage() {
                element={(props) => <Button {...props} />}
                elementProps={{
                   variant: 'link' as const,
-                  size: 'xs' as const,
                   className: 'h-auto p-0 font-semibold text-ca-theme underline',
                   children: formatNumber(info.getValue()),
                   'aria-label': "Skladlar bo'yicha soni",

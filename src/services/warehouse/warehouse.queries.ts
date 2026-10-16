@@ -1,5 +1,6 @@
 import { type InfiniteData, useInfiniteQuery, useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { mergeBrandGroups, warehouseService } from '@/services/warehouse/warehouse.service'
+import { skladProductKeys } from '@/services/sklad-product/sklad-product.queries'
 import type {
   WarehouseAllListParams,
   WarehouseBulkCreatePayload,
@@ -100,6 +101,7 @@ export function useUpdateWarehouseMutation() {
     mutationFn: ({ id, payload }: { id: number; payload: WarehousePayload }) => warehouseService.update(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
+      queryClient.invalidateQueries({ queryKey: skladProductKeys.list })
     },
   })
 }
