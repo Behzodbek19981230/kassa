@@ -16,6 +16,7 @@ import {
 	ModalHeader,
 	ModalTitle,
 	useNotification,
+	PriceInput,
 } from '@/components/ui';
 import {
 	useCreateBrandSizeMutation,
@@ -220,7 +221,7 @@ export default function SizeFormModal({ open, setOpen, mode, item }: SizeFormMod
 								horizontal={false}
 								className='mb-0'
 							>
-								<Input type='number' step='0.01' {...register('size')} />
+								<Controller name='size' control={control} render={({ field }) => <PriceInput decimals={2} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
 							</FormField>
 						</div>
 					</ModalBody>

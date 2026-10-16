@@ -216,11 +216,9 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 														/>
 													</TableCell>
 													<TableCell>
-														<Input
-															type='number'
-															inputMode='numeric'
+														<PriceInput decimals={0}
 															value={row.count}
-															onChange={(e) => updateRow(row.key, { count: e.target.value })}
+															onChange={(v) => updateRow(row.key, { count: v })}
 														/>
 													</TableCell>
 													<TableCell>

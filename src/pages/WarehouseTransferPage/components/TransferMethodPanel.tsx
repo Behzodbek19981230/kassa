@@ -12,6 +12,7 @@ import {
 	ModalHeader,
 	ModalTitle,
 	RadioGroup,
+	PriceInput,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
@@ -135,12 +136,12 @@ export default function TransferMethodPanel({
 				target_quantity: targetQty,
 			},
 			{
-				onSuccess: (res) => {
+				onSuccess: () => {
 					onAdd({
 						key: `${sourceItem.id}-${target.id}-${mode}-${Date.now()}`,
 						mode,
 						source: {
-							skladProductId: res.source_sklad_product_id ?? sourceItem.id,
+							warehouseId: sourceItem.warehouse,
 							typeSkladName: fromTypeSkladName ?? sourceItem.type_sklad_detail?.name ?? '',
 							brandName: names.brandName(sourceCard),
 							categoryName: names.categoryName(sourceCard),
@@ -149,7 +150,7 @@ export default function TransferMethodPanel({
 							quantity: sourceQty,
 						},
 						target: {
-							skladProductId: res.target_sklad_product_id ?? target.id,
+							warehouseId: target.warehouse,
 							typeSkladName: toTypeSkladName ?? target.type_sklad_detail?.name ?? '',
 							brandName: names.brandName(target.warehouse_detail),
 							categoryName: names.categoryName(target.warehouse_detail),
@@ -230,14 +231,10 @@ export default function TransferMethodPanel({
 					<div className={mode === 'spread' ? 'grid grid-cols-2 gap-3' : ''}>
 						<FormField label="O'tkazish miqdori" horizontal={false} className='mb-3'>
 							<div className='flex gap-2'>
-								<Input
-									type='number'
-									inputMode='numeric'
-									min={0}
+								<PriceInput decimals={0}
 									max={availableCount}
-									step='1'
 									value={sourceQuantity}
-									onChange={(e) => setSourceQuantity(e.target.value)}
+									onChange={(v) => setSourceQuantity(v)}
 									className='flex-1'
 								/>
 								<Input
@@ -251,13 +248,9 @@ export default function TransferMethodPanel({
 						{mode === 'spread' && (
 							<FormField label='Qabul qilish soni' horizontal={false} className='mb-3'>
 								<div className='flex gap-2'>
-									<Input
-										type='number'
-										inputMode='numeric'
-										min={0}
-										step='1'
+									<PriceInput decimals={0}
 										value={targetQuantity}
-										onChange={(e) => setTargetQuantity(e.target.value)}
+										onChange={(v) => setTargetQuantity(v)}
 										className='flex-1'
 									/>
 									<Input

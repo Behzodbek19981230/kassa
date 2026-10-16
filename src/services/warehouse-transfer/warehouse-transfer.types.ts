@@ -8,7 +8,7 @@ import type {
 
 export type TransferMode = 'same' | 'spread';
 
-export type WarehouseTransferStatus = 'completed' | 'reversed' | 'reverse';
+export type WarehouseTransferStatus = 'completed' | 'reversed' | 'reverse' | 'draft';
 
 // Stock moves between two stock rows (SkladProduct): the product in the source sklad and in the target sklad.
 // Sides are named by product card (warehouse) id; the backend finds the stock rows in each sklad.
@@ -31,8 +31,8 @@ export interface ValidateTransferItemResponse {
 }
 
 export interface WarehouseTransferItemPayload {
-	source_sklad_product_id: number;
-	target_sklad_product_id: number;
+	source_warehouse_id: number;
+	target_warehouse_id: number;
 	mode: TransferMode;
 	source_quantity: number;
 	target_quantity: number;

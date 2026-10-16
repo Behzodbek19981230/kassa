@@ -146,3 +146,42 @@ export interface SkladViewResponse {
 export interface SkladViewParams {
 	type_sklad?: number;
 }
+
+/** One receipt line (WarehouseHistory row) as returned by `GET /sklad/{id}/`. */
+export interface SkladEditItem {
+	id: number;
+	warehouse: number;
+	sklad_product: number | null;
+	type_sklad: number | null;
+	type_sklad_name: string | null;
+	product_label: string;
+	count: number;
+	price: string;
+	total_price: string;
+}
+
+export interface SkladDetail extends SkladItem {
+	items: SkladEditItem[];
+}
+
+export interface SkladEditItemPayload {
+	/** Omitted for a new line. */
+	id?: number;
+	warehouse: number;
+	type_sklad: number;
+	count: number;
+	price: string;
+}
+
+/** `PATCH /sklad/{id}/`; `items` is the full list of lines the receipt keeps. */
+export interface SkladEditPayload {
+	consignor_ref: number;
+	cr_date: string;
+	exchange_rate: string;
+	comment?: string;
+	car_number?: string;
+	sum_dollar: string;
+	sum_som: string;
+	discount_amount: string;
+	items: SkladEditItemPayload[];
+}

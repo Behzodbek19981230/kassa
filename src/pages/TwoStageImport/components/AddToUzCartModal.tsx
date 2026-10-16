@@ -14,6 +14,7 @@ import {
 	ModalHeader,
 	ModalTitle,
 	useNotification,
+	PriceInput,
 } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -153,14 +154,10 @@ export default function AddToUzCartModal({
 								control={control}
 								render={({ field }) => (
 									<InputGroup append={typeName ?? 'Dona'}>
-										<Input
-											type='number'
-											inputMode='numeric'
-											min={0}
+										<PriceInput decimals={0}
 											max={available}
-											step='1'
 											value={field.value}
-											onChange={(e) => field.onChange(e.target.value)}
+											onChange={(v) => field.onChange(v)}
 											onBlur={field.onBlur}
 										/>
 									</InputGroup>

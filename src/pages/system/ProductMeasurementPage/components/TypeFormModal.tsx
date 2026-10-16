@@ -14,6 +14,7 @@ import {
 	ModalHeader,
 	ModalTitle,
 	useNotification,
+	PriceInput,
 } from '@/components/ui';
 import {
 	useCreateBrandSizeTypeMutation,
@@ -113,7 +114,7 @@ export default function TypeFormModal({ open, setOpen, mode, item }: TypeFormMod
 							<Input {...register('name')} />
 						</FormField>
 						<FormField label='Tartibi' error={errors.sorting?.message} horizontal={false} className='mb-3'>
-							<Input type='number' {...register('sorting')} />
+							<Controller name='sorting' control={control} render={({ field }) => <PriceInput decimals={0} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
 							{sortingHint && <i className='mt-1 block text-xs text-ca-text'>{sortingHint}</i>}
 						</FormField>
 						<Controller

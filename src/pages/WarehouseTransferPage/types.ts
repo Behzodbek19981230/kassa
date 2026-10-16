@@ -1,8 +1,8 @@
 import type { TransferMode } from '@/services/warehouse-transfer/warehouse-transfer.types';
 
 export interface TransferCartSide {
-	/** The product's stock row in this side's sklad. */
-	skladProductId: number;
+	/** The product card (warehouse) id sent to the create endpoint. */
+	warehouseId: number;
 	typeSkladName: string;
 	brandName: string;
 	categoryName: string;

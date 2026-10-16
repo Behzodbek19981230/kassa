@@ -686,25 +686,17 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                         />
                      </FormField>
                      <FormField label='Tip dona' required horizontal={false} className='mb-2 w-24'>
-                        <Input
-                           type='number'
-                           inputMode='decimal'
-                           min={0}
-                           step='0.0001'
+                        <PriceInput decimals={4}
                            value={row.typeQuantity}
                            // Uzbekistan lines take tip dona from the transit stock.
                            disabled={!isChina}
-                           onChange={(e) => updateRow(row.key, { typeQuantity: e.target.value })}
+                           onChange={(v) => updateRow(row.key, { typeQuantity: v })}
                         />
                      </FormField>
                      <FormField label='Soni' required horizontal={false} className='mb-2 w-24'>
-                        <Input
-                           type='number'
-                           inputMode='numeric'
-                           min={1}
-                           step='1'
+                        <PriceInput decimals={0}
                            value={row.quantity}
-                           onChange={(e) => updateRow(row.key, { quantity: e.target.value })}
+                           onChange={(v) => updateRow(row.key, { quantity: v })}
                         />
                      </FormField>
                      <div className='mb-2 min-w-56 flex-[1.6]'>
@@ -791,23 +783,15 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                   <YuanRateHint />
                </FormField>
                <FormField label="Og'irlik (kg)" required horizontal={false} className='mb-3'>
-                  <Input
-                     type='number'
-                     inputMode='decimal'
-                     min={0}
-                     step='0.001'
+                  <PriceInput decimals={3}
                      value={header.weightKg}
-                     onChange={(e) => set('weightKg', e.target.value)}
+                     onChange={(v) => set('weightKg', v)}
                   />
                </FormField>
                <FormField label='Hajm (m³)' required horizontal={false} className='mb-3'>
-                  <Input
-                     type='number'
-                     inputMode='decimal'
-                     min={0}
-                     step='0.0001'
+                  <PriceInput decimals={4}
                      value={header.volumeM3}
-                     onChange={(e) => set('volumeM3', e.target.value)}
+                     onChange={(v) => set('volumeM3', v)}
                   />
                </FormField>
             </div>

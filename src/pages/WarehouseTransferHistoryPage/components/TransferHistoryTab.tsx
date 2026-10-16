@@ -17,12 +17,14 @@ const STATUS_LABEL: Record<WarehouseTransferStatus, string> = {
 	completed: 'Bajarilgan',
 	reversed: 'Bekor qilingan',
 	reverse: 'Bekor qilish transferi',
+	draft: 'Karzinka',
 };
 
 const STATUS_VARIANT: Record<WarehouseTransferStatus, 'success' | 'default' | 'warning'> = {
 	completed: 'success',
 	reversed: 'default',
 	reverse: 'warning',
+	draft: 'default',
 };
 
 const userLabel = (u: { username: string; first_name: string; last_name: string }) =>

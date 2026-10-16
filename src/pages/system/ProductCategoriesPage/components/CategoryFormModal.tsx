@@ -18,6 +18,7 @@ import {
 	ModalHeader,
 	ModalTitle,
 	useNotification,
+	PriceInput,
 } from '@/components/ui';
 import {
 	useCreateBrandSizeMutation,
@@ -251,7 +252,7 @@ export default function CategoryFormModal({ open, setOpen, mode, item, defaultBr
 								horizontal={false}
 								className='mb-0'
 							>
-								<Input type='number' {...register('sorting')} />
+								<Controller name='sorting' control={control} render={({ field }) => <PriceInput decimals={0} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
 								{sortingHint && <i className='mt-1 block text-xs text-ca-text'>{sortingHint}</i>}
 							</FormField>
 							<FormField label='Nomi' error={errors.name?.message} required horizontal={false} className='mb-0'>
@@ -276,11 +277,9 @@ export default function CategoryFormModal({ open, setOpen, mode, item, defaultBr
 								</div>
 								{sizeRows.map((row, index) => (
 									<div key={index} className='mb-2 grid grid-cols-[1fr_1fr_32px] items-center gap-3'>
-										<Input
-											type='number'
-											step='0.01'
+										<PriceInput decimals={2}
 											value={row.size}
-											onChange={(e) => updateSizeRow(index, { size: e.target.value })}
+											onChange={(v) => updateSizeRow(index, { size: v })}
 										/>
 										<Combobox
 											value={row.type}

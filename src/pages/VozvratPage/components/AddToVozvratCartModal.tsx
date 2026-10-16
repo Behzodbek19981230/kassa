@@ -15,6 +15,7 @@ import {
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
+	PriceInput,
 } from '@/components/ui';
 import { formatNumber } from '@/lib/number';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
@@ -139,14 +140,10 @@ export default function AddToVozvratCartModal({
 					</FormField>
 
 					<FormField label='Soni' error={error} required horizontal={false} className='mb-3'>
-						<Input
-							type='number'
-							inputMode='numeric'
-							min={0}
+						<PriceInput decimals={0}
 							max={availableCount}
-							step='1'
 							value={count}
-							onChange={(e) => setCount(e.target.value)}
+							onChange={(v) => setCount(v)}
 						/>
 						<p className='mt-1 text-[11px] text-ca-text'>
 							Mijozda mavjud:{' '}
@@ -155,13 +152,9 @@ export default function AddToVozvratCartModal({
 					</FormField>
 
 					<FormField label='Narxi ($)' horizontal={false}>
-						<Input
-							type='number'
-							inputMode='decimal'
-							min={0}
-							step='0.01'
+						<PriceInput decimals={2}
 							value={price}
-							onChange={(e) => setPrice(e.target.value)}
+							onChange={(v) => setPrice(v)}
 						/>
 					</FormField>
 				</ModalBody>

@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/api/client';
-import type { PaginatedResponse } from '@/services/api/types';
+import type { ListParams, PaginatedResponse } from '@/services/api/types';
 import type {
 	ValidateTransferItemPayload,
 	ValidateTransferItemResponse,
@@ -21,6 +21,32 @@ export const warehouseTransferService = {
 	},
 	create: async (payload: WarehouseTransferCreatePayload) => {
 		const { data } = await apiClient.post<WarehouseTransferDetail>('/warehouse-transfer/', payload);
+		return data;
+	},
+	// Draft (karzinka): reserves the sender's stock until it is sent, edited or deleted (auto-removed after 1 hour).
+	createDraft: async (payload: WarehouseTransferCreatePayload) => {
+		const { data } = await apiClient.post<WarehouseTransferDetail>('/warehouse-transfer/drafts/', payload);
+		return data;
+	},
+	listDrafts: async (params?: ListParams) => {
+		const { data } = await apiClient.get<PaginatedResponse<WarehouseTransfer>>('/warehouse-transfer/drafts/', {
+			params,
+		});
+		return data;
+	},
+	getDraft: async (id: number) => {
+		const { data } = await apiClient.get<WarehouseTransferDetail>(`/warehouse-transfer/drafts/${id}/`);
+		return data;
+	},
+	updateDraft: async (id: number, payload: WarehouseTransferCreatePayload) => {
+		const { data } = await apiClient.put<WarehouseTransferDetail>(`/warehouse-transfer/drafts/${id}/`, payload);
+		return data;
+	},
+	deleteDraft: async (id: number) => {
+		await apiClient.delete(`/warehouse-transfer/drafts/${id}/`);
+	},
+	sendDraft: async (id: number) => {
+		const { data } = await apiClient.post<WarehouseTransferDetail>(`/warehouse-transfer/drafts/${id}/send/`, {});
 		return data;
 	},
 	list: async (params?: WarehouseTransferListParams) => {

@@ -14,6 +14,7 @@ import {
 	ModalHeader,
 	ModalTitle,
 	useNotification,
+	PriceInput,
 } from '@/components/ui';
 import { useCreateBrandMutation, useUpdateBrandMutation } from '@/services/brand/brand.queries';
 import { brandService } from '@/services/brand/brand.service';
@@ -110,7 +111,7 @@ export default function BrandFormModal({ open, setOpen, mode, item }: BrandFormM
 							<Input {...register('name')} />
 						</FormField>
 						<FormField label='Tartibi' error={errors.sorting?.message} horizontal={false} className='mb-3'>
-							<Input type='number' {...register('sorting')} />
+							<Controller name='sorting' control={control} render={({ field }) => <PriceInput decimals={0} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
 							{sortingHint && <i className='mt-1 block text-xs text-ca-text'>{sortingHint}</i>}
 						</FormField>
 						<Controller

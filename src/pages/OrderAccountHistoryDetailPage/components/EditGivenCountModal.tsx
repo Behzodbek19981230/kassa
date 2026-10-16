@@ -10,6 +10,7 @@ import {
 	ModalHeader,
 	ModalTitle,
 	useNotification,
+	PriceInput,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useUpdateProductCountMutation } from '@/services/product-account-history/product-account-history.queries';
@@ -81,13 +82,10 @@ export default function EditGivenCountModal({ open, setOpen, item, orderId }: Ed
 						error={value !== '' ? valueError || undefined : undefined}
 						horizontal={false}
 					>
-						<Input
-							type='number'
-							min={0}
+						<PriceInput decimals={0}
 							max={maxCount}
-							step={1}
 							value={value}
-							onChange={(e) => setValue(e.target.value)}
+							onChange={(v) => setValue(v)}
 							onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
 						/>
 					</FormField>

@@ -1,32 +1,70 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { FaArrowLeft, FaExclamationTriangle, FaPlus, FaTrash } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Combobox, DatePicker, Input, PageHeader, Panel, PriceInput, useNotification } from '@/components/ui';
-import { useCurrentCompany } from '@/lib/company';
-import { getApiErrorMessage, UserFacingError } from '@/lib/errors';
-import { generateId } from '@/lib/utils';
-import WarehouseProductRow, {
-	emptyWarehouseRow,
-	type WarehouseRowValue,
-} from '@/pages/WarehousePage/components/WarehouseProductRow';
-import { useSkladViewQuery, useUpdateSkladMutation } from '@/services/sklad/sklad.queries';
-import type { SkladUpdatePayload } from '@/services/sklad/sklad.types';
-import { resolveStockId } from '@/services/sklad-product/catalog-stock';
 import {
-	useCreateSkladProductMutation,
-	useDeleteSkladProductMutation,
-	useUpdateSkladProductMutation,
-} from '@/services/sklad-product/sklad-product.queries';
-import { skladProductService } from '@/services/sklad-product/sklad-product.service';
+	Button,
+	Combobox,
+	type ComboboxLoadParams,
+	type ComboboxLoadResult,
+	DatePicker,
+	Input,
+	PageHeader,
+	Panel,
+	PriceInput,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+	useNotification,
+} from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
+import { getApiErrorMessage } from '@/lib/errors';
+import { formatNumber } from '@/lib/number';
+import { generateId } from '@/lib/utils';
+import { useEditSkladMutation, useSkladDetailQuery } from '@/services/sklad/sklad.queries';
+import type { SkladEditItemPayload } from '@/services/sklad/sklad.types';
+import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import { warehouseService } from '@/services/warehouse/warehouse.service';
+import type { Warehouse } from '@/services/warehouse/warehouse.types';
 
-// A line of the import: one product's stock in one sklad (SkladProduct).
-interface EditableRow extends WarehouseRowValue {
-	/** The stock row the line was loaded with; new lines have none. */
-	skladProductId?: number;
-	/** The product card the line was loaded with. */
-	cardId?: number;
+// A receipt line: one product (card) received into one sklad.
+interface EditableRow {
+	key: string;
+	/** The saved line's id; new lines have none. */
+	id?: number;
+	warehouse: string;
+	productLabel: string;
+	type_sklad: string;
+	count: string;
+	price: string;
 }
+
+const emptyRow = (): EditableRow => ({
+	key: generateId(),
+	warehouse: '',
+	productLabel: '',
+	type_sklad: '',
+	count: '',
+	price: '',
+});
+
+// "Model | Nomi | O'lcham | Tip", the same label the backend gives saved lines.
+function productLabel(card: Warehouse) {
+	return [card.brand_detail?.name, card.product_category_detail?.name, card.size, card.type_detail?.name]
+		.filter((part) => part !== undefined && part !== null && part !== '')
+		.join(' | ');
+}
+
+const loadProductOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+	const result = await warehouseService.list({ search: search || undefined, page, limit: 50 });
+	return {
+		options: result.results.map((card) => ({ value: String(card.id), label: productLabel(card) })),
+		hasMore: result.pagination.currentPage < result.pagination.lastPage,
+	};
+};
+
+const rowTotal = (row: EditableRow) => (Number(row.count) || 0) * (Number(row.price) || 0);
 
 export default function WarehouseAccountEditPage() {
 	const navigate = useNavigate();
@@ -39,86 +77,50 @@ export default function WarehouseAccountEditPage() {
 		if (!canWrite) navigate('/warehouse-report', { replace: true });
 	}, [canWrite, navigate]);
 
-	const { data, isLoading, isError } = useSkladViewQuery(skladId);
+	const { data, isLoading, isError } = useSkladDetailQuery(skladId);
+	const { data: skladTypesData } = useSkladTypeListQuery({ limit: 100 });
+	const skladTypes = skladTypesData?.results ?? [];
 
 	const [date, setDate] = useState('');
 	const [exchangeRate, setExchangeRate] = useState('');
-	const [givenSumDollar, setGivenSumDollar] = useState('');
+	// The dollar payment of this receipt (`sum_dollar`); the products' total is calculated by the backend.
+	const [paidDollar, setPaidDollar] = useState('');
 	const [discountAmount, setDiscountAmount] = useState('');
 	const [carNumber, setCarNumber] = useState('');
 	const [comment, setComment] = useState('');
 	const [rows, setRows] = useState<EditableRow[]>([]);
-	const [removedRows, setRemovedRows] = useState<EditableRow[]>([]);
-	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
-	const [unmatchedRowKeys, setUnmatchedRowKeys] = useState<Record<string | number, boolean>>({});
+	const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
 	const [formError, setFormError] = useState('');
 
-	const updateSkladMutation = useUpdateSkladMutation();
-	const createStockMutation = useCreateSkladProductMutation();
-	const updateStockMutation = useUpdateSkladProductMutation();
-	const deleteStockMutation = useDeleteSkladProductMutation();
-	const [isResolving, setIsResolving] = useState(false);
-	const isSaving =
-		isResolving ||
-		updateSkladMutation.isPending ||
-		createStockMutation.isPending ||
-		updateStockMutation.isPending ||
-		deleteStockMutation.isPending;
-
-	const hasUnmatchedRow = Object.values(unmatchedRowKeys).some(Boolean);
+	const editMutation = useEditSkladMutation();
 
 	useEffect(() => {
 		if (!data) return;
-		setDate(data.sklad.cr_date);
-		setExchangeRate(String(data.report.exchange_rate));
-		setGivenSumDollar(String(data.report.given_sum_dollar));
-		setDiscountAmount(String(data.report.discount_amount));
-		setCarNumber(data.sklad.car_number ?? '');
-		setComment(data.sklad.comment ?? '');
-		const items = data.products.groups.flatMap((g) => g.items);
+		setDate(data.cr_date);
+		setExchangeRate(String(data.exchange_rate));
+		setPaidDollar(String(data.sum_dollar));
+		setDiscountAmount(String(data.discount_amount));
+		setCarNumber(data.car_number ?? '');
+		setComment(data.comment ?? '');
 		setRows(
-			items.map((item) => ({
+			data.items.map((item) => ({
 				key: generateId(),
-				skladProductId: item.sklad_product ?? undefined,
-				cardId: item.warehouse,
-				brand: String(item.brand),
-				product_category: String(item.product_category),
-				brandSize: '',
-				size: item.size,
-				type: item.type,
-				type_sklad: String(item.type_sklad),
+				id: item.id,
+				warehouse: String(item.warehouse),
+				productLabel: item.product_label,
+				type_sklad: item.type_sklad ? String(item.type_sklad) : '',
+				count: String(item.count),
 				price: String(item.price),
-				count: item.count,
 			})),
 		);
-		setRemovedRows([]);
 	}, [data]);
 
-	const handleCatalogMatchChange = (key: string | number, matched: boolean) => {
-		setUnmatchedRowKeys((prev) => {
-			const isUnmatched = !matched;
-			if (isUnmatched === Boolean(prev[key])) return prev;
-			return { ...prev, [key]: isUnmatched };
-		});
-	};
+	const productsTotal = useMemo(() => rows.reduce((sum, row) => sum + rowTotal(row), 0), [rows]);
 
-	const updateRow = (index: number, next: EditableRow) => {
-		setRows((prev) => prev.map((row, i) => (i === index ? next : row)));
-	};
-	const addRow = () => setRows((prev) => [...prev, { ...emptyWarehouseRow(), count: null }]);
-	const removeRow = (index: number) => {
-		const row = rows[index];
-		if (row?.cardId) {
-			setRemovedRows((prev) => [...prev, row]);
-		}
-		if (row?.key !== undefined) {
-			setUnmatchedRowKeys((keys) => {
-				const { [row.key]: _removed, ...rest } = keys;
-				return rest;
-			});
-		}
-		setRows((prev) => prev.filter((_, i) => i !== index));
-	};
+	const updateRow = (key: string, next: Partial<EditableRow>) =>
+		setRows((prev) => prev.map((row) => (row.key === key ? { ...row, ...next } : row)));
+	const addRow = () => setRows((prev) => [...prev, emptyRow()]);
+	const removeRow = (key: string) => setRows((prev) => prev.filter((row) => row.key !== key));
 
 	const goBack = () => navigate('/warehouse-report');
 
@@ -143,80 +145,41 @@ export default function WarehouseAccountEditPage() {
 			setFormError('Kamida bitta mahsulot qatori kiritilishi shart');
 			return;
 		}
-		if (hasUnmatchedRow) {
-			setFormError("Bu tovar bazada topilmadi. Tovarlar va narxlarga o'tib bu tovarni qo'shing");
-			return;
-		}
 
-		const errors: Record<number, string> = {};
-		rows.forEach((row, i) => {
-			if (!row.brand || !row.product_category || !row.brandSize || !row.price || !row.type_sklad) {
-				errors[i] = "Barcha maydonlar to'ldirilishi shart";
-			} else if (!row.count || row.count <= 0) {
-				errors[i] = 'Soni kiritilishi shart';
+		const errors: Record<string, string> = {};
+		for (const row of rows) {
+			if (!row.type_sklad || !row.warehouse || row.price === '') {
+				errors[row.key] = "Barcha maydonlar to'ldirilishi shart";
+			} else if (!Number(row.count) || Number(row.count) <= 0) {
+				errors[row.key] = 'Soni kiritilishi shart';
 			}
-		});
-		if (Object.keys(errors).length) {
-			setRowErrors(errors);
-			return;
 		}
-		setRowErrors({});
+		setRowErrors(errors);
+		if (Object.keys(errors).length) return;
 
-		const company = data.sklad.company;
+		const items: SkladEditItemPayload[] = rows.map((row) => ({
+			...(row.id !== undefined ? { id: row.id } : {}),
+			warehouse: Number(row.warehouse),
+			type_sklad: Number(row.type_sklad),
+			count: Number(row.count),
+			price: row.price,
+		}));
 
 		try {
-			const skladPayload: SkladUpdatePayload = {
-				cr_date: date,
-				exchange_rate: Number(exchangeRate) || 0,
-				sum_dollar: Number(data.report.sum_dollar) || 0,
-				sum_som: Number(data.report.sum_som) || 0,
-				discount_amount: Number(discountAmount) || 0,
-				given_sum_dollar: Number(givenSumDollar) || 0,
-				car_number: carNumber.trim() || undefined,
-				comment: comment.trim() || undefined,
-				company,
-				consignor_ref: data.sklad.consignor,
-			};
-			await updateSkladMutation.mutateAsync({ id: skladId!, payload: skladPayload });
-
-			for (const row of rows) {
-				setIsResolving(true);
-				const typeSklad = Number(row.type_sklad);
-				const stockPayload = { count: row.count ?? 0, real_price: row.price, cr_date: date };
-				// The product card must already exist (the row checks that); its stock row in this sklad may not.
-				const stock = await (async () => {
-					const card = await warehouseService.findCard({
-						brand: Number(row.brand),
-						product_category: Number(row.product_category),
-						type: row.type,
-						size: row.size ?? 0,
-					});
-					if (!card) return { cardId: undefined, stockId: undefined };
-					const sameStock = card.id === row.cardId && String(typeSklad) === row.type_sklad;
-					const existing =
-						sameStock && row.skladProductId
-							? row.skladProductId
-							: (await skladProductService.findByPair(card.id, typeSklad))?.id;
-					return { cardId: card.id, stockId: existing };
-				})().finally(() => setIsResolving(false));
-
-				if (!stock.cardId) throw new UserFacingError("Bu tovar bazada topilmadi. Tovarlar va narxlarga o'tib bu tovarni qo'shing");
-				if (stock.stockId) {
-					await updateStockMutation.mutateAsync({ id: stock.stockId, payload: stockPayload });
-				} else {
-					await createStockMutation.mutateAsync({ warehouse: stock.cardId, type_sklad: typeSklad, ...stockPayload });
-				}
-			}
-
-			for (const row of removedRows) {
-				setIsResolving(true);
-				const stockId = await resolveStockId(row.skladProductId, row.cardId!, Number(row.type_sklad)).finally(() =>
-					setIsResolving(false),
-				);
-				// No stock row in that sklad means there is nothing to remove.
-				if (stockId) await deleteStockMutation.mutateAsync(stockId);
-			}
-
+			await editMutation.mutateAsync({
+				id: skladId!,
+				payload: {
+					consignor_ref: data.consignor_ref ?? data.consignor ?? 0,
+					cr_date: date,
+					exchange_rate: exchangeRate,
+					comment: comment.trim() || undefined,
+					car_number: carNumber.trim() || undefined,
+					sum_dollar: paidDollar || '0',
+					sum_som: String(data.sum_som ?? 0),
+					discount_amount: discountAmount || '0',
+					items,
+				},
+			});
 			notify({ title: 'Tovar yangilandi' });
 			goBack();
 		} catch (err) {
@@ -239,15 +202,15 @@ export default function WarehouseAccountEditPage() {
 	return (
 		<>
 			<PageHeader
-				title="Tovar qo'shish"
+				title='Tovarni tahrirlash'
 				breadcrumb={[
 					{ label: 'Asosiy', path: '/' },
-					{ label: "Tovar qo'shish", active: true },
+					{ label: 'Tovarni tahrirlash', active: true },
 				]}
 			/>
 
 			<Panel
-				title="Tovar qo'shish"
+				title='Tovarni tahrirlash'
 				actions={
 					<Button type='button' variant='warning' size='xs' onClick={goBack}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
@@ -267,18 +230,16 @@ export default function WarehouseAccountEditPage() {
 								Yuk jo'natuvchi <span className='text-ca-red'>(Kiritilish majburiy)</span>
 							</label>
 							<Combobox
-								value={String(data.sklad.consignor)}
+								value={String(data.consignor_ref ?? '')}
 								onChange={() => {}}
 								options={[]}
-								selectedLabel={data.sklad.consignor_name}
+								selectedLabel={data.consignor_ref_detail?.name}
 								disabled
 							/>
 						</div>
 						<div>
-							<label className='mb-1 block text-xs font-semibold text-ca-heading'>
-								Mening qarzim ($)
-							</label>
-							<PriceInput value={data.report.my_total_debt} disabled />
+							<label className='mb-1 block text-xs font-semibold text-ca-heading'>Mening qarzim ($)</label>
+							<PriceInput value={data.my_total_debt} disabled />
 						</div>
 						<div>
 							<label className='mb-1 block text-xs font-semibold text-ca-heading'>
@@ -295,23 +256,88 @@ export default function WarehouseAccountEditPage() {
 					</div>
 
 					{rows.map((row, index) => (
-						<WarehouseProductRow
-							key={row.key}
-							value={row}
-							onChange={(next) => updateRow(index, next as EditableRow)}
-							error={rowErrors[index]}
-							showAdd={index === rows.length - 1}
-							onAdd={addRow}
-							showRemove
-							onRemove={() => removeRow(index)}
-							companyId={data.sklad.company}
-							requireCatalogMatch
-							onCatalogMatchChange={handleCatalogMatchChange}
-							showCount
-						/>
+						<div key={row.key} className='mb-3'>
+							<div className='grid grid-cols-1 items-start gap-3 md:grid-cols-[200px_1fr_200px_200px_auto]'>
+								<div>
+									<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+										Sklad <span className='text-ca-red'>*</span>
+									</label>
+									<Select value={row.type_sklad} onValueChange={(v) => updateRow(row.key, { type_sklad: v })}>
+										<SelectTrigger>
+											<SelectValue placeholder='Tanlang...' />
+										</SelectTrigger>
+										<SelectContent>
+											{skladTypes.map((t) => (
+												<SelectItem key={t.id} value={String(t.id)}>
+													{t.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+								<div>
+									<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+										Mahsulot <span className='text-ca-red'>*</span>
+									</label>
+									<Combobox
+										value={row.warehouse}
+										onChange={(value, option) =>
+											updateRow(row.key, { warehouse: value, productLabel: option?.label ?? '' })
+										}
+										loadOptions={loadProductOptions}
+										selectedLabel={row.productLabel || undefined}
+										placeholder='Mahsulotni tanlang'
+										searchPlaceholder='Model, nomi yoki tip...'
+									/>
+								</div>
+								<div>
+									<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+										Soni <span className='text-ca-red'>*</span>
+									</label>
+									<PriceInput
+										decimals={0}
+										value={row.count}
+										onChange={(v) => updateRow(row.key, { count: v })}
+									/>
+								</div>
+								<div>
+									<label className='mb-1 block text-xs font-semibold text-ca-heading'>
+										Narxi <span className='text-ca-red'>*</span>
+									</label>
+									<PriceInput value={row.price} onChange={(v) => updateRow(row.key, { price: v })} />
+									<p className='mt-1 text-[11px] text-ca-text'>
+										Summa:{' '}
+										<span className='font-semibold text-ca-heading'>{formatNumber(rowTotal(row), 2)} $</span>
+									</p>
+								</div>
+								<div className='flex gap-1 md:pt-5'>
+									<Button
+										type='button'
+										variant='danger'
+										size='icon'
+										aria-label="Qatorni o'chirish"
+										disabled={rows.length === 1}
+										onClick={() => removeRow(row.key)}
+									>
+										<FaTrash />
+									</Button>
+									{index === rows.length - 1 && (
+										<Button type='button' variant='success' size='icon' aria-label="Qator qo'shish" onClick={addRow}>
+											<FaPlus />
+										</Button>
+									)}
+								</div>
+							</div>
+							{rowErrors[row.key] && <p className='mt-1 text-xs text-ca-red'>{rowErrors[row.key]}</p>}
+						</div>
 					))}
 
-					<div className='mt-4 grid grid-cols-1 gap-3 sm:grid-cols-4'>
+					<div className='mt-2 border-t border-ca-border pt-2 text-right text-xs text-ca-text'>
+						Mahsulotlar summasi:{' '}
+						<span className='text-sm font-bold text-ca-heading'>{formatNumber(productsTotal, 2)} $</span>
+					</div>
+
+					<div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4'>
 						<div>
 							<label className='mb-1 block text-xs font-semibold text-ca-red'>
 								O'zgargan mahsulotlar bo'yicha izoh kiriting <span className='text-ca-red'>*</span>
@@ -324,7 +350,7 @@ export default function WarehouseAccountEditPage() {
 						</div>
 						<div>
 							<label className='mb-1 block text-xs font-semibold text-ca-green'>Berilgan Summa ($)</label>
-							<PriceInput value={givenSumDollar} onChange={setGivenSumDollar} />
+							<PriceInput value={paidDollar} onChange={setPaidDollar} />
 						</div>
 						<div>
 							<label className='mb-1 block text-xs font-semibold text-ca-orange'>Jami chegirma ($)</label>
@@ -332,7 +358,7 @@ export default function WarehouseAccountEditPage() {
 						</div>
 					</div>
 
-					<Button type='submit' variant='theme' className='mt-4 h-11 w-full text-sm' loading={isSaving}>
+					<Button type='submit' variant='theme' className='mt-4 h-11 w-full text-sm' loading={editMutation.isPending}>
 						O'zgartirish
 					</Button>
 				</form>

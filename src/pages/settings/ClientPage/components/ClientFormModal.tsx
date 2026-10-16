@@ -286,14 +286,10 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 									name='keshbek'
 									control={control}
 									render={({ field }) => (
-										<Input
-											type='number'
-											inputMode='decimal'
-											min={0}
+										<PriceInput decimals={2}
 											max={100}
-											step='0.01'
 											value={field.value}
-											onChange={(e) => field.onChange(e.target.value)}
+											onChange={(v) => field.onChange(v)}
 											onBlur={field.onBlur}
 										/>
 									)}

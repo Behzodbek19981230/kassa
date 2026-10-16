@@ -1,6 +1,8 @@
 import { apiClient } from '@/services/api/client';
 import type { PaginatedResponse } from '@/services/api/types';
 import type {
+	SkladDetail,
+	SkladEditPayload,
 	SkladItem,
 	SkladListParams,
 	SkladUpdatePayload,
@@ -11,6 +13,14 @@ import type {
 export const skladService = {
 	list: async (params?: SkladListParams) => {
 		const { data } = await apiClient.get<PaginatedResponse<SkladItem>>('/sklad/', { params });
+		return data;
+	},
+	get: async (id: number) => {
+		const { data } = await apiClient.get<SkladDetail>(`/sklad/${id}/`);
+		return data;
+	},
+	edit: async (id: number, payload: SkladEditPayload) => {
+		const { data } = await apiClient.patch<SkladDetail>(`/sklad/${id}/`, payload);
 		return data;
 	},
 	getView: async (id: number, params?: SkladViewParams) => {

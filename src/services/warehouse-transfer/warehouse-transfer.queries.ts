@@ -9,6 +9,7 @@ import type {
 
 const warehouseTransferKeys = {
 	all: ['warehouse-transfer'] as const,
+	drafts: ['warehouse-transfer', 'drafts'] as const,
 	list: (params?: WarehouseTransferListParams) => ['warehouse-transfer', 'list', params] as const,
 	detail: (id: number) => ['warehouse-transfer', 'detail', id] as const,
 	dispatchList: (id: number) => ['warehouse-transfer', 'dispatch-list', id] as const,
@@ -56,6 +57,56 @@ export function useCreateWarehouseTransferMutation() {
 			queryClient.invalidateQueries({ queryKey: warehouseTransferKeys.all });
 			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
 		},
+	});
+}
+
+export function useWarehouseTransferDraftListQuery(enabled = true) {
+	return useQuery({
+		queryKey: warehouseTransferKeys.drafts,
+		queryFn: () => warehouseTransferService.listDrafts({ page: 1, limit: 50 }),
+		enabled,
+	});
+}
+
+function useInvalidateDrafts() {
+	const queryClient = useQueryClient();
+	return () => {
+		queryClient.invalidateQueries({ queryKey: warehouseTransferKeys.all });
+		// Drafts reserve (and release) sender stock, so the stock lists change with them.
+		queryClient.invalidateQueries({ queryKey: ['warehouse'] });
+	};
+}
+
+export function useCreateWarehouseTransferDraftMutation() {
+	const invalidate = useInvalidateDrafts();
+	return useMutation({
+		mutationFn: (payload: WarehouseTransferCreatePayload) => warehouseTransferService.createDraft(payload),
+		onSuccess: invalidate,
+	});
+}
+
+export function useUpdateWarehouseTransferDraftMutation() {
+	const invalidate = useInvalidateDrafts();
+	return useMutation({
+		mutationFn: ({ id, payload }: { id: number; payload: WarehouseTransferCreatePayload }) =>
+			warehouseTransferService.updateDraft(id, payload),
+		onSuccess: invalidate,
+	});
+}
+
+export function useDeleteWarehouseTransferDraftMutation() {
+	const invalidate = useInvalidateDrafts();
+	return useMutation({
+		mutationFn: (id: number) => warehouseTransferService.deleteDraft(id),
+		onSuccess: invalidate,
+	});
+}
+
+export function useSendWarehouseTransferDraftMutation() {
+	const invalidate = useInvalidateDrafts();
+	return useMutation({
+		mutationFn: (id: number) => warehouseTransferService.sendDraft(id),
+		onSuccess: invalidate,
 	});
 }
 

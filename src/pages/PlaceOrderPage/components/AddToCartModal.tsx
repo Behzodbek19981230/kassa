@@ -285,14 +285,10 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 								control={control}
 								render={({ field }) => (
 									<InputGroup append={variant.typeName ?? undefined}>
-										<Input
-											type='number'
-											inputMode='numeric'
-											min={0}
+										<PriceInput decimals={0}
 											max={availableStock}
-											step='1'
 											value={field.value}
-											onChange={(e) => field.onChange(e.target.value)}
+											onChange={(v) => field.onChange(v)}
 											onBlur={field.onBlur}
 										/>
 									</InputGroup>

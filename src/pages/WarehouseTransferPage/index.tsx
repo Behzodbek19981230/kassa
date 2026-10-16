@@ -1,5 +1,5 @@
 import { type UIEvent, useMemo, useState } from 'react';
-import { FaExchangeAlt, FaExclamationTriangle, FaShoppingCart, FaStore, FaTrash, FaWarehouse } from 'react-icons/fa';
+import { FaExchangeAlt, FaExclamationTriangle, FaSave, FaShoppingCart, FaStore, FaTrash, FaWarehouse } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
 	Button,
@@ -41,7 +41,14 @@ import { catalogCardId } from '@/services/sklad-product/catalog-stock';
 import type { SkladProduct } from '@/services/sklad-product/sklad-product.types';
 import { useWarehouseSkladListInfiniteQuery } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
-import { useCreateWarehouseTransferMutation } from '@/services/warehouse-transfer/warehouse-transfer.queries';
+import {
+	useCreateWarehouseTransferDraftMutation,
+	useCreateWarehouseTransferMutation,
+	useSendWarehouseTransferDraftMutation,
+	useUpdateWarehouseTransferDraftMutation,
+} from '@/services/warehouse-transfer/warehouse-transfer.queries';
+import type { WarehouseTransferDetail } from '@/services/warehouse-transfer/warehouse-transfer.types';
+import TransferDraftsModal from '@/pages/WarehouseTransferPage/components/TransferDraftsModal';
 import TransferMethodPanel from '@/pages/WarehouseTransferPage/components/TransferMethodPanel';
 import type { TransferCartRow } from '@/pages/WarehouseTransferPage/types';
 
@@ -108,6 +115,10 @@ export default function WarehouseTransferPage() {
 	const [selectedSourceItem, setSelectedSourceItem] = useState<SkladProduct | null>(null);
 	const [cartRows, setCartRows] = useState<TransferCartRow[]>([]);
 	const [confirmOpen, setConfirmOpen] = useState(false);
+	const [draftsOpen, setDraftsOpen] = useState(false);
+	// The draft being edited and what it already reserves on the server (by source product card id).
+	const [draftId, setDraftId] = useState<number | null>(null);
+	const [draftReserved, setDraftReserved] = useState<Map<number, number>>(new Map());
 
 	const { data: skladTypesData } = useSkladTypeListQuery({ limit: 100 });
 	const skladTypes = skladTypesData?.results ?? [];
@@ -115,23 +126,28 @@ export default function WarehouseTransferPage() {
 	const toTypeSkladName = skladTypes.find((t) => String(t.id) === toTypeSkladId)?.name;
 	const sameSkladType = Boolean(fromTypeSkladId) && fromTypeSkladId === toTypeSkladId;
 
-	function handleFromChange(value: string) {
-		setFromTypeSkladId(value);
+	// Leaves the draft being edited (it stays saved on the server until sent, deleted or expired).
+	function resetCart() {
 		setSelectedSourceItem(null);
 		setCartRows([]);
+		setDraftId(null);
+		setDraftReserved(new Map());
+	}
+
+	function handleFromChange(value: string) {
+		setFromTypeSkladId(value);
+		resetCart();
 	}
 
 	function handleToChange(value: string) {
 		setToTypeSkladId(value);
-		setSelectedSourceItem(null);
-		setCartRows([]);
+		resetCart();
 	}
 
 	function handleSwapTypes() {
 		setFromTypeSkladId(toTypeSkladId);
 		setToTypeSkladId(fromTypeSkladId);
-		setSelectedSourceItem(null);
-		setCartRows([]);
+		resetCart();
 	}
 
 	const {
@@ -172,13 +188,17 @@ export default function WarehouseTransferPage() {
 	}
 	const cardNames = useProductCardNames();
 
-	const reservedBySkladProductId = useMemo(() => {
+	// Quantity still free to put in the cart: server stock, minus the cart, plus what the edited draft already holds.
+	const reservedByWarehouseId = useMemo(() => {
 		const map = new Map<number, number>();
 		for (const row of cartRows) {
-			map.set(row.source.skladProductId, (map.get(row.source.skladProductId) ?? 0) + row.source.quantity);
+			map.set(row.source.warehouseId, (map.get(row.source.warehouseId) ?? 0) + row.source.quantity);
+		}
+		for (const [warehouseId, quantity] of draftReserved) {
+			map.set(warehouseId, (map.get(warehouseId) ?? 0) - quantity);
 		}
 		return map;
-	}, [cartRows]);
+	}, [cartRows, draftReserved]);
 
 	const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await brandService.list({ search: search || undefined, page, limit: 20 });
@@ -217,36 +237,116 @@ export default function WarehouseTransferPage() {
 	}
 
 	function handleClearCart() {
-		setCartRows([]);
+		resetCart();
 	}
 
 	const createMutation = useCreateWarehouseTransferMutation();
+	const createDraftMutation = useCreateWarehouseTransferDraftMutation();
+	const updateDraftMutation = useUpdateWarehouseTransferDraftMutation();
+	const sendDraftMutation = useSendWarehouseTransferDraftMutation();
+
+	function buildPayload() {
+		return {
+			from_type_sklad_id: Number(fromTypeSkladId),
+			to_type_sklad_id: Number(toTypeSkladId),
+			items: cartRows.map((row) => ({
+				source_warehouse_id: row.source.warehouseId,
+				target_warehouse_id: row.target.warehouseId,
+				mode: row.mode,
+				source_quantity: row.source.quantity,
+				target_quantity: row.target.quantity,
+			})),
+		};
+	}
+
+	// 410: the draft expired; the backend removed it and released the reserve.
+	function handleDraftError(err: unknown, fallback: string) {
+		const status = (err as { response?: { status?: number } })?.response?.status;
+		if (status === 410) {
+			resetCart();
+			notify({ title: 'Karzinka muddati tugagan', text: "Karzinka o'chirilgan, qoldiq qaytarildi" });
+			return;
+		}
+		notify({ title: 'Xatolik', text: getApiErrorMessage(err, fallback) });
+	}
+
+	async function saveDraft() {
+		const payload = buildPayload();
+		return draftId === null
+			? createDraftMutation.mutateAsync(payload)
+			: updateDraftMutation.mutateAsync({ id: draftId, payload });
+	}
+
+	async function handleSaveDraft() {
+		if (!fromTypeSkladId || !toTypeSkladId || cartRows.length === 0) return;
+		try {
+			await saveDraft();
+			notify({ title: 'Karzinka saqlandi', text: "Tovar 1 soat davomida band qilinadi" });
+			resetCart();
+		} catch (err) {
+			handleDraftError(err, 'Karzinkani saqlashda xatolik yuz berdi');
+		}
+	}
+
+	function handleContinueDraft(draft: WarehouseTransferDetail) {
+		setFromTypeSkladId(String(draft.from_type_sklad));
+		setToTypeSkladId(String(draft.to_type_sklad));
+		setSelectedSourceItem(null);
+		setDraftId(draft.id);
+		setDraftReserved(
+			draft.items.reduce((map, item) => {
+				map.set(item.source_warehouse, (map.get(item.source_warehouse) ?? 0) + item.source_quantity);
+				return map;
+			}, new Map<number, number>()),
+		);
+		setCartRows(
+			draft.items.map((item) => ({
+				key: `draft-${draft.id}-${item.id}`,
+				mode: item.mode,
+				source: {
+					warehouseId: item.source_warehouse,
+					typeSkladName: item.source_snapshot.type_sklad_name,
+					brandName: item.source_snapshot.brand_name,
+					categoryName: item.source_snapshot.product_category_name,
+					size: item.source_snapshot.size,
+					typeName: item.source_snapshot.type_name,
+					quantity: item.source_quantity,
+				},
+				target: {
+					warehouseId: item.target_warehouse,
+					typeSkladName: item.target_snapshot.type_sklad_name,
+					brandName: item.target_snapshot.brand_name,
+					categoryName: item.target_snapshot.product_category_name,
+					size: item.target_snapshot.size,
+					typeName: item.target_snapshot.type_name,
+					quantity: item.target_quantity,
+				},
+			})),
+		);
+	}
 
 	async function handleSubmitTransfer() {
 		if (!fromTypeSkladId || !toTypeSkladId || cartRows.length === 0) return;
 		try {
-			await createMutation.mutateAsync({
-				from_type_sklad_id: Number(fromTypeSkladId),
-				to_type_sklad_id: Number(toTypeSkladId),
-				items: cartRows.map((row) => ({
-					source_sklad_product_id: row.source.skladProductId,
-					target_sklad_product_id: row.target.skladProductId,
-					mode: row.mode,
-					source_quantity: row.source.quantity,
-					target_quantity: row.target.quantity,
-				})),
-			});
+			if (draftId === null) {
+				await createMutation.mutateAsync(buildPayload());
+			} else {
+				// Save the edited cart into the draft, then send it (the reserve is already held).
+				const draft = await saveDraft();
+				await sendDraftMutation.mutateAsync(draft.id);
+			}
 			notify({ title: 'Transfer amalga oshirildi' });
-			setCartRows([]);
+			resetCart();
 			setConfirmOpen(false);
 			navigate('/warehouse-transfer/history', { replace: true });
 		} catch (err) {
-			notify({
-				title: 'Xatolik',
-				text: getApiErrorMessage(err, 'Transferni amalga oshirishda xatolik yuz berdi'),
-			});
+			setConfirmOpen(false);
+			handleDraftError(err, 'Transferni amalga oshirishda xatolik yuz berdi');
 		}
 	}
+
+	const isSubmitting = createMutation.isPending || updateDraftMutation.isPending || sendDraftMutation.isPending;
+	const isSavingDraft = createDraftMutation.isPending || updateDraftMutation.isPending;
 
 	const totalSourceQty = cartRows.reduce((sum, row) => sum + row.source.quantity, 0);
 	const totalTargetQty = cartRows.reduce((sum, row) => sum + row.target.quantity, 0);
@@ -433,7 +533,7 @@ export default function WarehouseTransferPage() {
 										!isProductsLoading &&
 										!isProductsError &&
 										products.map((item, index) => {
-											const available = item.count - (reservedBySkladProductId.get(item.id) ?? 0);
+											const available = item.count - (reservedByWarehouseId.get(item.warehouse) ?? 0);
 											const disabled =
 												!canWrite || !toTypeSkladId || sameSkladType || available <= 0;
 											const isSelected = selectedSourceItem?.id === item.id;
@@ -489,7 +589,7 @@ export default function WarehouseTransferPage() {
 							toTypeSkladId={Number(toTypeSkladId)}
 							toTypeSkladName={toTypeSkladName}
 							availableCount={
-								selectedSourceItem.count - (reservedBySkladProductId.get(selectedSourceItem.id) ?? 0)
+								selectedSourceItem.count - (reservedByWarehouseId.get(selectedSourceItem.warehouse) ?? 0)
 							}
 							onAdd={handleAddToCart}
 							onCancel={() => setSelectedSourceItem(null)}
@@ -498,7 +598,12 @@ export default function WarehouseTransferPage() {
 				</div>
 
 				<div className='w-full px-2.5 lg:w-1/2'>
-					<Panel title='Transfer karzinkasi'>
+					<Panel title={draftId === null ? 'Transfer karzinkasi' : `Transfer karzinkasi (saqlangan #${draftId})`}>
+						<div className='mb-3 flex justify-end'>
+							<Button type='button' variant='white' size='sm' onClick={() => setDraftsOpen(true)}>
+								<FaSave className='mr-1.5' /> Saqlangan karzinkalar
+							</Button>
+						</div>
 						{cartRows.length === 0 ? (
 							<div className='flex flex-col items-center justify-center gap-3 py-10 text-center'>
 								<FaShoppingCart className='text-4xl text-ca-border' />
@@ -558,19 +663,30 @@ export default function WarehouseTransferPage() {
 						)}
 
 						{canWrite && cartRows.length > 0 && (
-							<div className='mt-4 flex gap-2'>
+							<div className='mt-4 flex flex-wrap gap-2'>
 								<Button type='button' variant='white' className='flex-1' onClick={handleClearCart}>
-									<FaTrash className='mr-1.5' /> Karzinkani tozalash
+									<FaTrash className='mr-1.5' /> {draftId === null ? 'Karzinkani tozalash' : 'Yopish'}
+								</Button>
+								<Button
+									type='button'
+									variant='theme'
+									className='flex-1'
+									loading={isSavingDraft}
+									disabled={isSubmitting}
+									onClick={handleSaveDraft}
+								>
+									<FaSave className='mr-1.5' /> Saqlash
 								</Button>
 								<Button
 									type='button'
 									variant='warning'
 									className='flex-1'
-									loading={createMutation.isPending}
+									loading={isSubmitting}
+									disabled={isSavingDraft}
 									onClick={() => setConfirmOpen(true)}
 								>
 									<FaExchangeAlt className='mr-1.5' />{' '}
-									{createMutation.isPending ? 'Yuborilmoqda...' : 'Transferni amalga oshirish'}
+									{isSubmitting ? 'Yuborilmoqda...' : 'Transferni amalga oshirish'}
 								</Button>
 							</div>
 						)}
@@ -596,15 +712,22 @@ export default function WarehouseTransferPage() {
 						<Button
 							type='button'
 							variant='warning'
-							loading={createMutation.isPending}
+							loading={isSubmitting}
 							onClick={handleSubmitTransfer}
 						>
-							<FaExchangeAlt className='mr-1.5' />{' '}
-							{createMutation.isPending ? 'Yuborilmoqda...' : 'Tasdiqlash'}
+							<FaExchangeAlt className='mr-1.5' /> {isSubmitting ? 'Yuborilmoqda...' : 'Tasdiqlash'}
 						</Button>
 					</ModalFooter>
 				</ModalContent>
 			</Modal>
+
+			<TransferDraftsModal
+				open={draftsOpen}
+				onOpenChange={setDraftsOpen}
+				onContinue={handleContinueDraft}
+				onDraftGone={(id) => id === draftId && resetCart()}
+				canWrite={canWrite}
+			/>
 		</>
 	);
 }

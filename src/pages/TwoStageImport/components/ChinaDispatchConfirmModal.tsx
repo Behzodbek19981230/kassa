@@ -177,10 +177,10 @@ export default function ChinaDispatchConfirmModal({ open, setOpen, cart, summary
                   {/* Rows: weight · volume · carrier / service price ¥ · $ / logistics 2 · its warehouse / truck. */}
                   <div className='grid grid-cols-1 gap-x-3 sm:grid-cols-3'>
                      <FormField label="Og'irlik (kg)" error={errors.weightKg?.message} required horizontal={false} className='mb-3'>
-                        <Input type='number' inputMode='decimal' min={0} step='0.001' {...register('weightKg')} />
+                        <Controller name='weightKg' control={control} render={({ field }) => <PriceInput decimals={3} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
                      </FormField>
                      <FormField label='Hajm (m³)' error={errors.volumeM3?.message} required horizontal={false} className='mb-3'>
-                        <Input type='number' inputMode='decimal' min={0} step='0.0001' {...register('volumeM3')} />
+                        <Controller name='volumeM3' control={control} render={({ field }) => <PriceInput decimals={4} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
                      </FormField>
                      <FormField label='Logistika 1' error={errors.carrierLogistics?.message} required horizontal={false} className='mb-3'>
                         <Controller

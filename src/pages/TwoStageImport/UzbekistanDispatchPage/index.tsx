@@ -317,6 +317,29 @@ export default function UzbekistanDispatchPage() {
                   onReload={() => cartQuery.refetch()}
                   className={SCROLL_PANEL_CLASS}
                   bodyClassName={SCROLL_BODY_CLASS}
+                  actions={
+                     logisticsCompanyId != null && (
+                        <div className='flex items-center gap-2 text-xs whitespace-nowrap text-white'>
+                           Logistikaga qarzim:{' '}
+                           <span className='font-bold'>
+                              {logisticsDebtYuan !== null ? `${formatNumber(logisticsDebtYuan, 2)} ¥` : "yuan kursi yo'q"}
+                           </span>
+                           <span className='text-white/80'>({formatNumber(logisticsDebtDollar, 2)} $)</span>
+                           {canWrite && (
+                              <OpenDialogButton
+                                 element={(props) => <Button {...props} />}
+                                 elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
+                                 dialog={YuanDebtPayModal}
+                                 dialogProps={{
+                                    target: { kind: 'logistics' as const, logisticsCompanyId },
+                                    name: selectedWarehouse?.logistics_company_name ?? undefined,
+                                    currentDebtDollar: Number(logisticsDebtDollar),
+                                 }}
+                              />
+                           )}
+                        </div>
+                     )
+                  }
                >
                   <div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
                      <div className='w-full px-2.5 sm:w-1/2'>
@@ -394,29 +417,6 @@ export default function UzbekistanDispatchPage() {
                            <p className='mt-1 text-xs text-ca-red'>{headerErrors.logisticsWarehouse}</p>
                         )}
                      </div>
-                     {logisticsCompanyId != null && (
-                        <div className='flex w-full items-end px-2.5 sm:w-1/2'>
-                           <div className='flex h-8.5 items-center gap-2 text-xs whitespace-nowrap text-ca-heading'>
-                              Logistikaga qarzim:{' '}
-                              <span className='font-bold text-ca-red'>
-                                 {logisticsDebtYuan !== null ? `${formatNumber(logisticsDebtYuan, 2)} ¥` : "yuan kursi yo'q"}
-                              </span>
-                              <span className='text-ca-text'>({formatNumber(logisticsDebtDollar, 2)} $)</span>
-                              {canWrite && (
-                                 <OpenDialogButton
-                                    element={(props) => <Button {...props} />}
-                                    elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
-                                    dialog={YuanDebtPayModal}
-                                    dialogProps={{
-                                       target: { kind: 'logistics' as const, logisticsCompanyId },
-                                       name: selectedWarehouse?.logistics_company_name ?? undefined,
-                                       currentDebtDollar: Number(logisticsDebtDollar),
-                                    }}
-                                 />
-                              )}
-                           </div>
-                        </div>
-                     )}
                   </div>
 
                   <div className='mb-2 flex justify-end'>

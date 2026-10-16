@@ -150,13 +150,9 @@ export default function AddToChinaCartModal({
                         name='typeQuantity'
                         control={control}
                         render={({ field }) => (
-                           <Input
-                              type='number'
-                              inputMode='decimal'
-                              min={0}
-                              step='0.0001'
+                           <PriceInput decimals={4}
                               value={field.value}
-                              onChange={(e) => field.onChange(e.target.value)}
+                              onChange={(v) => field.onChange(v)}
                               onBlur={field.onBlur}
                            />
                         )}
@@ -170,13 +166,9 @@ export default function AddToChinaCartModal({
                         control={control}
                         render={({ field }) => (
                            <InputGroup append={product.type_name ?? 'Dona'}>
-                              <Input
-                                 type='number'
-                                 inputMode='numeric'
-                                 min={0}
-                                 step='1'
+                              <PriceInput decimals={0}
                                  value={field.value}
-                                 onChange={(e) => field.onChange(e.target.value)}
+                                 onChange={(v) => field.onChange(v)}
                                  onBlur={field.onBlur}
                               />
                            </InputGroup>
