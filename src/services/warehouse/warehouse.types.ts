@@ -199,6 +199,11 @@ export interface WarehouseAllListParams {
   product_category?: number
 }
 
+/** `warehouse/sklad-list/` — same shape as all-list, limited to one sklad's stock. */
+export interface WarehouseSkladListParams extends WarehouseAllListParams {
+  type_sklad: number
+}
+
 export interface WarehouseEditRealPricePayload {
   real_price: number
 }

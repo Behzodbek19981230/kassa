@@ -128,19 +128,19 @@ export default function TransferMethodPanel({
 			{
 				from_type_sklad_id: fromTypeSkladId,
 				to_type_sklad_id: toTypeSkladId,
-				source_sklad_product_id: sourceItem.id,
-				target_sklad_product_id: target.id,
+				source_warehouse_id: sourceItem.warehouse,
+				target_warehouse_id: target.warehouse,
 				mode,
 				source_quantity: sourceQty,
 				target_quantity: targetQty,
 			},
 			{
-				onSuccess: () => {
+				onSuccess: (res) => {
 					onAdd({
 						key: `${sourceItem.id}-${target.id}-${mode}-${Date.now()}`,
 						mode,
 						source: {
-							skladProductId: sourceItem.id,
+							skladProductId: res.source_sklad_product_id ?? sourceItem.id,
 							typeSkladName: fromTypeSkladName ?? sourceItem.type_sklad_detail?.name ?? '',
 							brandName: names.brandName(sourceCard),
 							categoryName: names.categoryName(sourceCard),
@@ -149,7 +149,7 @@ export default function TransferMethodPanel({
 							quantity: sourceQty,
 						},
 						target: {
-							skladProductId: target.id,
+							skladProductId: res.target_sklad_product_id ?? target.id,
 							typeSkladName: toTypeSkladName ?? target.type_sklad_detail?.name ?? '',
 							brandName: names.brandName(target.warehouse_detail),
 							categoryName: names.categoryName(target.warehouse_detail),

@@ -115,10 +115,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
          is_confirmed: false,
          limit: 1,
       },
-      {
-         refetchInterval: 60 * 1000,
-         refetchOnWindowFocus: true,
-      },
+      // Loaded once per page load; mutations that change the count invalidate it.
+      { staleTime: Infinity },
    );
    const unconfirmedTransfersCount = unconfirmedTransfersData?.pagination.total ?? 0;
 
@@ -127,10 +125,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
          status: 'new_telegram',
          limit: 1,
       },
-      {
-         refetchInterval: 60 * 1000,
-         refetchOnWindowFocus: true,
-      },
+      // Loaded once per page load; mutations that change the count invalidate it.
+      { staleTime: Infinity },
    );
    const unconfirmedClientsCount = unconfirmedClientsData?.pagination.total ?? 0;
 

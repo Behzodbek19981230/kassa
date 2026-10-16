@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { type UIEvent, useMemo, useState } from 'react';
 import { FaExchangeAlt, FaExclamationTriangle, FaShoppingCart, FaStore, FaTrash, FaWarehouse } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -37,8 +37,10 @@ import { cn } from '@/lib/utils';
 import { brandService } from '@/services/brand/brand.service';
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
-import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
+import { catalogCardId } from '@/services/sklad-product/catalog-stock';
 import type { SkladProduct } from '@/services/sklad-product/sklad-product.types';
+import { useWarehouseSkladListInfiniteQuery } from '@/services/warehouse/warehouse.queries';
+import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import { useCreateWarehouseTransferMutation } from '@/services/warehouse-transfer/warehouse-transfer.queries';
 import TransferMethodPanel from '@/pages/WarehouseTransferPage/components/TransferMethodPanel';
 import type { TransferCartRow } from '@/pages/WarehouseTransferPage/types';
@@ -51,6 +53,36 @@ const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'type', label: 'Tip' },
 	{ id: 'available', label: 'Bor miqdor' },
 ];
+
+// The rest of the page (and TransferMethodPanel) works with stock rows, so sklad-list rows are mapped to that shape.
+function toSkladProduct(row: WarehouseAllListItem, typeSkladId: number): SkladProduct {
+	return {
+		id: row.sklad_product_id ?? row.id,
+		company: row.company_id,
+		warehouse: catalogCardId(row),
+		type_sklad: row.type_sklad_id ?? typeSkladId,
+		count: row.count,
+		real_price: row.real_price,
+		worker_price: null,
+		cr_date: null,
+		status_count: null,
+		created_by: null,
+		updated_by: null,
+		created_time: '',
+		updated_time: '',
+		warehouse_detail: {
+			id: catalogCardId(row),
+			brand: row.brand_id,
+			product_category: row.product_category_id,
+			size: row.size,
+			type: row.type_id,
+			brand_detail: { id: row.brand_id, name: row.brand_name },
+			product_category_detail: { id: row.product_category_id, name: row.product_category_name },
+			type_detail: row.type_id ? { id: row.type_id, name: row.type_name ?? '' } : null,
+		},
+		type_sklad_detail: row.type_sklad_id ? { id: row.type_sklad_id, name: row.type_sklad_name ?? '' } : null,
+	};
+}
 
 interface WarehouseTransferPageState {
 	fromTypeSkladId?: number;
@@ -106,19 +138,38 @@ export default function WarehouseTransferPage() {
 		data: productsData,
 		isLoading: isProductsLoading,
 		isFetching: isProductsFetching,
+		isFetchingNextPage,
+		hasNextPage,
+		fetchNextPage,
 		isError: isProductsError,
 		error: productsError,
 		refetch: refetchProducts,
-	} = useSkladProductListQuery(
-		{ type_sklad: fromTypeSkladId ? Number(fromTypeSkladId) : undefined, limit: 1000 },
-		Boolean(fromTypeSkladId),
+	} = useWarehouseSkladListInfiniteQuery(
+		fromTypeSkladId
+			? {
+					type_sklad: Number(fromTypeSkladId),
+					brand: brandFilter ? Number(brandFilter) : undefined,
+					product_category: categoryFilter ? Number(categoryFilter) : undefined,
+				}
+			: undefined,
 	);
-	// The source sklad's stock rows. The stock list can't filter by model or nomi, so those filters apply here.
-	const products = (productsData?.results ?? []).filter(
-		(item) =>
-			(!brandFilter || item.warehouse_detail?.brand === Number(brandFilter)) &&
-			(!categoryFilter || item.warehouse_detail?.product_category === Number(categoryFilter)),
+	// The source sklad's stock rows, 50 at a time; the next page loads when the table is scrolled to the bottom.
+	const products = useMemo(
+		() =>
+			(productsData?.groups ?? []).flatMap((brand) =>
+				brand.product_categories.flatMap((category) =>
+					category.warehouses.map((row) => toSkladProduct(row, Number(fromTypeSkladId))),
+				),
+			),
+		[productsData, fromTypeSkladId],
 	);
+
+	function handleProductsScroll(e: UIEvent<HTMLDivElement>) {
+		const el = e.currentTarget;
+		if (hasNextPage && !isFetchingNextPage && el.scrollTop + el.clientHeight >= el.scrollHeight - 40) {
+			fetchNextPage();
+		}
+	}
 	const cardNames = useProductCardNames();
 
 	const reservedBySkladProductId = useMemo(() => {
@@ -333,9 +384,9 @@ export default function WarehouseTransferPage() {
 							<ColumnVisibilityMenu state={cols} />
 						</div>
 
-						<div className='overflow-x-auto'>
+						<div className='max-h-[calc(100vh-360px)] min-h-75 overflow-auto' onScroll={handleProductsScroll}>
 							<Table>
-								<TableHeader>
+								<TableHeader className='sticky top-0 z-10'>
 									<TableRow>
 										<TableHead className='bg-ca-theme text-white'>#</TableHead>
 										{cols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
@@ -353,7 +404,7 @@ export default function WarehouseTransferPage() {
 											</TableCell>
 										</TableRow>
 									)}
-									{fromTypeSkladId && (isProductsLoading || isProductsFetching) && (
+									{fromTypeSkladId && (isProductsLoading || (isProductsFetching && !isFetchingNextPage)) && (
 										<TableRow>
 											<TableCell colSpan={cols.visibleCount} className='text-center'>
 												Yuklanmoqda...
@@ -418,6 +469,13 @@ export default function WarehouseTransferPage() {
 												</TableRow>
 											);
 										})}
+									{isFetchingNextPage && (
+										<TableRow>
+											<TableCell colSpan={cols.visibleCount} className='text-center'>
+												Yuklanmoqda...
+											</TableCell>
+										</TableRow>
+									)}
 								</TableBody>
 							</Table>
 						</div>

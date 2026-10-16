@@ -11,6 +11,7 @@ import type {
   WarehouseEditRealPricePayload,
   WarehouseListParams,
   WarehousePayload,
+  WarehouseSkladListParams,
   WarehouseSkladProductsPayload,
   WarehouseSkladProductsResponse,
 } from '@/services/warehouse/warehouse.types'
@@ -21,8 +22,12 @@ type AllListResponse =
 
 const WAREHOUSE_ALL_LIST_PAGE_SIZE = 50
 
-async function fetchAllListPage(params: WarehouseAllListParams | undefined, page: number) {
-  const { data } = await apiClient.get<AllListResponse>('/warehouse/all-list/', {
+async function fetchAllListPage(
+  params: WarehouseAllListParams | undefined,
+  page: number,
+  path = '/warehouse/all-list/',
+) {
+  const { data } = await apiClient.get<AllListResponse>(path, {
     params: { ...params, page, limit: WAREHOUSE_ALL_LIST_PAGE_SIZE },
   })
   return data
@@ -70,6 +75,12 @@ export const warehouseService = {
   },
   allListPage: async (params: WarehouseAllListParams | undefined, page: number) => {
     const data = await fetchAllListPage(params, page)
+    const total = Array.isArray(data) ? null : (data.total ?? null)
+    return { ...parseListPage(data, page), total }
+  },
+  // One sklad's stock, in the all-list shape; lighter than all-list for pages that work inside one sklad.
+  skladListPage: async (params: WarehouseSkladListParams, page: number) => {
+    const data = await fetchAllListPage(params, page, '/warehouse/sklad-list/')
     const total = Array.isArray(data) ? null : (data.total ?? null)
     return { ...parseListPage(data, page), total }
   },

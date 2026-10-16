@@ -15,8 +15,7 @@ export function useExchangeRateQuery(company: number | null) {
 			return data.results[0] ?? null;
 		},
 		enabled: company != null,
-		refetchInterval: 5 * 60 * 1000,
-		refetchOnWindowFocus: true,
+		staleTime: Infinity,
 	});
 }
 

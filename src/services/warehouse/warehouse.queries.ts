@@ -7,6 +7,7 @@ import type {
   WarehouseEditRealPricePayload,
   WarehouseListParams,
   WarehousePayload,
+  WarehouseSkladListParams,
   WarehouseSkladProductsPayload,
 } from '@/services/warehouse/warehouse.types'
 
@@ -16,6 +17,7 @@ const warehouseKeys = {
   allList: (params?: WarehouseAllListParams) => ['warehouse', 'all-list', params] as const,
   allListInfinite: (params?: WarehouseAllListParams) => ['warehouse', 'all-list', 'infinite', params] as const,
   detail: (id: number) => ['warehouse', 'detail', id] as const,
+  skladListInfinite: (params?: WarehouseSkladListParams) => ['warehouse', 'sklad-list', 'infinite', params] as const,
   skladProducts: (id: number) => ['warehouse', 'sklad-products', id] as const,
 }
 
@@ -55,6 +57,19 @@ export function useWarehouseAllListInfiniteQuery(params?: WarehouseAllListParams
     getNextPageParam: (lastPage) => lastPage.nextPage,
     select: selectBrandGroups,
     placeholderData: (prev) => prev,
+  })
+}
+
+// Same as useWarehouseAllListInfiniteQuery, limited to one sklad; disabled until a sklad is picked.
+export function useWarehouseSkladListInfiniteQuery(params?: WarehouseSkladListParams) {
+  return useInfiniteQuery({
+    queryKey: warehouseKeys.skladListInfinite(params),
+    queryFn: ({ pageParam }) => warehouseService.skladListPage(params as WarehouseSkladListParams, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    select: selectBrandGroups,
+    placeholderData: (prev) => prev,
+    enabled: params !== undefined,
   })
 }
 
