@@ -2,7 +2,7 @@ import { createColumnHelper, type PaginationState } from '@tanstack/react-table'
 import { useState } from 'react';
 import { FaEye, FaExclamationTriangle, FaPaperPlane } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { Button, DataTable, PageHeader, Panel } from '@/components/ui';
+import { Button, DataTable, Panel } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { BroadcastStatusBadge } from '@/pages/TelegramBroadcastPage/components/StatusBadge';
 import { useTelegramBroadcastListQuery } from '@/services/telegram-broadcast/telegram-broadcast.queries';
@@ -93,13 +93,6 @@ export default function TelegramBroadcastPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Telegram xabarnomalar'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Telegram xabarnomalar', active: true },
-				]}
-			/>
 
 			<Panel
 				title="Ro'yxat"

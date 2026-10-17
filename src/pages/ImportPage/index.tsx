@@ -6,7 +6,6 @@ import {
    Combobox,
    type ComboboxLoadParams,
    type ComboboxLoadResult,
-   PageHeader,
    Panel,
    Table,
    TableBody,
@@ -225,13 +224,6 @@ export default function ImportPage() {
 
    return (
       <>
-         <PageHeader
-            title='Import qilish'
-            breadcrumb={[
-               { label: 'Asosiy', path: '/' },
-               { label: 'Import qilish', active: true },
-            ]}
-         />
 
          <div className='-mx-2.5 flex flex-wrap'>
             <div className='w-full px-2.5 lg:w-1/2'>

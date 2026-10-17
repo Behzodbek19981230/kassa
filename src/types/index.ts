@@ -50,12 +50,6 @@ export interface SidebarMenuItem {
 	requiredPermission?: keyof SidebarMenuPermissions;
 }
 
-export interface BreadcrumbItem {
-	label: string;
-	path?: string;
-	active?: boolean;
-}
-
 export interface TableRow {
 	engine: string;
 	browser: string;
@@ -91,8 +85,3 @@ export interface PanelProps {
 	onRemove?: () => void;
 }
 
-export interface PageHeaderProps {
-	title: string;
-	subtitle?: string;
-	breadcrumb: BreadcrumbItem[];
-}

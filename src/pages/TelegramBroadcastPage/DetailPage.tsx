@@ -3,7 +3,6 @@ import { FaArrowLeft, FaExclamationTriangle, FaRedo, FaTrash } from 'react-icons
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Button,
-  PageHeader,
   Panel,
   Progress,
   Select,
@@ -122,14 +121,6 @@ export default function TelegramBroadcastDetailPage() {
 
   return (
     <>
-      <PageHeader
-        title={`Xabarnoma #${job.id}`}
-        breadcrumb={[
-          { label: 'Asosiy', path: '/' },
-          { label: 'Telegram xabarnomalar', path: '/telegram-broadcast' },
-          { label: `#${job.id}`, active: true },
-        ]}
-      />
 
       <Panel
         title={`Xabarnoma #${job.id}`}

@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-table';
 import { useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
-import { Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
+import { Button, buttonProps, DataTable, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -76,14 +76,6 @@ export default function CountryPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Davlatlar'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Tizim boshqaruvi' },
-					{ label: 'Davlatlar', active: true },
-				]}
-			/>
 
 			<Panel
 				title="Ro'yxat"

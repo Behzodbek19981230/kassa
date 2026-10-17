@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { getApiErrorMessage } from '@/lib/errors';
 import {
    FaBuilding,
@@ -130,6 +130,59 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
    );
    const unconfirmedClientsCount = unconfirmedClientsData?.pagination.total ?? 0;
 
+   // Header menus that fit stay in the bar; the rest (from the last one) move into the profile dropdown.
+   const innerRef = useRef<HTMLDivElement>(null);
+   const leftRef = useRef<HTMLDivElement>(null);
+   const menuRef = useRef<HTMLUListElement>(null);
+   const [measuring, setMeasuring] = useState(true);
+   const [visibleCount, setVisibleCount] = useState(Number.POSITIVE_INFINITY);
+   const [measureTick, setMeasureTick] = useState(0);
+   const inHeader = (index: number) => measuring || index < visibleCount;
+   const inMenu = (index: number) => !measuring && index >= visibleCount;
+   const anyInMenu = [0, 1, 2, 3].some(inMenu);
+
+   useEffect(() => {
+      const el = innerRef.current;
+      if (!el) return;
+      const remeasure = () => setMeasureTick((t) => t + 1);
+      // The left block (clock, rates) changes width when data/fonts arrive; the menu itself is not
+      // observed because its size changes with our own collapsing and would loop.
+      const observer = new ResizeObserver(remeasure);
+      observer.observe(el);
+      if (leftRef.current) observer.observe(leftRef.current);
+      // Menu text widths change once web fonts and images have loaded.
+      void document.fonts?.ready.then(remeasure);
+      window.addEventListener('load', remeasure);
+      return () => {
+         observer.disconnect();
+         window.removeEventListener('load', remeasure);
+      };
+   }, []);
+
+   // Re-measure with every menu rendered whenever the width or the menu contents change.
+   useLayoutEffect(() => {
+      setMeasuring(true);
+   }, [measureTick, unconfirmedClientsCount, unconfirmedTransfersCount, showCompanySelect, companies.length, currentCompany?.name, user?.username]);
+
+   useLayoutEffect(() => {
+      if (!measuring) return;
+      const inner = innerRef.current;
+      const left = leftRef.current;
+      const menu = menuRef.current;
+      if (!inner || !left || !menu) return;
+      const available = inner.clientWidth - 40 - left.offsetWidth - 24;
+      const items = Array.from(menu.children) as HTMLElement[];
+      let used = items.filter((li) => !li.hasAttribute('data-collapsible')).reduce((sum, li) => sum + li.offsetWidth, 0);
+      let count = 0;
+      for (const li of items.filter((li) => li.hasAttribute('data-collapsible'))) {
+         used += li.offsetWidth;
+         if (used > available) break;
+         count += 1;
+      }
+      setVisibleCount(count);
+      setMeasuring(false);
+   }, [measuring]);
+
    const handleSelectCompany = async (id: number) => {
       setSwitchingCompanyId(id);
       try {
@@ -158,8 +211,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
             id='header'
             className='fixed top-0 right-0 left-0 z-[1020] h-[54px] bg-ca-header shadow-[0_0_2px_rgba(0,0,0,0.3)]'
          >
-            <div className='flex h-full items-center px-5'>
-               <div className='flex items-center'>
+            <div ref={innerRef} className='flex h-full items-center px-5'>
+               <div ref={leftRef} className='flex shrink-0 items-center'>
                   <a
                      href='/'
                      className='flex h-[54px] w-[220px] items-center justify-center px-5 text-lg font-medium text-ca-nav-text no-underline'
@@ -260,7 +313,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                   </li>
                </div>
 
-               <ul className='ml-auto flex list-none items-center p-0'>
+               <ul ref={menuRef} className='ml-auto flex list-none items-center p-0 [&>li]:shrink-0'>
                   <li>
                      <button
                         type='button'
@@ -272,12 +325,12 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                      </button>
                   </li>
 
-                  <li>
+                  <li data-collapsible className={inHeader(0) ? undefined : 'hidden'}>
                      <Tooltip side='bottom' content='Yangi klientlar'>
                         <button
                            type='button'
                            onClick={() => setNewClientsModalOpen(true)}
-                           className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+                           className='flex items-center gap-1.5 whitespace-nowrap px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
                            aria-label={
                               unconfirmedClientsCount > 0
                                  ? `Tasdiqlanmagan mijozlar (${unconfirmedClientsCount} ta)`
@@ -297,12 +350,12 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                      </Tooltip>
                   </li>
 
-                  <li>
+                  <li data-collapsible className={inHeader(1) ? undefined : 'hidden'}>
                      <Tooltip side='bottom' content='Telegram xabarnoma'>
                         <button
                            type='button'
                            onClick={() => navigate('/telegram-broadcast')}
-                           className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+                           className='flex items-center gap-1.5 whitespace-nowrap px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
                            aria-label='Telegram xabarnoma'
                         >
                            <FaPaperPlane />
@@ -313,12 +366,12 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
 
 
-                  <li>
+                  <li data-collapsible className={inHeader(2) ? undefined : 'hidden'}>
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                            <button
                               type='button'
-                              className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+                              className='flex items-center gap-1.5 whitespace-nowrap px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
                               aria-label={
                                  unconfirmedTransfersCount > 0
                                     ? `Skladlararo transfer (${unconfirmedTransfersCount} ta tasdiqlanmagan)`
@@ -357,12 +410,12 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                   </li>
 
                   {showCompanySelect && companies.length > 1 && (
-                     <li>
+                     <li data-collapsible className={inHeader(3) ? undefined : 'hidden'}>
                         <DropdownMenu>
                            <DropdownMenuTrigger asChild>
                               <button
                                  type='button'
-                                 className='flex items-center gap-1.5 px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
+                                 className='flex items-center gap-1.5 whitespace-nowrap px-[15px] py-[17px] text-sm text-ca-nav-text hover:opacity-60 focus:outline-none'
                               >
                                  <FaBuilding />
                                  <span className='hidden md:inline'>
@@ -438,6 +491,70 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                            )}
 
                            <DropdownMenuSeparator />
+                           {/* Tablet/mobile: the header menus collapse into this dropdown (only the ones that don't fit the header). */}
+                           <DropdownMenuItem
+                              onSelect={() => setNewClientsModalOpen(true)}
+                              className={inMenu(0) ? 'flex items-center gap-2' : 'hidden'}
+                           >
+                              <FaUser className='text-ca-text' />
+                              Tasdiqlanmagan mijozlar
+                              {unconfirmedClientsCount > 0 && (
+                                 <Badge variant='danger' className='ml-auto rounded-full'>
+                                    {unconfirmedClientsCount}
+                                 </Badge>
+                              )}
+                           </DropdownMenuItem>
+                           <DropdownMenuItem
+                              onSelect={() => navigate('/telegram-broadcast')}
+                              className={inMenu(1) ? 'flex items-center gap-2' : 'hidden'}
+                           >
+                              <FaPaperPlane className='text-ca-text' />
+                              Telegram xabarnoma
+                           </DropdownMenuItem>
+                           <DropdownMenuItem
+                              onSelect={() => navigate('/warehouse-transfer')}
+                              className={inMenu(2) ? 'flex items-center gap-2' : 'hidden'}
+                           >
+                              <FaExchangeAlt className='text-ca-text' />
+                              Skladlararo transfer
+                              {unconfirmedTransfersCount > 0 && (
+                                 <Badge variant='danger' className='ml-auto rounded-full'>
+                                    {unconfirmedTransfersCount}
+                                 </Badge>
+                              )}
+                           </DropdownMenuItem>
+                           <DropdownMenuItem
+                              onSelect={() => navigate('/warehouse-transfer/history')}
+                              className={inMenu(2) ? 'flex items-center gap-2' : 'hidden'}
+                           >
+                              <FaHistory className='text-ca-text' />
+                              Transfer tarixi
+                           </DropdownMenuItem>
+                           {showCompanySelect && companies.length > 1 && (
+                              <div className={inMenu(3) ? undefined : 'hidden'}>
+                                 <DropdownMenuSeparator />
+                                 <DropdownMenuLabel>Tashkilotni tanlash</DropdownMenuLabel>
+                                 {companies.map((company) => (
+                                    <DropdownMenuItem
+                                       key={company.id}
+                                       disabled={switchingCompanyId != null}
+                                       onSelect={() => handleSelectCompany(company.id)}
+                                       className='flex items-center justify-between gap-2'
+                                    >
+                                       <span className='flex items-center gap-1.5'>
+                                          <FaBuilding className='text-ca-text' />
+                                          {company.name}
+                                       </span>
+                                       {switchingCompanyId === company.id ? (
+                                          <span className='text-[10px] text-ca-text'>...</span>
+                                       ) : (
+                                          company.id === companyId && <FaCheck className='text-ca-green' />
+                                       )}
+                                    </DropdownMenuItem>
+                                 ))}
+                              </div>
+                           )}
+                           <DropdownMenuSeparator className={anyInMenu ? undefined : 'hidden'} />
                            {isSuperAdmin && (
                               <DropdownMenuItem
                                  onSelect={() => navigate('/system/event-log')}

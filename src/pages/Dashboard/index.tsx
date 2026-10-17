@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { PageHeader, Panel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
+import { Panel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { useDashboardStatisticsQuery } from '@/services/dashboard/dashboard.queries';
 import DashboardEmployeeSection from '@/pages/Dashboard/components/DashboardEmployeeSection';
@@ -23,13 +23,6 @@ export default function Dashboard() {
 
 	return (
 		<>
-			<PageHeader
-				title='Dashboard'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Dashboard', active: true },
-				]}
-			/>
 
 			<div className='mb-4 flex items-center gap-2'>
 				<span className='text-xs font-semibold text-ca-heading'>Yil:</span>

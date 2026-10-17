@@ -124,9 +124,10 @@ export default function OrderAndDebtPage() {
 		}
 	}
 
-	return (
+	const renderPanel = (content: ReactNode) => (
 		<Panel
 			title='Buyurtmalar va qarzlar'
+			className='mb-0'
 			actions={
 				<div className='flex flex-wrap items-center gap-2'>
 					<Button
@@ -205,41 +206,45 @@ export default function OrderAndDebtPage() {
 				</div>
 			</div>
 
-			<Tabs
-				value={activeTab}
-				onValueChange={(tab) => setSearchParams(tab === 'main' ? {} : { tab }, { replace: false })}
-				items={[
-					{
-						value: 'main',
-						label: 'Umumiy hisobot',
-						content: (
-							<MainTab
-								groups={results?.groups ?? []}
-								items={results?.items ?? []}
-								isLoading={isLoading || isFetching}
-								isError={isError}
-								error={error}
-								cols={cols}
-								onPrint={handlePrintItem}
-							/>
-						),
-					},
-					{
-						value: 'worker',
-						label: "Hodim turi bo'yicha",
-						content: (
-							<WorkerTypeTab
-								groups={results?.worker_type_groups ?? []}
-								isLoading={isLoading || isFetching}
-								isError={isError}
-								error={error}
-								cols={cols}
-								onPrint={handlePrintItem}
-							/>
-						),
-					},
-				]}
-			/>
+			{content}
 		</Panel>
+	);
+
+	return (
+		<Tabs
+			value={activeTab}
+			onValueChange={(tab) => setSearchParams(tab === 'main' ? {} : { tab }, { replace: false })}
+			items={[
+				{
+					value: 'main',
+					label: 'Umumiy hisobot',
+					content: renderPanel(
+						<MainTab
+							groups={results?.groups ?? []}
+							items={results?.items ?? []}
+							isLoading={isLoading || isFetching}
+							isError={isError}
+							error={error}
+							cols={cols}
+							onPrint={handlePrintItem}
+						/>
+					),
+				},
+				{
+					value: 'worker',
+					label: "Hodim turi bo'yicha",
+					content: renderPanel(
+						<WorkerTypeTab
+							groups={results?.worker_type_groups ?? []}
+							isLoading={isLoading || isFetching}
+							isError={isError}
+							error={error}
+							cols={cols}
+							onPrint={handlePrintItem}
+						/>
+					),
+				},
+			]}
+		/>
 	);
 }

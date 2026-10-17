@@ -12,7 +12,6 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalTitle,
-	PageHeader,
 	Panel,
 	Select,
 	SelectContent,
@@ -381,13 +380,6 @@ export default function WarehouseTransferPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Skladlararo transfer'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Skladlararo transfer', active: true },
-				]}
-			/>
 
 			<div className='relative -mx-2.5 mb-0 flex flex-wrap'>
 				<div className='w-full px-2.5 pb-5 lg:w-1/2'>

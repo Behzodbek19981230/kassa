@@ -8,7 +8,7 @@ import {
 	FaTelegramPlane,
 	FaYoutube,
 } from 'react-icons/fa';
-import { Badge, Button, buttonProps, PageHeader, Panel, Skeleton, Tooltip } from '@/components/ui';
+import { Badge, Button, buttonProps, Panel, Skeleton, Tooltip } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -73,13 +73,6 @@ export default function AboutPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Biz haqimizda'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Biz haqimizda', active: true },
-				]}
-			/>
 
 			<Panel
 				title="Tashkilot ma'lumotlari"

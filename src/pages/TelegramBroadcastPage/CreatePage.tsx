@@ -13,7 +13,6 @@ import {
   ModalHeader,
   ModalTitle,
   MultiCombobox,
-  PageHeader,
   Panel,
   RadioGroup,
   Textarea,
@@ -201,14 +200,6 @@ export default function TelegramBroadcastCreatePage() {
 
   return (
     <>
-      <PageHeader
-        title='Telegram xabarnoma yaratish'
-        breadcrumb={[
-          { label: 'Asosiy', path: '/' },
-          { label: 'Telegram xabarnomalar', path: '/telegram-broadcast' },
-          { label: 'Yaratish', active: true },
-        ]}
-      />
 
       <Panel
         title='Telegram xabarnoma yaratish'

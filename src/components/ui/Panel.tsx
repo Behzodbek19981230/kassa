@@ -2,7 +2,19 @@ import { FaCompress, FaExpand, FaMinus, FaRedo, FaTimes } from 'react-icons/fa';
 import type { PanelProps } from '@/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
-import { useRef, useState } from 'react';
+import { createContext, type ReactNode, useContext, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+
+const PanelHeaderSlotContext = createContext<HTMLElement | null>(null);
+
+/**
+ * Renders children in the rightmost spot of the enclosing Panel's header actions (e.g. the table's
+ * "Ustunlar" button). Outside a Panel the children render in place.
+ */
+export function PanelHeaderAction({ children }: { children: ReactNode }) {
+   const slot = useContext(PanelHeaderSlotContext);
+   return slot ? createPortal(children, slot) : <>{children}</>;
+}
 
 export function Panel({
    title,
@@ -17,6 +29,7 @@ export function Panel({
 }: PanelProps) {
    const [collapsed, setCollapsed] = useState(false);
    const [expanded, setExpanded] = useState(false);
+   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
    const itemRef = useRef<HTMLDivElement>(null);
    const onExpand = () => setExpanded((e) => !e);
 
@@ -27,6 +40,7 @@ export function Panel({
    };
 
    return (
+      <PanelHeaderSlotContext.Provider value={headerSlot}>
       <div
          className={cn(
             'mb-5 overflow-hidden rounded-[3px] bg-ca-silver-light shadow-none',
@@ -38,6 +52,7 @@ export function Panel({
          <div className={cn('flex items-center bg-ca-panel-inverse px-[15px] py-[10px] text-white', headerClassName)}>
             <div className='order-2 ml-auto flex items-center gap-2'>
                {actions}
+               <div ref={setHeaderSlot} className='flex items-center gap-2 empty:hidden' />
                {/* <Button
 						variant='default'
 						size='icon-xs'
@@ -79,5 +94,6 @@ export function Panel({
             <div className='border-t border-ca-border bg-ca-silver-light px-[15px] py-[14px]'>{footer}</div>
          )}
       </div>
+      </PanelHeaderSlotContext.Provider>
    );
 }

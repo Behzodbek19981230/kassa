@@ -216,6 +216,12 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
    const isDirectActive = isRouteMatch(item.path, pathname);
    // Active branches are auto-added to `expanded` on navigation, so clicking the header can still close them.
    const isVisible = isOpen;
+   // The minified flyout is fixed-positioned so it can be capped to the viewport and scroll.
+   const [flyoutPos, setFlyoutPos] = useState<{ top: number; maxHeight: number }>({ top: 0, maxHeight: 0 });
+   const placeFlyout = (el: HTMLElement) => {
+      const top = Math.max(54, el.getBoundingClientRect().top);
+      setFlyoutPos({ top, maxHeight: Math.max(120, window.innerHeight - top - 10) });
+   };
 
    if (item.type === 'header') {
       if (minified) return null;
@@ -273,7 +279,10 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
       }`;
 
    return (
-      <li className={`group/sub relative list-none ${branchActive ? 'active' : ''} ${isVisible ? 'expand' : ''}`}>
+      <li
+         className={`group/sub relative list-none ${branchActive ? 'active' : ''} ${isVisible ? 'expand' : ''}`}
+         onMouseEnter={minified ? (e) => placeFlyout(e.currentTarget) : undefined}
+      >
          <button
             type='button'
             onClick={() => !minified && onToggle(item.id)}
@@ -336,8 +345,14 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
 
          {/* Minified hover flyout */}
          {minified && (
-            <div className='pointer-events-none absolute top-0 left-full z-[1050] hidden pl-0 group-hover/sub:pointer-events-auto group-hover/sub:block'>
-               <div className='ml-0 w-[220px] overflow-hidden rounded-r-[3px] border border-ca-border bg-ca-sidebar-dark shadow-[4px_4px_16px_rgba(0,0,0,0.15)]'>
+            <div
+               className='pointer-events-none fixed left-[60px] z-[1050] hidden pl-0 group-hover/sub:pointer-events-auto group-hover/sub:block'
+               style={{ top: flyoutPos.top }}
+            >
+               <div
+                  className='ml-0 w-[220px] overflow-y-auto overscroll-contain rounded-r-[3px] border border-ca-border bg-ca-sidebar-dark shadow-[4px_4px_16px_rgba(0,0,0,0.15)]'
+                  style={{ maxHeight: flyoutPos.maxHeight }}
+               >
                   <div className='border-b border-ca-border bg-ca-silver px-5 py-2.5 text-sm font-semibold text-ca-heading'>
                      {item.label}
                   </div>
@@ -408,10 +423,18 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
             className={`fixed top-0 bottom-0 left-0 z-[1010] pt-[54px] transition-all duration-200 ${widthClass} ${mobileClass} ${overflowClass}`}
          >
             <ul className='m-0 list-none py-5'>
-               <li>
-                  <div className={`px-5 text-sm font-semibold ${minified ? 'opacity-0' : 'opacity-100'}`}>
-                     Menyular
-                  </div>
+               <li className={`flex items-center ${minified ? 'justify-center' : 'justify-between pr-0 pl-5'}`}>
+                  {!minified && <div className='text-sm font-semibold'>Menyular</div>}
+                  <button
+                     type='button'
+                     onClick={onMinify}
+                     className={`flex items-center bg-ca-badge-bg py-[5px] text-white transition-opacity hover:opacity-80 ${minified ? 'rounded-full px-2.5' : 'rounded-l-full pr-5 pl-2.5'}`}
+                     aria-label={minified ? 'Expand sidebar' : 'Minify sidebar'}
+                  >
+                     <FaAngleDoubleLeft
+                        className={`text-sm transition-transform duration-200 ${minified ? 'rotate-180' : ''}`}
+                     />
+                  </button>
                </li>
                {/* <li
 						className='relative overflow-hidden border-b border-ca-border p-5'
@@ -450,19 +473,6 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
                      minified={minified}
                   />
                ))}
-
-               <li className='clear-both list-none'>
-                  <button
-                     type='button'
-                     onClick={onMinify}
-                     className='float-right mx-0 my-2.5 flex items-center rounded-l-full bg-ca-badge-bg py-[5px] pr-5 pl-2.5 text-white transition-opacity hover:opacity-80'
-                     aria-label={minified ? 'Expand sidebar' : 'Minify sidebar'}
-                  >
-                     <FaAngleDoubleLeft
-                        className={`text-sm transition-transform duration-200 ${minified ? 'rotate-180' : ''}`}
-                     />
-                  </button>
-               </li>
             </ul>
          </aside>
 

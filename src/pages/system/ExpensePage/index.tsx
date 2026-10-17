@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
-import { PageHeader, Tabs } from '@/components/ui';
+import { Tabs } from '@/components/ui';
 import ExpensesTab from '@/pages/system/ExpensePage/ExpensesTab';
 import ExpenseTypesTab from '@/pages/system/ExpensePage/ExpenseTypesTab';
 
@@ -9,13 +9,6 @@ export default function ExpensePage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Xarajatlar'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Xarajatlar', active: true },
-				]}
-			/>
 
 			<Tabs
 				value={activeTab}

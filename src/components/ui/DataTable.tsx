@@ -79,6 +79,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/DropdownMenu';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
+import { PanelHeaderAction } from '@/components/ui/Panel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
@@ -490,6 +491,7 @@ export function DataTable<TData>({
 						</div>
 					)}
 					{enableColumnVisibility && (
+						<PanelHeaderAction>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button type='button' variant='white' size='sm'>
@@ -514,6 +516,7 @@ export function DataTable<TData>({
 									))}
 							</DropdownMenuContent>
 						</DropdownMenu>
+						</PanelHeaderAction>
 					)}
 					{enableGlobalFilter && (
 						<>

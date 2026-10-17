@@ -6,7 +6,6 @@ import {
 	DatePicker,
 	Input,
 	MultiCombobox,
-	PageHeader,
 	Panel,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
@@ -197,13 +196,6 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 
 	return (
 		<>
-			<PageHeader
-				title={title}
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: title, active: true },
-				]}
-			/>
 
 			<Panel
 				title={title}

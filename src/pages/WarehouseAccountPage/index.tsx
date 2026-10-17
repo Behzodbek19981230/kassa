@@ -7,7 +7,6 @@ import {
    type ComboboxLoadParams,
    type ComboboxLoadResult,
    DataTable,
-   PageHeader,
    Panel,
    useNotification,
 } from '@/components/ui';
@@ -246,13 +245,6 @@ export default function WarehouseAccountPage() {
 
    return (
       <>
-         <PageHeader
-            title='Omborxona hisobi'
-            breadcrumb={[
-               { label: 'Asosiy', path: '/' },
-               { label: 'Omborxona hisobi', active: true },
-            ]}
-         />
 
          <Panel title="Import qilingan mahsulotlar ro'yxat" onReload={() => refetch()}>
             <DataTable

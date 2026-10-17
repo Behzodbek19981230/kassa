@@ -19,7 +19,6 @@ import {
 } from 'react-icons/fa';
 import {
    Button,
-   PageHeader,
    Pagination,
    Panel,
    Select,
@@ -135,15 +134,6 @@ export default function LogisticsPartnerStockPage() {
 
    return (
       <>
-         <PageHeader
-            title='Logistika hamkori'
-            breadcrumb={[
-               { label: 'Asosiy', path: '/' },
-               { label: 'Import' },
-               { label: 'Logistika hamkorlari', path: '/two-stage-import/transit-stock' },
-               { label: partner?.name ?? '...', active: true },
-            ]}
-         />
 
          <Panel
             title={`${partner?.name ?? ''} — skladlardagi mahsulotlar`}

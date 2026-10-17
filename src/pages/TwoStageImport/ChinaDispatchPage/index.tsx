@@ -4,7 +4,6 @@ import {
    Button,
    buttonProps,
    Combobox,
-   PageHeader,
    Panel,
    Table,
    TableBody,
@@ -151,14 +150,6 @@ export default function ChinaDispatchPage() {
 
    return (
       <>
-         <PageHeader
-            title='Xitoydan yuk chiqarish'
-            breadcrumb={[
-               { label: 'Asosiy', path: '/' },
-               { label: 'Logistika' },
-               { label: 'Xitoydan yuk chiqarish', active: true },
-            ]}
-         />
 
          <div className='-mx-2.5 flex flex-wrap'>
             <div className='w-full px-2.5 lg:w-1/2'>

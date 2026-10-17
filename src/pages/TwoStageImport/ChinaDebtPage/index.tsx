@@ -2,7 +2,7 @@ import { createColumnHelper, type ColumnFiltersState, type PaginationState } fro
 import { useState } from 'react';
 import { FaExclamationTriangle, FaExpand } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { Button, buttonProps, DataTable, PageHeader, Panel, Tooltip } from '@/components/ui';
+import { Button, buttonProps, DataTable, Panel, Tooltip } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -118,14 +118,6 @@ export default function ChinaDebtPage() {
 
    return (
       <>
-         <PageHeader
-            title='Xitoy qarzim'
-            breadcrumb={[
-               { label: 'Asosiy', path: '/' },
-               { label: 'Logistika' },
-               { label: 'Xitoy qarzim', active: true },
-            ]}
-         />
 
          <Panel
             title={`Xitoydagi yuk jo'natuvchilarga jami qarzim: ${

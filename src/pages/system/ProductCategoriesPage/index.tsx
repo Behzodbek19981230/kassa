@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
-import { PageHeader, Tabs } from '@/components/ui';
+import { Tabs } from '@/components/ui';
 import ModelsTab from '@/pages/system/ModelsPage/ModelsTab';
 import ProductCategoriesTab from '@/pages/system/ProductCategoriesPage/ProductCategoriesTab';
 
@@ -9,13 +9,6 @@ export default function ProductCategoriesPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Mahsulot toifalari'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Mahsulot toifalari', active: true },
-				]}
-			/>
 
 			<Tabs
 				value={activeTab}

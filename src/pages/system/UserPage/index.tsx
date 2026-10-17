@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-table';
 import { useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaLock, FaTelegramPlane, FaTrash, FaUnlock, FaUser } from 'react-icons/fa';
-import { Badge, Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
+import { Badge, Button, buttonProps, DataTable, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -179,13 +179,6 @@ export default function UserPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Foydalanuvchilar'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Foydalanuvchilar', active: true },
-				]}
-			/>
 
 			<Panel
 				title="Ro'yxat"

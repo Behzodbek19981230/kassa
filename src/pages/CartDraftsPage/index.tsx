@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { Button, PageHeader, Panel, Tabs } from '@/components/ui';
+import { Button, Panel, Tabs } from '@/components/ui';
 import OrderAccountHistoryDraftTab from '@/pages/CartDraftsPage/components/OrderAccountHistoryDraftTab';
 
 export default function CartDraftsPage() {
@@ -10,14 +10,6 @@ export default function CartDraftsPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Karzinkalar'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Mijoz buyurmalari tarixi', path: '/customer-order-history' },
-					{ label: 'Karzinkalar', active: true },
-				]}
-			/>
 
 			<Panel
 				title="Ro'yxat"

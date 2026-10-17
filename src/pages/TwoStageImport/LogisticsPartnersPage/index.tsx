@@ -5,7 +5,6 @@ import {
    Button,
    Combobox,
    Input,
-   PageHeader,
    Pagination,
    Panel,
    Table,
@@ -72,14 +71,6 @@ export default function LogisticsPartnersPage() {
 
    return (
       <>
-         <PageHeader
-            title='Logistika hamkorlari'
-            breadcrumb={[
-               { label: 'Asosiy', path: '/' },
-               { label: 'Import' },
-               { label: 'Logistika hamkorlari', active: true },
-            ]}
-         />
 
          <Panel
             title='Logistika hamkorlari'

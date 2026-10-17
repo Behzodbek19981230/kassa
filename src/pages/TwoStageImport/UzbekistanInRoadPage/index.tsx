@@ -4,7 +4,6 @@ import { FaBoxes, FaCheck, FaExclamationTriangle, FaEye, FaMoneyBillWave, FaTruc
 import {
    Badge,
    Button,
-   PageHeader,
    Panel,
    Table,
    TableBody,
@@ -66,14 +65,6 @@ export default function UzbekistanInRoadPage() {
 
    return (
       <>
-         <PageHeader
-            title="O'zbekistonga yo'ldagi buyurtmalar"
-            breadcrumb={[
-               { label: 'Asosiy', path: '/' },
-               { label: 'Logistika' },
-               { label: "O'zbekistonga yo'ldagi buyurtmalar", active: true },
-            ]}
-         />
 
          <Panel
             title="O'zbekistonga yo'ldagi buyurtmalar"

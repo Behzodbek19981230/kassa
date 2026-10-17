@@ -7,7 +7,6 @@ import {
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
 	DataTable,
-	PageHeader,
 	Panel,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
@@ -162,13 +161,6 @@ export default function VozvratOrderHistoryPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Vozvrat buyurtmalar tarixi'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Vozvrat buyurtmalar tarixi', active: true },
-				]}
-			/>
 
 			<Panel title="Ro'yxat" onReload={() => refetch()}>
 				<DataTable

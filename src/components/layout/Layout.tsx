@@ -18,6 +18,15 @@ import { useCurrentCompany } from '@/lib/company';
 
 // Logistika pages work with yuan prices, so they're gated on today's yuan rate as well.
 const LOGISTICS_PATH_PREFIX = '/two-stage-import';
+const SIDEBAR_MINIFIED_KEY = 'sidebar-minified';
+
+function readSidebarMinified() {
+	try {
+		return localStorage.getItem(SIDEBAR_MINIFIED_KEY) === '1';
+	} catch {
+		return false;
+	}
+}
 
 export default function Layout() {
 	const { pathname } = useLocation();
@@ -25,10 +34,20 @@ export default function Layout() {
 	const isLogisticsPage = pathname.startsWith(LOGISTICS_PATH_PREFIX);
 	const isYuanBlocked = isLogisticsPage && !isYuanExchangeRateSet;
 	const [yuanModalOpen, setYuanModalOpen] = useState(false);
-	const [sidebarMinified, setSidebarMinified] = useState(false);
+	const [sidebarMinified, setSidebarMinified] = useState(readSidebarMinified);
 	const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 	const [rateModalOpen, setRateModalOpen] = useState(false);
 	const rateModalShownRef = useRef(false);
+
+	const toggleSidebarMinified = () => {
+		const next = !sidebarMinified;
+		setSidebarMinified(next);
+		try {
+			localStorage.setItem(SIDEBAR_MINIFIED_KEY, next ? '1' : '0');
+		} catch {
+			// storage unavailable — keep the in-memory state only
+		}
+	};
 
 	const closeMobileSidebar = useCallback(() => setMobileSidebarOpen(false), []);
 
@@ -61,7 +80,7 @@ export default function Layout() {
 				<Sidebar
 					minified={sidebarMinified}
 					mobileOpen={mobileSidebarOpen}
-					onMinify={() => setSidebarMinified((prev) => !prev)}
+					onMinify={toggleSidebarMinified}
 					onCloseMobile={closeMobileSidebar}
 				/>
 

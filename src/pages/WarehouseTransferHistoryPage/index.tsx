@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
-import { PageHeader, Tabs } from '@/components/ui';
+import { Tabs } from '@/components/ui';
 import TransferHistoryTab from '@/pages/WarehouseTransferHistoryPage/components/TransferHistoryTab';
 import WarehouseStaffTab from '@/pages/WarehouseTransferHistoryPage/components/WarehouseStaffTab';
 
@@ -9,14 +9,6 @@ export default function WarehouseTransferHistoryPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Transfer tarixi'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Skladlararo transfer', path: '/warehouse-transfer' },
-					{ label: 'Transfer tarixi', active: true },
-				]}
-			/>
 
 			<Tabs
 				value={activeTab}

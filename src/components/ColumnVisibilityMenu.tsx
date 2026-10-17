@@ -1,5 +1,12 @@
 import { FaColumns } from 'react-icons/fa';
-import { Button, Checkbox, DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui';
+import {
+	Button,
+	Checkbox,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+	PanelHeaderAction,
+} from '@/components/ui';
 import type { ColumnVisibilityState } from '@/lib/useColumnVisibility';
 
 /** "Ustunlar" dropdown for hand-built tables — the same control `DataTable` shows with `enableColumnVisibility`. */

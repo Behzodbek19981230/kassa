@@ -6,7 +6,6 @@ import {
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
-	PageHeader,
 	Panel,
 	Table,
 	TableBody,
@@ -186,13 +185,6 @@ export default function WarehouseProductsPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Ombor mahsulotlari'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Ombor mahsulotlari', active: true },
-				]}
-			/>
 
 			<Panel
 				title="Ombordagi barcha mahsulotlar ro'yxati"

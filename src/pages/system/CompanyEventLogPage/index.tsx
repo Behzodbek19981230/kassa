@@ -8,7 +8,6 @@ import {
 	type ComboboxLoadResult,
 	DataTable,
 	DatePicker,
-	PageHeader,
 	Panel,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
@@ -147,10 +146,6 @@ export default function CompanyEventLogPage() {
 	if (!isSuperAdmin) {
 		return (
 			<>
-				<PageHeader
-					title="O'zgarishlar tarixi"
-					breadcrumb={[{ label: 'Asosiy', path: '/' }, { label: "O'zgarishlar tarixi", active: true }]}
-				/>
 				<Panel title="Ro'yxat">
 					<p className='p-4 text-center text-ca-red'>
 						<FaExclamationTriangle className='mr-1.5 inline' /> Bu sahifaga faqat Super Admin kira oladi.
@@ -162,10 +157,6 @@ export default function CompanyEventLogPage() {
 
 	return (
 		<>
-			<PageHeader
-				title="O'zgarishlar tarixi"
-				breadcrumb={[{ label: 'Asosiy', path: '/' }, { label: "O'zgarishlar tarixi", active: true }]}
-			/>
 
 			<Panel title="Ro'yxat" onReload={() => refetch()}>
 				<div className='mb-4 flex flex-wrap items-end gap-2'>

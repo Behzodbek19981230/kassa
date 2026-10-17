@@ -10,7 +10,6 @@ import {
 	DataTable,
 	DatePicker,
 	Input,
-	PageHeader,
 	Panel,
 	useNotification,
 } from '@/components/ui';
@@ -235,13 +234,6 @@ export default function DebtRepaymentPage() {
 
 	return (
 		<>
-			<PageHeader
-				title="To'langan qarzlar"
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: "To'langan qarzlar", active: true },
-				]}
-			/>
 
 			<Panel
 				title="Ro'yxat"

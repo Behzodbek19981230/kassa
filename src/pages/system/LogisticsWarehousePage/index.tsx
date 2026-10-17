@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
-import { Badge, Button, buttonProps, DataTable, PageHeader, Panel } from '@/components/ui';
+import { Badge, Button, buttonProps, DataTable, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -147,14 +147,6 @@ export default function LogisticsWarehousePage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Logistika skladlari'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Tizim boshqaruvi' },
-					{ label: 'Logistika skladlari', active: true },
-				]}
-			/>
 
 			<Panel
 				title="Ro'yxat"

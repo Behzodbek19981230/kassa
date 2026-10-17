@@ -20,7 +20,6 @@ import {
 import {
    Badge,
    Button,
-   PageHeader,
    Pagination,
    Panel,
    Select,
@@ -113,14 +112,6 @@ export default function ImportOrderProductsPage() {
 
    return (
       <>
-         <PageHeader
-            title='Buyurtma mahsulotlari'
-            breadcrumb={[
-               { label: 'Asosiy', path: '/' },
-               { label: 'Import buyurtmalar', path: '/two-stage-import/orders' },
-               { label: title, active: true },
-            ]}
-         />
 
          <Panel
             title={`${title} — buyurtma mahsulotlari`}

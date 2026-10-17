@@ -12,7 +12,6 @@ import {
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
 	DataTable,
-	PageHeader,
 	Panel,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
@@ -225,13 +224,6 @@ export default function ClientPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Mijozlar'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Mijozlar', active: true },
-				]}
-			/>
 
 			<Panel
 				title="Ro'yxat"

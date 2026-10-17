@@ -8,7 +8,6 @@ import {
 	type ComboboxLoadResult,
 	DatePicker,
 	Input,
-	PageHeader,
 	Panel,
 	PriceInput,
 	Select,
@@ -201,13 +200,6 @@ export default function WarehouseAccountEditPage() {
 
 	return (
 		<>
-			<PageHeader
-				title='Tovarni tahrirlash'
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: 'Tovarni tahrirlash', active: true },
-				]}
-			/>
 
 			<Panel
 				title='Tovarni tahrirlash'

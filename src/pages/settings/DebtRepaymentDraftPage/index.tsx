@@ -10,7 +10,6 @@ import {
 	DataTable,
 	DatePicker,
 	Input,
-	PageHeader,
 	Panel,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
@@ -173,14 +172,6 @@ export default function DebtRepaymentDraftPage() {
 
 	return (
 		<>
-			<PageHeader
-				title="Qarz to'lov karzinka"
-				breadcrumb={[
-					{ label: 'Asosiy', path: '/' },
-					{ label: "To'langan qarzlar", path: '/settings/debt-repayments' },
-					{ label: "Qarz to'lov karzinka", active: true },
-				]}
-			/>
 
 			<Panel title="O'chirilgan to'lovlar" onReload={() => refetch()}>
 				<div className='mb-4 flex flex-wrap items-end gap-2'>

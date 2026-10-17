@@ -6,7 +6,6 @@ import {
    Tooltip,
    Button,
    Combobox,
-   PageHeader,
    Pagination,
    Panel,
    Table,
@@ -142,14 +141,6 @@ export default function ImportOrdersPage() {
 
    return (
       <>
-         <PageHeader
-            title='Import buyurtmalar'
-            breadcrumb={[
-               { label: 'Asosiy', path: '/' },
-               { label: 'Logistika' },
-               { label: 'Import buyurtmalar', active: true },
-            ]}
-         />
 
          <Panel
             title="Import buyurtmalar ro'yxati"

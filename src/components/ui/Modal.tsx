@@ -14,7 +14,7 @@ export const ModalTrigger = Dialog.Trigger
 export const ModalClose = Dialog.Close
 export const ModalPortal = Dialog.Portal
 
-const overlayVariants = cva('fixed inset-0 z-[1050] bg-black/50', {
+const overlayVariants = cva('fixed inset-0 z-[1050] flex overflow-y-auto overscroll-contain bg-black/50 p-[15px]', {
   variants: {
     animated: {
       true: 'data-[state=open]:animate-[fadeIn_0.15s_ease-out] data-[state=closed]:animate-[fadeOut_0.15s_ease-in]',
@@ -37,7 +37,7 @@ export const ModalOverlay = forwardRef<
 ModalOverlay.displayName = Dialog.Overlay.displayName
 
 const contentVariants = cva(
-  'fixed left-1/2 top-1/2 z-[1060] w-[calc(100%-30px)] max-w-[600px] -translate-x-1/2 -translate-y-1/2 bg-ca-silver-light shadow-[0_5px_15px_rgba(0,0,0,0.3)] focus:outline-none',
+  'relative m-auto w-full max-w-[600px] bg-ca-silver-light shadow-[0_5px_15px_rgba(0,0,0,0.3)] focus:outline-none',
   {
     variants: {
       variant: {
@@ -63,26 +63,28 @@ export interface ModalContentProps
 export const ModalContent = forwardRef<ElementRef<typeof Dialog.Content>, ModalContentProps>(
   ({ className, children, variant = 'default', animated = true, showClose = true, ...props }, ref) => (
     <ModalPortal>
-      <ModalOverlay animated={animated} />
-      <Dialog.Content
-        ref={ref}
-        className={cn(contentVariants({ variant, animated }), className)}
-        {...props}
-      >
-        {variant === 'message' ? (
-          <div className="modal-inner mx-auto w-[60%]">{children}</div>
-        ) : (
-          children
-        )}
-        {showClose && (
-          <Dialog.Close
-            className="absolute top-3 right-[15px] text-xl leading-none text-ca-text opacity-80 transition-opacity hover:opacity-100 focus:outline-none"
-            aria-label="Close"
-          >
-            <FaTimes className="text-sm" />
-          </Dialog.Close>
-        )}
-      </Dialog.Content>
+      {/* The content lives inside the overlay, so the whole overlay scrolls (e.g. when a tablet keyboard opens). */}
+      <ModalOverlay animated={animated}>
+        <Dialog.Content
+          ref={ref}
+          className={cn(contentVariants({ variant, animated }), className)}
+          {...props}
+        >
+          {variant === 'message' ? (
+            <div className="modal-inner mx-auto w-[60%]">{children}</div>
+          ) : (
+            children
+          )}
+          {showClose && (
+            <Dialog.Close
+              className="absolute top-3 right-[15px] text-xl leading-none text-ca-text opacity-80 transition-opacity hover:opacity-100 focus:outline-none"
+              aria-label="Close"
+            >
+              <FaTimes className="text-sm" />
+            </Dialog.Close>
+          )}
+        </Dialog.Content>
+      </ModalOverlay>
     </ModalPortal>
   ),
 )

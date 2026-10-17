@@ -4,7 +4,6 @@ import {
    Button,
    buttonProps,
    Combobox,
-   PageHeader,
    Panel,
    Table,
    TableBody,
@@ -188,14 +187,6 @@ export default function UzbekistanDispatchPage() {
 
    return (
       <>
-         <PageHeader
-            title="O'zbekistonga yuk chiqarish"
-            breadcrumb={[
-               { label: 'Asosiy', path: '/' },
-               { label: 'Logistika' },
-               { label: "Tranzit skladdan O'zbekistonga yuk chiqarish", active: true },
-            ]}
-         />
 
          <div className='-mx-2.5 flex flex-wrap'>
             <div className='w-full px-2.5 lg:w-1/2'>
