@@ -22,10 +22,11 @@ export function useMyDebtListQuery(params?: MyDebtListParams, enabled = true) {
 	});
 }
 
-export function useConsignorDebtListQuery(params?: MyDebtListParams) {
+export function useConsignorDebtListQuery(params?: MyDebtListParams, enabled = true) {
 	return useQuery({
 		queryKey: myDebtKeys.consignorDebts(params),
 		queryFn: () => myDebtService.consignorDebts(params),
+		enabled,
 		placeholderData: (prev) => prev,
 	});
 }

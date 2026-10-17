@@ -21,7 +21,7 @@ import { formatNumber } from '@/lib/number';
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useConsignorQuery } from '@/services/consignor/consignor.queries';
-import { useMyDebtListQuery } from '@/services/my-debt/my-debt.queries';
+import { useConsignorDebtListQuery } from '@/services/my-debt/my-debt.queries';
 import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
 import {
    useChinaProductsQuery,
@@ -114,8 +114,8 @@ export default function ChinaDispatchPage() {
    const canPick = canWrite && Boolean(consignorValue) && Boolean(dispatchValue);
 
    const { data: selectedConsignor } = useConsignorQuery(consignorValue ? Number(consignorValue) : undefined);
-   // What I owe the chosen consignor (MyTotalDebt), as on the import page.
-   const { data: myDebtData } = useMyDebtListQuery(
+   // What I owe the chosen China consignor (`/my-total-debt/consignor-debts/`).
+   const { data: myDebtData } = useConsignorDebtListQuery(
       { consignor: Number(consignorValue), limit: 1 },
       Boolean(consignorValue),
    );

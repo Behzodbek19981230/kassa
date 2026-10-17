@@ -1,4 +1,4 @@
-import { type UIEvent, useMemo, useState } from 'react';
+import { type UIEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { FaExchangeAlt, FaExclamationTriangle, FaSave, FaShoppingCart, FaStore, FaTrash, FaWarehouse } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -43,10 +43,11 @@ import { useWarehouseSkladListInfiniteQuery } from '@/services/warehouse/warehou
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import {
 	useCreateWarehouseTransferDraftMutation,
-	useCreateWarehouseTransferMutation,
+	useDeleteWarehouseTransferDraftMutation,
 	useSendWarehouseTransferDraftMutation,
 	useUpdateWarehouseTransferDraftMutation,
 } from '@/services/warehouse-transfer/warehouse-transfer.queries';
+import { warehouseTransferService } from '@/services/warehouse-transfer/warehouse-transfer.service';
 import type { WarehouseTransferDetail } from '@/services/warehouse-transfer/warehouse-transfer.types';
 import TransferDraftsModal from '@/pages/WarehouseTransferPage/components/TransferDraftsModal';
 import TransferMethodPanel from '@/pages/WarehouseTransferPage/components/TransferMethodPanel';
@@ -226,30 +227,16 @@ export default function WarehouseTransferPage() {
 		setCategoryFilter('');
 	}
 
-	function handleAddToCart(row: TransferCartRow) {
-		setCartRows((prev) => [...prev, row]);
-		setSelectedSourceItem(null);
-		notify({ title: "Karzinkaga qo'shildi" });
-	}
-
-	function handleRemoveCartRow(key: string) {
-		setCartRows((prev) => prev.filter((r) => r.key !== key));
-	}
-
-	function handleClearCart() {
-		resetCart();
-	}
-
-	const createMutation = useCreateWarehouseTransferMutation();
 	const createDraftMutation = useCreateWarehouseTransferDraftMutation();
 	const updateDraftMutation = useUpdateWarehouseTransferDraftMutation();
+	const deleteDraftMutation = useDeleteWarehouseTransferDraftMutation();
 	const sendDraftMutation = useSendWarehouseTransferDraftMutation();
 
-	function buildPayload() {
+	function buildPayload(rows: TransferCartRow[]) {
 		return {
 			from_type_sklad_id: Number(fromTypeSkladId),
 			to_type_sklad_id: Number(toTypeSkladId),
-			items: cartRows.map((row) => ({
+			items: rows.map((row) => ({
 				source_warehouse_id: row.source.warehouseId,
 				target_warehouse_id: row.target.warehouseId,
 				mode: row.mode,
@@ -270,28 +257,8 @@ export default function WarehouseTransferPage() {
 		notify({ title: 'Xatolik', text: getApiErrorMessage(err, fallback) });
 	}
 
-	async function saveDraft() {
-		const payload = buildPayload();
-		return draftId === null
-			? createDraftMutation.mutateAsync(payload)
-			: updateDraftMutation.mutateAsync({ id: draftId, payload });
-	}
-
-	async function handleSaveDraft() {
-		if (!fromTypeSkladId || !toTypeSkladId || cartRows.length === 0) return;
-		try {
-			await saveDraft();
-			notify({ title: 'Karzinka saqlandi', text: "Tovar 1 soat davomida band qilinadi" });
-			resetCart();
-		} catch (err) {
-			handleDraftError(err, 'Karzinkani saqlashda xatolik yuz berdi');
-		}
-	}
-
-	function handleContinueDraft(draft: WarehouseTransferDetail) {
-		setFromTypeSkladId(String(draft.from_type_sklad));
-		setToTypeSkladId(String(draft.to_type_sklad));
-		setSelectedSourceItem(null);
+	// Shows a server draft as the cart (item ids change on every save, so the rows always come from the response).
+	function applyDraft(draft: WarehouseTransferDetail) {
 		setDraftId(draft.id);
 		setDraftReserved(
 			draft.items.reduce((map, item) => {
@@ -325,16 +292,76 @@ export default function WarehouseTransferPage() {
 		);
 	}
 
-	async function handleSubmitTransfer() {
-		if (!fromTypeSkladId || !toTypeSkladId || cartRows.length === 0) return;
+	// Like the orders cart, every change is saved to the server draft right away (it reserves the stock for 1 hour).
+	async function syncCart(rows: TransferCartRow[]) {
+		if (rows.length === 0) {
+			if (draftId !== null) await deleteDraftMutation.mutateAsync(draftId);
+			resetCart();
+			return;
+		}
+		const payload = buildPayload(rows);
+		const draft =
+			draftId === null
+				? await createDraftMutation.mutateAsync(payload)
+				: await updateDraftMutation.mutateAsync({ id: draftId, payload });
+		applyDraft(draft);
+	}
+
+	async function handleAddToCart(row: TransferCartRow) {
 		try {
-			if (draftId === null) {
-				await createMutation.mutateAsync(buildPayload());
-			} else {
-				// Save the edited cart into the draft, then send it (the reserve is already held).
-				const draft = await saveDraft();
-				await sendDraftMutation.mutateAsync(draft.id);
+			await syncCart([...cartRows, row]);
+			setSelectedSourceItem(null);
+			notify({ title: "Karzinkaga qo'shildi" });
+		} catch (err) {
+			handleDraftError(err, "Karzinkaga qo'shishda xatolik yuz berdi");
+		}
+	}
+
+	async function handleRemoveCartRow(key: string) {
+		try {
+			await syncCart(cartRows.filter((r) => r.key !== key));
+		} catch (err) {
+			handleDraftError(err, "Qatorni o'chirishda xatolik yuz berdi");
+		}
+	}
+
+	// Clearing deletes the draft, which releases the reserved stock.
+	async function handleClearCart() {
+		try {
+			await syncCart([]);
+		} catch (err) {
+			handleDraftError(err, 'Karzinkani tozalashda xatolik yuz berdi');
+		}
+	}
+
+	function handleContinueDraft(draft: WarehouseTransferDetail) {
+		setFromTypeSkladId(String(draft.from_type_sklad));
+		setToTypeSkladId(String(draft.to_type_sklad));
+		setSelectedSourceItem(null);
+		applyDraft(draft);
+	}
+
+	// Restore the user's saved cart when the page opens.
+	const restoredRef = useRef(false);
+	useEffect(() => {
+		if (restoredRef.current || initialState?.fromTypeSkladId) return;
+		restoredRef.current = true;
+		(async () => {
+			try {
+				const list = await warehouseTransferService.listDrafts({ page: 1, limit: 1 });
+				const first = list.results[0];
+				if (first) handleContinueDraft(await warehouseTransferService.getDraft(first.id));
+			} catch {
+				// No saved cart or it can't be loaded: start with an empty one.
 			}
+		})();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	async function handleSubmitTransfer() {
+		if (draftId === null || cartRows.length === 0) return;
+		try {
+			await sendDraftMutation.mutateAsync(draftId);
 			notify({ title: 'Transfer amalga oshirildi' });
 			resetCart();
 			setConfirmOpen(false);
@@ -345,8 +372,9 @@ export default function WarehouseTransferPage() {
 		}
 	}
 
-	const isSubmitting = createMutation.isPending || updateDraftMutation.isPending || sendDraftMutation.isPending;
-	const isSavingDraft = createDraftMutation.isPending || updateDraftMutation.isPending;
+	const isSubmitting = sendDraftMutation.isPending;
+	const isSyncing =
+		createDraftMutation.isPending || updateDraftMutation.isPending || deleteDraftMutation.isPending;
 
 	const totalSourceQty = cartRows.reduce((sum, row) => sum + row.source.quantity, 0);
 	const totalTargetQty = cartRows.reduce((sum, row) => sum + row.target.quantity, 0);
@@ -598,7 +626,7 @@ export default function WarehouseTransferPage() {
 				</div>
 
 				<div className='w-full px-2.5 lg:w-1/2'>
-					<Panel title={draftId === null ? 'Transfer karzinkasi' : `Transfer karzinkasi (saqlangan #${draftId})`}>
+					<Panel title={'Transfer karzinkasi'}>
 						<div className='mb-3 flex justify-end'>
 							<Button type='button' variant='white' size='sm' onClick={() => setDraftsOpen(true)}>
 								<FaSave className='mr-1.5' /> Saqlangan karzinkalar
@@ -637,6 +665,7 @@ export default function WarehouseTransferPage() {
 												variant='danger'
 												size='icon'
 												aria-label="O'chirish"
+												disabled={isSyncing}
 												onClick={() => handleRemoveCartRow(row.key)}
 											>
 												<FaTrash />
@@ -664,25 +693,15 @@ export default function WarehouseTransferPage() {
 
 						{canWrite && cartRows.length > 0 && (
 							<div className='mt-4 flex flex-wrap gap-2'>
-								<Button type='button' variant='white' className='flex-1' onClick={handleClearCart}>
-									<FaTrash className='mr-1.5' /> {draftId === null ? 'Karzinkani tozalash' : 'Yopish'}
-								</Button>
-								<Button
-									type='button'
-									variant='theme'
-									className='flex-1'
-									loading={isSavingDraft}
-									disabled={isSubmitting}
-									onClick={handleSaveDraft}
-								>
-									<FaSave className='mr-1.5' /> Saqlash
+								<Button type='button' variant='white' className='flex-1' loading={isSyncing} disabled={isSubmitting} onClick={handleClearCart}>
+									<FaTrash className='mr-1.5' /> Karzinkani tozalash
 								</Button>
 								<Button
 									type='button'
 									variant='warning'
 									className='flex-1'
 									loading={isSubmitting}
-									disabled={isSavingDraft}
+									disabled={isSyncing}
 									onClick={() => setConfirmOpen(true)}
 								>
 									<FaExchangeAlt className='mr-1.5' />{' '}
