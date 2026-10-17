@@ -20,7 +20,8 @@ export { InputGroup } from '@/components/ui/InputGroup'
 export { Dropzone } from '@/components/ui/Dropzone'
 export { Alert, AlertBlock, Note, Progress } from '@/components/ui/Alert'
 export { Accordion } from '@/components/ui/Accordion'
-export { Panel, PanelHeaderAction } from '@/components/ui/Panel'
+export { Panel } from '@/components/ui/Panel'
+export { PanelHeaderAction } from '@/components/ui/HeaderSlot'
 export { Tabs } from '@/components/ui/Tabs'
 export {
   DropdownMenu,

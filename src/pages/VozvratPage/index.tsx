@@ -282,9 +282,7 @@ export default function VozvratPage() {
                      </div>
                   </div>
 
-                  <div className='mb-2 flex justify-end'>
-                     <ColumnVisibilityMenu state={productCols} />
-                  </div>
+                  <ColumnVisibilityMenu state={productCols} />
 
                   <div className='overflow-x-auto'>
                      <Table>
@@ -416,9 +414,7 @@ export default function VozvratPage() {
                      )}
                   </div>
 
-                  <div className='mb-2 flex justify-end'>
-                     <ColumnVisibilityMenu state={cartCols} />
-                  </div>
+                  <ColumnVisibilityMenu state={cartCols} />
 
                   <div className='overflow-x-auto'>
                      <Table>

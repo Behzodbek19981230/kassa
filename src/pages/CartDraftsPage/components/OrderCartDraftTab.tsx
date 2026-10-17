@@ -112,29 +112,29 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 
 	return (
 		<div>
-			<div className='mb-2.5 flex items-center gap-2 text-xs'>
-				<Select
-					value={String(pageSize)}
-					onValueChange={(value) => {
-						setPageSize(Number(value));
-						setPage(1);
-					}}
-				>
-					<SelectTrigger className='h-[30px] w-[70px]'>
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						{PAGE_SIZE_OPTIONS.map((size) => (
-							<SelectItem key={size} value={String(size)}>
-								{size}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-				<div className='ml-auto'>
-					<ColumnVisibilityMenu state={cols} />
-				</div>
-			</div>
+			<ColumnVisibilityMenu
+				state={cols}
+				leading={
+					<Select
+						value={String(pageSize)}
+						onValueChange={(value) => {
+							setPageSize(Number(value));
+							setPage(1);
+						}}
+					>
+						<SelectTrigger className='h-[30px] w-[70px]'>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{PAGE_SIZE_OPTIONS.map((size) => (
+								<SelectItem key={size} value={String(size)}>
+									{size}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				}
+			/>
 
 			<div className='overflow-x-auto'>
 				<Table className='min-w-[720px] rounded-[3px] border border-ca-border'>

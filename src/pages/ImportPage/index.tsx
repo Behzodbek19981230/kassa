@@ -270,9 +270,7 @@ export default function ImportPage() {
                      </div>
                   </div>
 
-                  <div className='mb-2 flex justify-end'>
-                     <ColumnVisibilityMenu state={productCols} />
-                  </div>
+                  <ColumnVisibilityMenu state={productCols} />
 
                   <div className='max-h-[calc(100vh-320px)] min-h-[300px] overflow-auto' onScroll={handleScroll}>
                      <Table>
@@ -418,9 +416,7 @@ export default function ImportPage() {
                      )}
                   </div>
 
-                  <div className='mb-2 flex justify-end'>
-                     <ColumnVisibilityMenu state={cartCols} />
-                  </div>
+                  <ColumnVisibilityMenu state={cartCols} />
 
                   <div className='overflow-x-auto'>
                      <Table>

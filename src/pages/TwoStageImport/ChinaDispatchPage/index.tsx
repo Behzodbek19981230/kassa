@@ -197,9 +197,7 @@ export default function ChinaDispatchPage() {
                      </div>
                   </div>
 
-                  <div className='mb-2 flex justify-end'>
-                     <ColumnVisibilityMenu state={productCols} />
-                  </div>
+                  <ColumnVisibilityMenu state={productCols} />
 
                   <div className={SCROLL_AREA_CLASS} onScroll={handleProductsScroll}>
                      <Table>
@@ -309,9 +307,7 @@ export default function ChinaDispatchPage() {
                      )}
                   </div>
 
-                  <div className='mb-2 flex justify-end'>
-                     <ColumnVisibilityMenu state={cartCols} />
-                  </div>
+                  <ColumnVisibilityMenu state={cartCols} />
 
                   <div className=' overflow-auto [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10'>
                      <Table>

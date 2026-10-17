@@ -237,9 +237,7 @@ export default function UzbekistanDispatchPage() {
                      </div>
                   </div>
 
-                  <div className='mb-2 flex justify-end'>
-                     <ColumnVisibilityMenu state={stockCols} />
-                  </div>
+                  <ColumnVisibilityMenu state={stockCols} />
 
                   <div className={SCROLL_AREA_CLASS}>
                      <Table>
@@ -410,9 +408,7 @@ export default function UzbekistanDispatchPage() {
                      </div>
                   </div>
 
-                  <div className='mb-2 flex justify-end'>
-                     <ColumnVisibilityMenu state={cartCols} />
-                  </div>
+                  <ColumnVisibilityMenu state={cartCols} />
 
                   <div className={SCROLL_AREA_CLASS}>
                      <Table>

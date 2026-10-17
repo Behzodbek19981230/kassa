@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { FaFilePdf } from 'react-icons/fa';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -201,9 +201,7 @@ export default function OrderAndDebtPage() {
 				<Button type='button' variant='white' size='sm' disabled={!hasAppliedFilters} onClick={handleClear}>
 					Tozalash
 				</Button>
-				<div className='ml-auto'>
-					<ColumnVisibilityMenu state={cols} />
-				</div>
+				<ColumnVisibilityMenu state={cols} />
 			</div>
 
 			{content}

@@ -122,9 +122,7 @@ export default function LogisticsPartnersPage() {
                />
             </div>
 
-            <div className='mb-2 flex justify-end'>
-               <ColumnVisibilityMenu state={cols} />
-            </div>
+            <ColumnVisibilityMenu state={cols} />
 
             <div className={SCROLL_AREA_CLASS}>
                <Table>

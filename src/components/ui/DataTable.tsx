@@ -79,7 +79,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/DropdownMenu';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
-import { PanelHeaderAction } from '@/components/ui/Panel';
+import { PanelHeaderAction } from '@/components/ui/HeaderSlot';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
@@ -436,28 +436,6 @@ export function DataTable<TData>({
 		<div className={className}>
 			<div className='mb-2.5 flex flex-wrap items-center justify-between gap-3'>
 				<div className='flex flex-wrap items-center gap-2 text-xs'>
-					{enablePagination && (
-						<>
-							<Select
-								value={String(pageSize)}
-								onValueChange={(value) => {
-									table.setPageSize(Number(value));
-									table.setPageIndex(0);
-								}}
-							>
-								<SelectTrigger className='h-[30px] w-[70px]'>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									{pageSizeOptions.map((size) => (
-										<SelectItem key={size} value={String(size)}>
-											{size}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</>
-					)}
 					{enableRowSelection && selectedCount > 0 && (
 						<span className='text-ca-theme'>{selectedCount} ta qator tanlandi</span>
 					)}
@@ -490,34 +468,54 @@ export function DataTable<TData>({
 							)}
 						</div>
 					)}
-					{enableColumnVisibility && (
-						<PanelHeaderAction>
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button type='button' variant='white' size='sm'>
-									<FaColumns className='mr-1.5' /> Ustunlar
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent className='min-w-[180px] p-2'>
-								{table
-									.getAllLeafColumns()
-									.filter((col) => col.getCanHide())
-									.map((col) => (
-										<Checkbox
-											key={col.id}
-											inline
-											label={
-												typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id
-											}
-											checked={col.getIsVisible()}
-											onCheckedChange={(v) => col.toggleVisibility(!!v)}
-											className='px-2 py-1'
-										/>
-									))}
-							</DropdownMenuContent>
-						</DropdownMenu>
-						</PanelHeaderAction>
-					)}
+					<PanelHeaderAction>
+						{enablePagination && (
+								<Select
+									value={String(pageSize)}
+									onValueChange={(value) => {
+										table.setPageSize(Number(value));
+										table.setPageIndex(0);
+									}}
+								>
+									<SelectTrigger className='h-[30px] w-[70px]'>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{pageSizeOptions.map((size) => (
+											<SelectItem key={size} value={String(size)}>
+												{size}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+						)}
+						{enableColumnVisibility && (
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button type='button' variant='white' size='sm'>
+										<FaColumns className='mr-1.5' /> Ustunlar
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent className='min-w-[180px] p-2'>
+									{table
+										.getAllLeafColumns()
+										.filter((col) => col.getCanHide())
+										.map((col) => (
+											<Checkbox
+												key={col.id}
+												inline
+												label={
+													typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id
+												}
+												checked={col.getIsVisible()}
+												onCheckedChange={(v) => col.toggleVisibility(!!v)}
+												className='px-2 py-1'
+											/>
+										))}
+								</DropdownMenuContent>
+							</DropdownMenu>
+						)}
+					</PanelHeaderAction>
 					{enableGlobalFilter && (
 						<>
 							<label htmlFor='datatable-search'>Qidirish:</label>

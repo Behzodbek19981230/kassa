@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { FaColumns } from 'react-icons/fa';
 import {
 	Button,
@@ -10,8 +11,17 @@ import {
 import type { ColumnVisibilityState } from '@/lib/useColumnVisibility';
 
 /** "Ustunlar" dropdown for hand-built tables — the same control `DataTable` shows with `enableColumnVisibility`. */
-export default function ColumnVisibilityMenu({ state }: { state: ColumnVisibilityState }) {
+export default function ColumnVisibilityMenu({
+	state,
+	leading,
+}: {
+	state: ColumnVisibilityState;
+	/** Extra controls (e.g. a per-page select) rendered just before the button, in the same header spot. */
+	leading?: ReactNode;
+}) {
 	return (
+		<PanelHeaderAction inlineClassName='mb-2 flex items-center justify-end gap-2'>
+			{leading}
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<Button type='button' variant='white' size='sm'>
@@ -33,5 +43,6 @@ export default function ColumnVisibilityMenu({ state }: { state: ColumnVisibilit
 					))}
 			</DropdownMenuContent>
 		</DropdownMenu>
+		</PanelHeaderAction>
 	);
 }

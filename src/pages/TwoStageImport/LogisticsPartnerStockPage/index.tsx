@@ -252,9 +252,7 @@ export default function LogisticsPartnerStockPage() {
             </div>
 
             {/* Header, filters and stats take a lot of room, so the page scrolls and the table gets its own tall area. */}
-            <div className='mb-2 flex justify-end'>
-               <ColumnVisibilityMenu state={cols} />
-            </div>
+            <ColumnVisibilityMenu state={cols} />
 
             <div className='max-h-[85vh] min-h-75 overflow-auto [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10'>
                <Table>

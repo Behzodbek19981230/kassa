@@ -1,13 +1,20 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { cva, type VariantProps } from 'class-variance-authority'
 import {
+  createContext,
   forwardRef,
+  useContext,
+  useState,
   type ComponentPropsWithoutRef,
   type ElementRef,
   type HTMLAttributes,
 } from 'react'
 import { FaTimes } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
+import { HeaderSlotContext } from '@/components/ui/HeaderSlot'
+
+// ModalHeader registers its slot element here so table controls inside the body can portal into it.
+const RegisterHeaderSlotContext = createContext<((el: HTMLElement | null) => void) | null>(null)
 
 export const Modal = Dialog.Root
 export const ModalTrigger = Dialog.Trigger
@@ -61,7 +68,9 @@ export interface ModalContentProps
 }
 
 export const ModalContent = forwardRef<ElementRef<typeof Dialog.Content>, ModalContentProps>(
-  ({ className, children, variant = 'default', animated = true, showClose = true, ...props }, ref) => (
+  ({ className, children, variant = 'default', animated = true, showClose = true, ...props }, ref) => {
+    const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null)
+    return (
     <ModalPortal>
       {/* The content lives inside the overlay, so the whole overlay scrolls (e.g. when a tablet keyboard opens). */}
       <ModalOverlay animated={animated}>
@@ -70,11 +79,15 @@ export const ModalContent = forwardRef<ElementRef<typeof Dialog.Content>, ModalC
           className={cn(contentVariants({ variant, animated }), className)}
           {...props}
         >
-          {variant === 'message' ? (
-            <div className="modal-inner mx-auto w-[60%]">{children}</div>
-          ) : (
-            children
-          )}
+          <HeaderSlotContext.Provider value={headerSlot}>
+            <RegisterHeaderSlotContext.Provider value={setHeaderSlot}>
+              {variant === 'message' ? (
+                <div className="modal-inner mx-auto w-[60%]">{children}</div>
+              ) : (
+                children
+              )}
+            </RegisterHeaderSlotContext.Provider>
+          </HeaderSlotContext.Provider>
           {showClose && (
             <Dialog.Close
               className="absolute top-3 right-[15px] text-xl leading-none text-ca-text opacity-80 transition-opacity hover:opacity-100 focus:outline-none"
@@ -86,16 +99,20 @@ export const ModalContent = forwardRef<ElementRef<typeof Dialog.Content>, ModalC
         </Dialog.Content>
       </ModalOverlay>
     </ModalPortal>
-  ),
+    )
+  },
 )
 ModalContent.displayName = Dialog.Content.displayName
 
-export function ModalHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+export function ModalHeader({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
+  const registerSlot = useContext(RegisterHeaderSlotContext)
   return (
-    <div
-      className={cn('border-b border-ca-border px-[15px] py-3 pr-10', className)}
-      {...props}
-    />
+    <div className={cn('border-b border-ca-border px-[15px] py-3 pr-10', className)} {...props}>
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">{children}</div>
+        <div ref={registerSlot} className="flex items-center gap-2 empty:hidden" />
+      </div>
+    </div>
   )
 }
 

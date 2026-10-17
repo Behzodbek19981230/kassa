@@ -2,19 +2,8 @@ import { FaCompress, FaExpand, FaMinus, FaRedo, FaTimes } from 'react-icons/fa';
 import type { PanelProps } from '@/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
-import { createContext, type ReactNode, useContext, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-
-const PanelHeaderSlotContext = createContext<HTMLElement | null>(null);
-
-/**
- * Renders children in the rightmost spot of the enclosing Panel's header actions (e.g. the table's
- * "Ustunlar" button). Outside a Panel the children render in place.
- */
-export function PanelHeaderAction({ children }: { children: ReactNode }) {
-   const slot = useContext(PanelHeaderSlotContext);
-   return slot ? createPortal(children, slot) : <>{children}</>;
-}
+import { useRef, useState } from 'react';
+import { HeaderSlotContext } from '@/components/ui/HeaderSlot';
 
 export function Panel({
    title,
@@ -40,7 +29,7 @@ export function Panel({
    };
 
    return (
-      <PanelHeaderSlotContext.Provider value={headerSlot}>
+      <HeaderSlotContext.Provider value={headerSlot}>
       <div
          className={cn(
             'mb-5 overflow-hidden rounded-[3px] bg-ca-silver-light shadow-none',
@@ -94,6 +83,6 @@ export function Panel({
             <div className='border-t border-ca-border bg-ca-silver-light px-[15px] py-[14px]'>{footer}</div>
          )}
       </div>
-      </PanelHeaderSlotContext.Provider>
+      </HeaderSlotContext.Provider>
    );
 }

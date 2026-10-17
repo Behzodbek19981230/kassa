@@ -210,9 +210,7 @@ export default function ImportOrderProductsPage() {
                />
             </div>
 
-            <div className='mb-2 flex justify-end'>
-               <ColumnVisibilityMenu state={cols} />
-            </div>
+            <ColumnVisibilityMenu state={cols} />
 
             <div className='max-h-[85vh] min-h-75 overflow-auto [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10'>
                <Table>

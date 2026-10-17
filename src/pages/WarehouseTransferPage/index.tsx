@@ -500,9 +500,7 @@ export default function WarehouseTransferPage() {
 							</div>
 						</div>
 
-						<div className='mb-2 flex justify-end'>
-							<ColumnVisibilityMenu state={cols} />
-						</div>
+						<ColumnVisibilityMenu state={cols} />
 
 						<div className='max-h-[calc(100vh-360px)] min-h-75 overflow-auto' onScroll={handleProductsScroll}>
 							<Table>

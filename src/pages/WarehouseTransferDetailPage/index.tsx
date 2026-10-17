@@ -145,9 +145,7 @@ export default function WarehouseTransferDetailPage() {
 				</div>
 			</div>
 
-			<div className='mb-2 flex justify-end'>
-				<ColumnVisibilityMenu state={cols} />
-			</div>
+			<ColumnVisibilityMenu state={cols} />
 
 			<div className='overflow-x-auto rounded-[3px] bg-ca-silver-light shadow-sm'>
 				<Table>
