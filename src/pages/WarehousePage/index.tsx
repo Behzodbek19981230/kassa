@@ -290,7 +290,7 @@ export default function WarehousePage() {
             title="Ro'yxat"
             actions={
                <>
-                  <Button
+                  {/* <Button
                      type='button'
                      variant={onlyConfirmed ? 'success' : 'warning'}
                      size='xs'
@@ -300,7 +300,7 @@ export default function WarehousePage() {
                      }}
                   >
                      Tekshirildi {onlyConfirmed && '✓'}
-                  </Button>
+                  </Button> */}
                   {canWrite && canManageWarehouse && (
                      <Link
                         to='/warehouse-prices/create'
