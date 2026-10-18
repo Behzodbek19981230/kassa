@@ -29,7 +29,7 @@ import {
 } from '@/services/two-stage-import/two-stage-import.queries';
 import { useWarehouseDetailQueries } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
-import { createCategoryLoader, loadBrandOptions, loadConsignorOptions } from '@/pages/TwoStageImport/options';
+import { createCategoryLoader, loadBrandOptions, loadOutsideConsignorOptions } from '@/pages/TwoStageImport/options';
 import AddToChinaCartModal from '@/pages/TwoStageImport/components/AddToChinaCartModal';
 import YuanDebtPayModal from '@/pages/TwoStageImport/components/YuanDebtPayModal';
 import ChinaDispatchConfirmModal from '@/pages/TwoStageImport/components/ChinaDispatchConfirmModal';
@@ -38,6 +38,8 @@ import {
    SCROLL_AREA_CLASS,
    SCROLL_BODY_CLASS,
    SCROLL_PANEL_CLASS,
+   cartItemTotals,
+   cartTotals,
    fromApiDateTime,
    nowTashkentLocal,
    toApiDateTime,
@@ -58,10 +60,9 @@ const CART_COLUMNS: ColumnVisibilityDef[] = [
    { id: 'size', label: "O'lcham" },
    { id: 'type', label: 'Tip' },
    { id: 'type_quantity', label: 'Tip dona' },
-   { id: 'price_yuan', label: 'Narxi (¥)' },
-   { id: 'price_dollar', label: 'Narxi ($)' },
    { id: 'quantity', label: 'Soni' },
-   { id: 'total_dollar', label: 'Jami ($)' },
+   { id: 'price_yuan', label: 'Narxi (¥)' },
+   { id: 'total_yuan', label: 'Jami (¥)' },
    { id: 'actions', label: '', hideable: false },
 ];
 
@@ -101,6 +102,8 @@ export default function ChinaDispatchPage() {
    );
    const cart = cartQuery.data?.cart ?? null;
    const cartItems = cartQuery.data?.items ?? [];
+   // Line totals are tip dona × soni × narx; the backend's own totals leave tip dona out.
+   const computedTotals = cartTotals(cartItems);
    const summary = cartQuery.data?.summary;
 
    // Cart items only carry a warehouse id, so their names come from the detail of each id.
@@ -277,7 +280,7 @@ export default function ChinaDispatchPage() {
                         <Combobox
                            value={consignorValue}
                            onChange={(value) => setConsignorInput(value)}
-                           loadOptions={loadConsignorOptions}
+                           loadOptions={loadOutsideConsignorOptions}
                            selectedLabel={selectedConsignor?.name}
                            placeholder="Yuk jo'natuvchini tanlang"
                         />
@@ -319,10 +322,9 @@ export default function ChinaDispatchPage() {
                               {cartCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
                               {cartCols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
                               {cartCols.isVisible('type_quantity') && <TableHead className='bg-ca-theme text-white'>Tip dona</TableHead>}
-                              {cartCols.isVisible('price_yuan') && <TableHead className='bg-ca-theme text-white'>Narxi (¥)</TableHead>}
-                              {cartCols.isVisible('price_dollar') && <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>}
                               {cartCols.isVisible('quantity') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
-                              {cartCols.isVisible('total_dollar') && <TableHead className='bg-ca-theme text-white'>Jami ($)</TableHead>}
+                              {cartCols.isVisible('price_yuan') && <TableHead className='bg-ca-theme text-white'>Narxi (¥)</TableHead>}
+                              {cartCols.isVisible('total_yuan') && <TableHead className='bg-ca-theme text-white'>Jami (¥)</TableHead>}
                               <TableHead className='bg-ca-theme text-white' />
                            </TableRow>
                         </TableHeader>
@@ -358,14 +360,9 @@ export default function ChinaDispatchPage() {
                                     {cartCols.isVisible('size') && <TableCell>{formatNumber(row?.size ?? '')}</TableCell>}
                                     {cartCols.isVisible('type') && <TableCell>{row?.type_detail?.name ?? ''}</TableCell>}
                                     {cartCols.isVisible('type_quantity') && <TableCell>{formatNumber(item.type_quantity, 2)}</TableCell>}
-                                    {cartCols.isVisible('price_yuan') && <TableCell>{formatNumber(item.unit_price_yuan, 0)}</TableCell>}
-                                    {cartCols.isVisible('price_dollar') && (
-                                       <TableCell className='font-semibold text-ca-green'>
-                                          {formatNumber(item.unit_price_dollar, 2)} $
-                                       </TableCell>
-                                    )}
                                     {cartCols.isVisible('quantity') && <TableCell>{formatNumber(item.quantity)}</TableCell>}
-                                    {cartCols.isVisible('total_dollar') && <TableCell className='font-semibold'>{formatNumber(item.total_dollar, 2)} $</TableCell>}
+                                    {cartCols.isVisible('price_yuan') && <TableCell>{formatNumber(item.unit_price_yuan, 0)}</TableCell>}
+                                    {cartCols.isVisible('total_yuan') && <TableCell className='font-semibold'>{formatNumber(cartItemTotals(item).yuan, 0)} ¥</TableCell>}
                                     <TableCell>
                                        {canWrite && (
                                           <Button
@@ -389,8 +386,8 @@ export default function ChinaDispatchPage() {
                         <span className='text-ca-heading'>
                            Jami: <span className='font-bold'>{formatNumber(summary.total_quantity)} </span>
                         </span>
-                        <span className='font-bold text-ca-heading'>{formatNumber(summary.total_yuan, 0)} ¥</span>
-                        <span className='font-bold text-ca-green'>{formatNumber(summary.total_dollar, 2)} $</span>
+                        <span className='font-bold text-ca-heading'>{formatNumber(computedTotals.yuan, 0)} ¥</span>
+                        <span className='font-bold text-ca-green'>{formatNumber(computedTotals.dollar, 2)} $</span>
                      </div>
                   )}
 
@@ -437,7 +434,7 @@ export default function ChinaDispatchPage() {
          )}
 
          {confirmOpen && cart && summary && (
-            <ChinaDispatchConfirmModal open={confirmOpen} setOpen={setConfirmOpen} cart={cart} summary={summary} />
+            <ChinaDispatchConfirmModal open={confirmOpen} setOpen={setConfirmOpen} cart={cart} summary={{ ...summary, total_yuan: String(computedTotals.yuan), total_dollar: String(computedTotals.dollar) }} />
          )}
       </>
    );

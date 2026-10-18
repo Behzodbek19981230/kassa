@@ -42,7 +42,8 @@ interface MyDebtFormModalProps {
 
 export default function MyDebtFormModal({ open, setOpen, consignorType = 'inside_uzbekistan' }: MyDebtFormModalProps) {
 	const { notify } = useNotification();
-	const { companyId } = useCurrentCompany();
+	const { companyId, exchangeRate } = useCurrentCompany();
+	const rate = Number(exchangeRate?.dollar ?? 0);
 	const [formError, setFormError] = useState('');
 
 	const {
@@ -90,6 +91,7 @@ export default function MyDebtFormModal({ open, setOpen, consignorType = 'inside
 			consignor: Number(values.consignor),
 			total_debt: Number(values.total_debt) || 0,
 			cr_date: values.cr_date,
+			exchange_rate: rate > 0 ? rate : undefined,
 		};
 
 		try {

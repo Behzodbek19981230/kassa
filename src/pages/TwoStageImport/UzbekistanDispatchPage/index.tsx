@@ -45,6 +45,8 @@ import {
    SCROLL_AREA_CLASS,
    SCROLL_BODY_CLASS,
    SCROLL_PANEL_CLASS,
+   cartItemTotals,
+   cartTotals,
    fromApiDateTime,
    nowTashkentLocal,
    toApiDateTime,
@@ -123,6 +125,8 @@ export default function UzbekistanDispatchPage() {
 
    const cart = cartQuery.data?.cart ?? null;
    const cartItems = cartQuery.data?.items ?? [];
+   // Line totals are tip dona × soni × narx; the backend's own totals leave tip dona out.
+   const computedTotals = cartTotals(cartItems);
    const summary = cartQuery.data?.summary;
 
    const { data: selectedWarehouse } = useLogisticsWarehouseQuery(logisticsWarehouseId);
@@ -452,8 +456,8 @@ export default function UzbekistanDispatchPage() {
                                     {cartCols.isVisible('quantity') && <TableCell>{formatNumber(item.quantity)}</TableCell>}
                                     {cartCols.isVisible('price_yuan') && <TableCell>{formatNumber(item.unit_price_yuan, 0)}</TableCell>}
                                     {cartCols.isVisible('price_dollar') && <TableCell>{formatNumber(item.unit_price_dollar, 2)}</TableCell>}
-                                    {cartCols.isVisible('total_yuan') && <TableCell>{formatNumber(item.total_yuan, 0)}</TableCell>}
-                                    {cartCols.isVisible('total_dollar') && <TableCell className='font-semibold'>{formatNumber(item.total_dollar, 2)}</TableCell>}
+                                    {cartCols.isVisible('total_yuan') && <TableCell>{formatNumber(cartItemTotals(item).yuan, 0)}</TableCell>}
+                                    {cartCols.isVisible('total_dollar') && <TableCell className='font-semibold'>{formatNumber(cartItemTotals(item).dollar, 2)}</TableCell>}
                                     <TableCell>
                                        {canWrite && (
                                           <Button
@@ -476,8 +480,8 @@ export default function UzbekistanDispatchPage() {
                            <span className='text-ca-heading'>
                               Jami: <span className='font-bold'>{formatNumber(summary.total_quantity)} </span>
                            </span>
-                           <span className='font-bold text-ca-heading'>{formatNumber(summary.total_yuan, 0)} ¥</span>
-                           <span className='font-bold text-ca-green'>{formatNumber(summary.total_dollar, 2)} $</span>
+                           <span className='font-bold text-ca-heading'>{formatNumber(computedTotals.yuan, 0)} ¥</span>
+                           <span className='font-bold text-ca-green'>{formatNumber(computedTotals.dollar, 2)} $</span>
                         </div>
                      )}
 

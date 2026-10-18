@@ -116,7 +116,7 @@ export default function TransitArrivalModal({ open, setOpen, order, onCancelOrde
                      <div className='sm:col-span-2'>
                         <div className='text-ca-text'>Yo'nalish</div>
                         <div className='font-bold text-ca-red'>
-                           {order.source_logistics_warehouse_detail?.name ?? '-'} → {order.destination_logistics_warehouse_detail?.name ?? '-'}
+                           {order.source_logistics_warehouse_detail?.name ?? order.consignor_detail?.name ?? '-'} → {order.destination_logistics_warehouse_detail?.name ?? '-'}
                         </div>
                      </div>
                      <div>

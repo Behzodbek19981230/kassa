@@ -17,6 +17,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
+import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { usePayMyDebtMutation } from '@/services/my-debt/my-debt.queries';
 import type { MyDebtPayPayload } from '@/services/my-debt/my-debt.types';
@@ -53,6 +54,8 @@ export default function MyDebtPayModal({
 	currentDebt = 0,
 }: MyDebtPayModalProps) {
 	const { notify } = useNotification();
+	const { exchangeRate } = useCurrentCompany();
+	const rate = Number(exchangeRate?.dollar ?? 0);
 	const [formError, setFormError] = useState('');
 
 	const {
@@ -90,6 +93,7 @@ export default function MyDebtPayModal({
 			date: values.date,
 			all_summ_dollar: Number(values.all_summ_dollar) || 0,
 			discount_amount: Number(values.discount_amount) || 0,
+			exchange_rate: rate > 0 ? rate : undefined,
 			text: values.text?.trim() ?? '',
 		};
 

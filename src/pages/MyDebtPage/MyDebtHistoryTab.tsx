@@ -1,8 +1,9 @@
 import { createColumnHelper, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
 	Button,
+	buttonProps,
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
@@ -11,10 +12,14 @@ import {
 	Input,
 	Panel,
 } from '@/components/ui';
+import OpenDialogButton from '@/components/OpenDialogButton';
+import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { consignorService } from '@/services/consignor/consignor.service';
 import { useMyDebtHistoryGroupedListQuery } from '@/services/my-debt/my-debt-history.queries';
+import MyDebtHistoryEditModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryEditModal';
+import MyDebtHistoryHardDeleteModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryHardDeleteModal';
 import type { MyDebtHistoryGroupedItem } from '@/services/my-debt/my-debt-history.types';
 
 type GroupedMyDebtHistoryRow = MyDebtHistoryGroupedItem & {
@@ -33,6 +38,7 @@ interface FilterState {
 const emptyFilters: FilterState = { consignor: '', startDate: '', endDate: '', search: '' };
 
 export default function MyDebtHistoryTab() {
+	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
 	const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);
@@ -124,6 +130,29 @@ export default function MyDebtHistoryTab() {
 		}),
 		columnHelper.accessor('datetime_label', { header: 'Sana vaqt', size: 140 }),
 		columnHelper.accessor('created_by_name', { header: 'Hodim', size: 150 }),
+		columnHelper.display({
+			id: 'actions',
+			header: 'Harakatlar',
+			size: 100,
+			meta: { align: 'right' },
+			cell: ({ row }) =>
+				canWrite && (
+					<div className='flex justify-end gap-1'>
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}
+							dialog={MyDebtHistoryEditModal}
+							dialogProps={{ item: row.original }}
+						/>
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+							dialog={MyDebtHistoryHardDeleteModal}
+							dialogProps={{ id: row.original.id, consignorName: row.original.consignor?.name }}
+						/>
+					</div>
+				),
+		}),
 	];
 
 	return (

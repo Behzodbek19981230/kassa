@@ -12,12 +12,13 @@ const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'brand', label: 'Model' },
 	{ id: 'category', label: 'Nomi' },
 	{ id: 'size', label: "O'lchami" },
+	{ id: 'type', label: 'Tip' },
 	{ id: 'count', label: 'Soni' },
 	{ id: 'price', label: 'Narxi ($)' },
 ];
 
 /** Columns the "Jami:" label of the total rows spans. */
-const LABEL_COLUMNS = ['index', 'brand', 'category', 'size'];
+const LABEL_COLUMNS = ['index', 'brand', 'category', 'size', 'type'];
 
 export default function WarehouseAccountDetailPage() {
 	const navigate = useNavigate();
@@ -101,6 +102,7 @@ export default function WarehouseAccountDetailPage() {
 							{cols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
 							{cols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
 							{cols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lchami</TableHead>}
+							{cols.isVisible('type') && <TableHead className='bg-ca-theme text-white'>Tip</TableHead>}
 							{cols.isVisible('count') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
 							{cols.isVisible('price') && <TableHead className='bg-ca-theme text-white'>Narxi ($)</TableHead>}
 						</TableRow>
@@ -126,6 +128,7 @@ export default function WarehouseAccountDetailPage() {
 											{cols.isVisible('brand') && <TableCell>{item.brand_name}</TableCell>}
 											{cols.isVisible('category') && <TableCell>{item.product_category_name}</TableCell>}
 											{cols.isVisible('size') && <TableCell>{item.size}</TableCell>}
+											{cols.isVisible('type') && <TableCell>{item.type_name || '-'}</TableCell>}
 											{cols.isVisible('count') && <TableCell>{item.count}</TableCell>}
 											{cols.isVisible('price') && <TableCell>{formatNumber(item.price)}</TableCell>}
 										</TableRow>

@@ -151,7 +151,7 @@ export default function LogisticsCompanyFormModal({ open, setOpen, mode, item }:
 							/>
 						</FormField>
 						<FormField label='Kontakt shaxs' error={errors.contactPerson?.message} horizontal={false} className='mb-3'>
-							<Input {...register('contactPerson')} placeholder='Masalan: Aliyev Ali' />
+							<Input {...register('contactPerson')} autoComplete='off' placeholder='Masalan: Aliyev Ali' />
 						</FormField>
 						<FormField label='Manzil' error={errors.address?.message} horizontal={false} className='mb-3'>
 							<Textarea rows={3} {...register('address')} />

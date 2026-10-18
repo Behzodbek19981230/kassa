@@ -41,7 +41,7 @@ import {
 } from '@/pages/TwoStageImport/options';
 import { useWarehouseCatalog } from '@/pages/TwoStageImport/useWarehouseCatalog';
 import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
-import { fromApiDateTime, ORDER_STATUS_LABELS, STAGE_LABELS, toApiDateTime } from '@/pages/TwoStageImport/utils';
+import { fromApiDateTime, lineTotal, ORDER_STATUS_LABELS, STAGE_LABELS, toApiDateTime } from '@/pages/TwoStageImport/utils';
 
 const loadWarehouseOptions = createLogisticsWarehouseLoader();
 
@@ -108,11 +108,6 @@ interface HeaderValues {
 
 const idString = (value: number | null) => (value != null ? String(value) : '');
 const decimalString = (value: string | null) => (value != null ? String(Number(value)) : '');
-
-// The backend stores whatever totals it gets, so the frontend owns the math: line total = soni × narx.
-function lineTotal(quantity: string, price: string) {
-   return (Number(quantity) || 0) * (Number(price) || 0);
-}
 
 let rowCounter = 0;
 const newRowKey = () => `row-${++rowCounter}`;
@@ -377,8 +372,8 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
    }
 
    const rowTotals = rows.map((row) => ({
-      dollar: lineTotal(row.quantity, row.priceDollar),
-      yuan: lineTotal(row.quantity, row.priceYuan),
+      dollar: lineTotal(row.typeQuantity, row.quantity, row.priceDollar),
+      yuan: lineTotal(row.typeQuantity, row.quantity, row.priceYuan),
    }));
    const totals = rows.reduce(
       (acc, row, index) => ({

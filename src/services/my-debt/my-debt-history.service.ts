@@ -33,7 +33,7 @@ export const myDebtHistoryService = {
 	},
 	hardDelete: async (id: number) => {
 		const { data } = await apiClient.delete<MyDebtHistoryHardDeleteResponse>(
-			`/my-total-debt-history/${id}/hard-delete/`,
+			`/my-total-debt-history/${id}/`,
 		);
 		return data;
 	},

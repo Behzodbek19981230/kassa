@@ -7,7 +7,6 @@ import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useMyDebtHistoryListQuery } from '@/services/my-debt/my-debt-history.queries';
-import MyDebtHistoryDraftDeleteModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryDraftDeleteModal';
 import MyDebtHistoryEditModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryEditModal';
 import MyDebtHistoryHardDeleteModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryHardDeleteModal';
 
@@ -122,7 +121,7 @@ export default function MyDebtDetailPage() {
 											</TableCell>
 										)}
 										{cols.isVisible('discount') && <TableCell>{formatNumber(item.discount_amount, 2)} $</TableCell>}
-										{cols.isVisible('rate') && <TableCell>{formatNumber(item.exchange_rate, 2)}</TableCell>}
+										{cols.isVisible('rate') && <TableCell>{Number(item.exchange_rate) > 0 ? formatNumber(item.exchange_rate, 2) : '-'}</TableCell>}
 										{cols.isVisible('total_sum') && (
 											<TableCell className='font-semibold text-ca-heading'>
 												{formatNumber(item.all_summ_dollar, 2)} $
@@ -151,22 +150,12 @@ export default function MyDebtDetailPage() {
 														element={(props) => <Button {...props} />}
 														elementProps={{
 															...buttonProps(<FaTrash />, 'danger', 'icon'),
-															'aria-label': 'Draftga olish',
+															'aria-label': "O'chirish",
 														}}
-														dialog={MyDebtHistoryDraftDeleteModal}
+														dialog={MyDebtHistoryHardDeleteModal}
 														dialogProps={{ id: item.id, consignorName }}
 													/>
 												)}
-												{/* <OpenDialogButton
-													element={(props) => <Button {...props} />}
-													elementProps={{
-														...buttonProps(<FaTrash />, 'danger', 'icon'),
-														'aria-label': "Batamom o'chirish",
-														disabled: !canWrite,
-													}}
-													dialog={MyDebtHistoryHardDeleteModal}
-													dialogProps={{ id: item.id, consignorName }}
-												/> */}
 											</div>
 										</TableCell>
 									</TableRow>

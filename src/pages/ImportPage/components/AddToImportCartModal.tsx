@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { FaCartPlus } from 'react-icons/fa';
 import { z } from 'zod';
@@ -27,6 +27,7 @@ import { formatNumber } from '@/lib/number';
 import { useCurrentCompany } from '@/lib/company';
 import { useCreateImportCartDraftMutation } from '@/services/import-cart-draft/import-cart-draft.queries';
 import { catalogCardId } from '@/services/sklad-product/catalog-stock';
+import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 
 export interface ImportProductVariant {
@@ -36,8 +37,6 @@ export interface ImportProductVariant {
    typeName: string | null;
    rows: WarehouseAllListItem[];
 }
-
-const DEFAULT_LOCATION_LABEL = 'Dokon';
 
 interface AddToImportCartModalProps {
    open: boolean;
@@ -60,19 +59,24 @@ export default function AddToImportCartModal({
    const { exchangeRate } = useCurrentCompany();
    const rate = Number(exchangeRate?.dollar ?? 0);
 
-   const locationOptions = useMemo(() => {
-      const seen = new Map<string, { value: string; label: string; row: WarehouseAllListItem }>();
-      for (const row of variant.rows) {
-         const key = String(row.type_sklad_id ?? 'null');
-         if (!seen.has(key)) {
-            seen.set(key, { value: key, label: row.type_sklad_name ?? DEFAULT_LOCATION_LABEL, row });
-         }
-      }
-      return Array.from(seen.values());
-   }, [variant.rows]);
+   // Every sklad that holds this product, with its own count.
+   const { data: stocksData, isLoading: isStocksLoading } = useSkladProductListQuery({
+      warehouse: variant.rows[0] ? catalogCardId(variant.rows[0]) : undefined,
+      limit: 100,
+   });
+   const locationOptions = useMemo(
+      () =>
+         (stocksData?.results ?? []).map((stock) => ({
+            value: String(stock.type_sklad),
+            label: stock.type_sklad_detail?.name ?? `#${stock.type_sklad}`,
+            typeSkladId: stock.type_sklad,
+            count: stock.count,
+         })),
+      [stocksData],
+   );
 
    const stockByLocation = useMemo(
-      () => new Map(locationOptions.map((option) => [option.value, option.row.count])),
+      () => new Map(locationOptions.map((option) => [option.value, option.count])),
       [locationOptions],
    );
 
@@ -106,17 +110,23 @@ export default function AddToImportCartModal({
       control,
       handleSubmit,
       watch,
+      getValues,
       setValue,
       formState: { errors },
    } = useForm<AddToCartFormValues>({
       resolver: zodResolver(addToCartSchema),
       defaultValues: {
-         joy: locationOptions[0]?.value ?? '',
-         count: '0',
+         joy: '',
+         count: '',
          priceSom: '',
          priceDollar: '',
       },
    });
+
+   // Preselect the first sklad once the list has loaded.
+   useEffect(() => {
+      if (!getValues('joy') && locationOptions[0]) setValue('joy', locationOptions[0].value);
+   }, [locationOptions, getValues, setValue]);
 
    const joyValue = watch('joy');
    const countValue = watch('count');
@@ -138,6 +148,18 @@ export default function AddToImportCartModal({
 
    const createMutation = useCreateImportCartDraftMutation();
 
+   // The sklad dropdown is portaled out of the dialog, so picking an item can reach the dialog as an
+   // "outside" interaction and close it. Ignore close requests while the dropdown is open or was just used.
+   const joyInteractionRef = useRef({ open: false, at: 0 });
+   function handleJoyOpenChange(isOpen: boolean) {
+      joyInteractionRef.current = { open: isOpen, at: Date.now() };
+   }
+   function handleModalOpenChange(next: boolean) {
+      const { open: joyOpen, at } = joyInteractionRef.current;
+      if (!next && (joyOpen || Date.now() - at < 500)) return;
+      setOpen(next);
+   }
+
    const onSubmit = handleSubmit(async (values) => {
       setFormError('');
       const location = locationOptions.find((option) => option.value === values.joy);
@@ -150,8 +172,8 @@ export default function AddToImportCartModal({
          await createMutation.mutateAsync({
             company: companyId,
             consignor: consignorId,
-            warehouse: catalogCardId(location.row),
-            type_sklad: location.row.type_sklad_id,
+            warehouse: catalogCardId(variant.rows[0]),
+            type_sklad: location.typeSkladId,
             count: Number(values.count),
             price_dollar: Number(values.priceDollar).toFixed(2),
             price_som: values.priceSom || '0',
@@ -164,7 +186,7 @@ export default function AddToImportCartModal({
    });
 
    return (
-      <Modal open={open} onOpenChange={setOpen}>
+      <Modal open={open} onOpenChange={handleModalOpenChange}>
          <ModalContent className='max-w-[500px]'>
             <ModalHeader>
                <ModalTitle>Import savatiga qo'shish</ModalTitle>
@@ -202,7 +224,12 @@ export default function AddToImportCartModal({
                         name='joy'
                         control={control}
                         render={({ field }) => (
-                           <Select value={field.value} onValueChange={field.onChange}>
+                           <Select
+                              onOpenChange={handleJoyOpenChange}
+                              disabled={isStocksLoading}
+                              value={field.value}
+                              onValueChange={field.onChange}
+                           >
                               <SelectTrigger>
                                  <SelectValue placeholder='Tanlang...' />
                               </SelectTrigger>
@@ -211,7 +238,7 @@ export default function AddToImportCartModal({
                                     <SelectItem key={option.value} value={option.value}>
                                        {option.label}
                                        <span className='ml-2 text-ca-text'>
-                                          ({formatNumber(option.row.count)} ta)
+                                          ({formatNumber(option.count)} ta)
                                        </span>
                                     </SelectItem>
                                  ))}

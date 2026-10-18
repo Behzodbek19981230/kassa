@@ -26,6 +26,9 @@ export const myDebtService = {
 		const { data } = await apiClient.post<MyDebtItem>('/my-total-debt/', payload);
 		return data;
 	},
+	delete: async (id: number) => {
+		await apiClient.delete(`/my-total-debt/${id}/`);
+	},
 	pay: async (payload: MyDebtPayPayload) => {
 		const { data } = await apiClient.post<MyDebtPayResponse>('/my-total-debt/pay/', payload);
 		return data;

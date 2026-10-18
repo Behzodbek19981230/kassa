@@ -62,3 +62,14 @@ export function usePayMyDebtMutation() {
 		},
 	});
 }
+
+export function useDeleteMyDebtMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: number) => myDebtService.delete(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: myDebtKeys.all });
+			queryClient.invalidateQueries({ queryKey: ['my-debt-history'] });
+		},
+	});
+}

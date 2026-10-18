@@ -50,6 +50,7 @@ export interface MyDebtPayload {
 	consignor: number;
 	total_debt: number;
 	cr_date: string;
+	exchange_rate?: number;
 }
 
 export interface MyDebtPayPayload {
@@ -58,6 +59,7 @@ export interface MyDebtPayPayload {
 	date: string;
 	all_summ_dollar?: number;
 	discount_amount?: number;
+	exchange_rate?: number;
 	text?: string;
 }
 

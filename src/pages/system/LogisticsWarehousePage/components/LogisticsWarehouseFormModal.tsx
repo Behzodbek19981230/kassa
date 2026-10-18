@@ -213,10 +213,10 @@ export default function LogisticsWarehouseFormModal({
 							/>
 						</FormField>
 						<FormField label='Kontakt shaxs' error={errors.contactPerson?.message} horizontal={false} className='mb-3'>
-							<Input {...register('contactPerson')} placeholder='Masalan: Aliyev Ali' />
+							<Input {...register('contactPerson')} autoComplete='off' placeholder='Masalan: Aliyev Ali' />
 						</FormField>
 						<FormField label='Manzil' error={errors.address?.message} horizontal={false} className='mb-3'>
-							<Textarea rows={3} {...register('address')} />
+							<Textarea rows={3} autoComplete='off' {...register('address')} />
 						</FormField>
 						<FormField label='Holati' error={errors.isActive?.message} horizontal={false} className='mb-0'>
 							<Controller

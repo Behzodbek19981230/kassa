@@ -22,6 +22,7 @@ import { formatNumber } from '@/lib/number';
 import { useAddCartItemMutation } from '@/services/two-stage-import/two-stage-import.queries';
 import type { TransitStockItem } from '@/services/two-stage-import/two-stage-import.types';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
+import { lineTotal } from '@/pages/TwoStageImport/utils';
 
 interface AddToUzCartModalProps {
 	open: boolean;
@@ -170,13 +171,13 @@ export default function AddToUzCartModal({
 								<div className='flex items-center justify-between py-0.5'>
 									<span className='text-ca-text'>Umumiy narxi (¥)</span>
 									<span className='font-semibold text-ca-green'>
-										{formatNumber(quantity * Number(stock.current_price_yuan), 0)} ¥
+										{formatNumber(lineTotal(stock.current_type_quantity, quantity, stock.current_price_yuan), 0)} ¥
 									</span>
 								</div>
 								<div className='flex items-center justify-between py-0.5'>
 									<span className='text-ca-text'>Umumiy narxi ($)</span>
 									<span className='font-semibold text-ca-green'>
-										{formatNumber(quantity * Number(stock.current_price_dollar), 2)} $
+										{formatNumber(lineTotal(stock.current_type_quantity, quantity, stock.current_price_dollar), 2)} $
 									</span>
 								</div>
 							</div>

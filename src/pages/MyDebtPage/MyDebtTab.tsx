@@ -9,7 +9,6 @@ import {
 	type ComboboxLoadResult,
 	DataTable,
 	Panel,
-	useNotification,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
@@ -19,6 +18,7 @@ import { consignorService } from '@/services/consignor/consignor.service';
 import { useMyDebtListQuery } from '@/services/my-debt/my-debt.queries';
 import type { MyDebtItem } from '@/services/my-debt/my-debt.types';
 import { userService } from '@/services/user/user.service';
+import MyDebtDeleteModal from '@/pages/MyDebtPage/components/MyDebtDeleteModal';
 import MyDebtFormModal from '@/pages/MyDebtPage/components/MyDebtFormModal';
 import MyDebtPayModal from '@/pages/MyDebtPage/components/MyDebtPayModal';
 
@@ -35,7 +35,6 @@ function formatDate(value: string) {
 
 export default function MyDebtTab() {
 	const navigate = useNavigate();
-	const { notify } = useNotification();
 	const { canWrite } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 200 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -54,10 +53,6 @@ export default function MyDebtTab() {
 	const results = data?.results ?? [];
 	const paginationMeta = data?.pagination;
 	const totalDebt = results.reduce((sum, item) => sum + (Number(item.total_debt) || 0), 0);
-
-	function stub() {
-		notify({ title: 'Tez orada', text: 'Bu funksiya hali ulanmagan.' });
-	}
 
 	const loadConsignorOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await consignorService.list({
@@ -152,9 +147,19 @@ export default function MyDebtTab() {
 						<FaExpand />
 					</Button>
 					{canWrite && (
-						<Button type='button' variant='danger' size='icon' aria-label="O'chirish" onClick={stub}>
-							<FaTrash />
-						</Button>
+						<OpenDialogButton
+							element={(props) => <Button {...props} />}
+							elementProps={{
+								...buttonProps(<FaTrash />, 'danger', 'icon'),
+								'aria-label': "O'chirish",
+							}}
+							dialog={MyDebtDeleteModal}
+							dialogProps={{
+								id: row.original.id,
+								consignorName: row.original.consignor_detail?.name,
+								debt: Number(row.original.total_debt) || 0,
+							}}
+						/>
 					)}
 				</div>
 			),

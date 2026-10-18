@@ -51,6 +51,16 @@ export const loadConsignorOptions = async ({ search, page }: ComboboxLoadParams)
 		label: c.name,
 	}));
 
+/** Consignors outside Uzbekistan (the China side), for the "Xitoydan yuk chiqarish" flow. */
+export const loadOutsideConsignorOptions = async ({
+	search,
+	page,
+}: ComboboxLoadParams): Promise<ComboboxLoadResult> =>
+	toLoadResult(
+		await consignorService.list({ search: search || undefined, page, limit: 20, type: 'outside_uzbekistan' }),
+		(c) => ({ value: String(c.id), label: c.name }),
+	);
+
 export const loadCountryOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> =>
 	toLoadResult(await countryService.list({ search: search || undefined, page, limit: 20 }), (c) => ({
 		value: String(c.id),

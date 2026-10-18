@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { BadgeProps } from '@/components/ui/Badge';
 import type { ComboboxOption } from '@/components/ui';
-import type { ImportOrderStatus, ImportStage } from '@/services/two-stage-import/two-stage-import.types';
+import type { ImportCartItem, ImportOrderStatus, ImportStage } from '@/services/two-stage-import/two-stage-import.types';
 
 export { SCROLL_AREA_CLASS, SCROLL_BODY_CLASS, SCROLL_PANEL_CLASS } from '@/lib/layout';
 
@@ -97,4 +97,27 @@ export const nonNegativeNumber = (requiredMessage: string) =>
 export function formatTashkentDateTime(value?: string | null) {
 	if (!value) return '-';
 	return `${formatTashkentDate(value)} ${fromApiDateTime(value).slice(11, 16)}`;
+}
+
+/** A price is per type unit, so a line total is tip dona × soni × narx. */
+export function lineTotal(typeQuantity: string | number | null | undefined, quantity: string | number, price: string | number) {
+	const units = Number(typeQuantity);
+	return (units > 0 ? units : 1) * (Number(quantity) || 0) * (Number(price) || 0);
+}
+
+export function cartItemTotals(item: Pick<ImportCartItem, 'type_quantity' | 'quantity' | 'unit_price_yuan' | 'unit_price_dollar'>) {
+	return {
+		yuan: lineTotal(item.type_quantity, item.quantity, item.unit_price_yuan),
+		dollar: lineTotal(item.type_quantity, item.quantity, item.unit_price_dollar),
+	};
+}
+
+export function cartTotals(items: ImportCartItem[]) {
+	return items.reduce(
+		(acc, item) => {
+			const t = cartItemTotals(item);
+			return { yuan: acc.yuan + t.yuan, dollar: acc.dollar + t.dollar };
+		},
+		{ yuan: 0, dollar: 0 },
+	);
 }

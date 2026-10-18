@@ -15,6 +15,7 @@ import {
 	PriceInput,
 	useNotification,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useUpdateMyDebtHistoryMutation } from '@/services/my-debt/my-debt-history.queries';
 import type { MyDebtHistoryItem } from '@/services/my-debt/my-debt-history.types';
@@ -23,7 +24,6 @@ const myDebtHistoryEditSchema = z.object({
 	cr_date: z.string().min(1, 'Sana kiritilishi shart'),
 	total_debt: z.string().min(1, 'Qarz miqdori kiritilishi shart'),
 	discount_amount: z.string().optional(),
-	exchange_rate: z.string().min(1, 'Dollar kursi kiritilishi shart'),
 	all_summ_dollar: z.string().min(1, 'Jami summa kiritilishi shart'),
 });
 
@@ -32,13 +32,16 @@ type MyDebtHistoryEditFormValues = z.infer<typeof myDebtHistoryEditSchema>;
 interface MyDebtHistoryEditModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
-	item: MyDebtHistoryItem;
+	/** The list row (detail page) or the grouped history row. */
+	item: Pick<MyDebtHistoryItem, 'id' | 'cr_date' | 'total_debt' | 'discount_amount' | 'all_summ_dollar'>;
 }
 
 export default function MyDebtHistoryEditModal({ open, setOpen, item }: MyDebtHistoryEditModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 	const updateMutation = useUpdateMyDebtHistoryMutation();
+	const { exchangeRate } = useCurrentCompany();
+	const rate = Number(exchangeRate?.dollar ?? 0);
 
 	const {
 		control,
@@ -50,7 +53,6 @@ export default function MyDebtHistoryEditModal({ open, setOpen, item }: MyDebtHi
 			cr_date: item.cr_date,
 			total_debt: String(item.total_debt),
 			discount_amount: String(item.discount_amount),
-			exchange_rate: String(item.exchange_rate),
 			all_summ_dollar: String(item.all_summ_dollar),
 		},
 	});
@@ -64,7 +66,8 @@ export default function MyDebtHistoryEditModal({ open, setOpen, item }: MyDebtHi
 					cr_date: values.cr_date,
 					total_debt: Number(values.total_debt) || 0,
 					discount_amount: Number(values.discount_amount) || 0,
-					exchange_rate: Number(values.exchange_rate) || 0,
+					// The rate always comes from the header's dollar rate, not from the form.
+					...(rate > 0 ? { exchange_rate: rate } : {}),
 					all_summ_dollar: Number(values.all_summ_dollar) || 0,
 				},
 			});
@@ -119,19 +122,6 @@ export default function MyDebtHistoryEditModal({ open, setOpen, item }: MyDebtHi
 							>
 								<Controller
 									name='discount_amount'
-									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
-								/>
-							</FormField>
-							<FormField
-								label='Dollar kursi'
-								error={errors.exchange_rate?.message}
-								required
-								horizontal={false}
-								className='mb-0'
-							>
-								<Controller
-									name='exchange_rate'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>
