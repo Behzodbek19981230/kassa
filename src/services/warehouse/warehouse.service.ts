@@ -87,6 +87,15 @@ export const warehouseService = {
   allList: async (params?: WarehouseAllListParams) => {
     return mergeBrandGroups(await fetchAllListGroups(params))
   },
+  // Server-built spreadsheet of the catalog; honours the same brand / category filters as the list.
+  exportAllList: async (params?: WarehouseAllListParams) => {
+    const response = await apiClient.get<Blob>('/warehouse/all-list/export/', {
+      params,
+      responseType: 'blob',
+      timeout: 120_000,
+    })
+    return response.data
+  },
   get: async (id: number) => {
     const { data } = await apiClient.get<Warehouse>(`/warehouse/${id}/`)
     return data

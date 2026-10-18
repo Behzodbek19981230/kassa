@@ -13,6 +13,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
+	useNotification,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
@@ -23,6 +24,7 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { brandService } from '@/services/brand/brand.service';
 import { productCategoryService } from '@/services/product-category/product-category.service';
+import { warehouseService } from '@/services/warehouse/warehouse.service';
 import { useWarehouseAllListInfiniteQuery } from '@/services/warehouse/warehouse.queries';
 import type { WarehouseAllListItem } from '@/services/warehouse/warehouse.types';
 import WarehouseProductImagesModal from '@/pages/WarehouseProductsPage/components/WarehouseProductImagesModal';
@@ -53,10 +55,16 @@ export default function WarehouseProductsPage() {
 	const cols = useColumnVisibility('warehouse-products', COLUMNS);
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
+	const [exporting, setExporting] = useState(false);
+	const { notify } = useNotification();
 	const [imagesItem, setImagesItem] = useState<WarehouseAllListItem | null>(null);
 	const [stocksItem, setStocksItem] = useState<{ item: WarehouseAllListItem; label: string } | null>(null);
 	const [realPriceItem, setRealPriceItem] = useState<WarehouseAllListItem | null>(null);
 
+	const filterParams = {
+		brand: brandFilter ? Number(brandFilter) : undefined,
+		product_category: categoryFilter ? Number(categoryFilter) : undefined,
+	};
 	const {
 		data,
 		isLoading,
@@ -67,10 +75,7 @@ export default function WarehouseProductsPage() {
 		isError,
 		error,
 		refetch,
-	} = useWarehouseAllListInfiniteQuery({
-		brand: brandFilter ? Number(brandFilter) : undefined,
-		product_category: categoryFilter ? Number(categoryFilter) : undefined,
-	});
+	} = useWarehouseAllListInfiniteQuery(filterParams);
 	const groups = data?.groups ?? [];
 
 	function handleScroll(e: UIEvent<HTMLDivElement>) {
@@ -120,44 +125,38 @@ export default function WarehouseProductsPage() {
 	}
 
 	async function handleExport() {
-		const { Workbook } = await import('exceljs');
-		const workbook = new Workbook();
-		const worksheet = workbook.addWorksheet('Ombor mahsulotlari');
-		worksheet.addRow(['#', 'Model', 'Nomi', "O'lchami", 'Tip', 'Sklad', 'Soni', 'Narxi ($)', 'Jami narxi ($)']);
-
-		let index = 0;
-		brandGroups.forEach((group) => {
-			worksheet.addRow([group.brand.name]);
-			group.items.forEach((item) => {
-				index += 1;
-				worksheet.addRow([
-					index,
-					group.brand.name,
-					item.product_category_name,
-					item.size,
-					item.type_name ?? '',
-					item.type_sklad_name ?? '',
-					item.count,
-					Number(item.real_price),
-					Number(item.real_price) * item.count,
-				]);
-			});
-			const groupCount = group.items.reduce((s, w) => s + w.count, 0);
-			const groupSum = group.items.reduce((s, w) => s + Number(w.real_price) * w.count, 0);
-			worksheet.addRow(['', '', '', '', '', 'Jami:', groupCount, '', groupSum]);
-		});
-		worksheet.addRow(['', '', '', '', '', 'Jami:', totalCount, '', totalSum]);
-
-		const buffer = await workbook.xlsx.writeBuffer();
-		const blob = new Blob([buffer], {
-			type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-		});
-		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		link.download = 'ombor-mahsulotlari.xlsx';
-		link.click();
-		URL.revokeObjectURL(url);
+		if (exporting) return;
+		setExporting(true);
+		try {
+			const blob = await warehouseService.exportAllList(filterParams);
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = 'ombor-mahsulotlari.xlsx';
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			setTimeout(() => URL.revokeObjectURL(url), 10_000);
+		} catch (err) {
+			// Error bodies arrive as a Blob because of responseType: 'blob'.
+			let message = 'Yuklab olishda xatolik yuz berdi';
+			const body = (err as { response?: { data?: unknown } }).response?.data;
+			if (body instanceof Blob) {
+				try {
+					const parsed = JSON.parse(await body.text()) as Record<string, unknown>;
+					const first = parsed.detail ?? Object.values(parsed)[0];
+					if (typeof first === 'string') message = first;
+					else if (Array.isArray(first) && typeof first[0] === 'string') message = first[0];
+				} catch {
+					/* keep fallback */
+				}
+			} else {
+				message = getApiErrorMessage(err, message);
+			}
+			notify({ title: 'Xatolik', text: message });
+		} finally {
+			setExporting(false);
+		}
 	}
 
 	const labelColumn = LABEL_COLUMNS.filter((id) => cols.isVisible(id)).at(-1);
@@ -228,7 +227,7 @@ export default function WarehouseProductsPage() {
 							>
 								Tozalash
 							</Button>
-							<Button type='button' variant='success' size='sm' onClick={handleExport}>
+							<Button type='button' variant='success' size='sm' loading={exporting} onClick={handleExport}>
 								<FaFileExport className='mr-1.5' /> Export
 							</Button>
 						</div>
