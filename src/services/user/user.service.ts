@@ -16,6 +16,7 @@ function buildUserFormData(payload: UserPayload, avatar?: File | null) {
   formData.append('region', String(payload.region))
   formData.append('district', String(payload.district))
   formData.append('role', String(payload.role))
+  if (payload.type != null) formData.append('type', String(payload.type))
   if (payload.trade_company != null) formData.append('trade_company', String(payload.trade_company))
   if (payload.current_company != null) formData.append('current_company', String(payload.current_company))
   payload.companies.forEach((companyId) => formData.append('companies', String(companyId)))

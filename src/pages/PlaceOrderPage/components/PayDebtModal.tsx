@@ -29,6 +29,7 @@ const payDebtFormSchema = z.object({
 	sum_som: z.string().trim().min(1, "Summa so'm kiritilishi shart"),
 	summ_dollar: z.string().trim().min(1, 'Summa ($) kiritilishi shart'),
 	summ_cart: z.string().trim().min(1, 'Summa karta kiritilishi shart'),
+	sum_transfers: z.string().trim().min(1, 'Summa transfer kiritilishi shart'),
 	zdacha_sum: z.string().optional(),
 	zdacha_dollar: z.string().optional(),
 });
@@ -66,6 +67,7 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 			sum_som: '',
 			summ_dollar: '',
 			summ_cart: '',
+			sum_transfers: '',
 			zdacha_sum: '0',
 			zdacha_dollar: '0',
 		},
@@ -74,9 +76,10 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 	const sumSom = watch('sum_som');
 	const summDollar = watch('summ_dollar');
 	const summCart = watch('summ_cart');
+	const sumTransfers = watch('sum_transfers');
 	const discountAmount = watch('discount_amount');
 
-	const somTotal = (Number(sumSom) || 0) + (Number(summCart) || 0);
+	const somTotal = (Number(sumSom) || 0) + (Number(summCart) || 0) + (Number(sumTransfers) || 0);
 	const allSummDollar = (rate > 0 ? somTotal / rate : 0) + (Number(summDollar) || 0) + (Number(discountAmount) || 0);
 
 	const payDebtMutation = usePayDebtMutation();
@@ -103,7 +106,7 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 				sum_som: Number(values.sum_som) || 0,
 				summ_dollar: Number(values.summ_dollar) || 0,
 				summ_cart: Number(values.summ_cart) || 0,
-				sum_transfers: 0,
+				sum_transfers: Number(values.sum_transfers) || 0,
 				zdacha_sum: Number(values.zdacha_sum) || 0,
 				zdacha_dollar: Number(values.zdacha_dollar) || 0,
 				all_summ_dollar: roundMoney(allSummDollar),
@@ -157,7 +160,7 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 							</FormField>
 						</div>
 
-						<div className='mb-3 grid grid-cols-3 gap-3'>
+						<div className='mb-3 grid grid-cols-4 gap-3'>
 							<FormField label='Summa ($)' error={errors.summ_dollar?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='summ_dollar'
@@ -175,6 +178,13 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 							<FormField label='Summa karta' error={errors.summ_cart?.message} required horizontal={false} className='mb-0'>
 								<Controller
 									name='summ_cart'
+									control={control}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
+								/>
+							</FormField>
+							<FormField label='Summa transfer' error={errors.sum_transfers?.message} required horizontal={false} className='mb-0'>
+								<Controller
+									name='sum_transfers'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 								/>

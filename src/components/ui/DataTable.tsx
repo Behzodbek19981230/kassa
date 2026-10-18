@@ -54,6 +54,7 @@ const alignJustifyClass: Record<'left' | 'center' | 'right', string> = {
 	right: 'justify-end',
 };
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
 	FaChevronDown,
 	FaChevronRight,
@@ -131,6 +132,12 @@ interface DataTableProps<TData> {
 	 * on every mount.
 	 */
 	columnVisibilityKey?: string;
+	/**
+	 * Keeps page, page size, search and column filters in the URL query string, so a refresh
+	 * or a shared link restores them. Requires `columnVisibilityKey` (used to namespace the
+	 * params so several tables on one page don't clash). Defaults to on.
+	 */
+	syncUrl?: boolean;
 	enableColumnResizing?: boolean;
 	enableExpanding?: boolean;
 	enableExport?: boolean;
@@ -168,7 +175,7 @@ export function DataTable<TData>({
 	columns,
 	data,
 	searchPlaceholder = 'Qidirish...',
-	pageSizeOptions = [10, 25, 50],
+	pageSizeOptions = [10, 25, 50, 100, 200],
 	className,
 	enableSorting = true,
 	enableRowSelection = false,
@@ -179,6 +186,7 @@ export function DataTable<TData>({
 	enableColumnFilters = false,
 	enableColumnVisibility = false,
 	columnVisibilityKey,
+	syncUrl = true,
 	enableColumnResizing = false,
 	enableExpanding = false,
 	enableExport = false,
@@ -241,6 +249,61 @@ export function DataTable<TData>({
 		if (onControlledColumnFiltersChange) onControlledColumnFiltersChange(next);
 		else setInternalColumnFilters(next);
 	};
+
+	// --- URL sync: page / page size / search / column filters live in the query string. ---
+	const urlSyncEnabled = syncUrl && !!columnVisibilityKey;
+	const urlPrefix = `${columnVisibilityKey ?? ''}_`;
+	const [searchParams, setSearchParams] = useSearchParams();
+	const [urlHydrated, setUrlHydrated] = useState(!urlSyncEnabled);
+	const defaultPageSizeRef = useRef(pagination.pageSize);
+
+	useEffect(() => {
+		if (!urlSyncEnabled) return;
+		const q = searchParams.get(`${urlPrefix}q`);
+		const page = Number(searchParams.get(`${urlPrefix}page`));
+		const size = Number(searchParams.get(`${urlPrefix}size`));
+		const filters: ColumnFiltersState = [];
+		searchParams.forEach((value, key) => {
+			if (key.startsWith(`${urlPrefix}f_`)) filters.push({ id: key.slice(urlPrefix.length + 2), value });
+		});
+		// Filters and search first: parents reset the page index when they change.
+		if (enableGlobalFilter && q) handleGlobalFilterChange(q);
+		if (enableColumnFilters && filters.length) handleColumnFiltersChange(filters);
+		if (enablePagination && (page > 1 || size > 0)) {
+			handlePaginationChange({
+				pageIndex: page > 1 ? page - 1 : 0,
+				pageSize: size > 0 ? size : pagination.pageSize,
+			});
+		}
+		setUrlHydrated(true);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	const urlFiltersKey = JSON.stringify(columnFilters);
+	useEffect(() => {
+		if (!urlSyncEnabled || !urlHydrated) return;
+		const next = new URLSearchParams(searchParams);
+		const setOrDelete = (key: string, value: string | null) => {
+			if (value) next.set(`${urlPrefix}${key}`, value);
+			else next.delete(`${urlPrefix}${key}`);
+		};
+		setOrDelete('page', enablePagination && pagination.pageIndex > 0 ? String(pagination.pageIndex + 1) : null);
+		setOrDelete(
+			'size',
+			enablePagination && pagination.pageSize !== defaultPageSizeRef.current ? String(pagination.pageSize) : null,
+		);
+		setOrDelete('q', enableGlobalFilter && globalFilter ? globalFilter : null);
+		Array.from(next.keys())
+			.filter((key) => key.startsWith(`${urlPrefix}f_`))
+			.forEach((key) => next.delete(key));
+		if (enableColumnFilters) {
+			columnFilters.forEach((f) => {
+				if (typeof f.value === 'string' && f.value) next.set(`${urlPrefix}f_${f.id}`, f.value);
+			});
+		}
+		if (next.toString() !== searchParams.toString()) setSearchParams(next, { replace: true });
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [urlHydrated, pagination.pageIndex, pagination.pageSize, globalFilter, urlFiltersKey]);
 
 	const columnVisibilityPersistenceEnabled = enableColumnVisibility && !!columnVisibilityKey;
 	const { data: currentUser } = useUserInfoQuery();
@@ -469,26 +532,6 @@ export function DataTable<TData>({
 						</div>
 					)}
 					<PanelHeaderAction>
-						{enablePagination && (
-								<Select
-									value={String(pageSize)}
-									onValueChange={(value) => {
-										table.setPageSize(Number(value));
-										table.setPageIndex(0);
-									}}
-								>
-									<SelectTrigger className='h-[30px] w-[70px]'>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										{pageSizeOptions.map((size) => (
-											<SelectItem key={size} value={String(size)}>
-												{size}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-						)}
 						{enableColumnVisibility && (
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
@@ -718,8 +761,30 @@ export function DataTable<TData>({
 
 			{enablePagination && (
 				<div className='mt-2.5 flex flex-wrap items-center justify-between gap-3 text-xs'>
+					<div className='flex flex-wrap items-center gap-3'>
+						<Select
+									value={String(pageSize)}
+									onValueChange={(value) => {
+										table.setPagination({ pageIndex: 0, pageSize: Number(value) });
+									}}
+								>
+									<SelectTrigger className='h-[30px] w-[70px]'>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{(pageSizeOptions.includes(pageSize)
+										? pageSizeOptions
+										: [...pageSizeOptions, pageSize].sort((x, y) => x - y)
+									).map((size) => (
+											<SelectItem key={size} value={String(size)}>
+												{size}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 					<div>
 						{totalCount} tadan {start} dan {end} gacha ko'rsatilmoqda
+					</div>
 					</div>
 					<Pagination
 						page={pageIndex + 1}

@@ -22,6 +22,7 @@ import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { consignorService } from '@/services/consignor/consignor.service';
 import { useCreateMyDebtMutation } from '@/services/my-debt/my-debt.queries';
+import type { ConsignorType } from '@/services/consignor/consignor.types';
 import type { MyDebtPayload } from '@/services/my-debt/my-debt.types';
 
 const myDebtFormSchema = z.object({
@@ -35,9 +36,11 @@ type MyDebtFormValues = z.infer<typeof myDebtFormSchema>;
 interface MyDebtFormModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
+	/** Which consignors can be picked: inside Uzbekistan (default) or China-side ones. */
+	consignorType?: ConsignorType;
 }
 
-export default function MyDebtFormModal({ open, setOpen }: MyDebtFormModalProps) {
+export default function MyDebtFormModal({ open, setOpen, consignorType = 'inside_uzbekistan' }: MyDebtFormModalProps) {
 	const { notify } = useNotification();
 	const { companyId } = useCurrentCompany();
 	const [formError, setFormError] = useState('');
@@ -55,7 +58,12 @@ export default function MyDebtFormModal({ open, setOpen }: MyDebtFormModalProps)
 	const createMutation = useCreateMyDebtMutation();
 
 	const loadConsignorOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await consignorService.list({ search: search || undefined, page, limit: 20 });
+		const result = await consignorService.list({
+			search: search || undefined,
+			page,
+			limit: 20,
+			type: consignorType,
+		});
 		return {
 			options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
@@ -138,7 +146,9 @@ export default function MyDebtFormModal({ open, setOpen }: MyDebtFormModalProps)
 								<Controller
 									name='total_debt'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => (
+										<PriceInput value={field.value} onChange={field.onChange} allowNegative />
+									)}
 								/>
 							</FormField>
 							<FormField

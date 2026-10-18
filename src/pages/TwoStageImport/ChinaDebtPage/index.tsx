@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaExclamationTriangle, FaExpand } from 'react-icons/fa';
+import { FaExclamationTriangle, FaExpand, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { Button, buttonProps, DataTable, Panel, Tooltip } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
@@ -8,6 +8,7 @@ import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { loadConsignorOptions } from '@/pages/TwoStageImport/options';
+import MyDebtFormModal from '@/pages/MyDebtPage/components/MyDebtFormModal';
 import YuanDebtPayModal from '@/pages/TwoStageImport/components/YuanDebtPayModal';
 import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
 import { formatTashkentDate, formatUserName } from '@/pages/TwoStageImport/utils';
@@ -23,6 +24,7 @@ export default function ChinaDebtPage() {
    const { dollarToYuan } = useYuanDollarConversion();
    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 200 });
    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+   const [addModalOpen, setAddModalOpen] = useState(false);
 
    const consignorFilter = columnFilters.find((f) => f.id === 'consignor')?.value as string | undefined;
 
@@ -124,6 +126,13 @@ export default function ChinaDebtPage() {
                totalDebtYuan !== null ? `${formatNumber(totalDebtYuan, 2)} ¥ / ` : ''
             }${formatNumber(totalDebt, 2)} $`}
             onReload={() => refetch()}
+            actions={
+               canWrite && (
+                  <Button type='button' variant='info' size='xs' onClick={() => setAddModalOpen(true)}>
+                     <FaPlus className='mr-1.5' /> Qarz qo'shish
+                  </Button>
+               )
+            }
          >
             <DataTable
                columns={columns}
@@ -151,6 +160,8 @@ export default function ChinaDebtPage() {
                emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
             />
          </Panel>
+
+         <MyDebtFormModal open={addModalOpen} setOpen={setAddModalOpen} consignorType='outside_uzbekistan' />
       </>
    );
 }

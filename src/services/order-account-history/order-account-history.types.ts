@@ -126,6 +126,8 @@ export interface OrderAccountHistoryUpdateSalePayload {
 	sum_som: string | number;
 	sum_cart: string | number;
 	sum_transfers: string | number;
+	zdacha_dollar?: string | number;
+	zdacha_sum?: string | number;
 	driver_info?: string;
 	fast_order: boolean;
 	order_account_status: boolean;

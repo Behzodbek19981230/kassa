@@ -114,26 +114,6 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 		<div>
 			<ColumnVisibilityMenu
 				state={cols}
-				leading={
-					<Select
-						value={String(pageSize)}
-						onValueChange={(value) => {
-							setPageSize(Number(value));
-							setPage(1);
-						}}
-					>
-						<SelectTrigger className='h-[30px] w-[70px]'>
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							{PAGE_SIZE_OPTIONS.map((size) => (
-								<SelectItem key={size} value={String(size)}>
-									{size}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				}
 			/>
 
 			<div className='overflow-x-auto'>
@@ -271,8 +251,26 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 
 			{totalRows > 0 && (
 				<div className='mt-2.5 flex flex-wrap items-center justify-between gap-3 text-xs'>
-					<div>
-						Showing {start} to {end} of {totalRows} entries
+					<div className='flex flex-wrap items-center gap-3'>
+					<Select
+						value={String(pageSize)}
+						onValueChange={(value) => {
+							setPageSize(Number(value));
+							setPage(1);
+						}}
+					>
+						<SelectTrigger className='h-[30px] w-[70px]'>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{PAGE_SIZE_OPTIONS.map((size) => (
+								<SelectItem key={size} value={String(size)}>
+									{size}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+						<div>Showing {start} to {end} of {totalRows} entries</div>
 					</div>
 					<Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 				</div>

@@ -28,20 +28,17 @@ import {
 	useUpdateDebtRepaymentMutation,
 } from '@/services/debt-repayment/debt-repayment.queries';
 import type { DebtRepayment, DebtRepaymentPayload } from '@/services/debt-repayment/debt-repayment.types';
-import { useUserQuery } from '@/services/user/user.queries';
-import { userService } from '@/services/user/user.service';
 
 const debtRepaymentFormSchema = z.object({
 	client: z.string().min(1, 'Mijoz tanlanishi shart'),
-	is_worker: z.string().min(1, 'Xodim tanlanishi shart'),
 	date: z.string().min(1, 'Sana kiritilishi shart'),
 	text: z.string().optional(),
 	exchange_rate: z.string().optional(),
 	discount_amount: z.string().optional(),
-	sum_som: z.string().optional(),
-	summ_dollar: z.string().optional(),
-	summ_cart: z.string().optional(),
-	sum_transfers: z.string().optional(),
+	sum_som: z.string().min(1, 'Qiymat kiritilishi shart'),
+	summ_dollar: z.string().min(1, 'Qiymat kiritilishi shart'),
+	summ_cart: z.string().min(1, 'Qiymat kiritilishi shart'),
+	sum_transfers: z.string().min(1, 'Qiymat kiritilishi shart'),
 	zdacha_sum: z.string().optional(),
 	zdacha_dollar: z.string().optional(),
 	all_summ_dollar: z.string().min(1, 'Umumiy summa kiritilishi shart'),
@@ -58,21 +55,20 @@ interface DebtRepaymentFormModalProps {
 	initialClientId?: number;
 }
 
-const userLabel = (u: { username: string; first_name: string; last_name: string }) =>
-	`${u.last_name} ${u.first_name}`.trim() || u.username;
+/** Zero amounts show as an empty field. */
+const amountOrEmpty = (value: string | number) => (Number(value) ? String(value) : '');
 
 function toFormValues(item: DebtRepayment): DebtRepaymentFormValues {
 	return {
 		client: item.client ? String(item.client) : '',
-		is_worker: item.is_worker ? String(item.is_worker) : '',
 		date: item.date,
 		text: item.text ?? '',
 		exchange_rate: String(item.exchange_rate),
 		discount_amount: String(item.discount_amount),
-		sum_som: String(item.sum_som),
-		summ_dollar: String(item.summ_dollar),
-		summ_cart: String(item.summ_cart),
-		sum_transfers: String(item.sum_transfers),
+		sum_som: amountOrEmpty(item.sum_som),
+		summ_dollar: amountOrEmpty(item.summ_dollar),
+		summ_cart: amountOrEmpty(item.summ_cart),
+		sum_transfers: amountOrEmpty(item.sum_transfers),
 		zdacha_sum: String(item.zdacha_sum),
 		zdacha_dollar: String(item.zdacha_dollar),
 		all_summ_dollar: String(item.all_summ_dollar),
@@ -110,15 +106,14 @@ export default function DebtRepaymentFormModal({
 				? toFormValues(item)
 				: {
 						client: initialClientId ? String(initialClientId) : '',
-						is_worker: '',
 						date: new Date().toISOString().slice(0, 10),
 						text: '',
 						exchange_rate: '',
 						discount_amount: '0',
-						sum_som: '0',
-						summ_dollar: '0',
-						summ_cart: '0',
-						sum_transfers: '0',
+						sum_som: '',
+						summ_dollar: '',
+						summ_cart: '',
+						sum_transfers: '',
 						zdacha_sum: '0',
 						zdacha_dollar: '0',
 						all_summ_dollar: '',
@@ -134,10 +129,6 @@ export default function DebtRepaymentFormModal({
 
 	const clientValue = watch('client');
 	const clientDetailQuery = useClientQuery(clientValue ? Number(clientValue) : undefined);
-
-	const workerValue = watch('is_worker');
-	const workerDetailQuery = useUserQuery(workerValue ? Number(workerValue) : undefined);
-	const workerLabel = workerDetailQuery.data ? userLabel(workerDetailQuery.data) : undefined;
 
 	useEffect(() => {
 		if (mode === 'create' && companyRate > 0) {
@@ -172,14 +163,6 @@ export default function DebtRepaymentFormModal({
 		};
 	};
 
-	const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await userService.list({ search: search || undefined, page, limit: 20 });
-		return {
-			options: result.results.map((u) => ({ value: String(u.id), label: userLabel(u) })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
-
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
 		const company = item?.company ?? companyId ?? undefined;
@@ -193,7 +176,7 @@ export default function DebtRepaymentFormModal({
 
 		const payload: DebtRepaymentPayload = {
 			client: Number(values.client),
-			is_worker: Number(values.is_worker),
+			is_worker: item?.is_worker ?? null,
 			date: values.date,
 			text: values.text?.trim() ?? '',
 			exchange_rate: Number(values.exchange_rate) || companyRate || 0,
@@ -263,34 +246,11 @@ export default function DebtRepaymentFormModal({
 											selectedLabel={currentItem?.client_detail?.fio ?? clientDetailQuery.data?.fio}
 											placeholder='Tanlang...'
 											searchPlaceholder='Mijoz qidirish...'
+											disabled={mode === 'edit'}
 										/>
 									)}
 								/>
 							</FormField>
-							<FormField
-								label='Qarzni olgan xodim'
-								error={errors.is_worker?.message}
-								required
-								horizontal={false}
-								className='mb-0'
-							>
-								<Controller
-									name='is_worker'
-									control={control}
-									render={({ field }) => (
-										<Combobox
-											value={field.value}
-											onChange={field.onChange}
-											loadOptions={loadUserOptions}
-											selectedLabel={workerLabel}
-											placeholder='Tanlang...'
-											searchPlaceholder='Xodim qidirish...'
-										/>
-									)}
-								/>
-							</FormField>
-						</div>
-						<div className='mb-3 grid grid-cols-2 gap-3'>
 							<FormField
 								label='Sana'
 								error={errors.date?.message}
@@ -306,34 +266,66 @@ export default function DebtRepaymentFormModal({
 							</FormField>
 						</div>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label="Naqd (so'mda)" horizontal={false} className='mb-0'>
+							<FormField
+								label="Naqd (so'mda)"
+								error={errors.sum_som?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='sum_som'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => (
+										<PriceInput value={field.value} onChange={field.onChange} placeholder='0' />
+									)}
 								/>
 							</FormField>
-							<FormField label='Summa dollarda ($)' horizontal={false} className='mb-0'>
+							<FormField
+								label='Summa dollarda ($)'
+								error={errors.summ_dollar?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='summ_dollar'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => (
+										<PriceInput value={field.value} onChange={field.onChange} placeholder='0' />
+									)}
 								/>
 							</FormField>
 						</div>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Karta orqali' horizontal={false} className='mb-0'>
+							<FormField
+								label='Karta orqali'
+								error={errors.summ_cart?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='summ_cart'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => (
+										<PriceInput value={field.value} onChange={field.onChange} placeholder='0' />
+									)}
 								/>
 							</FormField>
-							<FormField label="O'tkazma orqali" horizontal={false} className='mb-0'>
+							<FormField
+								label="O'tkazma orqali"
+								error={errors.sum_transfers?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='sum_transfers'
 									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									render={({ field }) => (
+										<PriceInput value={field.value} onChange={field.onChange} placeholder='0' />
+									)}
 								/>
 							</FormField>
 						</div>

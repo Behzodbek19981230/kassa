@@ -487,7 +487,9 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 											onChange={handleRegionChange}
 											loadOptions={loadRegionOptions}
 											selectedLabel={
-												currentUser?.region_detail?.name ?? regionDetailQuery.data?.name
+												field.value === String(currentUser?.region ?? '')
+													? (currentUser?.region_detail?.name ?? regionDetailQuery.data?.name)
+													: undefined
 											}
 											placeholder='Tanlang...'
 											searchPlaceholder='Viloyat qidirish...'
@@ -512,7 +514,9 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 											onChange={field.onChange}
 											loadOptions={loadDistrictOptions}
 											selectedLabel={
-												currentUser?.district_detail?.name ?? districtDetailQuery.data?.name
+												field.value === String(currentUser?.district ?? '')
+													? (currentUser?.district_detail?.name ?? districtDetailQuery.data?.name)
+													: undefined
 											}
 											placeholder='Tanlang...'
 											searchPlaceholder='Tuman qidirish...'
@@ -539,7 +543,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 											value={field.value}
 											onChange={handleRoleChange}
 											loadOptions={loadRoleOptions}
-											selectedLabel={currentUser?.roles?.name}
+											selectedLabel={roleLabel || undefined}
 											placeholder='Tanlang...'
 											searchPlaceholder='Rol qidirish...'
 											clearable
@@ -617,8 +621,9 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 											onChange={handleTradeCompanyChange}
 											loadOptions={loadCompanyOptions}
 											selectedLabel={
-												currentUser?.trade_company_detail?.name ??
-												companyLabelCache[field.value]
+												(field.value === String(currentUser?.trade_company ?? '')
+													? currentUser?.trade_company_detail?.name
+													: undefined) ?? companyLabelCache[field.value]
 											}
 											placeholder='Tanlang...'
 											searchPlaceholder='Tashkilot qidirish...'

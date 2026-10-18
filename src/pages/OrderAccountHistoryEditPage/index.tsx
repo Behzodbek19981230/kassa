@@ -26,6 +26,8 @@ const editOrderFormSchema = z.object({
    date: z.string().min(1, 'Sana kiritilishi shart'),
    exchange_rate: z.string().min(1, 'Dollar kursini kiriting'),
    discount_amount: z.string().optional(),
+   zdacha_dollar: z.string().optional(),
+   zdacha_sum: z.string().optional(),
    sum_dollar: z.string().min(1, 'Qiymat kiritilishi shart'),
    sum_som: z.string().min(1, 'Qiymat kiritilishi shart'),
    sum_cart: z.string().min(1, 'Qiymat kiritilishi shart'),
@@ -127,7 +129,9 @@ export default function OrderAccountHistoryEditPage() {
          ? {
             date: item.date,
             exchange_rate: item.exchange_rate,
-            discount_amount: plainNumber(item.discount_amount),
+            discount_amount: String(Number(item.discount_amount) || 0),
+            zdacha_dollar: String(Number(item.zdacha_dollar) || 0),
+            zdacha_sum: String(Number(item.zdacha_sum) || 0),
             sum_dollar: plainNumber(item.sum_dollar),
             sum_som: plainNumber(item.sum_som),
             sum_cart: plainNumber(item.sum_cart),
@@ -185,6 +189,8 @@ export default function OrderAccountHistoryEditPage() {
                date: values.date,
                exchange_rate: values.exchange_rate,
                discount_amount: values.discount_amount || '0',
+               zdacha_dollar: values.zdacha_dollar || '0',
+               zdacha_sum: values.zdacha_sum || '0',
                all_summ_dollar: String(roundMoney(coveredDollar)),
                sum_dollar: values.sum_dollar || '0',
                sum_som: values.sum_som || '0',
@@ -366,6 +372,23 @@ export default function OrderAccountHistoryEditPage() {
                   >
                      <Controller
                         name='sum_transfers'
+                        control={control}
+                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+                     />
+                  </FormField>
+               </div>
+
+               <div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                  <FormField label='Qaytim ($)' horizontal={false} className='mb-0'>
+                     <Controller
+                        name='zdacha_dollar'
+                        control={control}
+                        render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+                     />
+                  </FormField>
+                  <FormField label="Qaytim so'm" horizontal={false} className='mb-0'>
+                     <Controller
+                        name='zdacha_sum'
                         control={control}
                         render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
                      />
