@@ -189,7 +189,7 @@ export default function UzbekistanDispatchPage() {
       <>
 
          <div className='-mx-2.5 flex flex-wrap'>
-            <div className='w-full px-2.5 lg:w-1/2'>
+            <div className='w-full px-2.5 xl:w-1/2'>
                <Panel
                   title='Tranzit sklad mahsulotlari'
                   onReload={() => stockQuery.refetch()}
@@ -197,7 +197,7 @@ export default function UzbekistanDispatchPage() {
                   bodyClassName={SCROLL_BODY_CLASS}
                >
                   <div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
-                     <div className='w-full px-2.5 sm:w-1/2'>
+                     <div className='w-full px-2.5 xl:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>Modelni tanlang:</label>
                         <Combobox
                            value={brandFilter}
@@ -210,10 +210,10 @@ export default function UzbekistanDispatchPage() {
                            clearable
                         />
                      </div>
-                     <div className='w-full px-2.5 sm:w-1/2'>
+                     <div className='w-full px-2.5 xl:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>Kategoriya:</label>
                         <div className='flex gap-2'>
-                           <div className='flex-1'>
+                           <div className='min-w-0 flex-1'>
                               <Combobox
                                  key={brandFilter}
                                  value={categoryFilter}
@@ -226,7 +226,7 @@ export default function UzbekistanDispatchPage() {
                            </div>
                            <Button
                               type='button'
-                              variant='default'
+                              className='shrink-0 whitespace-nowrap' variant='default'
                               size='sm'
                               disabled={!brandFilter && !categoryFilter}
                               onClick={clearFilters}
@@ -300,7 +300,7 @@ export default function UzbekistanDispatchPage() {
                </Panel>
             </div>
 
-            <div className='w-full px-2.5 lg:w-1/2'>
+            <div className='w-full px-2.5 xl:w-1/2'>
                <Panel
                   title="O'zbekistonga jo'natish savatchasi"
                   onReload={() => cartQuery.refetch()}
@@ -331,7 +331,7 @@ export default function UzbekistanDispatchPage() {
                   }
                >
                   <div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
-                     <div className='w-full px-2.5 sm:w-1/2'>
+                     <div className='w-full px-2.5 xl:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                            Yuk jo'natuvchi: <span className='text-ca-red'>*</span>
                         </label>
@@ -350,7 +350,7 @@ export default function UzbekistanDispatchPage() {
                         />
                         {headerErrors.consignor && <p className='mt-1 text-xs text-ca-red'>{headerErrors.consignor}</p>}
                      </div>
-                     <div className='w-full px-2.5 sm:w-1/2'>
+                     <div className='w-full px-2.5 xl:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                            Qabul qiluvchi sklad: <span className='text-ca-red'>*</span>
                         </label>
@@ -368,7 +368,7 @@ export default function UzbekistanDispatchPage() {
                         />
                         {headerErrors.destination && <p className='mt-1 text-xs text-ca-red'>{headerErrors.destination}</p>}
                      </div>
-                     <div className='w-full px-2.5 sm:w-1/2'>
+                     <div className='w-full px-2.5 xl:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                            Logistika: <span className='text-ca-red'>*</span>
                         </label>
@@ -388,7 +388,7 @@ export default function UzbekistanDispatchPage() {
                            <p className='mt-1 text-xs text-ca-red'>{headerErrors.logisticsCompany}</p>
                         )}
                      </div>
-                     <div className='w-full px-2.5 sm:w-1/2'>
+                     <div className='w-full px-2.5 xl:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                            Logistika skladi: <span className='text-ca-red'>*</span>
                         </label>

@@ -168,7 +168,7 @@ export function MultiCombobox({
           type="button"
           disabled={disabled}
           className={cn(
-            'flex min-h-[34px] w-full flex-wrap items-center gap-1 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-2 py-1 text-xs text-ca-heading',
+            'flex min-h-10 w-full flex-wrap items-center gap-1 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-2 py-1 text-sm lg:min-h-[34px] lg:text-xs text-ca-heading',
             'focus:border-ca-field-border-strong focus:outline-none',
             'disabled:cursor-not-allowed disabled:bg-ca-muted-2 disabled:opacity-60',
             className,
@@ -221,7 +221,7 @@ export function MultiCombobox({
               }}
               onKeyDown={handleSearchKeyDown}
               placeholder={searchPlaceholder}
-              className="w-full border-none text-xs text-ca-heading outline-none placeholder:text-ca-text"
+              className="w-full border-none text-base text-ca-heading lg:text-xs outline-none placeholder:text-ca-text"
             />
           </div>
           <div ref={listRef} onScroll={handleScroll} className="max-h-[240px] overflow-y-auto p-1">

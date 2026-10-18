@@ -208,8 +208,8 @@ export default function WarehouseProductsPage() {
 					</div>
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Kategoriya:</label>
-						<div className='flex gap-2'>
-							<div className='flex-1'>
+						<div className='flex flex-wrap gap-2'>
+							<div className='min-w-0 flex-1'>
 								<Combobox
 									value={categoryFilter}
 									onChange={(value) => setCategoryFilter(value)}
@@ -221,7 +221,7 @@ export default function WarehouseProductsPage() {
 							</div>
 							<Button
 								type='button'
-								variant='default'
+								className='shrink-0 whitespace-nowrap' variant='default'
 								size='sm'
 								disabled={!brandFilter && !categoryFilter}
 								onClick={handleClear}

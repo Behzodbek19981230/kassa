@@ -152,7 +152,7 @@ export default function ChinaDispatchPage() {
       <>
 
          <div className='-mx-2.5 flex flex-wrap'>
-            <div className='w-full px-2.5 lg:w-1/2'>
+            <div className='w-full px-2.5 xl:w-1/2'>
                <Panel
                   title='Ombordagi mahsulotlar'
                   onReload={() => productsQuery.refetch()}
@@ -160,7 +160,7 @@ export default function ChinaDispatchPage() {
                   bodyClassName={SCROLL_BODY_CLASS}
                >
                   <div className='-mx-2.5 mb-4 flex flex-wrap items-end gap-y-3'>
-                     <div className='w-full px-2.5 sm:w-1/3'>
+                     <div className='w-full px-2.5 xl:w-1/3'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>Modelni tanlang:</label>
                         <Combobox
                            value={brandFilter}
@@ -173,7 +173,7 @@ export default function ChinaDispatchPage() {
                            clearable
                         />
                      </div>
-                     <div className='w-full px-2.5 sm:w-1/3'>
+                     <div className='w-full px-2.5 xl:w-1/3'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>Kategoriya:</label>
                         <Combobox
                            value={categoryFilter}
@@ -187,7 +187,7 @@ export default function ChinaDispatchPage() {
                      <div className='w-full px-2.5 sm:w-auto'>
                         <Button
                            type='button'
-                           variant='default'
+                           className='shrink-0 whitespace-nowrap' variant='default'
                            size='sm'
                            disabled={!brandFilter && !categoryFilter}
                            onClick={clearFilters}
@@ -266,12 +266,12 @@ export default function ChinaDispatchPage() {
                </Panel>
             </div>
 
-            <div className='w-full px-2.5 lg:w-1/2'>
+            <div className='w-full px-2.5 xl:w-1/2'>
                <Panel
                   title='Import savatchasi'
                   onReload={() => cartQuery.refetch()}
                >
-                  <div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                  <div className='mb-4 grid grid-cols-1 gap-3 xl:grid-cols-2'>
                      <div>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>Yuk jo'natuvchi:</label>
                         <Combobox

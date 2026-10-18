@@ -283,7 +283,7 @@ export function DatePicker({ value, onChange, placeholder, disabled, className, 
       <PopoverPrimitive.Anchor asChild>
         <div
           className={cn(
-            'flex h-[34px] w-full items-center gap-2 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-3 text-xs text-ca-heading',
+            'flex h-10 w-full items-center gap-2 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-3 text-base lg:h-[34px] lg:text-xs text-ca-heading',
             'focus-within:border-ca-field-border-strong',
             disabled && 'cursor-not-allowed bg-ca-muted-2 opacity-60',
             className,
@@ -303,7 +303,7 @@ export function DatePicker({ value, onChange, placeholder, disabled, className, 
                 e.currentTarget.blur()
               }
             }}
-            className='min-w-0 flex-1 bg-transparent text-xs text-ca-heading placeholder:text-ca-text focus:outline-none disabled:cursor-not-allowed'
+            className='min-w-0 flex-1 bg-transparent text-base lg:text-xs text-ca-heading placeholder:text-ca-text focus:outline-none disabled:cursor-not-allowed'
           />
           <PopoverPrimitive.Trigger asChild>
             <button

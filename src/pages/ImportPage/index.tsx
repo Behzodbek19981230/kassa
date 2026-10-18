@@ -226,10 +226,10 @@ export default function ImportPage() {
       <>
 
          <div className='-mx-2.5 flex flex-wrap'>
-            <div className='w-full px-2.5 lg:w-1/2'>
+            <div className='w-full px-2.5 xl:w-1/2'>
                <Panel title='Ombordagi mahsulotlar' onReload={() => refetch()}>
                   <div className='-mx-2.5 mb-4 flex flex-wrap gap-y-3'>
-                     <div className='w-full px-2.5 sm:w-1/2'>
+                     <div className='w-full px-2.5 xl:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                            Modelni tanlang:
                         </label>
@@ -244,10 +244,10 @@ export default function ImportPage() {
                            clearable
                         />
                      </div>
-                     <div className='w-full px-2.5 sm:w-1/2'>
+                     <div className='w-full px-2.5 xl:w-1/2'>
                         <label className='mb-1 block text-xs font-semibold text-ca-heading'>Kategoriya:</label>
                         <div className='flex gap-2'>
-                           <div className='flex-1'>
+                           <div className='min-w-0 flex-1'>
                               <Combobox
                                  value={categoryFilter}
                                  onChange={(value) => setCategoryFilter(value)}
@@ -259,7 +259,7 @@ export default function ImportPage() {
                            </div>
                            <Button
                               type='button'
-                              variant='default'
+                              className='shrink-0 whitespace-nowrap' variant='default'
                               size='sm'
                               disabled={!brandFilter && !categoryFilter}
                               onClick={handleClear}
@@ -370,7 +370,7 @@ export default function ImportPage() {
                </Panel>
             </div>
 
-            <div className='w-full px-2.5 lg:w-1/2'>
+            <div className='w-full px-2.5 xl:w-1/2'>
                <Panel
                   title='Mening buyurtmam'
                   actions={
