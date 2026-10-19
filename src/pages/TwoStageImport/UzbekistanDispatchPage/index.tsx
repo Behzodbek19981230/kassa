@@ -33,7 +33,7 @@ import {
    createCategoryLoader,
    createLogisticsWarehouseLoader,
    loadBrandOptions,
-   loadConsignorOptions,
+   loadOutsideConsignorOptions,
    loadLogisticsCompanyOptions,
 } from '@/pages/TwoStageImport/options';
 import AddToUzCartModal from '@/pages/TwoStageImport/components/AddToUzCartModal';
@@ -347,7 +347,7 @@ export default function UzbekistanDispatchPage() {
                               setLogisticsCompany('');
                               setLogisticsWarehouse('');
                            }}
-                           loadOptions={loadConsignorOptions}
+                           loadOptions={loadOutsideConsignorOptions}
                            selectedLabel={selectedConsignor?.name}
                            placeholder="Yuk jo'natuvchini tanlang"
                            clearable

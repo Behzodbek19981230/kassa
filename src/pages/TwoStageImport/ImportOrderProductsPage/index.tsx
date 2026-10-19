@@ -46,9 +46,10 @@ import {
    ORDER_STATUS_LABELS,
    ORDER_STATUS_VARIANTS,
    formatTashkentDateTime,
+   lineTotal,
 } from '@/pages/TwoStageImport/utils';
 import { useOrderProductsQuery } from '@/services/two-stage-import/two-stage-import.queries';
-import type { ImportStage } from '@/services/two-stage-import/two-stage-import.types';
+import type { ImportStage, OrderProductItem } from '@/services/two-stage-import/two-stage-import.types';
 
 const COLUMNS: ColumnVisibilityDef[] = [
    { id: 'image', label: 'Rasm' },
@@ -106,6 +107,39 @@ export default function ImportOrderProductsPage() {
       setFilters({ brand: brandDraft, category: categoryDraft });
       setPage(1);
    }
+
+   // Line totals are tip dona × soni × narx; the backend's own totals leave tip dona out.
+   const itemTotals = (item: OrderProductItem) => ({
+      yuan: lineTotal(item.type_quantity, item.count, item.price.yuan),
+      dollar: lineTotal(item.type_quantity, item.count, item.price.dollar),
+   });
+   const items = (data?.results ?? []).flatMap((group) => group.product_categories.flatMap((cat) => cat.items));
+   // Summed from the loaded rows when they're all on one page; past that only the backend sees every row.
+   const allOnOnePage = (pagination?.lastPage ?? 1) <= 1;
+   const computedTotals = items.reduce(
+      (acc, item) => {
+         const t = itemTotals(item);
+         return { yuan: acc.yuan + t.yuan, dollar: acc.dollar + t.dollar };
+      },
+      { yuan: 0, dollar: 0 },
+   );
+   const summaryYuan = allOnOnePage ? computedTotals.yuan : Number(data?.summary.total_yuan ?? 0);
+   const summaryDollar = allOnOnePage ? computedTotals.dollar : Number(data?.summary.total_dollar ?? 0);
+
+   // Price history lives under the logistics firm that owns the transit warehouse holding the stock — the
+   // China leg's destination, the Uzbekistan leg's source. Order rows don't carry the stock id, so the modal
+   // finds it there by the product's warehouse_id.
+   const stockWarehouse =
+      order?.stage === 'TRANSIT_TO_UZBEKISTAN'
+         ? order.source_logistics_warehouse_detail
+         : order?.destination_logistics_warehouse_detail;
+   const stockPartnerId = stockWarehouse?.logistics_company ?? order?.carrier_logistics ?? null;
+   const stockWarehouseId =
+      stockWarehouse?.id ??
+      (order?.stage === 'TRANSIT_TO_UZBEKISTAN'
+         ? order.source_logistics_warehouse
+         : order?.destination_logistics_warehouse) ??
+      undefined;
 
    const title = order?.two_stage_import_detail?.import_number ?? order?.order_number ?? '...';
    let rowNumber = pagination ? (pagination.currentPage - 1) * pagination.perPage : 0;
@@ -199,13 +233,13 @@ export default function ImportOrderProductsPage() {
                <StatCard
                   icon={<FaDatabase />}
                   label='Jami (¥)'
-                  value={formatNumber(data?.summary.total_yuan ?? 0, 2)}
+                  value={formatNumber(summaryYuan, 2)}
                   accent='warning'
                />
                <StatCard
                   icon={<FaDollarSign />}
                   label='Jami ($)'
-                  value={formatNumber(data?.summary.total_dollar ?? 0, 2)}
+                  value={formatNumber(summaryDollar, 2)}
                   accent='success'
                />
             </div>
@@ -268,7 +302,7 @@ export default function ImportOrderProductsPage() {
                                        {cols.isVisible('count') && <TableCell className='font-semibold'>{formatNumber(item.count)}</TableCell>}
                                        {cols.isVisible('price') && (
                                           <TableCell>
-                                             {order?.carrier_logistics ? (
+                                             {stockPartnerId ? (
                                                 <OpenDialogButton
                                                    element={(props) => (
                                                       <button
@@ -285,14 +319,22 @@ export default function ImportOrderProductsPage() {
                                                       ),
                                                    }}
                                                    dialog={PriceHistoryModal}
-                                                   dialogProps={{ partnerId: order.carrier_logistics, stockId: item.id }}
+                                                   dialogProps={{
+                                                      partnerId: stockPartnerId,
+                                                      warehouseId: item.warehouse_id,
+                                                      logisticsWarehouseId: stockWarehouseId,
+                                                   }}
                                                 />
                                              ) : (
                                                 <span className='text-ca-theme'>{item.price.display}</span>
                                              )}
                                           </TableCell>
                                        )}
-                                       {cols.isVisible('total') && <TableCell className='font-semibold text-ca-theme'>{item.total.display}</TableCell>}
+                                       {cols.isVisible('total') && (
+                                          <TableCell className='font-semibold text-ca-theme'>
+                                             {formatNumber(itemTotals(item).yuan, 2)} ¥ / {formatNumber(itemTotals(item).dollar, 2)} $
+                                          </TableCell>
+                                       )}
                                     </TableRow>
                                  );
                               }),

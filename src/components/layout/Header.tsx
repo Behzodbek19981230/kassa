@@ -22,7 +22,7 @@ import {
    FaWarehouse,
    FaYenSign,
 } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { sidebarMenu } from '@/data/sidebarMenu';
 import { clearSession, getRefreshToken } from '@/lib/auth';
 import { useCurrentCompany } from '@/lib/company';
@@ -213,12 +213,12 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
          >
             <div ref={innerRef} className='flex h-full items-center px-5'>
                <div ref={leftRef} className='flex shrink-0 items-center'>
-                  <a
-                     href='/'
+                  <Link
+                     to='/'
                      className='flex h-[54px] w-[220px] items-center justify-center px-5 text-lg font-medium text-ca-nav-text no-underline'
                   >
-                     <img src='/logo.png' alt='Logo' className='mr-2 ' />
-                  </a>
+                     <img src='/logo.png' alt='Logo' className='pointer-events-none mr-2 select-none' draggable={false} />
+                  </Link>
                   <button
                      type='button'
                      onClick={onToggleSidebar}

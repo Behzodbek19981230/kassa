@@ -19,20 +19,44 @@ import {
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { formatTashkentDateTime } from '@/pages/TwoStageImport/utils';
-import { usePartnerPriceHistoryQuery } from '@/services/two-stage-import/two-stage-import.queries';
+import { usePartnerPriceHistoryQuery, usePartnerStockQuery } from '@/services/two-stage-import/two-stage-import.queries';
 
 interface PriceHistoryModalProps {
    open: boolean;
    setOpen: (open: boolean) => void;
    partnerId: number;
-   stockId: number;
+   /** Transit stock id. Without it the stock is looked up by `warehouseId` in `logisticsWarehouseId`. */
+   stockId?: number;
+   /** Product (Warehouse) id — order product rows carry this, not the transit stock id. */
+   warehouseId?: number;
+   logisticsWarehouseId?: number;
 }
 
 const PAGE_SIZE = 20;
+// Enough to hold every stock line of one transit warehouse, so the lookup needs a single request.
+const STOCK_LOOKUP_LIMIT = 1000;
 
-export default function PriceHistoryModal({ open, setOpen, partnerId, stockId }: PriceHistoryModalProps) {
+export default function PriceHistoryModal({
+   open,
+   setOpen,
+   partnerId,
+   stockId,
+   warehouseId,
+   logisticsWarehouseId,
+}: PriceHistoryModalProps) {
    const [page, setPage] = useState(1);
-   const query = usePartnerPriceHistoryQuery(partnerId, stockId, { page, limit: PAGE_SIZE });
+   const needsLookup = stockId == null;
+   const stockLookup = usePartnerStockQuery(needsLookup ? partnerId : undefined, {
+      logistics_warehouse: logisticsWarehouseId,
+      limit: STOCK_LOOKUP_LIMIT,
+   });
+   const resolvedStockId =
+      stockId ??
+      stockLookup.data?.results
+         .flatMap((group) => group.product_categories.flatMap((cat) => cat.stocks))
+         .find((s) => s.warehouse_id === warehouseId)?.id;
+   const stockNotFound = needsLookup && stockLookup.isSuccess && resolvedStockId == null;
+   const query = usePartnerPriceHistoryQuery(partnerId, resolvedStockId, { page, limit: PAGE_SIZE });
 
    const stock = query.data?.stock;
    const entries = query.data?.results ?? [];
@@ -45,11 +69,18 @@ export default function PriceHistoryModal({ open, setOpen, partnerId, stockId }:
                <ModalTitle>Kirim narxlari tarixi</ModalTitle>
             </ModalHeader>
             <ModalBody>
-               {query.isLoading && <div className='py-6 text-center text-xs'>Yuklanmoqda...</div>}
-               {query.isError && (
+               {(query.isLoading || (needsLookup && stockLookup.isLoading)) && (
+                  <div className='py-6 text-center text-xs'>Yuklanmoqda...</div>
+               )}
+               {(query.isError || stockLookup.isError) && (
                   <div className='py-6 text-center text-xs text-ca-red'>
                      <FaExclamationTriangle className='mr-1.5 inline' />
-                     {getApiErrorMessage(query.error, 'Xatolik yuz berdi')}
+                     {getApiErrorMessage(query.error ?? stockLookup.error, 'Xatolik yuz berdi')}
+                  </div>
+               )}
+               {stockNotFound && (
+                  <div className='py-6 text-center text-xs text-ca-text'>
+                     Bu mahsulot tranzit skladda topilmadi, kirim narxlari tarixi yo'q
                   </div>
                )}
 

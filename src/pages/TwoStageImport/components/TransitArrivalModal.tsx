@@ -85,6 +85,14 @@ export default function TransitArrivalModal({ open, setOpen, order, onCancelOrde
       }
    });
 
+   // The China leg starts at the consignor, not a logistics warehouse, so an empty or "-" source falls back to it.
+   const sourceWarehouseName = order.source_logistics_warehouse_detail?.name?.trim();
+   const sourceName =
+      (sourceWarehouseName && sourceWarehouseName !== '-' ? sourceWarehouseName : null) ??
+      order.consignor_detail?.name ??
+      order.sender_name ??
+      '-';
+
    return (
       <Modal open={open} onOpenChange={setOpen}>
          <ModalContent className='max-w-2xl'>
@@ -116,7 +124,7 @@ export default function TransitArrivalModal({ open, setOpen, order, onCancelOrde
                      <div className='sm:col-span-2'>
                         <div className='text-ca-text'>Yo'nalish</div>
                         <div className='font-bold text-ca-red'>
-                           {order.source_logistics_warehouse_detail?.name ?? order.consignor_detail?.name ?? '-'} → {order.destination_logistics_warehouse_detail?.name ?? '-'}
+                           {sourceName} → {order.destination_logistics_warehouse_detail?.name ?? '-'}
                         </div>
                      </div>
                      <div>

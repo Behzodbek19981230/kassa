@@ -224,7 +224,7 @@ export default function UzbekistanDispatchForm({
                         <Input {...register('truckNumber')} />
                      </FormField>
                      <FormField label='Haydovchi telefoni' error={errors.driverPhone?.message} required horizontal={false} className='mb-3'>
-                        <Input {...register('driverPhone')} placeholder='+998901234567' />
+                        <Input {...register('driverPhone')} />
                      </FormField>
                      <FormField
                         label="Jo'natish sanasi"
