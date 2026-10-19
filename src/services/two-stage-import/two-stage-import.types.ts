@@ -378,6 +378,8 @@ export interface OrderProductsParams {
 
 export interface OrderProductItem {
 	id: number;
+	/** Transit stock line the item sits in — the id price history is keyed by. */
+	stock_id: number | null;
 	warehouse_id: number;
 	brand_name: string | null;
 	category_name: string | null;

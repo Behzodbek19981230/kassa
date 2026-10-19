@@ -295,7 +295,7 @@ export default function ImportOrderProductsPage() {
                                        {cols.isVisible('count') && <TableCell className='font-semibold'>{formatNumber(item.count)}</TableCell>}
                                        {cols.isVisible('price') && (
                                           <TableCell>
-                                             {stockPartnerId ? (
+                                             {stockPartnerId && item.stock_id ? (
                                                 <OpenDialogButton
                                                    element={(props) => (
                                                       <button
@@ -312,7 +312,7 @@ export default function ImportOrderProductsPage() {
                                                       ),
                                                    }}
                                                    dialog={PriceHistoryModal}
-                                                   dialogProps={{ partnerId: stockPartnerId, stockId: item.id }}
+                                                   dialogProps={{ partnerId: stockPartnerId, stockId: item.stock_id! }}
                                                 />
                                              ) : (
                                                 <span className='text-ca-theme'>{item.price.display}</span>
