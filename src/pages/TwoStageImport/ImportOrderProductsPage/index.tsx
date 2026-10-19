@@ -127,19 +127,12 @@ export default function ImportOrderProductsPage() {
    const summaryDollar = allOnOnePage ? computedTotals.dollar : Number(data?.summary.total_dollar ?? 0);
 
    // Price history lives under the logistics firm that owns the transit warehouse holding the stock — the
-   // China leg's destination, the Uzbekistan leg's source. Order rows don't carry the stock id, so the modal
-   // finds it there by the product's warehouse_id.
+   // China leg's destination, the Uzbekistan leg's source — which needn't be the carrier.
    const stockWarehouse =
       order?.stage === 'TRANSIT_TO_UZBEKISTAN'
          ? order.source_logistics_warehouse_detail
          : order?.destination_logistics_warehouse_detail;
    const stockPartnerId = stockWarehouse?.logistics_company ?? order?.carrier_logistics ?? null;
-   const stockWarehouseId =
-      stockWarehouse?.id ??
-      (order?.stage === 'TRANSIT_TO_UZBEKISTAN'
-         ? order.source_logistics_warehouse
-         : order?.destination_logistics_warehouse) ??
-      undefined;
 
    const title = order?.two_stage_import_detail?.import_number ?? order?.order_number ?? '...';
    let rowNumber = pagination ? (pagination.currentPage - 1) * pagination.perPage : 0;
@@ -319,11 +312,7 @@ export default function ImportOrderProductsPage() {
                                                       ),
                                                    }}
                                                    dialog={PriceHistoryModal}
-                                                   dialogProps={{
-                                                      partnerId: stockPartnerId,
-                                                      warehouseId: item.warehouse_id,
-                                                      logisticsWarehouseId: stockWarehouseId,
-                                                   }}
+                                                   dialogProps={{ partnerId: stockPartnerId, stockId: item.id }}
                                                 />
                                              ) : (
                                                 <span className='text-ca-theme'>{item.price.display}</span>

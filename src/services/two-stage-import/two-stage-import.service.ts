@@ -117,7 +117,7 @@ export const twoStageImportService = {
 	},
 	getPartnerPriceHistory: async (partnerId: number, stockId: number, params?: { page?: number; limit?: number }) => {
 		const { data } = await apiClient.get<PriceHistoryResponse>(
-			`${BASE_PATH}/logistics-partners/${partnerId}/stock`,
+			`${BASE_PATH}/logistics-partners/${partnerId}/stock/${stockId}/price-history/`,
 			{ params },
 		);
 		return data;
