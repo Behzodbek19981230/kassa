@@ -165,6 +165,11 @@ export default function DebtRepaymentPage() {
 			size: 120,
 			cell: (info) => formatNumber(info.getValue(), 2),
 		}),
+		columnHelper.accessor('discount_amount', {
+			header: 'Chegirma ($)',
+			size: 120,
+			cell: (info) => formatNumber(info.getValue(), 2),
+		}),
 		columnHelper.accessor('total_debt_old', {
 			header: 'Eski qarz ($)',
 			size: 120,
