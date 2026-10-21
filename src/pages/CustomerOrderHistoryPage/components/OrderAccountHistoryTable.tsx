@@ -220,7 +220,7 @@ export default function OrderAccountHistoryTable({
 			enableColumnFilter: false,
 			cell: (info) => formatNumber(info.getValue(), 2),
 		}),
-		columnHelper.accessor('total_debt', {
+		columnHelper.accessor('client_total_debt', {
 			header: 'Umumiy qolgan qarz ($)',
 			size: 160,
 			enableColumnFilter: false,

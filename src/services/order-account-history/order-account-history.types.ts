@@ -49,6 +49,7 @@ export interface OrderAccountHistoryItem {
 	all_summ_dollar: string;
 	all_profit_dollar: string;
 	total_debt: string;
+	client_total_debt: string;
 	date_last_debt_payment: string | null;
 	number_of_orders: string;
 	last_order_date: string;
