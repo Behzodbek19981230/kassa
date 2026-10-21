@@ -34,7 +34,7 @@ interface LogisticsCompanyWarehousesModalProps {
 // The warehouses of one logistics company, with add, edit and delete for that company.
 export default function LogisticsCompanyWarehousesModal({ open, setOpen, company }: LogisticsCompanyWarehousesModalProps) {
 	const { canWrite } = useCurrentCompany();
-	const preset = { id: company.id, name: company.name };
+	const preset = { id: company.id, name: company.name, country: company.country ?? null };
 
 	const { data, isLoading, isFetching, isError, error } = useLogisticsWarehouseListQuery({
 		logistics_company: company.id,

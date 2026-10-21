@@ -40,6 +40,7 @@ import ExpensePage from '@/pages/system/ExpensePage';
 import AboutPage from '@/pages/system/AboutPage';
 import CompanyEventLogPage from '@/pages/system/CompanyEventLogPage';
 import ClientPage from '@/pages/settings/ClientPage';
+import ClientKeshbekHistoryPage from '@/pages/settings/ClientKeshbekHistoryPage';
 import DebtRepaymentPage from '@/pages/settings/DebtRepaymentPage';
 import DebtRepaymentDraftPage from '@/pages/settings/DebtRepaymentDraftPage';
 import TelegramBroadcastPage from '@/pages/TelegramBroadcastPage';
@@ -116,6 +117,7 @@ export default function App() {
 					<Route path='system/about' element={<AboutPage />} />
 					<Route path='system/event-log' element={<CompanyEventLogPage />} />
 					<Route path='settings/clients' element={<ClientPage />} />
+					<Route path='settings/clients/:id/keshbek-history' element={<ClientKeshbekHistoryPage />} />
 					<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
 					<Route path='settings/debt-repayments-drafts' element={<DebtRepaymentDraftPage />} />
 					<Route path='telegram-broadcast' element={<TelegramBroadcastPage />} />

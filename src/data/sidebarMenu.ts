@@ -36,7 +36,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 			{
 				id: 'two-stage-transit-stock',
 				icon: 'warehouse',
-				label: 'Logistika hamkorlari',
+				label: 'Logistika skladlari',
 				path: '/two-stage-import/transit-stock',
 			},
 			{
@@ -45,12 +45,12 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				label: "O'zbekistonga yuk chiqarish",
 				path: '/two-stage-import/transit-dispatch',
 			},
-			{
-				id: 'two-stage-uzbekistan-in-road',
-				icon: 'truck',
-				label: "O'zbekistonga yo'ldagi buyurtmalar",
-				path: '/two-stage-import/uzbekistan-in-road',
-			},
+			// {
+			// 	id: 'two-stage-uzbekistan-in-road',
+			// 	icon: 'truck',
+			// 	label: "O'zbekistonga yo'ldagi buyurtmalar",
+			// 	path: '/two-stage-import/uzbekistan-in-road',
+			// },
 			{ id: 'two-stage-debts', icon: 'bookmark', label: 'Logistika qarzim', path: '/two-stage-import/debts' },
 			{ id: 'two-stage-china-debts', icon: 'bookmark', label: 'Xitoy qarzim', path: '/two-stage-import/china-debts' },
 		],

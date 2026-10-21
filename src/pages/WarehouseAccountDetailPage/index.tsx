@@ -1,11 +1,13 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { FaArrowLeft, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useNotification } from '@/components/ui';
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
+import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { formatNumber } from '@/lib/number';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useSkladViewQuery } from '@/services/sklad/sklad.queries';
+import { skladService } from '@/services/sklad/sklad.service';
 
 const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'index', label: '#', hideable: false },
@@ -30,8 +32,21 @@ export default function WarehouseAccountDetailPage() {
 	const cols = useColumnVisibility('warehouse-account-detail', COLUMNS);
 	const labelSpan = LABEL_COLUMNS.filter((c) => cols.isVisible(c)).length;
 
-	function printForClient() {
-		notify({ title: 'Tez orada', text: 'Bu funksiya hali ulanmagan.' });
+	const [isPrinting, setIsPrinting] = useState(false);
+
+	async function printForClient() {
+		if (!skladId) return;
+		const tab = openPendingTab();
+		setIsPrinting(true);
+		try {
+			const blob = await skladService.printView(skladId);
+			loadBlobIntoTab(blob, tab);
+		} catch {
+			tab?.close();
+			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+		} finally {
+			setIsPrinting(false);
+		}
 	}
 
 	if (isLoading) {
@@ -59,8 +74,8 @@ export default function WarehouseAccountDetailPage() {
 					<Button type='button' variant='info' size='xs' onClick={() => navigate(-1)}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 					</Button>
-					<Button type='button' variant='warning' size='xs' onClick={printForClient}>
-						<FaDownload className='mr-1.5' /> Chop qilish Mijoz uchun
+					<Button type='button' variant='warning' size='xs' disabled={isPrinting} onClick={printForClient}>
+						<FaDownload className='mr-1.5' /> {isPrinting ? 'Yuklanmoqda...' : 'Chop qilish Mijoz uchun'}
 					</Button>
 				</div>
 			</div>

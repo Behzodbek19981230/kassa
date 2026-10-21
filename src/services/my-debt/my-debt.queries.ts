@@ -31,10 +31,11 @@ export function useConsignorDebtListQuery(params?: MyDebtListParams, enabled = t
 	});
 }
 
-export function useCreateMyDebtMutation() {
+export function useCreateMyDebtMutation(outsideUzbekistan = false) {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: (payload: MyDebtPayload) => myDebtService.create(payload),
+		mutationFn: (payload: MyDebtPayload) =>
+			outsideUzbekistan ? myDebtService.createConsignorDebt(payload) : myDebtService.create(payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: myDebtKeys.all });
 		},

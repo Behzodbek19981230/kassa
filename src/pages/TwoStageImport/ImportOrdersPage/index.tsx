@@ -8,6 +8,11 @@ import {
    Combobox,
    Pagination,
    Panel,
+   Select,
+   SelectContent,
+   SelectItem,
+   SelectTrigger,
+   SelectValue,
    Table,
    TableBody,
    TableCell,
@@ -66,7 +71,7 @@ const COLUMNS: ColumnVisibilityDef[] = [
 ];
 
 const loadWarehouseOptions = createLogisticsWarehouseLoader();
-const PAGE_SIZE = 50;
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 200];
 // Arrived / received orders are read-only: only "Ko'rish" stays.
 const FINISHED_STATUSES = new Set<ImportOrderListItem['status']>(['ARRIVED', 'RECEIVED', 'ARCHIVED']);
 const isFinished = (order: ImportOrderListItem) => FINISHED_STATUSES.has(order.status);
@@ -89,11 +94,12 @@ export default function ImportOrdersPage() {
    const [searchParams, setSearchParams] = useSearchParams();
    const stage: ImportStage = searchParams.get('stage') === 'TRANSIT_TO_UZBEKISTAN' ? 'TRANSIT_TO_UZBEKISTAN' : 'CHINA_TO_TRANSIT';
    const [consignorFilter, setConsignorFilter] = useState('');
-   const [statusFilter, setStatusFilter] = useState('');
+   const [statusFilter, setStatusFilter] = useState('ALL');
    const [countryFilter, setCountryFilter] = useState('');
    const [sourceFilter, setSourceFilter] = useState('');
    const [destinationFilter, setDestinationFilter] = useState('');
    const [page, setPage] = useState(1);
+   const [pageSize, setPageSize] = useState(50);
    const [action, setAction] = useState<OrderAction | null>(null);
 
    const isChina = stage === 'CHINA_TO_TRANSIT';
@@ -115,7 +121,7 @@ export default function ImportOrdersPage() {
       destination_logistics_warehouse: isChina && destinationFilter ? Number(destinationFilter) : undefined,
       destination_type_sklad: !isChina && destinationFilter ? Number(destinationFilter) : undefined,
       page,
-      limit: PAGE_SIZE,
+      limit: pageSize,
    });
    const orders = ordersQuery.data?.results ?? [];
    const pagination = ordersQuery.data?.pagination;
@@ -285,7 +291,7 @@ export default function ImportOrdersPage() {
                      )}
                      {orders.map((order, index) => (
                         <TableRow key={order.id} className={canWrite && primaryAction(order) ? 'cursor-pointer hover:bg-ca-table-hover' : undefined}>
-                           <TableCell>{(page - 1) * PAGE_SIZE + index + 1}</TableCell>
+                           <TableCell>{(page - 1) * pageSize + index + 1}</TableCell>
 
                            {cols.isVisible('date') && <TableCell>{formatTashkentDate(order.order_datetime)}</TableCell>}
                            {cols.isVisible('sender') && <TableCell>{order.sender_name || '-'}</TableCell>}
@@ -376,12 +382,33 @@ export default function ImportOrdersPage() {
                </Table>
             </div>
 
-            {pagination && pagination.lastPage > 1 && (
-               <div className='mt-3 flex flex-wrap items-center justify-between gap-2'>
-                  <span className='text-xs text-ca-text'>
-                     Jami {formatNumber(pagination.total)} ta, {pagination.currentPage}-sahifa ({pagination.lastPage} tadan)
-                  </span>
-                  <Pagination page={page} totalPages={pagination.lastPage} onPageChange={setPage} />
+            {pagination && (
+               <div className='mt-2.5 flex flex-wrap items-center justify-between gap-3 text-xs'>
+                  <div className='flex flex-wrap items-center gap-3'>
+                     <Select
+                        value={String(pageSize)}
+                        onValueChange={(value) => {
+                           setPageSize(Number(value));
+                           setPage(1);
+                        }}
+                     >
+                        <SelectTrigger className='h-[30px] w-[70px]'>
+                           <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                           {PAGE_SIZE_OPTIONS.map((size) => (
+                              <SelectItem key={size} value={String(size)}>
+                                 {size}
+                              </SelectItem>
+                           ))}
+                        </SelectContent>
+                     </Select>
+                     <div>
+                        {formatNumber(pagination.total)} tadan {pagination.total ? (page - 1) * pageSize + 1 : 0} dan{' '}
+                        {Math.min(page * pageSize, pagination.total)} gacha ko'rsatilmoqda
+                     </div>
+                  </div>
+                  <Pagination page={page} totalPages={Math.max(pagination.lastPage, 1)} onPageChange={setPage} />
                </div>
             )}
          </Panel>

@@ -64,6 +64,8 @@ const STOCK_COLUMNS: ColumnVisibilityDef[] = [
 
 const CART_COLUMNS: ColumnVisibilityDef[] = [
    { id: 'index', label: '#', hideable: false },
+   { id: 'brand', label: 'Model' },
+   { id: 'category', label: 'Nomi' },
    { id: 'size', label: "O'lcham" },
    { id: 'quantity', label: 'Soni' },
    { id: 'price_yuan', label: 'Narxi (¥)' },
@@ -76,7 +78,7 @@ const CART_COLUMNS: ColumnVisibilityDef[] = [
 const STAGE = 'TRANSIT_TO_UZBEKISTAN' as const;
 
 export default function UzbekistanDispatchPage() {
-   const { canWrite } = useCurrentCompany();
+   const { canWrite, companyId, companies, ownCompany } = useCurrentCompany();
    const stockCols = useColumnVisibility('logistics-uz-stock', STOCK_COLUMNS);
    const cartCols = useColumnVisibility('logistics-uz-cart', CART_COLUMNS);
    const { notify } = useNotification();
@@ -106,7 +108,12 @@ export default function UzbekistanDispatchPage() {
 
    const stockQuery = useTransitStockQuery();
    const { data: skladTypes } = useSkladTypeListQuery({ limit: 200 });
-   const destinationOptions = (skladTypes?.results ?? []).map((t) => ({ value: String(t.id), label: t.name }));
+   // Receiving sklads belong to the selected company, so its name is shown with each: "Company (Sklad)".
+   const companyName = companies.find((c) => c.id === companyId)?.name ?? ownCompany?.name;
+   const destinationOptions = (skladTypes?.results ?? []).map((t) => ({
+      value: String(t.id),
+      label: companyName ? `${companyName} (${t.name})` : t.name,
+   }));
 
    // Carts are per (consignor, source warehouse, receiving sklad). The fields are picked in order — consignor,
    // receiving sklad, logistics company, then its warehouse — and none is prefilled from the cart.
@@ -419,6 +426,8 @@ export default function UzbekistanDispatchPage() {
                         <TableHeader>
                            <TableRow>
                               <TableHead className='bg-ca-theme text-white'>#</TableHead>
+                              {cartCols.isVisible('brand') && <TableHead className='bg-ca-theme text-white'>Model</TableHead>}
+                              {cartCols.isVisible('category') && <TableHead className='bg-ca-theme text-white'>Nomi</TableHead>}
                               {cartCols.isVisible('size') && <TableHead className='bg-ca-theme text-white'>O'lcham</TableHead>}
                               {cartCols.isVisible('quantity') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
                               {cartCols.isVisible('price_yuan') && <TableHead className='bg-ca-theme text-white'>Narxi (¥)</TableHead>}
@@ -452,6 +461,8 @@ export default function UzbekistanDispatchPage() {
                               return (
                                  <TableRow key={item.id} className='bg-red-50'>
                                     <TableCell>{index + 1}</TableCell>
+                                    {cartCols.isVisible('brand') && <TableCell>{stock?.warehouse_detail?.brand_name ?? '-'}</TableCell>}
+                                    {cartCols.isVisible('category') && <TableCell>{stock?.warehouse_detail?.product_category_name ?? '-'}</TableCell>}
                                     {cartCols.isVisible('size') && <TableCell>{formatNumber(stock?.warehouse_detail?.size ?? '')}</TableCell>}
                                     {cartCols.isVisible('quantity') && <TableCell>{formatNumber(item.quantity)}</TableCell>}
                                     {cartCols.isVisible('price_yuan') && <TableCell>{formatNumber(item.unit_price_yuan, 0)}</TableCell>}

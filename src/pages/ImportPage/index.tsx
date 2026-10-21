@@ -179,7 +179,7 @@ export default function ImportPage() {
    };
 
    const loadConsignorOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-      const result = await consignorService.list({ search: search || undefined, page, limit: 20 });
+      const result = await consignorService.list({ search: search || undefined, page, limit: 20, type: 'inside_uzbekistan' });
       return {
          options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
          hasMore: result.pagination.currentPage < result.pagination.lastPage,

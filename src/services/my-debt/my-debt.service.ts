@@ -26,6 +26,11 @@ export const myDebtService = {
 		const { data } = await apiClient.post<MyDebtItem>('/my-total-debt/', payload);
 		return data;
 	},
+	/** Debt to a consignor outside Uzbekistan (China side); `create` only accepts inside_uzbekistan ones. */
+	createConsignorDebt: async (payload: MyDebtPayload) => {
+		const { data } = await apiClient.post<MyDebtItem>('/my-total-debt/consignor-debts/', payload);
+		return data;
+	},
 	delete: async (id: number) => {
 		await apiClient.delete(`/my-total-debt/${id}/`);
 	},

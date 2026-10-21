@@ -20,14 +20,13 @@ import {
 	Textarea,
 	useNotification,
 } from '@/components/ui';
-import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
 import { useCreateConsignorMutation, useUpdateConsignorMutation } from '@/services/consignor/consignor.queries';
 import { CONSIGNOR_TYPE_OPTIONS } from '@/services/consignor/consignor.types';
 import type { Consignor, ConsignorPayload, ConsignorType } from '@/services/consignor/consignor.types';
 
 const consignorFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
-	phone: z.string().regex(UZ_PHONE_REGEX, "Telefon raqami to'liq kiritilishi shart"),
+	phone: z.string().trim().min(1, 'Telefon raqami kiritilishi shart'),
 	address: z.string().min(1, 'Manzil kiritilishi shart'),
 	type: z.string().min(1, 'Turi tanlanishi shart'),
 });
@@ -54,8 +53,8 @@ export default function ConsignorFormModal({ open, setOpen, mode, item }: Consig
 		resolver: zodResolver(consignorFormSchema),
 		defaultValues:
 			mode === 'edit' && item
-				? { name: item.name, phone: formatUzPhone(item.phone ?? ''), address: item.address, type: item.type ?? '' }
-				: { name: '', phone: '+998', address: '', type: '' },
+				? { name: item.name, phone: item.phone ?? '', address: item.address, type: item.type ?? '' }
+				: { name: '', phone: '', address: '', type: '' },
 	});
 
 	const createMutation = useCreateConsignorMutation();
@@ -107,10 +106,8 @@ export default function ConsignorFormModal({ open, setOpen, mode, item }: Consig
 								control={control}
 								render={({ field }) => (
 									<Input
-										inputMode='numeric'
-										placeholder='+998 XX XXX XX XX'
 										value={field.value}
-										onChange={(e) => field.onChange(formatUzPhone(e.target.value))}
+										onChange={field.onChange}
 										onBlur={field.onBlur}
 									/>
 								)}

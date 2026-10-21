@@ -8,6 +8,8 @@ import {
 	ModalTitle,
 	useNotification,
 } from '@/components/ui';
+import { getApiErrorMessage } from '@/lib/errors';
+import { formatNumber } from '@/lib/number';
 import { useDeleteWarehouseMutation } from '@/services/warehouse/warehouse.queries';
 import type { Warehouse } from '@/services/warehouse/warehouse.types';
 
@@ -26,8 +28,8 @@ export default function DeleteWarehouseModal({ open, setOpen, item }: DeleteWare
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Tovar o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err) {
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 
@@ -39,6 +41,11 @@ export default function DeleteWarehouseModal({ open, setOpen, item }: DeleteWare
 				</ModalHeader>
 				<ModalBody>
 					<p>"{item.brand_detail?.name ?? item.brand}" tovarini o'chirmoqchimisiz?</p>
+					{item.count > 0 && (
+						<p className='mt-2 text-xs text-ca-red'>
+							Diqqat: omborda {formatNumber(item.count)} dona qoldiq bor.
+						</p>
+					)}
 				</ModalBody>
 				<ModalFooter>
 					<Button variant='white' onClick={() => setOpen(false)}>

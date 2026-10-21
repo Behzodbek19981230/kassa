@@ -161,7 +161,7 @@ export default function ChinaDebtPage() {
             />
          </Panel>
 
-         <MyDebtFormModal open={addModalOpen} setOpen={setAddModalOpen} consignorType='outside_uzbekistan' />
+         <MyDebtFormModal open={addModalOpen} setOpen={setAddModalOpen} consignorType='outside_uzbekistan' withYuan />
       </>
    );
 }

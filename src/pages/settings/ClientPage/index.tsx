@@ -5,7 +5,8 @@ import {
 	type SortingState,
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaList, FaTrash } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import {
 	Button,
 	buttonProps,
@@ -13,6 +14,7 @@ import {
 	type ComboboxLoadResult,
 	DataTable,
 	Panel,
+	Tooltip,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
@@ -37,6 +39,7 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 
 export default function ClientPage() {
 	const { canWrite } = useCurrentCompany();
+	const navigate = useNavigate();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -195,6 +198,17 @@ export default function ClientPage() {
 			size: 150,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
+					<Tooltip content='Keshbek tarixi'>
+						<Button
+							type='button'
+							variant='info'
+							size='icon'
+							aria-label='Keshbek tarixi'
+							onClick={() => navigate(`/settings/clients/${row.original.id}/keshbek-history`)}
+						>
+							<FaList />
+						</Button>
+					</Tooltip>
 					{canWrite && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}

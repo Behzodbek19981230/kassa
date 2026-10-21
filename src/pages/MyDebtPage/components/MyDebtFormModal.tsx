@@ -9,6 +9,7 @@ import {
 	type ComboboxLoadResult,
 	DatePicker,
 	FormField,
+	InputGroup,
 	Modal,
 	ModalBody,
 	ModalContent,
@@ -20,6 +21,8 @@ import {
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
+import YuanRateHint from '@/pages/TwoStageImport/components/YuanRateHint';
+import { useYuanDollarConversion } from '@/pages/TwoStageImport/useYuanDollarConversion';
 import { consignorService } from '@/services/consignor/consignor.service';
 import { useCreateMyDebtMutation } from '@/services/my-debt/my-debt.queries';
 import type { ConsignorType } from '@/services/consignor/consignor.types';
@@ -38,25 +41,31 @@ interface MyDebtFormModalProps {
 	setOpen: (open: boolean) => void;
 	/** Which consignors can be picked: inside Uzbekistan (default) or China-side ones. */
 	consignorType?: ConsignorType;
+	/** Adds a ¥ amount field linked to the $ one via today's yuan rate (the backend only stores dollars). */
+	withYuan?: boolean;
 }
 
-export default function MyDebtFormModal({ open, setOpen, consignorType = 'inside_uzbekistan' }: MyDebtFormModalProps) {
+export default function MyDebtFormModal({ open, setOpen, consignorType = 'inside_uzbekistan', withYuan = false }: MyDebtFormModalProps) {
 	const { notify } = useNotification();
 	const { companyId, exchangeRate } = useCurrentCompany();
 	const rate = Number(exchangeRate?.dollar ?? 0);
 	const [formError, setFormError] = useState('');
+	const [debtYuan, setDebtYuan] = useState('');
+	const { yuanToDollar, dollarToYuan } = useYuanDollarConversion();
 
 	const {
 		control,
 		handleSubmit,
 		reset,
+		setValue,
 		formState: { errors },
 	} = useForm<MyDebtFormValues>({
 		resolver: zodResolver(myDebtFormSchema),
 		defaultValues: { consignor: '', total_debt: '', cr_date: new Date().toISOString().slice(0, 10) },
 	});
 
-	const createMutation = useCreateMyDebtMutation();
+	// Each consignor type has its own create endpoint.
+	const createMutation = useCreateMyDebtMutation(consignorType === 'outside_uzbekistan');
 
 	const loadConsignorOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await consignorService.list({
@@ -75,6 +84,7 @@ export default function MyDebtFormModal({ open, setOpen, consignorType = 'inside
 		if (!next) {
 			reset({ consignor: '', total_debt: '', cr_date: new Date().toISOString().slice(0, 10) });
 			setFormError('');
+			setDebtYuan('');
 		}
 		setOpen(next);
 	}
@@ -138,6 +148,22 @@ export default function MyDebtFormModal({ open, setOpen, consignorType = 'inside
 							/>
 						</FormField>
 						<div className='grid grid-cols-2 gap-3'>
+							{withYuan && (
+								<FormField label='Qarz miqdori (¥)' horizontal={false} className='mb-0'>
+									<InputGroup prepend='¥'>
+										<PriceInput
+											value={debtYuan}
+											allowNegative
+											onChange={(v) => {
+												setDebtYuan(v);
+												const dollar = yuanToDollar(v);
+												if (dollar !== null) setValue('total_debt', dollar, { shouldValidate: true });
+											}}
+										/>
+									</InputGroup>
+									<YuanRateHint />
+								</FormField>
+							)}
 							<FormField
 								label='Qarz miqdori ($)'
 								error={errors.total_debt?.message}
@@ -148,9 +174,23 @@ export default function MyDebtFormModal({ open, setOpen, consignorType = 'inside
 								<Controller
 									name='total_debt'
 									control={control}
-									render={({ field }) => (
-										<PriceInput value={field.value} onChange={field.onChange} allowNegative />
-									)}
+									render={({ field }) =>
+										withYuan ? (
+											<InputGroup prepend='$'>
+												<PriceInput
+													value={field.value}
+													allowNegative
+													onChange={(v) => {
+														field.onChange(v);
+														const yuan = dollarToYuan(v);
+														if (yuan !== null) setDebtYuan(yuan);
+													}}
+												/>
+											</InputGroup>
+										) : (
+											<PriceInput value={field.value} onChange={field.onChange} allowNegative />
+										)
+									}
 								/>
 							</FormField>
 							<FormField
@@ -158,7 +198,7 @@ export default function MyDebtFormModal({ open, setOpen, consignorType = 'inside
 								error={errors.cr_date?.message}
 								required
 								horizontal={false}
-								className='mb-0'
+								className={withYuan ? 'col-span-2 mb-0' : 'mb-0'}
 							>
 								<Controller
 									name='cr_date'

@@ -83,10 +83,18 @@ export default function WarehousePage() {
    };
 
    const loadCategoryOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-      if (!brandFilter) return { options: [], hasMore: false };
-      const result = await productCategoryService.list({ search: search || undefined, page, limit: 20, brand: Number(brandFilter) });
+      // Without a model every category is searchable; the model name tells same-named ones apart.
+      const result = await productCategoryService.list({
+         search: search || undefined,
+         page,
+         limit: 20,
+         brand: brandFilter ? Number(brandFilter) : undefined,
+      });
       return {
-         options: result.results.map((c) => ({ value: String(c.id), label: c.name })),
+         options: result.results.map((c) => ({
+            value: String(c.id),
+            label: !brandFilter && c.brand_detail?.name ? `${c.name} (${c.brand_detail.name})` : c.name,
+         })),
          hasMore: result.pagination.currentPage < result.pagination.lastPage,
       };
    };
@@ -133,9 +141,8 @@ export default function WarehousePage() {
          meta: {
             filterVariant: 'select',
             filterLoadOptions: loadCategoryOptions,
-            filterDisabled: !brandFilter,
             filterSelectedLabel: (value) => categoryNameById.get(Number(value)),
-            filterPlaceholder: brandFilter ? 'Barchasi' : 'Avval modelni tanlang',
+            filterPlaceholder: 'Barchasi',
          },
       }),
       columnHelper.accessor('size', {
@@ -262,8 +269,6 @@ export default function WarehousePage() {
                         elementProps={{
                            ...buttonProps(<FaTrash />, 'danger', 'icon'),
                            'aria-label': "O'chirish",
-                           disabled: item.count > 0,
-                           title: item.count > 0 ? "Qoldig'i bor tovarni o'chirib bo'lmaydi" : undefined,
                         }}
                         dialog={DeleteWarehouseModal}
                         dialogProps={{ item }}

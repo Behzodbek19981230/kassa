@@ -73,7 +73,7 @@ export default function LogisticsPartnersPage() {
       <>
 
          <Panel
-            title='Logistika hamkorlari'
+            title='Logistika skladlari'
             className={SCROLL_PANEL_CLASS}
             bodyClassName={SCROLL_BODY_CLASS}
             onReload={() => query.refetch()}

@@ -52,8 +52,11 @@ interface LogisticsWarehouseFormModalProps {
 	setOpen: (open: boolean) => void;
 	mode: 'create' | 'edit';
 	item?: LogisticsWarehouse;
-	/** Set when the warehouse is added from a company's own list. The company is then fixed and not picked here. */
-	presetLogisticsCompany?: { id: number; name: string };
+	/**
+	 * Set when the warehouse is added from a company's own list. The company, and its country when it has one,
+	 * are then sent as they are and not shown here.
+	 */
+	presetLogisticsCompany?: { id: number; name: string; country?: number | null };
 }
 
 export default function LogisticsWarehouseFormModal({
@@ -66,6 +69,7 @@ export default function LogisticsWarehouseFormModal({
 	const { notify } = useNotification();
 	const { companyId } = useCurrentCompany();
 	const [formError, setFormError] = useState('');
+	const presetCountry = presetLogisticsCompany?.country ?? null;
 
 	const {
 		register,
@@ -77,7 +81,7 @@ export default function LogisticsWarehouseFormModal({
 		resolver: zodResolver(logisticsWarehouseFormSchema),
 		defaultValues: {
 			name: mode === 'edit' && item ? item.name : '',
-			country: mode === 'edit' && item?.country ? String(item.country) : '',
+			country: String(presetCountry ?? (mode === 'edit' && item?.country ? item.country : '')),
 			logisticsCompany: String(
 				presetLogisticsCompany?.id ?? (mode === 'edit' && item?.logistics_company ? item.logistics_company : ''),
 			),
@@ -153,31 +157,31 @@ export default function LogisticsWarehouseFormModal({
 						<FormField label='Nomi' error={errors.name?.message} required horizontal={false} className='mb-3'>
 							<Input {...register('name')} placeholder='Masalan: Almaty Transit' />
 						</FormField>
-						<FormField label='Davlat' error={errors.country?.message} required horizontal={false} className='mb-3'>
-							<Controller
-								name='country'
-								control={control}
-								render={({ field }) => (
-									<Combobox
-										value={field.value}
-										onChange={(v) => field.onChange(v)}
-										loadOptions={loadCountryOptions}
-										selectedLabel={selectedCountry?.name}
-										placeholder='Davlatni tanlang'
-									/>
-								)}
-							/>
-						</FormField>
-						<FormField
-							label='Logistika firmasi'
-							error={errors.logisticsCompany?.message}
-							required
-							horizontal={false}
-							className='mb-3'
-						>
-							{presetLogisticsCompany ? (
-								<Input value={presetLogisticsCompany.name} disabled readOnly />
-							) : (
+						{!presetCountry && (
+							<FormField label='Davlat' error={errors.country?.message} required horizontal={false} className='mb-3'>
+								<Controller
+									name='country'
+									control={control}
+									render={({ field }) => (
+										<Combobox
+											value={field.value}
+											onChange={(v) => field.onChange(v)}
+											loadOptions={loadCountryOptions}
+											selectedLabel={selectedCountry?.name}
+											placeholder='Davlatni tanlang'
+										/>
+									)}
+								/>
+							</FormField>
+						)}
+						{!presetLogisticsCompany && (
+							<FormField
+								label='Logistika firmasi'
+								error={errors.logisticsCompany?.message}
+								required
+								horizontal={false}
+								className='mb-3'
+							>
 								<Controller
 									name='logisticsCompany'
 									control={control}
@@ -191,8 +195,8 @@ export default function LogisticsWarehouseFormModal({
 										/>
 									)}
 								/>
-							)}
-						</FormField>
+							</FormField>
+						)}
 						<FormField label='Telefon' error={errors.phone?.message} horizontal={false} className='mb-3'>
 							<Controller
 								name='phone'

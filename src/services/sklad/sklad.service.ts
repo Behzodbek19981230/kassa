@@ -27,6 +27,10 @@ export const skladService = {
 		const { data } = await apiClient.get<SkladViewResponse>(`/sklad/${id}/sklad-view/`, { params });
 		return data;
 	},
+	printView: async (id: number) => {
+		const { data } = await apiClient.get(`/sklad/${id}/sklad-view/print/`, { responseType: 'blob' });
+		return data as Blob;
+	},
 	update: async (id: number, payload: SkladUpdatePayload) => {
 		const { data } = await apiClient.put<SkladItem>(`/sklad/${id}/`, payload);
 		return data;

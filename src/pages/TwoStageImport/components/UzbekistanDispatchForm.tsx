@@ -156,29 +156,46 @@ export default function UzbekistanDispatchForm({
                         <Controller name='volumeM3' control={control} render={({ field }) => <PriceInput decimals={4} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
                      </FormField>
 
-                     <div className='col-span-2'>
-                        <FormField
-                           label='Tashuvchi logistika'
-                           error={errors.carrierLogistics?.message}
-                           required
-                           horizontal={false}
-                           className='mb-3'
-                        >
-                           <Controller
-                              name='carrierLogistics'
-                              control={control}
-                              render={({ field }) => (
-                                 <Combobox
-                                    value={field.value}
-                                    onChange={(v) => field.onChange(v)}
-                                    loadOptions={loadLogisticsCompanyOptions}
-                                    selectedLabel={selectedCarrier?.name}
-                                    placeholder='Tashuvchini tanlang'
-                                 />
-                              )}
-                           />
-                        </FormField>
-                     </div>
+                     <FormField
+                        label='Tashuvchi logistika'
+                        error={errors.carrierLogistics?.message}
+                        required
+                        horizontal={false}
+                        className='mb-3'
+                     >
+                        <Controller
+                           name='carrierLogistics'
+                           control={control}
+                           render={({ field }) => (
+                              <Combobox
+                                 value={field.value}
+                                 onChange={(v) => field.onChange(v)}
+                                 loadOptions={loadLogisticsCompanyOptions}
+                                 selectedLabel={selectedCarrier?.name}
+                                 placeholder='Tashuvchini tanlang'
+                              />
+                           )}
+                        />
+                     </FormField>
+                     <FormField
+                        label="Jo'natish sanasi"
+                        error={errors.dispatchDatetime?.message}
+                        required
+                        horizontal={false}
+                        className='mb-3'
+                     >
+                        <Controller
+                           name='dispatchDatetime'
+                           control={control}
+                           render={({ field }) => (
+                              // Only the date is picked; the time stays as the cart's.
+                              <DatePicker
+                                 value={field.value}
+                                 onChange={(date) => field.onChange(date ? `${date}T${field.value.slice(11, 16) || '00:00'}` : '')}
+                              />
+                           )}
+                        />
+                     </FormField>
 
                      <FormField label='Xizmat narxi (¥)' error={errors.servicePriceYuan?.message} required horizontal={false} className='mb-3'>
                         <Controller
@@ -225,25 +242,6 @@ export default function UzbekistanDispatchForm({
                      </FormField>
                      <FormField label='Haydovchi telefoni' error={errors.driverPhone?.message} required horizontal={false} className='mb-3'>
                         <Input {...register('driverPhone')} />
-                     </FormField>
-                     <FormField
-                        label="Jo'natish sanasi"
-                        error={errors.dispatchDatetime?.message}
-                        required
-                        horizontal={false}
-                        className='mb-3'
-                     >
-                        <Controller
-                           name='dispatchDatetime'
-                           control={control}
-                           render={({ field }) => (
-                              // Only the date is picked; the time stays as the cart's.
-                              <DatePicker
-                                 value={field.value}
-                                 onChange={(date) => field.onChange(date ? `${date}T${field.value.slice(11, 16) || '00:00'}` : '')}
-                              />
-                           )}
-                        />
                      </FormField>
                   </div>
 
