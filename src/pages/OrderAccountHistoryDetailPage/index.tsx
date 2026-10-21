@@ -41,7 +41,7 @@ const COLUMNS: ColumnVisibilityDef[] = [
    { id: 'count', label: 'Soni' },
    { id: 'given_count', label: 'Berilgan soni' },
    { id: 'price', label: 'Narxi ($)' },
-   { id: 'real_price', label: 'Asl Narxi ($)' },
+   { id: 'real_price', label: 'Asl Narxi ($)', superAdminOnly: true },
    { id: 'profit', label: 'Foyda ($)' },
 ];
 

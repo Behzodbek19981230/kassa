@@ -25,6 +25,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		id: 'two-stage-import',
 		icon: 'shipping-fast',
 		label: 'Logistika',
+		requiredPermission: 'isSuperAdmin',
 		children: [
 			{ id: 'two-stage-orders', icon: 'history', label: 'Logistika tarixi', path: '/two-stage-import/orders' },
 			{
@@ -55,13 +56,19 @@ export const sidebarMenu: SidebarMenuItem[] = [
 			{ id: 'two-stage-china-debts', icon: 'bookmark', label: 'Xitoy qarzim', path: '/two-stage-import/china-debts' },
 		],
 	},
-	{ id: 'warehouse-report', icon: 'warehouse', label: 'Omborxona hisobi', path: '/warehouse-report' },
+	{
+		id: 'warehouse-report',
+		icon: 'warehouse',
+		label: 'Omborxona hisobi',
+		path: '/warehouse-report',
+		requiredPermission: 'isSuperAdmin',
+	},
 	{
 		id: 'my-debts',
 		icon: 'bookmark',
 		label: 'Mening qarzlarim',
 		path: '/my-debts',
-		requiredPermission: 'canManageConsignor',
+		requiredPermission: 'isSuperAdmin',
 	},
 	{
 		id: 'system-management',
@@ -111,13 +118,21 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: 'balance-scale',
 				label: "To'langan qarzlar",
 				path: '/settings/debt-repayments',
+				requiredPermission: 'isSuperAdmin',
 			},
-			{ id: 'order-cart-drafts', icon: 'cart', label: 'Buyurtma Karzinka', path: '/cart-drafts' },
+			{
+				id: 'order-cart-drafts',
+				icon: 'cart',
+				label: 'Buyurtma Karzinka',
+				path: '/cart-drafts',
+				requiredPermission: 'isSuperAdmin',
+			},
 			{
 				id: 'debt-payment-cart-drafts',
 				icon: 'receipt',
 				label: "Qarz to'lov karzinka",
 				path: '/settings/debt-repayments-drafts',
+				requiredPermission: 'isSuperAdmin',
 			},
 		],
 	},

@@ -56,7 +56,7 @@ export default function OrderAccountHistoryTable({
 	onRefetchReady,
 }: OrderAccountHistoryTableProps) {
 	const navigate = useNavigate();
-	const { canEditOwned } = usePermissions();
+	const { canEditOwned, isSuperAdmin } = usePermissions();
 
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -233,12 +233,16 @@ export default function OrderAccountHistoryTable({
 				);
 			},
 		}),
-		columnHelper.accessor('all_profit_dollar', {
-			header: 'Jami foyda ($)',
-			size: 130,
-			enableColumnFilter: false,
-			cell: (info) => formatNumber(info.getValue(), 2),
-		}),
+		...(isSuperAdmin
+			? [
+				columnHelper.accessor('all_profit_dollar', {
+					header: 'Jami foyda ($)',
+					size: 130,
+					enableColumnFilter: false,
+					cell: (info) => formatNumber(info.getValue(), 2),
+				}),
+			]
+			: []),
 		columnHelper.accessor('created_time', {
 			header: 'Yaratilgan vaqt',
 			size: 140,
@@ -252,17 +256,21 @@ export default function OrderAccountHistoryTable({
 			enableColumnFilter: false,
 			cell: ({ row }) => <span className='text-ca-orange'>{row.original.status_order_label}</span>,
 		}),
-		columnHelper.display({
-			id: 'keshbek',
-			header: 'Keshbek ($)',
-			size: 110,
-			enableColumnFilter: false,
-			cell: ({ row }) => (
-				<span className='font-semibold text-ca-green'>
-					{formatNumber(row.original.client_detail?.keshbek ?? 0, 2)} $
-				</span>
-			),
-		}),
+		...(isSuperAdmin
+			? [
+				columnHelper.display({
+					id: 'keshbek',
+					header: 'Keshbek ($)',
+					size: 110,
+					enableColumnFilter: false,
+					cell: ({ row }) => (
+						<span className='font-semibold text-ca-green'>
+							{formatNumber(row.original.client_detail?.keshbek ?? 0, 2)} $
+						</span>
+					),
+				}),
+			]
+			: []),
 		columnHelper.display({
 			id: 'actions',
 			header: 'Harakatlar',

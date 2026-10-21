@@ -42,8 +42,8 @@ const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'size', label: "O'lchami" },
 	{ id: 'type', label: 'Tip' },
 	{ id: 'count', label: 'Soni' },
-	{ id: 'real_price', label: 'Asl Narxi ($)' },
-	{ id: 'total', label: 'Jami narxi ($)' },
+	{ id: 'real_price', label: 'Asl Narxi ($)', superAdminOnly: true },
+	{ id: 'total', label: 'Jami narxi ($)', superAdminOnly: true },
 	{ id: 'actions', label: 'Harakatlar', hideable: false },
 ];
 

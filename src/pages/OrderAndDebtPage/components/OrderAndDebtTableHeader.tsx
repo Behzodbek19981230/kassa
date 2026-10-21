@@ -8,7 +8,7 @@ export const ORDER_AND_DEBT_COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'product_sum', label: "To'lanadigan summa ($)" },
 	{ id: 'paid_sum', label: "To'langan summa ($)" },
 	{ id: 'paid_debt', label: "To'langan qarz ($)" },
-	{ id: 'profit', label: 'Foyda ($)' },
+	{ id: 'profit', label: 'Foyda ($)', superAdminOnly: true },
 	{ id: 'total_debt', label: 'Umumiy qolgan qarz ($)' },
 	{ id: 'time', label: 'Vaqti' },
 	{ id: 'status', label: 'Holati' },

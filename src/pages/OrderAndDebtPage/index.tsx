@@ -13,6 +13,7 @@ import {
 } from '@/components/ui';
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
+import { usePermissions } from '@/lib/permissions';
 import { useColumnVisibility } from '@/lib/useColumnVisibility';
 import { clientService } from '@/services/client/client.service';
 import { useOrderAndDebtListQuery } from '@/services/order-account-history/order-account-history.queries';
@@ -44,7 +45,9 @@ export default function OrderAndDebtPage() {
 	// Both tabs share one table layout, so they share the column choice too.
 	const cols = useColumnVisibility('order-and-debt', ORDER_AND_DEBT_COLUMNS);
 	const [searchParams, setSearchParams] = useSearchParams();
-	const activeTab = searchParams.get('tab') === 'worker' ? 'worker' : 'main';
+	const { isSuperAdmin } = usePermissions();
+	// "Umumiy hisobot" is Super Admin only; every other role sees just the worker-type tab.
+	const activeTab = !isSuperAdmin || searchParams.get('tab') === 'worker' ? 'worker' : 'main';
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
 	const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);
 	const [downloadingPdf, setDownloadingPdf] = useState<'pdf1' | 'pdf2' | 'pdf3' | null>(null);
@@ -213,21 +216,25 @@ export default function OrderAndDebtPage() {
 			value={activeTab}
 			onValueChange={(tab) => setSearchParams(tab === 'main' ? {} : { tab }, { replace: false })}
 			items={[
-				{
-					value: 'main',
-					label: 'Umumiy hisobot',
-					content: renderPanel(
-						<MainTab
-							groups={results?.groups ?? []}
-							items={results?.items ?? []}
-							isLoading={isLoading || isFetching}
-							isError={isError}
-							error={error}
-							cols={cols}
-							onPrint={handlePrintItem}
-						/>
-					),
-				},
+				...(isSuperAdmin
+					? [
+							{
+								value: 'main',
+								label: 'Umumiy hisobot',
+								content: renderPanel(
+									<MainTab
+										groups={results?.groups ?? []}
+										items={results?.items ?? []}
+										isLoading={isLoading || isFetching}
+										isError={isError}
+										error={error}
+										cols={cols}
+										onPrint={handlePrintItem}
+									/>
+								),
+							},
+						]
+					: []),
 				{
 					value: 'worker',
 					label: "Hodim turi bo'yicha",

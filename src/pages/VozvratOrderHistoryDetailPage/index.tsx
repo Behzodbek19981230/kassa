@@ -20,7 +20,7 @@ const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'type', label: 'Tip' },
 	{ id: 'count', label: 'Soni' },
 	{ id: 'price', label: 'Narxi ($)' },
-	{ id: 'real_price', label: 'Asl Narxi ($)' },
+	{ id: 'real_price', label: 'Asl Narxi ($)', superAdminOnly: true },
 	{ id: 'profit', label: 'Foyda ($)' },
 ];
 

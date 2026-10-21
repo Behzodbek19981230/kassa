@@ -39,7 +39,7 @@ const columnHelper = createColumnHelper<Warehouse>();
 
 export default function WarehousePage() {
    const { canWrite } = useCurrentCompany();
-   const { canManageWarehouse } = usePermissions();
+   const { canManageWarehouse, isSuperAdmin } = usePermissions();
    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
    const [sorting, setSorting] = useState<SortingState>([]);
    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -185,12 +185,16 @@ export default function WarehousePage() {
          ),
       }),
 
-      columnHelper.accessor('real_price', {
-         header: 'Asl narxi ($)',
-         size: 130,
-         enableColumnFilter: false,
-         cell: (info) => formatNumber(info.getValue(), 2),
-      }),
+      ...(isSuperAdmin
+         ? [
+              columnHelper.accessor('real_price', {
+                 header: 'Asl narxi ($)',
+                 size: 130,
+                 enableColumnFilter: false,
+                 cell: (info) => formatNumber(info.getValue(), 2),
+              }),
+           ]
+         : []),
       columnHelper.accessor('worker_price', {
          header: 'Ishchi Uchun Narx ($)',
          size: 150,

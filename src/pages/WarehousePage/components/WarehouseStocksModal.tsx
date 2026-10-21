@@ -15,6 +15,7 @@ import {
 	TableRow,
 } from '@/components/ui';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
 
 interface WarehouseStocksModalProps {
@@ -26,6 +27,7 @@ interface WarehouseStocksModalProps {
 }
 
 export default function WarehouseStocksModal({ open, setOpen, warehouseId, productLabel }: WarehouseStocksModalProps) {
+	const { isSuperAdmin } = usePermissions();
 	const { data, isLoading, isError } = useSkladProductListQuery({ warehouse: warehouseId, limit: 100 });
 	const stocks = data?.results ?? [];
 
@@ -54,7 +56,7 @@ export default function WarehouseStocksModal({ open, setOpen, warehouseId, produ
 								<TableRow className='bg-ca-silver'>
 									<TableHead className='py-3'>Sklad</TableHead>
 									<TableHead className='py-3 text-center'>Soni</TableHead>
-									<TableHead className='py-3 text-right'>Haqiqiy narx</TableHead>
+									{isSuperAdmin && <TableHead className='py-3 text-right'>Haqiqiy narx</TableHead>}
 									<TableHead className='py-3 text-right'>Ishchi uchun narx</TableHead>
 								</TableRow>
 							</TableHeader>
@@ -69,7 +71,9 @@ export default function WarehouseStocksModal({ open, setOpen, warehouseId, produ
 												{formatNumber(stock.count)}
 											</span>
 										</TableCell>
-										<TableCell className='py-3 text-right font-semibold text-ca-heading'>{formatNumber(stock.real_price ?? 0, 2)} $</TableCell>
+										{isSuperAdmin && (
+											<TableCell className='py-3 text-right font-semibold text-ca-heading'>{formatNumber(stock.real_price ?? 0, 2)} $</TableCell>
+										)}
 										<TableCell className='py-3 text-right font-semibold text-ca-heading'>{formatNumber(stock.worker_price ?? 0, 2)} $</TableCell>
 									</TableRow>
 								))}

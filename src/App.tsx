@@ -1,5 +1,6 @@
 import { Navigate, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import SuperAdminRoute from '@/components/auth/SuperAdminRoute';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
 import LoginPage from '@/pages/LoginPage';
@@ -69,20 +70,29 @@ export default function App() {
 					<Route path='warehouse-products' element={<WarehouseProductsPage />} />
 					<Route path='place-order' element={<PlaceOrderPage />} />
 					<Route path='import' element={<ImportPage />} />
-					<Route path='two-stage-import/china-dispatch' element={<ChinaDispatchPage />} />
-					<Route path='two-stage-import/orders' element={<ImportOrdersPage />} />
-					<Route path='two-stage-import/orders/:id' element={<ImportOrderProductsPage />} />
-					<Route path='two-stage-import/orders/:id/edit' element={<ImportOrderEditPage />} />
-					<Route path='two-stage-import/transit-stock' element={<LogisticsPartnersPage />} />
-					<Route path='two-stage-import/transit-stock/:id' element={<LogisticsPartnerStockPage />} />
-					<Route path='two-stage-import/transit-dispatch' element={<UzbekistanDispatchPage />} />
-					<Route path='two-stage-import/uzbekistan-in-road' element={<UzbekistanInRoadPage />} />
-					<Route path='two-stage-import/debts' element={<LogisticsDebtPage />} />
-					<Route path='two-stage-import/china-debts' element={<ChinaDebtPage />} />
+					<Route element={<SuperAdminRoute />}>
+						<Route path='two-stage-import/china-dispatch' element={<ChinaDispatchPage />} />
+						<Route path='two-stage-import/orders' element={<ImportOrdersPage />} />
+						<Route path='two-stage-import/orders/:id' element={<ImportOrderProductsPage />} />
+						<Route path='two-stage-import/orders/:id/edit' element={<ImportOrderEditPage />} />
+						<Route path='two-stage-import/transit-stock' element={<LogisticsPartnersPage />} />
+						<Route path='two-stage-import/transit-stock/:id' element={<LogisticsPartnerStockPage />} />
+						<Route path='two-stage-import/transit-dispatch' element={<UzbekistanDispatchPage />} />
+						<Route path='two-stage-import/uzbekistan-in-road' element={<UzbekistanInRoadPage />} />
+						<Route path='two-stage-import/debts' element={<LogisticsDebtPage />} />
+						<Route path='two-stage-import/china-debts' element={<ChinaDebtPage />} />
+						<Route path='warehouse-report' element={<WarehouseAccountPage />} />
+						<Route path='warehouse-report/:id' element={<WarehouseAccountDetailPage />} />
+						<Route path='warehouse-report/:id/edit' element={<WarehouseAccountEditPage />} />
+						<Route path='my-debts' element={<MyDebtPage />} />
+						<Route path='my-debts/:id' element={<MyDebtDetailPage />} />
+						<Route path='cart-drafts' element={<CartDraftsPage />} />
+						<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
+						<Route path='settings/debt-repayments-drafts' element={<DebtRepaymentDraftPage />} />
+					</Route>
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
 					<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
 					<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
-					<Route path='cart-drafts' element={<CartDraftsPage />} />
 					<Route path='order-cart' element={<OrderCartPage />} />
 					<Route path='order-and-debt' element={<OrderAndDebtPage />} />
 					<Route path='vozvrat' element={<VozvratPage />} />
@@ -92,11 +102,6 @@ export default function App() {
 					<Route path='warehouse-transfer' element={<WarehouseTransferPage />} />
 					<Route path='warehouse-transfer/history' element={<WarehouseTransferHistoryPage />} />
 					<Route path='warehouse-transfer/:id' element={<WarehouseTransferDetailPage />} />
-					<Route path='warehouse-report' element={<WarehouseAccountPage />} />
-					<Route path='warehouse-report/:id' element={<WarehouseAccountDetailPage />} />
-					<Route path='warehouse-report/:id/edit' element={<WarehouseAccountEditPage />} />
-					<Route path='my-debts' element={<MyDebtPage />} />
-					<Route path='my-debts/:id' element={<MyDebtDetailPage />} />
 
 					{/* System management */}
 					<Route path='system/product-categories' element={<ProductCategoriesPage />} />
@@ -118,8 +123,6 @@ export default function App() {
 					<Route path='system/event-log' element={<CompanyEventLogPage />} />
 					<Route path='settings/clients' element={<ClientPage />} />
 					<Route path='settings/clients/:id/keshbek-history' element={<ClientKeshbekHistoryPage />} />
-					<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
-					<Route path='settings/debt-repayments-drafts' element={<DebtRepaymentDraftPage />} />
 					<Route path='telegram-broadcast' element={<TelegramBroadcastPage />} />
 					<Route path='telegram-broadcast/create' element={<TelegramBroadcastCreatePage />} />
 					<Route path='telegram-broadcast/:id' element={<TelegramBroadcastDetailPage />} />

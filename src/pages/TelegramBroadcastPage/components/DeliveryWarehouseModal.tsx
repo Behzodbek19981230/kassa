@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui'
 import { formatNumber } from '@/lib/number'
+import { usePermissions } from '@/lib/permissions'
 import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries'
 import { useWarehouseImageListQuery } from '@/services/warehouse-image/warehouse-image.queries'
 import type {
@@ -58,6 +59,7 @@ function WarehouseImages({ warehouseId }: { warehouseId: number }) {
 
 // The broadcast is about a product card; its stock and price are per sklad.
 function WarehouseStocks({ warehouseId }: { warehouseId: number }) {
+  const { isSuperAdmin } = usePermissions()
   const { data } = useSkladProductListQuery({ warehouse: warehouseId, limit: 100 })
   const stocks = data?.results ?? []
 
@@ -67,8 +69,13 @@ function WarehouseStocks({ warehouseId }: { warehouseId: number }) {
     <div className='flex flex-col gap-0.5 whitespace-nowrap'>
       {stocks.map((stock) => (
         <span key={stock.id}>
-          {stock.type_sklad_detail?.name ?? stock.type_sklad}: {formatNumber(stock.count)} ta ·{' '}
-          <span className='font-semibold'>{formatNumber(stock.real_price ?? 0, 2)} $</span>
+          {stock.type_sklad_detail?.name ?? stock.type_sklad}: {formatNumber(stock.count)} ta
+          {isSuperAdmin && (
+            <>
+              {' · '}
+              <span className='font-semibold'>{formatNumber(stock.real_price ?? 0, 2)} $</span>
+            </>
+          )}
         </span>
       ))}
     </div>
