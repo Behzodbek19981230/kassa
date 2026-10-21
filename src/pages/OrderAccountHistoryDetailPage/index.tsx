@@ -29,7 +29,7 @@ import EditGivenCountModal from '@/pages/OrderAccountHistoryDetailPage/component
 import OrderChangeLogsModal from '@/pages/OrderAccountHistoryDetailPage/components/OrderChangeLogsModal';
 import ConfirmVozvratModal from '@/pages/VozvratPage/components/ConfirmVozvratModal';
 
-type PrintRole = 'xodim' | 'sklad' | 'mijoz' | 'admin';
+type PrintRole = 'sklad' | 'mijoz' | 'admin';
 
 const COLUMNS: ColumnVisibilityDef[] = [
    { id: 'index', label: '#', hideable: false },
@@ -125,13 +125,11 @@ export default function OrderAccountHistoryDetailPage() {
 
    async function printFor(role: PrintRole) {
       const url =
-         role === 'xodim'
-            ? data?.actions.print_worker_url
-            : role === 'sklad'
-               ? data?.actions.print_sklad_url
-               : role === 'mijoz'
-                  ? data?.actions.print_client_url
-                  : undefined;
+         role === 'sklad'
+            ? data?.actions.print_sklad_url
+            : role === 'mijoz'
+               ? data?.actions.print_client_url
+               : orderId && `/order-account-history/${orderId}/print-admin/`;
 
       if (!url) {
          notify({ title: 'Tez orada', text: 'Bu chop qilish turi hali ulanmagan.' });
@@ -175,16 +173,6 @@ export default function OrderAccountHistoryDetailPage() {
                </Button>
                <Button
                   type='button'
-                  variant='warning'
-                  size='xs'
-                  disabled={printingRole === 'xodim'}
-                  onClick={() => printFor('xodim')}
-               >
-                  <FaDownload className='mr-1.5' />{' '}
-                  {printingRole === 'xodim' ? 'Yuklanmoqda...' : 'Chop qilish Xodim uchun'}
-               </Button>
-               <Button
-                  type='button'
                   variant='primary'
                   size='xs'
                   disabled={printingRole === 'sklad'}
@@ -203,8 +191,15 @@ export default function OrderAccountHistoryDetailPage() {
                   <FaDownload className='mr-1.5' />{' '}
                   {printingRole === 'mijoz' ? 'Yuklanmoqda...' : 'Chop qilish Mijoz uchun'}
                </Button>
-               <Button type='button' variant='danger' size='xs' onClick={() => printFor('admin')}>
-                  <FaDownload className='mr-1.5' /> Chop qilish Admin uchun
+               <Button
+                  type='button'
+                  variant='danger'
+                  size='xs'
+                  disabled={printingRole === 'admin'}
+                  onClick={() => printFor('admin')}
+               >
+                  <FaDownload className='mr-1.5' />{' '}
+                  {printingRole === 'admin' ? 'Yuklanmoqda...' : 'Chop qilish Admin uchun'}
                </Button>
                {/* <Button
 						type='button'
