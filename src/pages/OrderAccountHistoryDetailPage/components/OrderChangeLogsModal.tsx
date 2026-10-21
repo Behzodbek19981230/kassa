@@ -86,7 +86,11 @@ function ChangeLogCard({ log }: { log: OrderAccountHistoryChangeLog }) {
 				<span className='font-semibold text-ca-heading'>{log.created_time_label}</span>
 				<span>Hodim: {log.user_name}</span>
 			</div>
-			{log.text && <p className='mb-2 text-xs text-ca-text'>{log.text}</p>}
+			{log.text && (
+				<p className='mb-3 rounded border-l-4 border-ca-theme bg-ca-theme/10 px-3 py-2 text-sm font-semibold text-ca-heading'>
+					{log.text}
+				</p>
+			)}
 			<div className='space-y-2'>
 				{log.changes.map((change, i) => (
 					<ChangeRow key={i} change={change} index={i} />
@@ -125,9 +129,19 @@ export default function OrderChangeLogsModal({ open, setOpen, orderId }: OrderCh
 				<ModalBody className='max-h-[70vh] space-y-3 overflow-y-auto' onScroll={handleScroll}>
 					{selectedLog ? (
 						<>
-							<Button type='button' variant='info' size='xs' onClick={() => setSelectedLog(null)}>
-								<FaArrowLeft className='mr-1.5' /> Orqaga
-							</Button>
+							<div className='flex flex-wrap items-center gap-3'>
+								<Button type='button' variant='info' size='xs' onClick={() => setSelectedLog(null)}>
+									<FaArrowLeft className='mr-1.5' /> Orqaga
+								</Button>
+								{selectedLog.direction && (
+									<span className='inline-flex items-center gap-1.5 text-xs text-ca-text'>
+										Holati:
+										<span className='rounded-full border border-ca-orange bg-ca-orange/10 px-2.5 py-0.5 font-semibold text-ca-orange'>
+											{selectedLog.direction}
+										</span>
+									</span>
+								)}
+							</div>
 							<ChangeLogCard log={selectedLog} />
 						</>
 					) : (

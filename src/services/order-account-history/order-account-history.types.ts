@@ -596,6 +596,7 @@ export interface OrderAccountHistoryChangeLog {
 	user: number;
 	user_name: string;
 	action: string;
+	direction?: string | null;
 	text: string;
 	changes: OrderAccountHistoryChangeLogChange[];
 	created_time: string;
