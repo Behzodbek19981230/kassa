@@ -193,25 +193,18 @@ export default function OrderAccountHistoryTable({
 				filterPlaceholder: 'Barchasi',
 			},
 		}),
-		columnHelper.accessor('all_summ_dollar', {
+		columnHelper.accessor('all_product_sum', {
 			header: "To'lanadigan summa ($)",
 			size: 150,
 			enableColumnFilter: false,
 			cell: (info) => formatNumber(info.getValue(), 2),
 		}),
-		columnHelper.display({
+		columnHelper.accessor('all_summ_dollar', {
 			id: 'paid_summa',
 			header: "To'langan summa ($)",
 			size: 150,
 			enableColumnFilter: false,
-			cell: ({ row }) => {
-				const item = row.original;
-				const rate = Number(item.exchange_rate) || 0;
-				const somTotal =
-					(Number(item.sum_som) || 0) + (Number(item.sum_cart) || 0) + (Number(item.sum_transfers) || 0);
-				const paid = (Number(item.sum_dollar) || 0) + (rate > 0 ? somTotal / rate : 0);
-				return `${formatNumber(paid, 2)} $`;
-			},
+			cell: (info) => `${formatNumber(info.getValue(), 2)} $`,
 		}),
 		columnHelper.display({
 			id: 'zdacha',

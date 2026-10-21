@@ -2,12 +2,21 @@ import { isAxiosError } from 'axios';
 
 type ApiErrorData = string | { detail?: string; [field: string]: unknown } | undefined;
 
-function firstFieldError(data: Exclude<ApiErrorData, string | undefined>): string | undefined {
-	for (const key of Object.keys(data)) {
-		if (key === 'detail') continue;
-		const value = data[key];
-		if (typeof value === 'string') return value;
-		if (Array.isArray(value) && typeof value[0] === 'string') return value[0];
+// Nested serializers return errors like `{ items: [{}, { count: ['...'] }] }`, so arrays and objects are walked depth-first.
+function firstMessage(value: unknown): string | undefined {
+	if (typeof value === 'string') return value.trim() || undefined;
+	if (Array.isArray(value)) {
+		for (const entry of value) {
+			const message = firstMessage(entry);
+			if (message) return message;
+		}
+		return undefined;
+	}
+	if (value && typeof value === 'object') {
+		for (const entry of Object.values(value)) {
+			const message = firstMessage(entry);
+			if (message) return message;
+		}
 	}
 	return undefined;
 }
@@ -23,9 +32,8 @@ export function getApiErrorMessage(err: unknown, fallback: string): string {
 	const data = err.response?.data as ApiErrorData;
 	if (typeof data === 'string' && data.trim()) return data;
 	if (data && typeof data === 'object') {
-		if (typeof data.detail === 'string' && data.detail.trim()) return data.detail;
-		const fieldError = firstFieldError(data);
-		if (fieldError) return fieldError;
+		const message = firstMessage(data.detail) ?? firstMessage(data);
+		if (message) return message;
 	}
 	return fallback;
 }

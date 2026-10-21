@@ -417,6 +417,7 @@ export default function WarehouseProductsPage() {
 					open={Boolean(realPriceItem)}
 					setOpen={(open) => !open && setRealPriceItem(null)}
 					item={realPriceItem}
+					onSaved={() => refetch()}
 				/>
 			)}
 		</>

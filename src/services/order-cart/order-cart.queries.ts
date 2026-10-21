@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { orderCartService } from '@/services/order-cart/order-cart.service';
 import type {
 	ClearOrderCartPayload,
@@ -13,6 +13,13 @@ const orderCartKeys = {
 	list: (params?: OrderCartListParams) => ['order-cart', 'list', params] as const,
 	groupedList: (params?: OrderCartGroupedListParams) => ['order-cart', 'grouped-list', params] as const,
 };
+
+// Cart changes reserve/release stock, so the warehouse and per-sklad product counts change too.
+function invalidateCartAndStock(queryClient: QueryClient) {
+	queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
+	queryClient.invalidateQueries({ queryKey: ['warehouse'] });
+	queryClient.invalidateQueries({ queryKey: ['sklad-products'] });
+}
 
 export function useOrderCartListQuery(params?: OrderCartListParams, enabled = true) {
 	return useQuery({
@@ -35,9 +42,7 @@ export function useCreateOrderCartMutation() {
 	return useMutation({
 		mutationFn: (payload: OrderCartPayload) => orderCartService.create(payload),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
-			// Cart changes reserve/release stock, so the warehouse product counts change too.
-			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
+			invalidateCartAndStock(queryClient);
 		},
 	});
 }
@@ -48,9 +53,7 @@ export function useUpdateOrderCartMutation() {
 		mutationFn: ({ id, payload }: { id: number; payload: OrderCartPayload }) =>
 			orderCartService.update(id, payload),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
-			// Cart changes reserve/release stock, so the warehouse product counts change too.
-			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
+			invalidateCartAndStock(queryClient);
 		},
 	});
 }
@@ -60,9 +63,7 @@ export function useDeleteOrderCartMutation() {
 	return useMutation({
 		mutationFn: (id: number) => orderCartService.remove(id),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
-			// Cart changes reserve/release stock, so the warehouse product counts change too.
-			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
+			invalidateCartAndStock(queryClient);
 		},
 	});
 }
@@ -72,9 +73,7 @@ export function useClearOrderCartMutation() {
 	return useMutation({
 		mutationFn: (payload: ClearOrderCartPayload) => orderCartService.clear(payload),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
-			// Cart changes reserve/release stock, so the warehouse product counts change too.
-			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
+			invalidateCartAndStock(queryClient);
 		},
 	});
 }
@@ -84,9 +83,7 @@ export function useConfirmSaleMutation() {
 	return useMutation({
 		mutationFn: (payload: ConfirmSalePayload) => orderCartService.confirmSale(payload),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: orderCartKeys.all });
-			// Cart changes reserve/release stock, so the warehouse product counts change too.
-			queryClient.invalidateQueries({ queryKey: ['warehouse'] });
+			invalidateCartAndStock(queryClient);
 			queryClient.invalidateQueries({ queryKey: ['clients'] });
 		},
 	});

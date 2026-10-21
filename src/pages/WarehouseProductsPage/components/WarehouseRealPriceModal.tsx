@@ -21,9 +21,10 @@ interface WarehouseRealPriceModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	item: WarehouseAllListItem;
+	onSaved?: () => void;
 }
 
-export default function WarehouseRealPriceModal({ open, setOpen, item }: WarehouseRealPriceModalProps) {
+export default function WarehouseRealPriceModal({ open, setOpen, item, onSaved }: WarehouseRealPriceModalProps) {
 	const { notify } = useNotification();
 	const [realPrice, setRealPrice] = useState(String(item.real_price ?? ''));
 	const [formError, setFormError] = useState('');
@@ -44,6 +45,7 @@ export default function WarehouseRealPriceModal({ open, setOpen, item }: Warehou
 				await editCardPriceMutation.mutateAsync({ id: item.id, payload: { real_price: Number(realPrice) || 0 } });
 			}
 			notify({ title: 'Asl narx yangilandi' });
+			onSaved?.();
 			setOpen(false);
 		} catch (err) {
 			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));

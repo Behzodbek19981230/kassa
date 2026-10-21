@@ -258,7 +258,7 @@ export default function OrderAccountHistoryDetailPage() {
                </div>
                <div className='flex w-full justify-between gap-4 px-2.5 sm:w-1/2'>
                   <span className='font-semibold text-ca-heading'>To'langan summa kartada:</span>
-                  <span className='font-bold text-ca-heading'>{formatNumber(report.sum_cart, 2)}</span>
+                  <span className='font-bold text-ca-heading'>{formatNumber(report.sum_cart)}</span>
                </div>
 
                <div className='flex w-full justify-between gap-4 px-2.5 sm:w-1/2'>

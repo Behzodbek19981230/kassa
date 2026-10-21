@@ -59,6 +59,7 @@ interface ClientFormModalProps {
 	setOpen: (open: boolean) => void;
 	mode: 'create' | 'edit';
 	item?: Client;
+	hideStatusFlags?: boolean;
 }
 
 function clientToFormValues(client: Client): ClientFormValues {
@@ -76,7 +77,7 @@ function clientToFormValues(client: Client): ClientFormValues {
 	};
 }
 
-export default function ClientFormModal({ open, setOpen, mode, item }: ClientFormModalProps) {
+export default function ClientFormModal({ open, setOpen, mode, item, hideStatusFlags = false }: ClientFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 	const { companyId } = useCurrentCompany();
@@ -354,32 +355,34 @@ export default function ClientFormModal({ open, setOpen, mode, item }: ClientFor
 							<Textarea rows={2} {...register('address')} />
 						</FormField>
 
-						<div className='mb-3 flex flex-wrap gap-4'>
-							<Controller
-								name='is_profit_loss'
-								control={control}
-								render={({ field }) => (
-									<Checkbox
-										inline
-										label='Foyda/zarar hisobiga kiradi'
-										checked={field.value}
-										onCheckedChange={(v) => field.onChange(!!v)}
-									/>
-								)}
-							/>
-							<Controller
-								name='is_blocked'
-								control={control}
-								render={({ field }) => (
-									<Checkbox
-										inline
-										label='Bloklangan'
-										checked={field.value}
-										onCheckedChange={(v) => field.onChange(!!v)}
-									/>
-								)}
-							/>
-						</div>
+						{!hideStatusFlags && (
+							<div className='mb-3 flex flex-wrap gap-4'>
+								<Controller
+									name='is_profit_loss'
+									control={control}
+									render={({ field }) => (
+										<Checkbox
+											inline
+											label='Foyda/zarar hisobiga kiradi'
+											checked={field.value}
+											onCheckedChange={(v) => field.onChange(!!v)}
+										/>
+									)}
+								/>
+								<Controller
+									name='is_blocked'
+									control={control}
+									render={({ field }) => (
+										<Checkbox
+											inline
+											label='Bloklangan'
+											checked={field.value}
+											onCheckedChange={(v) => field.onChange(!!v)}
+										/>
+									)}
+								/>
+							</div>
+						)}
 					</ModalBody>
 					<ModalFooter>
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
