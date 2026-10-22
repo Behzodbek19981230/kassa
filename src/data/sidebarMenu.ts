@@ -18,7 +18,6 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		icon: 'tags',
 		label: 'Tovarlar va Narxlar',
 		path: '/warehouse-prices',
-		requiredPermission: 'canManageWarehouse',
 	},
 	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '/import' },
 	{

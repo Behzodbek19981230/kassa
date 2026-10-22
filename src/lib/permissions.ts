@@ -23,9 +23,10 @@ export function usePermissions() {
 	const isSkladManager = roleName === ROLE.SKLAD_MANAGER;
 	const isSkladXodim = roleName === ROLE.SKLAD_XODIM;
 
-	// consignor / warehouse (pricing): full CRUD only for Super Admin + Sklad Manager
+	// consignor: full CRUD only for Super Admin + Sklad Manager
 	const canManageConsignor = isSuperAdmin || isSkladManager;
-	const canManageWarehouse = isSuperAdmin || isSkladManager;
+	// warehouse (pricing): add / edit / delete only for Super Admin
+	const canManageWarehouse = isSuperAdmin;
 
 	// sklad ("Omborxona hisobi"): Super Admin + Sklad Manager unrestricted;
 	// Sklad Xodim only their own imports; everyone else (Manager, Sotuvchi) read-only.

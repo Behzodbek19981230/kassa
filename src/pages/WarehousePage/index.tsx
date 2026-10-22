@@ -226,15 +226,17 @@ export default function WarehousePage() {
 
             return (
                <div className='flex justify-end gap-1'>
-                  <OpenDialogButton
-                     element={(props) => <Button {...props} />}
-                     elementProps={{
-                        ...buttonProps(<FaTelegramPlane />, 'success', 'icon'),
-                        'aria-label': 'Telegramga yuborish',
-                     }}
-                     dialog={WarehouseSendTelegramModal}
-                     dialogProps={{ item, productLabel: productLabel || `#${item.id}` }}
-                  />
+                  {isSuperAdmin && (
+                     <OpenDialogButton
+                        element={(props) => <Button {...props} />}
+                        elementProps={{
+                           ...buttonProps(<FaTelegramPlane />, 'success', 'icon'),
+                           'aria-label': 'Telegramga yuborish',
+                        }}
+                        dialog={WarehouseSendTelegramModal}
+                        dialogProps={{ item, productLabel: productLabel || `#${item.id}` }}
+                     />
+                  )}
                   {/* <OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
@@ -245,7 +247,7 @@ export default function WarehousePage() {
 							dialog={WarehousePaymentModal}
 							dialogProps={{ item }}
 						/> */}
-                  {canWrite && canManageWarehouse && (
+                  {canWrite && (
                      <OpenDialogButton
                         element={(props) => <Button {...props} />}
                         elementProps={{
