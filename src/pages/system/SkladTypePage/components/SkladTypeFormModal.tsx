@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import { useCreateSkladTypeMutation, useUpdateSkladTypeMutation } from '@/services/sklad-type/sklad-type.queries';
 import type { SkladType, SkladTypePayload } from '@/services/sklad-type/sklad-type.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const skladTypeFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -60,8 +61,8 @@ export default function SkladTypeFormModal({ open, setOpen, mode, item }: SkladT
 				notify({ title: "Sklad qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

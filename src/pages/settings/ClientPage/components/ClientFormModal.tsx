@@ -31,7 +31,8 @@ import type { Client, ClientPayload, ClientType } from '@/services/client/client
 import { districtService } from '@/services/district/district.service';
 import { useCurrentCompany } from '@/lib/company';
 import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
-import { regionService } from '@/services/region/region.service';
+import { regionService } from '@/services/region/region.service';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const clientFormSchema = z.object({
 	fio: z.string().min(1, 'F.I.Sh kiritilishi shart'),
@@ -187,8 +188,8 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 				notify({ title: "Mijoz qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

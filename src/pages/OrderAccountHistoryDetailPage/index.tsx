@@ -1,5 +1,5 @@
 import { Fragment, useMemo, useState } from 'react';
-import { FaArrowLeft, FaCoins, FaDownload, FaExclamationTriangle, FaHistory, FaTimesCircle, FaUndo } from 'react-icons/fa';
+import { FaArrowLeft, FaCoins, FaDownload, FaExclamationTriangle, FaFileExcel, FaHistory, FaTimesCircle, FaUndo } from 'react-icons/fa';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
    Button,
@@ -15,7 +15,7 @@ import {
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
-import { getApiErrorMessage } from '@/lib/errors';
+import { getApiErrorMessage, getApiErrorMessageAsync } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { usePermissions } from '@/lib/permissions';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
@@ -60,6 +60,7 @@ export default function OrderAccountHistoryDetailPage() {
    const cols = useColumnVisibility('order-account-history-detail', COLUMNS);
    const labelSpan = LABEL_COLUMNS.filter((c) => cols.isVisible(c)).length;
    const [printingRole, setPrintingRole] = useState<PrintRole | null>(null);
+   const [exportingExcel, setExportingExcel] = useState(false);
    const [editingItem, setEditingItem] = useState<OrderAccountHistoryProductItem | null>(null);
    const [changeLogsOpen, setChangeLogsOpen] = useState(false);
 
@@ -141,11 +142,31 @@ export default function OrderAccountHistoryDetailPage() {
       try {
          const blob = await orderAccountHistoryService.printByUrl(url);
          loadBlobIntoTab(blob, tab);
-      } catch {
+      } catch (err) {
          tab?.close();
-         notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+         notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
       } finally {
          setPrintingRole(null);
+      }
+   }
+
+   async function handleExportExcel() {
+      if (!orderId || exportingExcel) return;
+      setExportingExcel(true);
+      try {
+         const blob = await orderAccountHistoryService.exportExcel(orderId);
+         const url = URL.createObjectURL(blob);
+         const link = document.createElement('a');
+         link.href = url;
+         link.download = `buyurtma-${orderId}.xlsx`;
+         document.body.appendChild(link);
+         link.click();
+         link.remove();
+         setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      } catch (err) {
+         notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "Excelni yuklab bo'lmadi") });
+      } finally {
+         setExportingExcel(false);
       }
    }
 
@@ -200,6 +221,9 @@ export default function OrderAccountHistoryDetailPage() {
                >
                   <FaDownload className='mr-1.5' />{' '}
                   {printingRole === 'admin' ? 'Yuklanmoqda...' : 'Chop qilish Admin uchun'}
+               </Button>
+               <Button type='button' variant='success' size='xs' disabled={exportingExcel} onClick={handleExportExcel}>
+                  <FaFileExcel className='mr-1.5' /> {exportingExcel ? 'Yuklanmoqda...' : 'Excel yuklash'}
                </Button>
                {/* <Button
 						type='button'

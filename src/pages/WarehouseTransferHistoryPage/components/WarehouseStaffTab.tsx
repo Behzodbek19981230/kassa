@@ -2,7 +2,7 @@ import { createColumnHelper, type ColumnFiltersState, type PaginationState } fro
 import { useCallback, useMemo, useState } from 'react';
 import { FaCheck, FaExclamationTriangle, FaFilePdf, FaList } from 'react-icons/fa';
 import { Badge, Button, DataTable, DatePicker, Panel, useNotification } from '@/components/ui';
-import { getApiErrorMessage } from '@/lib/errors';
+import { getApiErrorMessage, getApiErrorMessageAsync } from '@/lib/errors';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import { useWarehouseTransferListQuery } from '@/services/warehouse-transfer/warehouse-transfer.queries';
@@ -67,9 +67,9 @@ export default function WarehouseStaffTab() {
 			try {
 				const blob = await warehouseTransferService.printDispatchList(id);
 				loadBlobIntoTab(blob, tab);
-			} catch {
+			} catch (err) {
 				tab?.close();
-				notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+				notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 			} finally {
 				setPrintingId(null);
 			}

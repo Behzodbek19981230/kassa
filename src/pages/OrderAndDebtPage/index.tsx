@@ -22,7 +22,8 @@ import type { OrderAndDebtItem } from '@/services/order-account-history/order-ac
 import MainTab from '@/pages/OrderAndDebtPage/components/MainTab';
 import { ORDER_AND_DEBT_COLUMNS } from '@/pages/OrderAndDebtPage/components/OrderAndDebtTableHeader';
 import type { OrderAndDebtPrintRole } from '@/pages/OrderAndDebtPage/components/OrderAndDebtRow';
-import WorkerTypeTab from '@/pages/OrderAndDebtPage/components/WorkerTypeTab';
+import WorkerTypeTab from '@/pages/OrderAndDebtPage/components/WorkerTypeTab';
+import { getApiErrorMessageAsync } from '@/lib/errors';
 
 interface FilterState {
 	client: string;
@@ -96,9 +97,9 @@ export default function OrderAndDebtPage() {
 		try {
 			const blob = await orderAccountHistoryService.printByUrl(url);
 			loadBlobIntoTab(blob, tab);
-		} catch {
+		} catch (err) {
 			tab?.close();
-			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 		}
 	}
 
@@ -119,9 +120,9 @@ export default function OrderAndDebtPage() {
 		try {
 			const blob = await orderAccountHistoryService.printByUrl(url);
 			loadBlobIntoTab(blob, tab);
-		} catch {
+		} catch (err) {
 			tab?.close();
-			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 		} finally {
 			setDownloadingPdf(null);
 		}

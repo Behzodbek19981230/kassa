@@ -22,6 +22,7 @@ import {
 } from '@/services/brand-size-type/brand-size-type.queries';
 import { brandSizeTypeService } from '@/services/brand-size-type/brand-size-type.service';
 import type { BrandSizeType, BrandSizeTypePayload } from '@/services/brand-size-type/brand-size-type.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const typeFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -92,8 +93,8 @@ export default function TypeFormModal({ open, setOpen, mode, item }: TypeFormMod
 				notify({ title: "Tur qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

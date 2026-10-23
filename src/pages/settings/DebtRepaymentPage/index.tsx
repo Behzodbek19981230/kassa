@@ -16,7 +16,7 @@ import {
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
-import { getApiErrorMessage } from '@/lib/errors';
+import { getApiErrorMessage, getApiErrorMessageAsync } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { usePermissions } from '@/lib/permissions';
 import { clientService } from '@/services/client/client.service';
@@ -131,9 +131,9 @@ export default function DebtRepaymentPage() {
 		try {
 			const blob = await debtRepaymentService.printByUrl(item.print_url);
 			loadBlobIntoTab(blob, tab);
-		} catch {
+		} catch (err) {
 			tab?.close();
-			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 		} finally {
 			setPrintingId(null);
 		}

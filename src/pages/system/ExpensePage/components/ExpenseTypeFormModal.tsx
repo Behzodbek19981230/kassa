@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import { useCreateExpenseTypeMutation, useUpdateExpenseTypeMutation } from '@/services/expense-type/expense-type.queries';
 import type { ExpenseType, ExpenseTypePayload } from '@/services/expense-type/expense-type.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const expenseTypeFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -60,8 +61,8 @@ export default function ExpenseTypeFormModal({ open, setOpen, mode, item }: Expe
 				notify({ title: "Xarajat turi qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

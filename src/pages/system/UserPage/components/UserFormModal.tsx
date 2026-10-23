@@ -36,7 +36,8 @@ import { regionService } from '@/services/region/region.service';
 import { useRegionQuery } from '@/services/region/region.queries';
 import { roleService } from '@/services/role/role.service';
 import { useCreateUserMutation, useUpdateUserMutation, useUserQuery } from '@/services/user/user.queries';
-import { USER_TYPE_OPTIONS, type User, type UserPayload } from '@/services/user/user.types';
+import { USER_TYPE_OPTIONS, type User, type UserPayload } from '@/services/user/user.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const GENDER_OPTIONS = [
 	{ value: 'male', label: 'Erkak' },
@@ -301,8 +302,8 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 				notify({ title: "Foydalanuvchi qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

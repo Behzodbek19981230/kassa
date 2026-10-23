@@ -96,8 +96,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
       showCompanySelect,
       ownCompany,
       ownCompanyId,
-      isAdminOrManager,
       isSuperAdmin,
+      isAdminOrManager,
       exchangeRate,
       isExchangeRateSet,
       yuanExchangeRate,
@@ -116,7 +116,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
          limit: 1,
       },
       // Loaded once per page load; mutations that change the count invalidate it.
-      { staleTime: Infinity },
+      { staleTime: Infinity, enabled: isSuperAdmin },
    );
    const unconfirmedTransfersCount = unconfirmedTransfersData?.pagination.total ?? 0;
 
@@ -126,7 +126,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
          limit: 1,
       },
       // Loaded once per page load; mutations that change the count invalidate it.
-      { staleTime: Infinity },
+      { staleTime: Infinity, enabled: isSuperAdmin },
    );
    const unconfirmedClientsCount = unconfirmedClientsData?.pagination.total ?? 0;
 
@@ -139,7 +139,10 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
    const [measureTick, setMeasureTick] = useState(0);
    const inHeader = (index: number) => measuring || index < visibleCount;
    const inMenu = (index: number) => !measuring && index >= visibleCount;
-   const anyInMenu = [0, 1, 2, 3].some(inMenu);
+   // Clients (0) and transfers (2) are superadmin-only, telegram (1) is admin/manager. Hidden items keep their slot so indices stay stable.
+   const canSee = [isSuperAdmin, isAdminOrManager, isSuperAdmin, showCompanySelect && companies.length > 1];
+   const anyInMenu = [0, 1, 2, 3].some((i) => inMenu(i) && canSee[i]);
+   const hasMenuTop = anyInMenu;
 
    useEffect(() => {
       const el = innerRef.current;
@@ -241,7 +244,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                            content={
                               isExchangeRateSet
                                  ? 'Bugungi dollar kursi'
-                                 : 'Bugungi dollar kursi hali belgilanmagan. Admin yoki menejer kursni yangilamaguncha kassada amallar bloklangan.'
+                                 : 'Bugungi dollar kursi hali belgilanmagan. Superadmin kursni yangilamaguncha kassada amallar bloklangan.'
                            }
                         >
                            <span
@@ -259,7 +262,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                               {!isExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}
                            </span>
                         </Tooltip>
-                        {isAdminOrManager && (
+                        {isSuperAdmin && (
                            <Tooltip side='bottom' content="Kursni o'zgartirish">
                               <button
                                  type='button'
@@ -279,7 +282,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                            content={
                               isYuanExchangeRateSet
                                  ? 'Bugungi yuan kursi'
-                                 : 'Bugungi yuan kursi hali belgilanmagan. Admin yoki menejer kursni yangilamaguncha Logistika sahifalari bloklangan.'
+                                 : 'Bugungi yuan kursi hali belgilanmagan. Superadmin kursni yangilamaguncha Logistika sahifalari bloklangan.'
                            }
                         >
                            <span
@@ -297,7 +300,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                               {!isYuanExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}
                            </span>
                         </Tooltip>
-                        {isAdminOrManager && (
+                        {isSuperAdmin && (
                            <Tooltip side='bottom' content="Kursni o'zgartirish">
                               <button
                                  type='button'
@@ -325,7 +328,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                      </button>
                   </li>
 
-                  <li data-collapsible className={inHeader(0) ? undefined : 'hidden'}>
+                  <li data-collapsible className={inHeader(0) && canSee[0] ? undefined : 'hidden'}>
                      <Tooltip side='bottom' content='Yangi klientlar'>
                         <button
                            type='button'
@@ -350,7 +353,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                      </Tooltip>
                   </li>
 
-                  <li data-collapsible className={inHeader(1) ? undefined : 'hidden'}>
+                  <li data-collapsible className={inHeader(1) && canSee[1] ? undefined : 'hidden'}>
                      <Tooltip side='bottom' content='Telegram xabarnoma'>
                         <button
                            type='button'
@@ -366,7 +369,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
 
 
-                  <li data-collapsible className={inHeader(2) ? undefined : 'hidden'}>
+                  <li data-collapsible className={inHeader(2) && canSee[2] ? undefined : 'hidden'}>
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                            <button
@@ -490,11 +493,11 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                               </DropdownMenuLabel>
                            )}
 
-                           <DropdownMenuSeparator />
+                           {hasMenuTop && <DropdownMenuSeparator />}
                            {/* Tablet/mobile: the header menus collapse into this dropdown (only the ones that don't fit the header). */}
                            <DropdownMenuItem
                               onSelect={() => setNewClientsModalOpen(true)}
-                              className={inMenu(0) ? 'flex items-center gap-2' : 'hidden'}
+                              className={inMenu(0) && canSee[0] ? 'flex items-center gap-2' : 'hidden'}
                            >
                               <FaUser className='text-ca-text' />
                               Tasdiqlanmagan mijozlar
@@ -506,14 +509,14 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                            </DropdownMenuItem>
                            <DropdownMenuItem
                               onSelect={() => navigate('/telegram-broadcast')}
-                              className={inMenu(1) ? 'flex items-center gap-2' : 'hidden'}
+                              className={inMenu(1) && canSee[1] ? 'flex items-center gap-2' : 'hidden'}
                            >
                               <FaPaperPlane className='text-ca-text' />
                               Telegram xabarnoma
                            </DropdownMenuItem>
                            <DropdownMenuItem
                               onSelect={() => navigate('/warehouse-transfer')}
-                              className={inMenu(2) ? 'flex items-center gap-2' : 'hidden'}
+                              className={inMenu(2) && canSee[2] ? 'flex items-center gap-2' : 'hidden'}
                            >
                               <FaExchangeAlt className='text-ca-text' />
                               Skladlararo transfer
@@ -525,7 +528,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                            </DropdownMenuItem>
                            <DropdownMenuItem
                               onSelect={() => navigate('/warehouse-transfer/history')}
-                              className={inMenu(2) ? 'flex items-center gap-2' : 'hidden'}
+                              className={inMenu(2) && canSee[2] ? 'flex items-center gap-2' : 'hidden'}
                            >
                               <FaHistory className='text-ca-text' />
                               Transfer tarixi
@@ -554,7 +557,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                                  ))}
                               </div>
                            )}
-                           <DropdownMenuSeparator className={anyInMenu ? undefined : 'hidden'} />
+                           {hasMenuTop && isSuperAdmin && <DropdownMenuSeparator />}
                            {isSuperAdmin && (
                               <DropdownMenuItem
                                  onSelect={() => navigate('/system/event-log')}
@@ -597,7 +600,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
             </div>
          </header>
 
-         {isAdminOrManager && companyId && (
+         {isSuperAdmin && companyId && (
             <>
                <ExchangeRateEditModal
                   open={rateModalCurrency === 'dollar'}

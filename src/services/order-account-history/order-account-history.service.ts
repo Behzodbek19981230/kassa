@@ -81,6 +81,10 @@ export const orderAccountHistoryService = {
 		const { data } = await apiClient.get(toApiPath(url), { responseType: 'blob' });
 		return data as Blob;
 	},
+	exportExcel: async (id: number) => {
+		const { data } = await apiClient.get(`/order-account-history/${id}/export-excel`, { responseType: 'blob' });
+		return data as Blob;
+	},
 	payDebt: async (payload: PayDebtPayload) => {
 		const { data } = await apiClient.post<unknown>('/order-account-history/pay-debt/', payload);
 		return data;

@@ -21,6 +21,7 @@ import {
 import { useCreateDistrictMutation, useUpdateDistrictMutation } from '@/services/district/district.queries';
 import type { District, DistrictPayload } from '@/services/district/district.types';
 import { regionService } from '@/services/region/region.service';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const districtFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -92,8 +93,8 @@ export default function DistrictFormModal({ open, setOpen, mode, item }: Distric
 				notify({ title: "Tuman qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

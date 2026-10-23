@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useDeleteBrandSizeTypeMutation } from '@/services/brand-size-type/brand-size-type.queries';
 import type { BrandSizeType } from '@/services/brand-size-type/brand-size-type.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteTypeModalProps {
 	open: boolean;
@@ -26,8 +27,8 @@ export default function DeleteTypeModal({ open, setOpen, item }: DeleteTypeModal
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Tur o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

@@ -7,7 +7,8 @@ import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { formatNumber } from '@/lib/number';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useVozvratOrderProductsQuery } from '@/services/vozvrat/vozvrat.queries';
-import { vozvratService } from '@/services/vozvrat/vozvrat.service';
+import { vozvratService } from '@/services/vozvrat/vozvrat.service';
+import { getApiErrorMessageAsync } from '@/lib/errors';
 
 type PrintRole = 'mijoz' | 'admin';
 
@@ -47,9 +48,9 @@ export default function VozvratOrderHistoryDetailPage() {
 			const blob =
 				role === 'mijoz' ? await vozvratService.printForClient(orderId) : await vozvratService.printForAdmin(orderId);
 			loadBlobIntoTab(blob, tab);
-		} catch {
+		} catch (err) {
 			tab?.close();
-			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 		} finally {
 			setPrintingRole(null);
 		}

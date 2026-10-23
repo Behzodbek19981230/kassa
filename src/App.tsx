@@ -65,7 +65,9 @@ export default function App() {
 
 			<Route element={<ProtectedRoute />}>
 				<Route element={<Layout />}>
-					<Route index element={<Dashboard />} />
+					<Route element={<SuperAdminRoute />}>
+						<Route index element={<Dashboard />} />
+					</Route>
 
 					<Route path='warehouse-products' element={<WarehouseProductsPage />} />
 					<Route path='place-order' element={<PlaceOrderPage />} />

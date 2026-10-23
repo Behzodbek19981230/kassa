@@ -23,7 +23,8 @@ import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
 import { useCreateCompanyMutation, useUpdateCompanyMutation } from '@/services/company/company.queries';
 import type { Company, CompanyPayload } from '@/services/company/company.types';
 import { districtService } from '@/services/district/district.service';
-import { regionService } from '@/services/region/region.service';
+import { regionService } from '@/services/region/region.service';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const companyFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -166,8 +167,8 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 				notify({ title: "Tashkilot qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

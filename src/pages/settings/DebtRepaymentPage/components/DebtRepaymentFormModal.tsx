@@ -27,7 +27,8 @@ import {
 	useDebtRepaymentQuery,
 	useUpdateDebtRepaymentMutation,
 } from '@/services/debt-repayment/debt-repayment.queries';
-import type { DebtRepayment, DebtRepaymentPayload } from '@/services/debt-repayment/debt-repayment.types';
+import type { DebtRepayment, DebtRepaymentPayload } from '@/services/debt-repayment/debt-repayment.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const debtRepaymentFormSchema = z.object({
 	client: z.string().min(1, 'Mijoz tanlanishi shart'),
@@ -204,8 +205,8 @@ export default function DebtRepaymentFormModal({
 				notify({ title: "To'lov qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

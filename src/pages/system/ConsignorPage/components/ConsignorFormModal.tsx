@@ -22,7 +22,8 @@ import {
 } from '@/components/ui';
 import { useCreateConsignorMutation, useUpdateConsignorMutation } from '@/services/consignor/consignor.queries';
 import { CONSIGNOR_TYPE_OPTIONS } from '@/services/consignor/consignor.types';
-import type { Consignor, ConsignorPayload, ConsignorType } from '@/services/consignor/consignor.types';
+import type { Consignor, ConsignorPayload, ConsignorType } from '@/services/consignor/consignor.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const consignorFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -79,8 +80,8 @@ export default function ConsignorFormModal({ open, setOpen, mode, item }: Consig
 				notify({ title: "Yuk jo'natuvchi qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

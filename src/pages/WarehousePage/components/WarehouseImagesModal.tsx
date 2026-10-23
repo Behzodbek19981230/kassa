@@ -25,7 +25,8 @@ import {
    useUpdateWarehouseImageNumbersMutation,
    useWarehouseImageListQuery,
 } from '@/services/warehouse-image/warehouse-image.queries';
-import type { WarehouseImage } from '@/services/warehouse-image/warehouse-image.types';
+import type { WarehouseImage } from '@/services/warehouse-image/warehouse-image.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface WarehouseImagesModalProps {
    open: boolean;
@@ -67,8 +68,8 @@ export default function WarehouseImagesModal({ open, setOpen, item, productLabel
                await createMutation.mutateAsync({ warehouseId: item.id, image: file });
             }
             notify({ title: files.length > 1 ? "Rasmlar qo'shildi" : "Rasm qo'shildi" });
-         } catch {
-            notify({ title: 'Rasm yuklashda xatolik yuz berdi' });
+         } catch (err){
+            notify({ title: getApiErrorMessage(err, 'Rasm yuklashda xatolik yuz berdi') });
          } finally {
             setIsUploading(false);
          }
@@ -87,8 +88,8 @@ export default function WarehouseImagesModal({ open, setOpen, item, productLabel
       try {
          await deleteMutation.mutateAsync(id);
          notify({ title: "Rasm o'chirildi" });
-      } catch {
-         notify({ title: "O'chirishda xatolik yuz berdi" });
+      } catch (err){
+         notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
       } finally {
          setDeletingId(null);
       }
@@ -109,8 +110,8 @@ export default function WarehouseImagesModal({ open, setOpen, item, productLabel
 
       try {
          await reorderMutation.mutateAsync(changes);
-      } catch {
-         notify({ title: 'Rasm tartibini saqlashda xatolik yuz berdi' });
+      } catch (err){
+         notify({ title: getApiErrorMessage(err, 'Rasm tartibini saqlashda xatolik yuz berdi') });
       }
    };
 
@@ -120,8 +121,8 @@ export default function WarehouseImagesModal({ open, setOpen, item, productLabel
       try {
          await setMainMutation.mutateAsync({ id: img.id, previousMainId: previousMain?.id });
          notify({ title: 'Asosiy rasm belgilandi' });
-      } catch {
-         notify({ title: 'Asosiy rasmni saqlashda xatolik yuz berdi' });
+      } catch (err){
+         notify({ title: getApiErrorMessage(err, 'Asosiy rasmni saqlashda xatolik yuz berdi') });
       }
    };
 

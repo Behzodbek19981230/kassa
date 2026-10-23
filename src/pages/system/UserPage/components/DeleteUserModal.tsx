@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useDeleteUserMutation } from '@/services/user/user.queries';
 import type { User } from '@/services/user/user.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteUserModalProps {
 	open: boolean;
@@ -26,8 +27,8 @@ export default function DeleteUserModal({ open, setOpen, item }: DeleteUserModal
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Foydalanuvchi o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

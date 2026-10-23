@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useDeleteConsignorMutation } from '@/services/consignor/consignor.queries';
 import type { Consignor } from '@/services/consignor/consignor.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteConsignorModalProps {
 	open: boolean;
@@ -26,8 +27,8 @@ export default function DeleteConsignorModal({ open, setOpen, item }: DeleteCons
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Yuk jo'natuvchi o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

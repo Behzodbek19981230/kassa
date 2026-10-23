@@ -37,6 +37,7 @@ import {
 } from '@/services/product-category/product-category.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import type { ProductCategory, ProductCategoryPayload } from '@/services/product-category/product-category.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const categoryFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -208,8 +209,8 @@ export default function CategoryFormModal({ open, setOpen, mode, item, defaultBr
 
 			notify({ title: mode === 'edit' ? 'Mahsulot toifasi yangilandi' : "Mahsulot toifasi qo'shildi" });
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

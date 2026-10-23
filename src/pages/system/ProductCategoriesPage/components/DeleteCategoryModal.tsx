@@ -12,6 +12,7 @@ import { useDeleteBrandSizeMutation } from '@/services/brand-size/brand-size.que
 import { brandSizeService } from '@/services/brand-size/brand-size.service';
 import { useDeleteProductCategoryMutation } from '@/services/product-category/product-category.queries';
 import type { ProductCategory } from '@/services/product-category/product-category.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteCategoryModalProps {
 	open: boolean;
@@ -31,8 +32,8 @@ export default function DeleteCategoryModal({ open, setOpen, item }: DeleteCateg
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Mahsulot toifasi o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

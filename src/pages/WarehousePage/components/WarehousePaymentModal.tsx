@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import { useUpdateWarehouseMutation } from '@/services/warehouse/warehouse.queries';
 import type { Warehouse, WarehousePayload } from '@/services/warehouse/warehouse.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const paymentFormSchema = z.object({
 	all_sum_dollar: z.string().min(1, 'Umumiy summa kiritilishi shart'),
@@ -73,8 +74,8 @@ export default function WarehousePaymentModal({ open, setOpen, item }: Warehouse
 			await updateMutation.mutateAsync({ id: item.id, payload });
 			notify({ title: "Hisob-kitob ma'lumotlari yangilandi" });
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

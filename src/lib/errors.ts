@@ -37,3 +37,18 @@ export function getApiErrorMessage(err: unknown, fallback: string): string {
 	}
 	return fallback;
 }
+
+/** Like `getApiErrorMessage`, but also reads error bodies that arrive as a Blob (requests made with `responseType: 'blob'`). */
+export async function getApiErrorMessageAsync(err: unknown, fallback: string): Promise<string> {
+	if (isAxiosError(err) && err.response?.data instanceof Blob) {
+		try {
+			const parsed: unknown = JSON.parse(await err.response.data.text());
+			const message = firstMessage((parsed as { detail?: unknown })?.detail) ?? firstMessage(parsed);
+			if (message) return message;
+		} catch {
+			// Not JSON — fall through to the fallback.
+		}
+		return fallback;
+	}
+	return getApiErrorMessage(err, fallback);
+}

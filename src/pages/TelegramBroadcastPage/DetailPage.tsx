@@ -32,7 +32,8 @@ import {
 import type {
   TelegramBroadcastDelivery,
   TelegramBroadcastWarehouse,
-} from '@/services/telegram-broadcast/telegram-broadcast.types'
+} from '@/services/telegram-broadcast/telegram-broadcast.types'
+import { getApiErrorMessage } from '@/lib/errors';
 
 const DELIVERY_LIMIT_OPTIONS = [50, 100, 200, 500]
 
@@ -84,8 +85,8 @@ export default function TelegramBroadcastDetailPage() {
     try {
       await retryDeleteMutation.mutateAsync(jobId)
       notify({ title: "Qayta o'chirish boshlandi" })
-    } catch {
-      notify({ title: 'Xatolik yuz berdi' })
+    } catch (err){
+      notify({ title: getApiErrorMessage(err, 'Xatolik yuz berdi') })
     }
   }
 
@@ -94,8 +95,8 @@ export default function TelegramBroadcastDetailPage() {
     try {
       await retryDeleteDeliveryMutation.mutateAsync(deliveryId)
       notify({ title: "Qayta o'chirish boshlandi" })
-    } catch {
-      notify({ title: 'Xatolik yuz berdi' })
+    } catch (err){
+      notify({ title: getApiErrorMessage(err, 'Xatolik yuz berdi') })
     } finally {
       setRetryingDeliveryId(null)
     }

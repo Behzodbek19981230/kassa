@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useDeleteRegionMutation } from '@/services/region/region.queries';
 import type { Region } from '@/services/region/region.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteRegionModalProps {
 	open: boolean;
@@ -26,8 +27,8 @@ export default function DeleteRegionModal({ open, setOpen, item }: DeleteRegionM
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Viloyat o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

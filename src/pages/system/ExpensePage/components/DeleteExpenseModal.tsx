@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useDeleteExpenseMutation } from '@/services/expense/expense.queries';
 import type { Expense } from '@/services/expense/expense.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteExpenseModalProps {
 	open: boolean;
@@ -26,8 +27,8 @@ export default function DeleteExpenseModal({ open, setOpen, item }: DeleteExpens
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Xarajat o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

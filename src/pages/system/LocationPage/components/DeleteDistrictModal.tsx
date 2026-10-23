@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useDeleteDistrictMutation } from '@/services/district/district.queries';
 import type { District } from '@/services/district/district.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteDistrictModalProps {
 	open: boolean;
@@ -26,8 +27,8 @@ export default function DeleteDistrictModal({ open, setOpen, item }: DeleteDistr
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Tuman o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

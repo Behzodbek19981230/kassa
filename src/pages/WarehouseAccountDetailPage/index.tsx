@@ -7,7 +7,8 @@ import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { formatNumber } from '@/lib/number';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useSkladViewQuery } from '@/services/sklad/sklad.queries';
-import { skladService } from '@/services/sklad/sklad.service';
+import { skladService } from '@/services/sklad/sklad.service';
+import { getApiErrorMessageAsync } from '@/lib/errors';
 
 const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'index', label: '#', hideable: false },
@@ -41,9 +42,9 @@ export default function WarehouseAccountDetailPage() {
 		try {
 			const blob = await skladService.printView(skladId);
 			loadBlobIntoTab(blob, tab);
-		} catch {
+		} catch (err) {
 			tab?.close();
-			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 		} finally {
 			setIsPrinting(false);
 		}

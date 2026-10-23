@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useDeleteSkladTypeMutation } from '@/services/sklad-type/sklad-type.queries';
 import type { SkladType } from '@/services/sklad-type/sklad-type.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteSkladTypeModalProps {
 	open: boolean;
@@ -26,8 +27,8 @@ export default function DeleteSkladTypeModal({ open, setOpen, item }: DeleteSkla
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Sklad o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

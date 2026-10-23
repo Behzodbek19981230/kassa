@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useDeleteCompanyMutation } from '@/services/company/company.queries';
 import type { Company } from '@/services/company/company.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteCompanyModalProps {
 	open: boolean;
@@ -26,8 +27,8 @@ export default function DeleteCompanyModal({ open, setOpen, item }: DeleteCompan
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Tashkilot o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

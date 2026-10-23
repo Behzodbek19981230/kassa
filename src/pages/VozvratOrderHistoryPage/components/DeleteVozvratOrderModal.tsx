@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useDeleteVozvratOrderMutation } from '@/services/vozvrat/vozvrat.queries';
 import type { VozvratOrderListItem } from '@/services/vozvrat/vozvrat.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteVozvratOrderModalProps {
 	open: boolean;
@@ -26,8 +27,8 @@ export default function DeleteVozvratOrderModal({ open, setOpen, item }: DeleteV
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Vozvrat buyurtma o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

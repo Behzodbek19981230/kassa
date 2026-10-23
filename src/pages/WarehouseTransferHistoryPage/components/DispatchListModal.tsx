@@ -18,7 +18,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
-import { getApiErrorMessage } from '@/lib/errors';
+import { getApiErrorMessage, getApiErrorMessageAsync } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { warehouseTransferService } from '@/services/warehouse-transfer/warehouse-transfer.service';
 import { useWarehouseTransferDispatchListQuery } from '@/services/warehouse-transfer/warehouse-transfer.queries';
@@ -41,9 +41,9 @@ export default function DispatchListModal({ open, setOpen, transferId }: Dispatc
 		try {
 			const blob = await warehouseTransferService.printDispatchList(transferId);
 			loadBlobIntoTab(blob, tab);
-		} catch {
+		} catch (err) {
 			tab?.close();
-			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 		} finally {
 			setIsPrinting(false);
 		}

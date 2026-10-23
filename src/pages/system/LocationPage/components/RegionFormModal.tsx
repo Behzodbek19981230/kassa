@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import { useCreateRegionMutation, useUpdateRegionMutation } from '@/services/region/region.queries';
 import type { Region, RegionPayload } from '@/services/region/region.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const regionFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -60,8 +61,8 @@ export default function RegionFormModal({ open, setOpen, mode, item }: RegionFor
 				notify({ title: "Viloyat qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

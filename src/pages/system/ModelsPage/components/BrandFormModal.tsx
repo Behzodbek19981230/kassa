@@ -19,6 +19,7 @@ import {
 import { useCreateBrandMutation, useUpdateBrandMutation } from '@/services/brand/brand.queries';
 import { brandService } from '@/services/brand/brand.service';
 import type { Brand, BrandPayload } from '@/services/brand/brand.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const brandFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -89,8 +90,8 @@ export default function BrandFormModal({ open, setOpen, mode, item }: BrandFormM
 				notify({ title: "Model qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

@@ -29,6 +29,7 @@ import { useBrandListQuery } from '@/services/brand/brand.queries';
 import { brandService } from '@/services/brand/brand.service';
 import { useProductCategoryListQuery } from '@/services/product-category/product-category.queries';
 import { productCategoryService } from '@/services/product-category/product-category.service';
+import { getApiErrorMessage } from '@/lib/errors';
 
 const sizeFormSchema = z.object({
 	brand: z.string().min(1, 'Model tanlanishi shart'),
@@ -133,8 +134,8 @@ export default function SizeFormModal({ open, setOpen, mode, item }: SizeFormMod
 				notify({ title: "O'lcham qo'shildi" });
 			}
 			setOpen(false);
-		} catch {
-			setFormError('Saqlashda xatolik yuz berdi');
+		} catch (err) {
+			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}
 	});
 

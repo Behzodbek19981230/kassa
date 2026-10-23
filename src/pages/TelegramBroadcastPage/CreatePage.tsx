@@ -123,8 +123,8 @@ export default function TelegramBroadcastCreatePage() {
     try {
       const result = await clientService.list({ page: 1, limit: 1, is_telegram_started: 1, is_blocked: false, status: clientStatus })
       setAllClientsCount(result.pagination.total)
-    } catch {
-      notify({ title: 'Mijozlar sonini yuklashda xatolik yuz berdi' })
+    } catch (err){
+      notify({ title: getApiErrorMessage(err, 'Mijozlar sonini yuklashda xatolik yuz berdi') })
       setSelectAllClients(false)
     } finally {
       setLoadingAllClients(false)

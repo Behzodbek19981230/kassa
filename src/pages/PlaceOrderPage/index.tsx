@@ -188,8 +188,8 @@ export default function PlaceOrderPage() {
       if (!client) {
          try {
             client = await clientService.get(Number(value));
-         } catch {
-            notify({ title: "Mijoz ma'lumotini yuklab bo'lmadi" });
+         } catch (err){
+            notify({ title: getApiErrorMessage(err, "Mijoz ma'lumotini yuklab bo'lmadi") });
             return;
          }
       }

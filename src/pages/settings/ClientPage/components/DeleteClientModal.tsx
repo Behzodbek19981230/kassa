@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useDeleteClientMutation } from '@/services/client/client.queries';
 import type { Client } from '@/services/client/client.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteClientModalProps {
 	open: boolean;
@@ -26,8 +27,8 @@ export default function DeleteClientModal({ open, setOpen, item }: DeleteClientM
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Mijoz o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

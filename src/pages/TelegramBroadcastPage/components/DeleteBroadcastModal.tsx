@@ -9,6 +9,7 @@ import {
   useNotification,
 } from '@/components/ui'
 import { useDeleteTelegramBroadcastMutation } from '@/services/telegram-broadcast/telegram-broadcast.queries'
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteBroadcastModalProps {
   open: boolean
@@ -25,8 +26,8 @@ export default function DeleteBroadcastModal({ open, setOpen, jobId }: DeleteBro
       await deleteMutation.mutateAsync(jobId)
       notify({ title: "Xabarlarni o'chirish boshlandi" })
       setOpen(false)
-    } catch {
-      notify({ title: "O'chirishda xatolik yuz berdi" })
+    } catch (err){
+      notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") })
     }
   }
 

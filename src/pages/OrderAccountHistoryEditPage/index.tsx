@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -44,6 +45,34 @@ type EditOrderFormValues = z.infer<typeof editOrderFormSchema>;
 const plainNumber = (value?: string | number | null) => (Number(value) ? String(Number(value)) : '');
 
 type EditableProductRow = OrderLineValue;
+
+/** Collects every string in a (nested) API error payload. */
+function collectMessages(value: unknown, out: string[] = []): string[] {
+   if (typeof value === 'string') out.push(value);
+   else if (Array.isArray(value)) value.forEach((v) => collectMessages(v, out));
+   else if (value && typeof value === 'object') Object.values(value).forEach((v) => collectMessages(v, out));
+   return out;
+}
+
+/** Maps backend item errors ("items[5]: ..." strings or DRF `items: [{}, {count: [...]}]`) to row indexes. */
+function extractRowErrors(err: unknown): Record<number, string> {
+   const result: Record<number, string> = {};
+   if (!isAxiosError(err)) return result;
+   const data = err.response?.data as { items?: unknown } | undefined;
+   if (!data || typeof data !== 'object') return result;
+
+   for (const message of collectMessages(data)) {
+      const match = /items\[(\d+)\]:\s*(.*)/s.exec(message);
+      if (match) result[Number(match[1])] ??= match[2].trim();
+   }
+   if (Array.isArray(data.items)) {
+      data.items.forEach((entry, i) => {
+         const message = collectMessages(entry)[0];
+         if (message) result[i] ??= message;
+      });
+   }
+   return result;
+}
 
 export default function OrderAccountHistoryEditPage() {
    const navigate = useNavigate();
@@ -207,7 +236,13 @@ export default function OrderAccountHistoryEditPage() {
          notify({ title: 'Buyurtma yangilandi' });
          navigate(-1);
       } catch (err) {
-         setFormError(getApiErrorMessage(err, 'Yangilashda xatolik yuz berdi'));
+         const rowErrs = extractRowErrors(err);
+         if (Object.keys(rowErrs).length) {
+            setRowErrors(rowErrs);
+            setFormError("Mahsulotlar bo'limida xatolik bor");
+         } else {
+            setFormError(getApiErrorMessage(err, 'Yangilashda xatolik yuz berdi'));
+         }
       }
    });
 

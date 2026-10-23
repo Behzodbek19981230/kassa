@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useDeleteBrandMutation } from '@/services/brand/brand.queries';
 import type { Brand } from '@/services/brand/brand.types';
+import { getApiErrorMessage } from '@/lib/errors';
 
 interface DeleteBrandModalProps {
 	open: boolean;
@@ -26,8 +27,8 @@ export default function DeleteBrandModal({ open, setOpen, item }: DeleteBrandMod
 			await deleteMutation.mutateAsync(item.id);
 			notify({ title: "Model o'chirildi" });
 			setOpen(false);
-		} catch {
-			notify({ title: "O'chirishda xatolik yuz berdi" });
+		} catch (err){
+			notify({ title: getApiErrorMessage(err, "O'chirishda xatolik yuz berdi") });
 		}
 	};
 

@@ -19,7 +19,8 @@ import { formatNumber } from '@/lib/number';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { warehouseTransferService } from '@/services/warehouse-transfer/warehouse-transfer.service';
 import { useWarehouseTransferQuery } from '@/services/warehouse-transfer/warehouse-transfer.queries';
-import ReverseTransferModal from '@/pages/WarehouseTransferDetailPage/components/ReverseTransferModal';
+import ReverseTransferModal from '@/pages/WarehouseTransferDetailPage/components/ReverseTransferModal';
+import { getApiErrorMessageAsync } from '@/lib/errors';
 
 const MODE_LABEL: Record<string, string> = {
 	same: "O'z holicha",
@@ -54,9 +55,9 @@ export default function WarehouseTransferDetailPage() {
 		try {
 			const blob = await warehouseTransferService.print(transferId);
 			loadBlobIntoTab(blob, tab);
-		} catch {
+		} catch (err) {
 			tab?.close();
-			notify({ title: 'Xatolik', text: "PDF yuklab bo'lmadi" });
+			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 		} finally {
 			setIsPrinting(false);
 		}
