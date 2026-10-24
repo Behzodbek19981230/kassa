@@ -3,7 +3,7 @@ import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FaCheck, FaChevronDown, FaSearch, FaSpinner, FaTimes } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
-import { useDropdownPlacement } from '@/lib/useDropdownPlacement'
+import { useDropdownPlacement, useScrollTriggerIntoView } from '@/lib/useDropdownPlacement'
 
 export interface ComboboxOption {
 	value: string
@@ -77,6 +77,8 @@ export function Combobox({
 
 	const requestId = useRef(0)
 	const listRef = useRef<HTMLDivElement>(null)
+	const triggerRef = useRef<HTMLButtonElement>(null)
+	useScrollTriggerIntoView(open, triggerRef)
 	// Registers the popover content with Radix's dismissable-layer surface
 	// registry so an ancestor Dialog/Modal doesn't treat clicks inside it as
 	// "outside" clicks and close itself (react-popover doesn't register this
@@ -176,6 +178,7 @@ export function Combobox({
 		<PopoverPrimitive.Root open={open} onOpenChange={(o) => !disabled && setOpen(o)}>
 			<PopoverPrimitive.Trigger asChild>
 				<button
+					ref={triggerRef}
 					type='button'
 					disabled={disabled}
 					className={cn(

@@ -3,7 +3,7 @@ import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FaCheck, FaChevronDown, FaSearch, FaSpinner, FaTimes } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
-import { useDropdownPlacement } from '@/lib/useDropdownPlacement'
+import { useDropdownPlacement, useScrollTriggerIntoView } from '@/lib/useDropdownPlacement'
 import type { ComboboxLoadParams, ComboboxLoadResult, ComboboxOption } from '@/components/ui/Combobox'
 
 export interface MultiComboboxProps {
@@ -56,6 +56,7 @@ export function MultiCombobox({
   const listRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  useScrollTriggerIntoView(open, triggerRef)
   const placement = useDropdownPlacement()
   const registerSurface = useDismissableLayerSurface()
 
