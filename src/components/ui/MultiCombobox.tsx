@@ -3,7 +3,8 @@ import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FaCheck, FaChevronDown, FaSearch, FaSpinner, FaTimes } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
-import { useDropdownPlacement, useScrollTriggerIntoView } from '@/lib/useDropdownPlacement'
+import { useDropdownZIndexClass } from '@/components/ui/Modal'
+import { useCloseOnModalOpen, useDropdownPlacement, useScrollTriggerIntoView } from '@/lib/useDropdownPlacement'
 import type { ComboboxLoadParams, ComboboxLoadResult, ComboboxOption } from '@/components/ui/Combobox'
 
 export interface MultiComboboxProps {
@@ -57,7 +58,9 @@ export function MultiCombobox({
   const triggerRef = useRef<HTMLButtonElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   useScrollTriggerIntoView(open, triggerRef)
+  useCloseOnModalOpen(() => setOpen(false))
   const placement = useDropdownPlacement()
+  const zIndexClass = useDropdownZIndexClass()
   const registerSurface = useDismissableLayerSurface()
 
   useEffect(() => {
@@ -210,7 +213,8 @@ export function MultiCombobox({
           {...placement}
           sideOffset={4}
           className={cn(
-            'z-[1070] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
+            zIndexClass,
+'w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
             contentClassName,
           )}
         >

@@ -1,12 +1,22 @@
 import { useComposedRefs } from '@radix-ui/react-compose-refs'
 import { useDismissableLayerSurface } from '@radix-ui/react-dismissable-layer'
 import * as SelectPrimitive from '@radix-ui/react-select'
-import { forwardRef } from 'react'
+import { forwardRef, useState } from 'react'
 import { FaCheck, FaChevronDown } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
-import { useDropdownPlacement, useKeyboardInset } from '@/lib/useDropdownPlacement'
+import { useDropdownZIndexClass } from '@/components/ui/Modal'
+import { useCloseOnModalOpen, useDropdownPlacement, useKeyboardInset } from '@/lib/useDropdownPlacement'
 
-const Select = SelectPrimitive.Root
+function Select({ open, onOpenChange, ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
+  const [innerOpen, setInnerOpen] = useState(false)
+  const isOpen = open ?? innerOpen
+  const handleOpenChange = (next: boolean) => {
+    setInnerOpen(next)
+    onOpenChange?.(next)
+  }
+  useCloseOnModalOpen(() => handleOpenChange(false))
+  return <SelectPrimitive.Root {...props} open={isOpen} onOpenChange={handleOpenChange} />
+}
 const SelectGroup = SelectPrimitive.Group
 const SelectValue = SelectPrimitive.Value
 
@@ -54,6 +64,7 @@ const SelectContent = forwardRef<
   const registerSurface = useDismissableLayerSurface()
   const composedRef = useComposedRefs(ref, registerSurface)
   const placement = useDropdownPlacement()
+  const zIndexClass = useDropdownZIndexClass()
 
   return (
     <SelectPrimitive.Portal>
@@ -63,7 +74,8 @@ const SelectContent = forwardRef<
         sideOffset={4}
         {...placement}
         className={cn(
-          'z-[1070] min-w-[8rem] overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
+          zIndexClass,
+'min-w-[8rem] overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
           position === 'popper' &&
             'w-[var(--radix-select-trigger-width)] max-h-[var(--radix-select-content-available-height)]',
           className,

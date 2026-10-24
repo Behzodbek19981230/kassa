@@ -46,6 +46,8 @@ export function useKeyboardInsetCssVar() {
 	const inset = useKeyboardInset();
 	useEffect(() => {
 		document.documentElement.style.setProperty('--kb-inset', `${inset}px`);
+		// make the page scrollable past the keyboard so a field near the bottom can be scrolled up
+		document.body.style.paddingBottom = inset > 0 ? `${inset}px` : '';
 	}, [inset]);
 }
 
@@ -80,4 +82,19 @@ export function useScrollTriggerIntoView(open: boolean, triggerRef: RefObject<HT
 		}, 300);
 		return () => window.clearTimeout(id);
 	}, [open, isTablet, triggerRef]);
+}
+
+const CLOSE_DROPDOWNS_EVENT = 'app:close-dropdowns';
+
+/** Closes every open select/combobox popup — called when a modal opens so none stays stuck above/behind it. */
+export function closeAllDropdowns() {
+	window.dispatchEvent(new Event(CLOSE_DROPDOWNS_EVENT));
+}
+
+/** Calls `onClose` whenever closeAllDropdowns() fires. */
+export function useCloseOnModalOpen(onClose: () => void) {
+	useEffect(() => {
+		window.addEventListener(CLOSE_DROPDOWNS_EVENT, onClose);
+		return () => window.removeEventListener(CLOSE_DROPDOWNS_EVENT, onClose);
+	}, [onClose]);
 }

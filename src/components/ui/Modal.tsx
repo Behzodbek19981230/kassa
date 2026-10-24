@@ -4,17 +4,31 @@ import {
   createContext,
   forwardRef,
   useContext,
+  useEffect,
   useState,
   type ComponentPropsWithoutRef,
   type ElementRef,
   type HTMLAttributes,
 } from 'react'
 import { FaTimes } from 'react-icons/fa'
+import { closeAllDropdowns } from '@/lib/useDropdownPlacement'
 import { cn } from '@/lib/utils'
 import { HeaderSlotContext } from '@/components/ui/HeaderSlot'
 
 // ModalHeader registers its slot element here so table controls inside the body can portal into it.
 const RegisterHeaderSlotContext = createContext<((el: HTMLElement | null) => void) | null>(null)
+
+const InsideModalContext = createContext(false)
+
+/** True under a ModalContent (React context crosses portals, so dropdown popups see it too). */
+export function useInsideModal() {
+  return useContext(InsideModalContext)
+}
+
+/** Dropdown popups (select/combobox) sit above modals only when opened from inside one. */
+export function useDropdownZIndexClass() {
+  return useInsideModal() ? 'z-[1070]' : 'z-[1040]'
+}
 
 export const Modal = Dialog.Root
 export const ModalTrigger = Dialog.Trigger
@@ -70,6 +84,9 @@ export interface ModalContentProps
 export const ModalContent = forwardRef<ElementRef<typeof Dialog.Content>, ModalContentProps>(
   ({ className, children, variant = 'default', animated = true, showClose = true, ...props }, ref) => {
     const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null)
+    useEffect(() => {
+      closeAllDropdowns()
+    }, [])
     return (
     <ModalPortal>
       {/* The content lives inside the overlay, so the whole overlay scrolls (e.g. when a tablet keyboard opens). */}
@@ -79,6 +96,7 @@ export const ModalContent = forwardRef<ElementRef<typeof Dialog.Content>, ModalC
           className={cn(contentVariants({ variant, animated }), className)}
           {...props}
         >
+          <InsideModalContext.Provider value={true}>
           <HeaderSlotContext.Provider value={headerSlot}>
             <RegisterHeaderSlotContext.Provider value={setHeaderSlot}>
               {variant === 'message' ? (
@@ -88,6 +106,7 @@ export const ModalContent = forwardRef<ElementRef<typeof Dialog.Content>, ModalC
               )}
             </RegisterHeaderSlotContext.Provider>
           </HeaderSlotContext.Provider>
+          </InsideModalContext.Provider>
           {showClose && (
             <Dialog.Close
               className="absolute top-3 right-[15px] text-xl leading-none text-ca-text opacity-80 transition-opacity hover:opacity-100 focus:outline-none"
