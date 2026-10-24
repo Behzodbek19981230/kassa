@@ -51,7 +51,7 @@ export function useKeyboardInsetCssVar() {
 	}, [inset]);
 }
 
-function useIsTablet() {
+export function useIsTablet() {
 	return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }
 
