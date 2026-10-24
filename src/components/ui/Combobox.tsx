@@ -182,7 +182,7 @@ export function Combobox({
 					type='button'
 					disabled={disabled}
 					className={cn(
-						'flex h-10 w-full items-center justify-between gap-2 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-3 text-base lg:h-[34px] lg:text-xs text-ca-heading',
+						'scroll-mt-20 flex h-10 w-full items-center justify-between gap-2 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-3 text-base lg:h-[34px] lg:text-xs text-ca-heading',
 						'focus:border-ca-field-border-strong focus:outline-none',
 						'disabled:cursor-not-allowed disabled:bg-ca-muted-2 disabled:opacity-60',
 						className,
@@ -230,7 +230,7 @@ export function Combobox({
 							className='w-full border-none text-base text-ca-heading lg:text-xs outline-none placeholder:text-ca-text'
 						/>
 					</div>
-					<div ref={listRef} onScroll={handleScroll} className='max-h-[240px] overflow-y-auto p-1'>
+					<div ref={listRef} onScroll={handleScroll} className='max-h-[min(240px,calc(var(--radix-popover-content-available-height,240px)_-_48px))] overflow-y-auto p-1'>
 						{filteredItems.map((option, index) => (
 							<div
 								key={option.value}

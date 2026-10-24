@@ -4,7 +4,7 @@ import * as SelectPrimitive from '@radix-ui/react-select'
 import { forwardRef } from 'react'
 import { FaCheck, FaChevronDown } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
-import { useDropdownPlacement } from '@/lib/useDropdownPlacement'
+import { useDropdownPlacement, useKeyboardInset } from '@/lib/useDropdownPlacement'
 
 const Select = SelectPrimitive.Root
 const SelectGroup = SelectPrimitive.Group
@@ -13,10 +13,19 @@ const SelectValue = SelectPrimitive.Value
 const SelectTrigger = forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, onPointerDown, ...props }, ref) => {
+  const keyboardInset = useKeyboardInset()
+  return (
   <SelectPrimitive.Trigger
     ref={ref}
+    onPointerDown={(e) => {
+      onPointerDown?.(e)
+      // With the on-screen keyboard up there is no room below the field: scroll it to the top
+      // of the visible area first so the options open below it instead of flipping above.
+      if (keyboardInset > 0) e.currentTarget.scrollIntoView({ block: 'start' })
+    }}
     className={cn(
+      'scroll-mt-20',
       'flex h-10 w-full items-center justify-between gap-2 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-3 text-base lg:h-[34px] lg:text-xs text-ca-heading',
       'focus:border-ca-field-border-strong focus:outline-none',
       'data-[placeholder]:text-ca-text',
@@ -30,7 +39,8 @@ const SelectTrigger = forwardRef<
       <FaChevronDown className="shrink-0 text-[10px] text-ca-text" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
-))
+  )
+})
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
 
 const SelectContent = forwardRef<

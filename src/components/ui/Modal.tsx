@@ -21,7 +21,7 @@ export const ModalTrigger = Dialog.Trigger
 export const ModalClose = Dialog.Close
 export const ModalPortal = Dialog.Portal
 
-const overlayVariants = cva('fixed inset-0 z-[1050] flex overflow-y-auto overscroll-contain bg-black/50 p-[15px]', {
+const overlayVariants = cva('fixed inset-x-0 top-0 bottom-[var(--kb-inset,0px)] z-[1050] flex overflow-y-auto overscroll-contain bg-black/50 p-[15px]', {
   variants: {
     animated: {
       true: 'data-[state=open]:animate-[fadeIn_0.15s_ease-out] data-[state=closed]:animate-[fadeOut_0.15s_ease-in]',

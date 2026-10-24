@@ -1,5 +1,6 @@
 import { Navigate, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useKeyboardInsetCssVar } from '@/lib/useDropdownPlacement';
 import ImportRoute from '@/components/auth/ImportRoute';
 import SuperAdminRoute from '@/components/auth/SuperAdminRoute';
 import Layout from '@/components/layout/Layout';
@@ -60,6 +61,7 @@ import UzbekistanDispatchPage from '@/pages/TwoStageImport/UzbekistanDispatchPag
 import UzbekistanInRoadPage from '@/pages/TwoStageImport/UzbekistanInRoadPage';
 
 export default function App() {
+	useKeyboardInsetCssVar();
 	return (
 		<Routes>
 			<Route path='login' element={<LoginPage />} />
