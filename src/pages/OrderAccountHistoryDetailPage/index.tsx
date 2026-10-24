@@ -42,7 +42,7 @@ const COLUMNS: ColumnVisibilityDef[] = [
    { id: 'given_count', label: 'Berilgan soni' },
    { id: 'price', label: 'Narxi ($)' },
    { id: 'real_price', label: 'Asl Narxi ($)', superAdminOnly: true },
-   { id: 'profit', label: 'Foyda ($)' },
+   { id: 'profit', label: 'Foyda ($)', superAdminOnly: true },
 ];
 
 /** Columns the "Jami:" label of the total rows spans. */

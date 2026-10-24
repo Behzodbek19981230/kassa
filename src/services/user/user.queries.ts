@@ -1,13 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { isAuthenticated } from '@/lib/auth'
+import { useIsAuthenticated } from '@/lib/auth'
 import { userService } from '@/services/user/user.service'
 import type { UserListParams, UserPayload, UserTelegramBotRegisterPayload } from '@/services/user/user.types'
 
 export function useUserInfoQuery() {
+  const authenticated = useIsAuthenticated()
   return useQuery({
     queryKey: ['user-info'],
     queryFn: userService.getMe,
-    enabled: isAuthenticated(),
+    enabled: authenticated,
     staleTime: 5 * 60_000,
   })
 }

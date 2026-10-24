@@ -19,7 +19,7 @@ function monthStartIso() {
 
 const columnHelper = createColumnHelper<DashboardUserStatisticsItem>();
 
-const columns = [
+const baseColumns = [
 	columnHelper.accessor('user_name', { header: 'Hodim' }),
 	columnHelper.accessor('phone_number', { header: 'Telefon' }),
 	columnHelper.accessor('order_all_product_sum', {
@@ -30,25 +30,30 @@ const columns = [
 		header: "Buyurtmadan to'langan ($)",
 		cell: (info) => formatNumber(info.getValue(), 2),
 	}),
-	columnHelper.accessor('order_all_profit_dollar', {
-		header: 'Foyda ($)',
-		cell: (info) => {
-			const value = Number(info.getValue()) || 0;
-			return (
-				<span className={value >= 0 ? 'font-bold text-ca-green' : 'font-bold text-ca-red'}>
-					{formatNumber(value, 2)}
-				</span>
-			);
-		},
-	}),
 	columnHelper.accessor('debt_repayment_all_summ_dollar', {
 		header: "Qarz to'lovi ($)",
 		cell: (info) => formatNumber(info.getValue(), 2),
 	}),
 ];
 
+const profitColumn = columnHelper.accessor('order_all_profit_dollar', {
+	header: 'Foyda ($)',
+	cell: (info) => {
+		const value = Number(info.getValue()) || 0;
+		return (
+			<span className={value >= 0 ? 'font-bold text-ca-green' : 'font-bold text-ca-red'}>
+				{formatNumber(value, 2)}
+			</span>
+		);
+	},
+});
+
 export default function DashboardEmployeeSection() {
-	const { companyId } = useCurrentCompany();
+	const { companyId, isSuperAdmin } = useCurrentCompany();
+	// profit is cost-derived: Super Admin only
+	const columns = isSuperAdmin
+		? [...baseColumns.slice(0, 4), profitColumn, ...baseColumns.slice(4)]
+		: baseColumns;
 	const [draftFrom, setDraftFrom] = useState(monthStartIso());
 	const [draftTo, setDraftTo] = useState(todayIso());
 	const [appliedFrom, setAppliedFrom] = useState(draftFrom);

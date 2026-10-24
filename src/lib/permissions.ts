@@ -23,6 +23,11 @@ export function usePermissions() {
 	const isSkladManager = roleName === ROLE.SKLAD_MANAGER;
 	const isSkladXodim = roleName === ROLE.SKLAD_XODIM;
 
+	const isManager = roleName === ROLE.MANAGER;
+
+	// import ('Import qilish'): hidden from Manager
+	const canImport = !isManager;
+
 	// consignor: full CRUD only for Super Admin + Sklad Manager
 	const canManageConsignor = isSuperAdmin || isSkladManager;
 	// warehouse (pricing): add / edit / delete only for Super Admin
@@ -51,8 +56,10 @@ export function usePermissions() {
 		roleName,
 		currentUserId,
 		isSuperAdmin,
+		isManager,
 		canManageConsignor,
 		canManageWarehouse,
+		canImport,
 		canEditSklad,
 		canEditOwned,
 		canViewChangeLogs,

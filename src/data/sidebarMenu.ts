@@ -19,7 +19,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		label: 'Tovarlar va Narxlar',
 		path: '/warehouse-prices',
 	},
-	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '/import' },
+	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '/import', requiredPermission: 'canImport' },
 	{
 		id: 'two-stage-import',
 		icon: 'shipping-fast',
@@ -73,6 +73,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		id: 'system-management',
 		icon: 'cogs',
 		label: 'Tizim boshqaruvi',
+		requiredPermission: 'isNotManager',
 		children: [
 			{
 				id: 'product-categories',
@@ -110,6 +111,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		id: 'settings',
 		icon: 'settings',
 		label: 'Sozlamalar',
+		requiredPermission: 'isNotManager',
 		children: [
 			{ id: 'clients', icon: 'users', label: 'Mijozlar', path: '/settings/clients' },
 			{
@@ -134,5 +136,20 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				requiredPermission: 'isSuperAdmin',
 			},
 		],
+	},
+	// Manager doesn't get the "Tizim boshqaruvi" / "Sozlamalar" groups, only these two items.
+	{
+		id: 'product-categories-manager',
+		icon: 'layer-group',
+		label: 'Mahsulot toifalari',
+		path: '/system/product-categories',
+		requiredPermission: 'isManager',
+	},
+	{
+		id: 'clients-manager',
+		icon: 'users',
+		label: 'Mijozlar',
+		path: '/settings/clients',
+		requiredPermission: 'isManager',
 	},
 ];

@@ -205,7 +205,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
          await logoutMutation.mutateAsync({ refresh }).catch(() => undefined);
       }
       clearSession();
-      navigate('/login', { replace: true });
+      window.location.href = '/login';
    };
 
    return (

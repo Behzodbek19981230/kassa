@@ -7,7 +7,8 @@ import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { formatNumber } from '@/lib/number';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useVozvratOrderProductsQuery } from '@/services/vozvrat/vozvrat.queries';
-import { vozvratService } from '@/services/vozvrat/vozvrat.service';
+import { vozvratService } from '@/services/vozvrat/vozvrat.service';
+
 import { getApiErrorMessageAsync } from '@/lib/errors';
 
 type PrintRole = 'mijoz' | 'admin';
@@ -22,7 +23,7 @@ const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'count', label: 'Soni' },
 	{ id: 'price', label: 'Narxi ($)' },
 	{ id: 'real_price', label: 'Asl Narxi ($)', superAdminOnly: true },
-	{ id: 'profit', label: 'Foyda ($)' },
+	{ id: 'profit', label: 'Foyda ($)', superAdminOnly: true },
 ];
 
 /** Columns the "Jami:" label of the total rows spans. */

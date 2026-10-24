@@ -50,7 +50,7 @@ interface OrderAccountHistoryDraftTabProps {
 export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAccountHistoryDraftTabProps) {
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
-	const { canEditOwned } = usePermissions();
+	const { canEditOwned, isSuperAdmin } = usePermissions();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -214,12 +214,16 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 				);
 			},
 		}),
-		columnHelper.accessor('all_profit_dollar', {
-			header: 'Jami foyda ($)',
-			size: 130,
-			enableColumnFilter: false,
-			cell: (info) => formatNumber(info.getValue(), 2),
-		}),
+		...(isSuperAdmin
+			? [
+					columnHelper.accessor('all_profit_dollar', {
+						header: 'Jami foyda ($)',
+						size: 130,
+						enableColumnFilter: false,
+						cell: (info) => formatNumber(info.getValue(), 2),
+					}),
+				]
+			: []),
 		columnHelper.accessor('created_time', {
 			header: 'Yaratilgan vaqt',
 			size: 140,

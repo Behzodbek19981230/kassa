@@ -1,5 +1,6 @@
 import { Navigate, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ImportRoute from '@/components/auth/ImportRoute';
 import SuperAdminRoute from '@/components/auth/SuperAdminRoute';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
@@ -71,7 +72,9 @@ export default function App() {
 
 					<Route path='warehouse-products' element={<WarehouseProductsPage />} />
 					<Route path='place-order' element={<PlaceOrderPage />} />
-					<Route path='import' element={<ImportPage />} />
+					<Route element={<ImportRoute />}>
+						<Route path='import' element={<ImportPage />} />
+					</Route>
 					<Route element={<SuperAdminRoute />}>
 						<Route path='two-stage-import/china-dispatch' element={<ChinaDispatchPage />} />
 						<Route path='two-stage-import/orders' element={<ImportOrdersPage />} />

@@ -35,6 +35,10 @@ export interface SidebarMenuPermissions {
 	isSuperAdmin: boolean;
 	canManageConsignor: boolean;
 	canManageWarehouse: boolean;
+	canImport: boolean;
+	/** True for the Manager role, which only gets a trimmed-down "Tizim boshqaruvi"/"Sozlamalar". */
+	isManager: boolean;
+	isNotManager: boolean;
 }
 
 export interface SidebarMenuItem {
