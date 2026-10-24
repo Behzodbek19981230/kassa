@@ -3,6 +3,7 @@ import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FaCheck, FaChevronDown, FaSearch, FaSpinner, FaTimes } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
+import { useDropdownPlacement } from '@/lib/useDropdownPlacement'
 
 export interface ComboboxOption {
 	value: string
@@ -80,6 +81,7 @@ export function Combobox({
 	// registry so an ancestor Dialog/Modal doesn't treat clicks inside it as
 	// "outside" clicks and close itself (react-popover doesn't register this
 	// itself, unlike react-dialog's own overlay).
+	const placement = useDropdownPlacement();
 	const registerSurface = useDismissableLayerSurface()
 
 	useEffect(() => {
@@ -204,6 +206,7 @@ export function Combobox({
 				<PopoverPrimitive.Content
 					ref={registerSurface}
 					align='start'
+					{...placement}
 					sideOffset={4}
 					className={cn(
 						'z-[1070] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',

@@ -4,6 +4,7 @@ import * as SelectPrimitive from '@radix-ui/react-select'
 import { forwardRef } from 'react'
 import { FaCheck, FaChevronDown } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
+import { useDropdownPlacement } from '@/lib/useDropdownPlacement'
 
 const Select = SelectPrimitive.Root
 const SelectGroup = SelectPrimitive.Group
@@ -42,6 +43,7 @@ const SelectContent = forwardRef<
   // itself, unlike react-dialog's own overlay).
   const registerSurface = useDismissableLayerSurface()
   const composedRef = useComposedRefs(ref, registerSurface)
+  const placement = useDropdownPlacement()
 
   return (
     <SelectPrimitive.Portal>
@@ -49,6 +51,7 @@ const SelectContent = forwardRef<
         ref={composedRef}
         position={position}
         sideOffset={4}
+        {...placement}
         className={cn(
           'z-[1070] min-w-[8rem] overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light text-xs shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]',
           position === 'popper' &&
