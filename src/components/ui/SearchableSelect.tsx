@@ -39,16 +39,35 @@ export interface SearchableSelectProps {
   clearable?: boolean
 }
 
+/** Scrolls the field to the top of the visible area, leaving room for the fixed header and the field's label above it. */
+export function scrollControlIntoView(el: HTMLElement | null | undefined) {
+  if (!el) return
+  el.style.scrollMarginTop = '110px'
+  el.scrollIntoView({ block: 'start', behavior: 'smooth' })
+}
+
+/** Height / text-size utilities size the control itself; the rest (width, margin…) sizes the wrapper. */
+export function splitFieldClasses(className?: string) {
+  const tokens = (className ?? '').split(/\s+/).filter(Boolean)
+  const forControl = (t: string) => /^(lg:)?(min-|max-)?h-/.test(t) || /^(lg:)?text-(\[|xs|sm|base|lg|xl)/.test(t)
+  const control = tokens.filter(forControl)
+  return {
+    wrapper: tokens.filter((t) => !forControl(t)).join(' '),
+    control: control.join(' '),
+    hasHeight: control.some((t) => /^(lg:)?h-/.test(t)),
+  }
+}
+
 type Option = SelectOption
 type Group = GroupBase<Option>
 
-const MENU_MAX_HEIGHT = 240
+export const MENU_MAX_HEIGHT = 240
 
-const baseClassNames: ClassNamesConfig<Option, boolean, Group> = {
+export const baseClassNames: ClassNamesConfig<Option, boolean, Group> = {
   container: () => 'w-full',
   control: ({ isFocused, isDisabled }) =>
     cn(
-      'min-h-10 w-full rounded-[3px] border bg-ca-silver-light px-2 text-base lg:min-h-[34px] lg:text-xs',
+      'min-h-10! w-full rounded-[3px] border bg-ca-silver-light px-3 text-base lg:min-h-[34px]! lg:text-xs',
       isFocused ? 'border-ca-field-border-strong' : 'border-ca-field-border',
       isDisabled && 'cursor-not-allowed bg-ca-muted-2 opacity-60',
     ),
@@ -64,7 +83,7 @@ const baseClassNames: ClassNamesConfig<Option, boolean, Group> = {
   menuList: () => 'p-1',
 }
 
-const MENU_CLASS =
+export const MENU_CLASS =
   'mt-1 overflow-hidden rounded-[3px] border border-ca-border bg-ca-silver-light text-base shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)] lg:text-xs'
 
 /**
@@ -89,6 +108,7 @@ export function SearchableSelect({
   clearable = false,
 }: SearchableSelectProps) {
   const isAsync = typeof loadOptions === 'function'
+  const fieldClasses = splitFieldClasses(className)
   const insideModal = useInsideModal()
   const isTablet = useIsTablet()
   const keyboardInset = useKeyboardInset()
@@ -155,7 +175,7 @@ export function SearchableSelect({
     // visible area so the menu opens below it.
     if (isTablet) {
       window.setTimeout(() => {
-        selectRef.current?.controlRef?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+        scrollControlIntoView(selectRef.current?.controlRef)
       }, 50)
     }
   }
@@ -199,9 +219,17 @@ export function SearchableSelect({
       placeholder={placeholder}
       noOptionsMessage={() => emptyText}
       loadingMessage={() => loadingText}
-      className={className}
+      className={fieldClasses.wrapper}
       classNames={{
         ...baseClassNames,
+        control: ({ isFocused, isDisabled }) =>
+          cn(
+            'w-full rounded-[3px] border bg-ca-silver-light px-3 text-base lg:text-xs',
+            fieldClasses.hasHeight ? 'min-h-0! px-2' : 'min-h-10! lg:min-h-[34px]!',
+            isFocused ? 'border-ca-field-border-strong' : 'border-ca-field-border',
+            isDisabled && 'cursor-not-allowed bg-ca-muted-2 opacity-60',
+            fieldClasses.control,
+          ),
         menu: () => cn(MENU_CLASS, menuClassName),
         option: ({ isFocused, isSelected }) =>
           cn(

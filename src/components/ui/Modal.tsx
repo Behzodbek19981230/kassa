@@ -25,11 +25,6 @@ export function useInsideModal() {
   return useContext(InsideModalContext)
 }
 
-/** Dropdown popups (select/combobox) sit above modals only when opened from inside one. */
-export function useDropdownZIndexClass() {
-  return useInsideModal() ? 'z-[1070]' : 'z-[1040]'
-}
-
 export const Modal = Dialog.Root
 export const ModalTrigger = Dialog.Trigger
 export const ModalClose = Dialog.Close

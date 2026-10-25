@@ -676,7 +676,7 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                            selectedLabel={snap?.type || undefined}
                            disabled={typeOptions.length <= 1}
                            placeholder='Tanlang...'
-                           contentClassName='w-[260px] min-w-[var(--radix-popover-trigger-width)]'
+                           contentClassName='w-[260px]!'
                            wrapOptions
                         />
                      </FormField>
