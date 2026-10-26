@@ -84,16 +84,17 @@ export default function OrderDeleteHistoryPage() {
 		columnHelper.display({
 			id: 'actions',
 			header: 'Amal',
-			size: 100,
+			size: 60,
 			meta: { align: 'right' },
 			cell: ({ row }) => (
 				<Button
 					type='button'
 					variant='primary'
-					size='xs'
+					size='icon'
+					aria-label="Ko'rish"
 					onClick={() => navigate(`/cart-drafts/deleted-orders/${row.original.id}`)}
 				>
-					<FaEye className='mr-1.5' /> Ko'rish
+					<FaEye />
 				</Button>
 			),
 		}),

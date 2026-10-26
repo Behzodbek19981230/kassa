@@ -26,6 +26,7 @@ export function useSaveExchangeRateMutation() {
 			id ? exchangeRateService.update(id, payload) : exchangeRateService.create(payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: exchangeRateKeys.all });
+			queryClient.invalidateQueries({ queryKey: ['exchange-rate-history'] });
 		},
 	});
 }

@@ -247,7 +247,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                               <FaDollarSign />
                               <span className='tabular-nums'>
                                  {exchangeRate
-                                    ? `${Number(exchangeRate.dollar).toLocaleString('ru-RU')} so'm`
+                                    ? `1 $ = ${Number(exchangeRate.dollar).toLocaleString('ru-RU')} so'm`
                                     : '...'}
                               </span>
                               {!isExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}
@@ -285,7 +285,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                               <FaYenSign />
                               <span className='tabular-nums'>
                                  {yuanExchangeRate
-                                    ? `1 ¥ = ${Number(yuanExchangeRate.dollar_per_yuan).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} $`
+                                    ? `1 $ = ${Number(yuanExchangeRate.dollar_per_yuan).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ¥`
                                     : '...'}
                               </span>
                               {!isYuanExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}

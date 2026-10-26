@@ -10,15 +10,15 @@ function convert(value: string, factor: number): string | null {
 }
 
 /**
- * Converts between paired ¥ / $ price fields using today's yuan rate (dollars per 1 yuan).
+ * Converts between paired ¥ / $ price fields using today's yuan rate (yuan per 1 dollar).
  * Each converter returns null when no rate is set yet — the caller then leaves the other field alone.
  */
 export function useYuanDollarConversion() {
 	const { yuanExchangeRate } = useCurrentCompany();
-	const dollarPerYuan = Number(yuanExchangeRate?.dollar_per_yuan ?? 0);
+	const yuanPerDollar = Number(yuanExchangeRate?.dollar_per_yuan ?? 0);
 
 	return {
-		yuanToDollar: (yuan: string) => convert(yuan, dollarPerYuan),
-		dollarToYuan: (dollar: string) => convert(dollar, dollarPerYuan ? 1 / dollarPerYuan : 0),
+		yuanToDollar: (yuan: string) => convert(yuan, yuanPerDollar ? 1 / yuanPerDollar : 0),
+		dollarToYuan: (dollar: string) => convert(dollar, yuanPerDollar),
 	};
 }

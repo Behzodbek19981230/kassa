@@ -11,7 +11,7 @@ export interface YuanExchangeRateHistoryItem {
 	updated_by_detail: ExchangeRateHistoryUserDetail | null;
 	created_time: string;
 	updated_time: string;
-	/** Dollars per 1 yuan, serialized as a decimal string. `old_value` is null for the initial record. */
+	/** Yuan per 1 dollar, serialized as a decimal string. `old_value` is null for the initial record. */
 	old_value: string | null;
 	new_value: string | null;
 	created_by: number | null;

@@ -30,10 +30,10 @@ import { useSaveYuanExchangeRateMutation } from '@/services/yuan-exchange-rate/y
 
 export type ExchangeRateCurrency = 'dollar' | 'yuan';
 
-// The dollar rate is entered in so'm; the yuan rate is entered as how many dollars 1 yuan is worth.
+// The dollar rate is entered in so'm; the yuan rate is entered as how many yuan 1 dollar is worth.
 const CURRENCY_TEXT: Record<ExchangeRateCurrency, { name: string; label: string; unit: string; decimals: number }> = {
 	dollar: { name: 'Dollar', label: 'dollar', unit: "so'm", decimals: 2 },
-	yuan: { name: 'Yuan', label: 'yuan', unit: '$', decimals: 2 },
+	yuan: { name: 'Yuan', label: 'yuan', unit: '¥', decimals: 2 },
 };
 
 interface ExchangeRateEditModalProps {
@@ -178,7 +178,7 @@ export default function ExchangeRateEditModal({
 				{view === 'edit' ? (
 					<>
 						<ModalBody>
-							<FormField label={currency === 'yuan' ? '1 yuan necha dollar ($)' : `${text.name} kursi (${text.unit})`} horizontal={false} error={error} required>
+							<FormField label={currency === 'yuan' ? '1 dollar necha yuan (¥)' : `${text.name} kursi (${text.unit})`} horizontal={false} error={error} required>
 								<PriceInput value={rate} onChange={setRate} decimals={text.decimals} autoFocus />
 							</FormField>
 						</ModalBody>
