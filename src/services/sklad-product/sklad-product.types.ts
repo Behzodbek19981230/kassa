@@ -53,4 +53,5 @@ export interface SkladProductListParams extends ListParams {
 	count?: number;
 	status_count?: boolean;
 	cr_date?: string;
+	is_active?: boolean;
 }

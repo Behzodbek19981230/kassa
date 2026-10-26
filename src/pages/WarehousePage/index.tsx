@@ -210,7 +210,7 @@ export default function WarehousePage() {
          enableColumnFilter: false,
          cell: (info) =>
             info.getValue() === false ? (
-               <Badge variant='danger'>Nofaol</Badge>
+               <Badge variant='danger'>Faolmas</Badge>
             ) : (
                <Badge variant='success'>Faol</Badge>
             ),

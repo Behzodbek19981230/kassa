@@ -163,6 +163,7 @@ export interface WarehouseAllListItem {
   count: number
   real_price: string
   image: string | null
+  is_active?: boolean
 }
 
 export interface WarehouseAllListCategoryGroup {

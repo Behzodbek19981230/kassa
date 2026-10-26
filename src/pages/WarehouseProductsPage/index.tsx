@@ -1,6 +1,7 @@
 import { Fragment, type UIEvent, useMemo, useState } from 'react';
 import { FaExclamationTriangle, FaFileExport, FaTelegramPlane } from 'react-icons/fa';
 import {
+	Badge,
 	Button,
 	buttonProps,
 	Combobox,
@@ -44,6 +45,7 @@ const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'count', label: 'Soni' },
 	{ id: 'real_price', label: 'Asl Narxi ($)', superAdminOnly: true },
 	{ id: 'total', label: 'Jami narxi ($)', superAdminOnly: true },
+	{ id: 'is_active', label: 'Holati' },
 	{ id: 'actions', label: 'Harakatlar', hideable: false },
 ];
 
@@ -261,6 +263,7 @@ export default function WarehouseProductsPage() {
 								{cols.isVisible('count') && <TableHead className='bg-ca-theme text-white'>Soni</TableHead>}
 								{cols.isVisible('real_price') && <TableHead className='bg-ca-theme text-white'>Asl Narxi ($)</TableHead>}
 								{cols.isVisible('total') && <TableHead className='bg-ca-theme text-white'>Jami narxi ($)</TableHead>}
+								{cols.isVisible('is_active') && <TableHead className='bg-ca-theme text-white'>Holati</TableHead>}
 								<TableHead className='bg-ca-theme text-right text-white'>Harakatlar</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -353,6 +356,15 @@ export default function WarehouseProductsPage() {
 														{cols.isVisible('total') && (
 															<TableCell className='font-semibold'>
 																{formatNumber(Number(item.real_price) * item.count, 2)} $
+															</TableCell>
+														)}
+														{cols.isVisible('is_active') && (
+															<TableCell>
+																{item.is_active === false ? (
+																	<Badge variant='danger'>Faolmas</Badge>
+																) : (
+																	<Badge variant='success'>Faol</Badge>
+																)}
 															</TableCell>
 														)}
 														<TableCell>

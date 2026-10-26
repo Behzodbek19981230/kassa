@@ -269,7 +269,7 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 					)}
 				</ModalBody>
 				<ModalFooter className='justify-between'>
-					<div className='flex flex-col gap-2'>
+					<div className='flex items-center gap-4'>
 						<span className='text-ca-text'>
 							Jami qoldiq: <b className='text-ca-heading'>{formatNumber(totalCount)} dona</b>
 						</span>

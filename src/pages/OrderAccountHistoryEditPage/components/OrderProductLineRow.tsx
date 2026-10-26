@@ -98,6 +98,7 @@ export default function OrderProductLineRow({
       if (value.type_sklad) {
          const result = await skladProductService.list({
             type_sklad: Number(value.type_sklad),
+            is_active: true,
             search: search || undefined,
             page,
             limit: 20,
