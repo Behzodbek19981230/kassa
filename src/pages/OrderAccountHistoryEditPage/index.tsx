@@ -15,6 +15,7 @@ import { skladProductService } from '@/services/sklad-product/sklad-product.serv
 import OrderProductLineRow, {
    emptyOrderLine,
    type OrderLineValue,
+   workerPriceError,
 } from '@/pages/OrderAccountHistoryEditPage/components/OrderProductLineRow';
 import {
    useOrderAccountHistoryQuery,
@@ -80,7 +81,7 @@ export default function OrderAccountHistoryEditPage() {
    const orderId = id ? Number(id) : undefined;
    const { notify } = useNotification();
    const { canWrite } = useCurrentCompany();
-   const { canEditOwned } = usePermissions();
+   const { canEditOwned, isSuperAdmin } = usePermissions();
    const [formError, setFormError] = useState('');
 
    useEffect(() => {
@@ -110,6 +111,14 @@ export default function OrderAccountHistoryEditPage() {
                   line.sklad_product == null && line.type_sklad != null
                      ? await skladProductService.findByPair(line.warehouse, line.type_sklad).catch(() => null)
                      : null;
+               // The line itself has no worker price; it comes from the stock row it is sold from.
+               const workerPrice =
+                  line.sklad_product != null
+                     ? await skladProductService
+                          .get(line.sklad_product)
+                          .then((s) => s.worker_price)
+                          .catch(() => null)
+                     : (stock?.worker_price ?? null);
                return {
                   key: generateId(),
                   type_sklad: line.type_sklad != null ? String(line.type_sklad) : '',
@@ -126,6 +135,7 @@ export default function OrderAccountHistoryEditPage() {
                      .join(' | '),
                   count: line.count,
                   price: String(line.price),
+                  workerPrice: workerPrice != null ? String(workerPrice) : null,
                };
             }),
          );
@@ -195,6 +205,9 @@ export default function OrderAccountHistoryEditPage() {
             rowErrs[i] = 'Skladni tanlang';
          } else if (!row.stockId) {
             rowErrs[i] = 'Bu tovar tanlangan skladda topilmadi';
+         } else if (!isSuperAdmin) {
+            const priceErr = workerPriceError(row);
+            if (priceErr) rowErrs[i] = priceErr;
          }
       });
       if (Object.keys(rowErrs).length) {
@@ -325,6 +338,7 @@ export default function OrderAccountHistoryEditPage() {
                      value={row}
                      onChange={(next) => updateRow(index, next)}
                      error={rowErrors[index]}
+                     enforceWorkerPrice={!isSuperAdmin}
                      showAdd={index === rows.length - 1}
                      onAdd={addRow}
                      onRemove={() => removeRow(index)}

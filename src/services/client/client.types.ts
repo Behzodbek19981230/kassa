@@ -1,12 +1,14 @@
 import type { ListParams } from '@/services/api/types'
 
-export type ClientType = 'retail' | 'shop' | 'wholesale' | 'branch'
+export type ClientType = 'wholesale' | 'shop' | 'dastavka' | 'retail' | 'branch' | 'telegram'
 
 export const CLIENT_TYPE_OPTIONS: { value: ClientType; label: string }[] = [
-  { value: 'retail', label: 'Dona Mijoz' },
-  { value: 'shop', label: "Do'kon Mijoz" },
   { value: 'wholesale', label: 'Optom Mijoz' },
+  { value: 'shop', label: 'Bozor Mijoz' },
+  { value: 'dastavka', label: 'Dastavka Mijoz' },
+  { value: 'retail', label: 'Dona Mijoz' },
   { value: 'branch', label: 'Filial Mijoz' },
+  { value: 'telegram', label: 'Telegram Mijoz' },
 ]
 
 export const CLIENT_PROFIT_LOSS_OPTIONS = [

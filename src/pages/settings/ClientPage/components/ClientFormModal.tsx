@@ -31,7 +31,9 @@ import type { Client, ClientPayload, ClientType } from '@/services/client/client
 import { districtService } from '@/services/district/district.service';
 import { useCurrentCompany } from '@/lib/company';
 import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
-import { regionService } from '@/services/region/region.service';
+import { regionService } from '@/services/region/region.service';
+import { userService } from '@/services/user/user.service';
+
 import { getApiErrorMessage } from '@/lib/errors';
 
 const clientFormSchema = z.object({
@@ -47,6 +49,7 @@ const clientFormSchema = z.object({
 			return !Number.isNaN(n) && n >= 0 && n <= 100;
 		}, 'Keshbek foizi 0 dan 100 gacha bo\'lishi kerak'),
 	type: z.string().min(1, 'Turi tanlanishi shart'),
+	worker_user: z.string(),
 	region: z.string().min(1, 'Viloyat tanlanishi shart'),
 	district: z.string().min(1, 'Tuman tanlanishi shart'),
 	is_profit_loss: z.boolean(),
@@ -54,6 +57,9 @@ const clientFormSchema = z.object({
 });
 
 type ClientFormValues = z.infer<typeof clientFormSchema>;
+
+const userLabel = (u: { username: string; first_name: string; last_name: string }) =>
+	`${u.last_name} ${u.first_name}`.trim() || u.username;
 
 interface ClientFormModalProps {
 	open: boolean;
@@ -71,6 +77,7 @@ function clientToFormValues(client: Client): ClientFormValues {
 		total_debt: client.total_debt ?? '0',
 		keshbek: client.keshbek ?? '0',
 		type: client.type,
+		worker_user: client.worker_user ? String(client.worker_user) : '',
 		region: client.region ? String(client.region) : '',
 		district: client.district ? String(client.district) : '',
 		is_profit_loss: Boolean(client.is_profit_loss),
@@ -106,6 +113,7 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 						total_debt: '',
 						keshbek: '',
 						type: '',
+						worker_user: '',
 						region: '',
 						district: '',
 						is_profit_loss: false,
@@ -130,6 +138,14 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 		const result = await regionService.list({ search: search || undefined, page, limit: 20 });
 		return {
 			options: result.results.map((r) => ({ value: String(r.id), label: r.name })),
+			hasMore: result.pagination.currentPage < result.pagination.lastPage,
+		};
+	};
+
+	const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
+		const result = await userService.list({ search: search || undefined, page, limit: 20 });
+		return {
+			options: result.results.map((u) => ({ value: String(u.id), label: userLabel(u) })),
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
 		};
 	};
@@ -170,9 +186,9 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 			type: values.type as ClientType,
 			region: Number(values.region),
 			district: Number(values.district),
-			// Ishchi/Hamkor are no longer edited in this form; keep the client's existing values.
+			// Ishchi/Hamkor flags are no longer edited in this form; keep the client's existing values.
 			is_worker: currentClient?.is_worker ? 1 : 0,
-			worker_user: currentClient?.worker_user ?? null,
+			worker_user: values.worker_user ? Number(values.worker_user) : null,
 			is_partner: currentClient?.is_partner ? 1 : 0,
 			is_profit_loss: values.is_profit_loss ? 1 : 0,
 			is_blocked: values.is_blocked,
@@ -238,32 +254,55 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 								/>
 							</FormField>
 						</div>
-						<FormField
-							label='Turi'
-							error={errors.type?.message}
-							required
-							horizontal={false}
-							className='mb-3'
-						>
-							<Controller
-								name='type'
-								control={control}
-								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
-										<SelectTrigger>
-											<SelectValue placeholder='Tanlang...' />
-										</SelectTrigger>
-										<SelectContent>
-											{CLIENT_TYPE_OPTIONS.map((option) => (
-												<SelectItem key={option.value} value={option.value}>
-													{option.label}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								)}
-							/>
-						</FormField>
+						<div className='mb-3 grid grid-cols-2 gap-3'>
+							<FormField
+								label='Turi'
+								error={errors.type?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
+								<Controller
+									name='type'
+									control={control}
+									render={({ field }) => (
+										<Select value={field.value} onValueChange={field.onChange}>
+											<SelectTrigger>
+												<SelectValue placeholder='Tanlang...' />
+											</SelectTrigger>
+											<SelectContent>
+												{CLIENT_TYPE_OPTIONS.map((option) => (
+													<SelectItem key={option.value} value={option.value}>
+														{option.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									)}
+								/>
+							</FormField>
+							<FormField label="Ma'sul xodim" horizontal={false} className='mb-0'>
+								<Controller
+									name='worker_user'
+									control={control}
+									render={({ field }) => (
+										<Combobox
+											value={field.value}
+											onChange={field.onChange}
+											loadOptions={loadUserOptions}
+											selectedLabel={
+												currentClient?.worker_user_detail
+													? userLabel(currentClient.worker_user_detail)
+													: undefined
+											}
+											placeholder='Tanlang...'
+											searchPlaceholder='Xodim qidirish...'
+											clearable
+										/>
+									)}
+								/>
+							</FormField>
+						</div>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
 							<FormField
 								label='Qarz miqdori ($)'

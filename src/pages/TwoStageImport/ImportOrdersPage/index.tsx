@@ -392,7 +392,7 @@ export default function ImportOrdersPage() {
                            setPage(1);
                         }}
                      >
-                        <SelectTrigger className='h-[30px] w-[70px]'>
+                        <SelectTrigger className='h-[26px] w-[60px]'>
                            <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

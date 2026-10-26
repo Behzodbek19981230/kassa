@@ -251,20 +251,14 @@ export default function OrderAccountHistoryDetailPage() {
                   <span className='font-semibold text-ca-orange'>Dollar kursi:</span>
                   <span className='font-bold text-ca-orange'>{formatNumber(report.exchange_rate)}</span>
                </div>
-               <div className='w-full px-2.5 sm:w-1/2' />
-
-               <div className='flex w-full justify-between gap-4 px-2.5 sm:w-1/2'>
-                  <span className='font-semibold text-ca-orange'>Jami to'lanadigan summa ($):</span>
-                  <span className='font-bold text-ca-orange'>{formatNumber(report.payable_amount, 2)} $</span>
-               </div>
                <div className='flex w-full justify-between gap-4 px-2.5 sm:w-1/2'>
                   <span className='font-semibold text-ca-heading'>To'langan summa dollarda ($):</span>
                   <span className='font-bold text-ca-heading'>{formatNumber(report.sum_dollar, 2)} $</span>
                </div>
 
                <div className='flex w-full justify-between gap-4 px-2.5 sm:w-1/2'>
-                  <span className='font-semibold text-ca-orange'>To'langan summa ($):</span>
-                  <span className='font-bold text-ca-orange'>{formatNumber(report.paid_amount, 2)} $</span>
+                  <span className='font-semibold text-ca-orange'>Jami to'lanadigan summa ($):</span>
+                  <span className='font-bold text-ca-orange'>{formatNumber(report.payable_amount, 2)} $</span>
                </div>
                <div className='flex w-full justify-between gap-4 px-2.5 sm:w-1/2'>
                   <span className='font-semibold text-ca-heading'>To'langan summa so'mda:</span>
@@ -272,12 +266,21 @@ export default function OrderAccountHistoryDetailPage() {
                </div>
 
                <div className='flex w-full justify-between gap-4 px-2.5 sm:w-1/2'>
-                  <span className='font-semibold text-ca-orange'>Chegirma ($):</span>
-                  <span className='font-bold text-ca-orange'>{formatNumber(report.discount_amount, 2)} $</span>
+                  <span className='font-semibold text-ca-orange'>To'langan summa ($):</span>
+                  <span className='font-bold text-ca-orange'>{formatNumber(report.paid_amount, 2)} $</span>
                </div>
                <div className='flex w-full justify-between gap-4 px-2.5 sm:w-1/2'>
                   <span className='font-semibold text-ca-heading'>To'langan summa kartada:</span>
                   <span className='font-bold text-ca-heading'>{formatNumber(report.sum_cart)}</span>
+               </div>
+
+               <div className='flex w-full justify-between gap-4 px-2.5 sm:w-1/2'>
+                  <span className='font-semibold text-ca-orange'>Chegirma ($):</span>
+                  <span className='font-bold text-ca-orange'>{formatNumber(report.discount_amount, 2)} $</span>
+               </div>
+               <div className='flex w-full justify-between gap-4 px-2.5 sm:w-1/2'>
+                  <span className='font-semibold text-ca-heading'>To'langan summa transferda:</span>
+                  <span className='font-bold text-ca-heading'>{formatNumber(report.sum_transfers)}</span>
                </div>
 
                <div className='flex w-full justify-between gap-4 px-2.5 sm:w-1/2'>

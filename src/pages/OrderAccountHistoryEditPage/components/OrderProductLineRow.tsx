@@ -20,6 +20,15 @@ export interface OrderLineValue {
    skladLabel: string;
    count: number | null;
    price: string;
+   /** Lowest price a non-super-admin may sell at; null when unknown. */
+   workerPrice: string | null;
+}
+
+/** The worker-price error for a line, if its price is below it. */
+export function workerPriceError(line: Pick<OrderLineValue, 'price' | 'workerPrice'>): string | undefined {
+   const min = Number(line.workerPrice) || 0;
+   const price = Number(line.price) || 0;
+   if (min > 0 && price > 0 && price < min) return `Narx ${formatNumber(min, 2)} $ dan kam bo'lmasligi kerak`;
 }
 
 export const emptyOrderLine = (): OrderLineValue => ({
@@ -31,6 +40,7 @@ export const emptyOrderLine = (): OrderLineValue => ({
    skladLabel: '',
    count: null,
    price: '',
+   workerPrice: null,
 });
 
 /** "Model Nomi O'lcham Tip" of a product card. */
@@ -53,6 +63,8 @@ interface OrderProductLineRowProps {
    value: OrderLineValue;
    onChange: (value: OrderLineValue) => void;
    error?: string;
+   /** Only the super admin may sell below the worker price. */
+   enforceWorkerPrice?: boolean;
    showAdd?: boolean;
    onAdd?: () => void;
    onRemove?: () => void;
@@ -62,6 +74,7 @@ export default function OrderProductLineRow({
    value,
    onChange,
    error,
+   enforceWorkerPrice,
    showAdd,
    onAdd,
    onRemove,
@@ -70,6 +83,7 @@ export default function OrderProductLineRow({
    const loadedStocks = useRef(new Map<string, SkladProduct>());
    const loadedCards = useRef(new Map<string, Warehouse>());
    const lineTotal = (Number(value.count) || 0) * (Number(value.price) || 0);
+   const priceError = enforceWorkerPrice ? workerPriceError(value) : undefined;
 
    const loadSkladOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
       const result = await skladTypeService.list({ search: search || undefined, page, limit: 20 });
@@ -111,7 +125,15 @@ export default function OrderProductLineRow({
 
    function handleSkladChange(type_sklad: string, label?: string) {
       // The products on offer depend on the sklad, so the picked product is cleared.
-      onChange({ ...value, type_sklad, skladLabel: label ?? '', stockId: '', warehouse: null, productLabel: '' });
+      onChange({
+         ...value,
+         type_sklad,
+         skladLabel: label ?? '',
+         stockId: '',
+         warehouse: null,
+         productLabel: '',
+         workerPrice: null,
+      });
    }
 
    function handleProductChange(warehouseId: string, option: { label: string } | null) {
@@ -125,6 +147,7 @@ export default function OrderProductLineRow({
          productLabel: stock ? stockLabel(stock) : card ? cardLabel(card) : (option?.label ?? ''),
          // A new pick starts at the worker price unless the line already has a price.
          price: !value.price && workerPrice && Number(workerPrice) > 0 ? String(Number(workerPrice)) : value.price,
+         workerPrice,
       });
    }
 
@@ -175,7 +198,7 @@ export default function OrderProductLineRow({
                <p className='mt-1 text-[11px] text-ca-text'>
                   Summa: <span className='font-semibold text-ca-heading'>{formatNumber(lineTotal, 2)} $</span>
                </p>
-               {error && <p className='mt-1 text-[11px] text-ca-red'>{error}</p>}
+               {(error || priceError) && <p className='mt-1 text-[11px] text-ca-red'>{error || priceError}</p>}
             </div>
             <div className='w-16 shrink-0'>
                <label className='mb-1 block text-xs font-semibold text-transparent select-none'>_</label>

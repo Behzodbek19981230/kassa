@@ -1,4 +1,5 @@
 import { Fragment, type UIEvent, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import {
    Button,
@@ -109,6 +110,7 @@ function buildBrandVariants(groups: WarehouseAllListBrandGroup[]): BrandVariants
 
 export default function PlaceOrderPage() {
    const { companyId, canWrite } = useCurrentCompany();
+   const navigate = useNavigate();
    const { notify } = useNotification();
    const productCols = useColumnVisibility('place-order-products', PRODUCT_COLUMNS);
    const cartCols = useColumnVisibility('place-order-cart', CART_COLUMNS);
@@ -234,6 +236,7 @@ export default function PlaceOrderPage() {
          text: `Umumiy qarz: ${formatNumber(summary.total_debt, 2)} $`,
       });
       setClientId('');
+      navigate('/customer-order-history');
    }
 
    return (

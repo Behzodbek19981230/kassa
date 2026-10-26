@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/Input';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import { useCreateOrderCartMutation } from '@/services/order-cart/order-cart.queries';
 import { catalogCardId } from '@/services/sklad-product/catalog-stock';
 import { useSkladProductListQuery } from '@/services/sklad-product/sklad-product.queries';
@@ -47,6 +48,7 @@ interface AddToCartModalProps {
 
 export default function AddToCartModal({ open, setOpen, variant, clientId }: AddToCartModalProps) {
 	const { notify } = useNotification();
+	const { isSuperAdmin } = usePermissions();
 	const [formError, setFormError] = useState('');
 
 	// Today's rate set for the company, the same one the header shows.
@@ -70,6 +72,11 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 
 	const stockByLocation = useMemo(
 		() => new Map(locationOptions.map((option) => [option.value, option.stock.count])),
+		[locationOptions],
+	);
+
+	const workerPriceByLocation = useMemo(
+		() => new Map(locationOptions.map((option) => [option.value, Number(option.stock.worker_price) || 0])),
 		[locationOptions],
 	);
 
@@ -100,9 +107,30 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 							path: ['priceDollar'],
 							message: 'Narxni kiriting',
 						});
+						return;
+					}
+					// Only the super admin may sell below the worker price.
+					const minDollar = workerPriceByLocation.get(values.joy) ?? 0;
+					if (isSuperAdmin || minDollar <= 0) return;
+					if (Number(values.priceDollar) < minDollar) {
+						ctx.addIssue({
+							code: z.ZodIssueCode.custom,
+							path: ['priceDollar'],
+							message: `Narx ${formatNumber(minDollar, 2)} $ dan kam bo'lmasligi kerak`,
+						});
+					}
+					// Checked separately: the dollar price derived from a som price is rounded to cents,
+					// so a som price slightly under the minimum can still round up to it.
+					const minSom = rate > 0 ? Math.round(minDollar * rate) : 0;
+					if (minSom > 0 && values.priceSom && Number(values.priceSom) < minSom) {
+						ctx.addIssue({
+							code: z.ZodIssueCode.custom,
+							path: ['priceSom'],
+							message: `Narx ${formatNumber(minSom)} so'm dan kam bo'lmasligi kerak`,
+						});
 					}
 				}),
-		[stockByLocation],
+		[stockByLocation, workerPriceByLocation, isSuperAdmin, rate],
 	);
 
 	type AddToCartFormValues = z.infer<typeof addToCartSchema>;
@@ -150,7 +178,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 
 	function handlePriceSomChange(value: string) {
 		priceEditedRef.current = true;
-		setValue('priceSom', value);
+		setValue('priceSom', value, { shouldValidate: true });
 		setValue('priceDollar', rate > 0 && value ? (Number(value) / rate).toFixed(2) : '', {
 			shouldValidate: true,
 		});
@@ -159,7 +187,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	function handlePriceDollarChange(value: string) {
 		priceEditedRef.current = true;
 		setValue('priceDollar', value, { shouldValidate: true });
-		setValue('priceSom', rate > 0 && value ? (Number(value) * rate).toFixed(0) : '');
+		setValue('priceSom', rate > 0 && value ? (Number(value) * rate).toFixed(0) : '', { shouldValidate: true });
 	}
 
 	// The rate loads after the modal opens, so the som price is filled in once it is known.
@@ -318,7 +346,7 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 							/>
 						</FormField>
 
-						<FormField label="Narxi so'm" horizontal={false} className='mb-3'>
+						<FormField label="Narxi so'm" error={errors.priceSom?.message} horizontal={false} className='mb-3'>
 							<Controller
 								name='priceSom'
 								control={control}

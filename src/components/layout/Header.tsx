@@ -24,11 +24,10 @@ import {
 } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { sidebarMenu } from '@/data/sidebarMenu';
-import { clearSession, getRefreshToken } from '@/lib/auth';
+import { logout } from '@/lib/session';
 import { useCurrentCompany } from '@/lib/company';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/theme';
-import { useLogoutMutation } from '@/services/auth/auth.queries';
 import { useClientListQuery } from '@/services/client/client.queries';
 import { useUserInfoQuery } from '@/services/user/user.queries';
 import { useWarehouseTransferListQuery } from '@/services/warehouse-transfer/warehouse-transfer.queries';
@@ -86,7 +85,6 @@ function formatTime(date: Date) {
 export default function Header({ onToggleSidebar }: HeaderProps) {
    const navigate = useNavigate();
    const { data: user } = useUserInfoQuery();
-   const logoutMutation = useLogoutMutation();
    const { theme, toggleTheme } = useTheme();
    const now = useClock();
    const {
@@ -199,14 +197,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
       }
    };
 
-   const handleLogout = async () => {
-      const refresh = getRefreshToken();
-      if (refresh) {
-         await logoutMutation.mutateAsync({ refresh }).catch(() => undefined);
-      }
-      clearSession();
-      window.location.href = '/login';
-   };
+   const handleLogout = () => logout();
 
    return (
       <>

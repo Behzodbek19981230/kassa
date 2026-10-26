@@ -115,6 +115,13 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		children: [
 			{ id: 'clients', icon: 'users', label: 'Mijozlar', path: '/settings/clients' },
 			{
+				id: 'debtors',
+				icon: 'bookmark',
+				label: "Qarzdorlar ro'yxati",
+				path: '/settings/debtors',
+				requiredPermission: 'isSuperAdmin',
+			},
+			{
 				id: 'debt-repayments',
 				icon: 'balance-scale',
 				label: "To'langan qarzlar",

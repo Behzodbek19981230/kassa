@@ -161,9 +161,10 @@ function Select({ value, defaultValue, onValueChange, onOpenChange, disabled, ch
         if (isTablet) window.setTimeout(() => scrollControlIntoView(ref.current?.controlRef), 50)
       }}
       onMenuClose={() => onOpenChange?.(false)}
-      className={wrapper}
       classNames={{
         ...(baseClassNames as object),
+        // Merged (not a separate className) so a width from the trigger overrides the base `w-full`.
+        container: () => cn('w-full', wrapper),
         control: ({ isFocused, isDisabled }) =>
           cn(
             'min-h-0! w-full rounded-[3px] border bg-ca-silver-light px-3 text-base lg:text-xs',

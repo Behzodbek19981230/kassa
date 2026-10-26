@@ -259,7 +259,7 @@ export default function OrderCartDraftTab({ onRefetchReady }: OrderCartDraftTabP
 							setPage(1);
 						}}
 					>
-						<SelectTrigger className='h-[30px] w-[70px]'>
+						<SelectTrigger className='h-[26px] w-[60px]'>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>

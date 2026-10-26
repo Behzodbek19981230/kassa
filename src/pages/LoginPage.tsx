@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash, FaExclamationCircle, FaLock, FaUser } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '@/components/ui';
 import { setSession } from '@/lib/auth';
@@ -16,10 +16,17 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+const LOGOUT_REASON_MESSAGES: Record<string, string> = {
+	idle_timeout: "10 daqiqa davomida faollik bo'lmagani uchun tizimdan chiqildi. Qaytadan kiring.",
+	session_expired: 'Sessiya muddati tugadi. Qaytadan kiring.',
+	session_invalid: 'Sessiya yaroqsiz. Qaytadan kiring.',
+};
+
 export default function LoginPage() {
 	const navigate = useNavigate();
 	const [remember, setRemember] = useState(false);
-	const [formError, setFormError] = useState('');
+	const [searchParams] = useSearchParams();
+	const [formError, setFormError] = useState(() => LOGOUT_REASON_MESSAGES[searchParams.get('reason') ?? ''] ?? '');
 	const [showPassword, setShowPassword] = useState(false);
 	const loginMutation = useLoginMutation();
 

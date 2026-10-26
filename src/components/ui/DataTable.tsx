@@ -768,7 +768,7 @@ export function DataTable<TData>({
 										table.setPagination({ pageIndex: 0, pageSize: Number(value) });
 									}}
 								>
-									<SelectTrigger className='h-[30px] w-[70px]'>
+									<SelectTrigger className='h-[26px] w-[60px]'>
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>

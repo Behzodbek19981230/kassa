@@ -1,6 +1,7 @@
 import { Navigate, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useKeyboardInsetCssVar } from '@/lib/useDropdownPlacement';
+import { useSessionWatcher } from '@/lib/session';
 import ImportRoute from '@/components/auth/ImportRoute';
 import SuperAdminRoute from '@/components/auth/SuperAdminRoute';
 import Layout from '@/components/layout/Layout';
@@ -45,6 +46,7 @@ import CompanyEventLogPage from '@/pages/system/CompanyEventLogPage';
 import ClientPage from '@/pages/settings/ClientPage';
 import ClientKeshbekHistoryPage from '@/pages/settings/ClientKeshbekHistoryPage';
 import DebtRepaymentPage from '@/pages/settings/DebtRepaymentPage';
+import ClientDebtorPage from '@/pages/settings/ClientDebtorPage';
 import DebtRepaymentDraftPage from '@/pages/settings/DebtRepaymentDraftPage';
 import TelegramBroadcastPage from '@/pages/TelegramBroadcastPage';
 import TelegramBroadcastCreatePage from '@/pages/TelegramBroadcastPage/CreatePage';
@@ -62,6 +64,7 @@ import UzbekistanInRoadPage from '@/pages/TwoStageImport/UzbekistanInRoadPage';
 
 export default function App() {
 	useKeyboardInsetCssVar();
+	useSessionWatcher();
 	return (
 		<Routes>
 			<Route path='login' element={<LoginPage />} />
@@ -95,6 +98,7 @@ export default function App() {
 						<Route path='my-debts/:id' element={<MyDebtDetailPage />} />
 						<Route path='cart-drafts' element={<CartDraftsPage />} />
 						<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
+						<Route path='settings/debtors' element={<ClientDebtorPage />} />
 						<Route path='settings/debt-repayments-drafts' element={<DebtRepaymentDraftPage />} />
 					</Route>
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
