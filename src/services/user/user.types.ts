@@ -81,7 +81,9 @@ export interface UserPayload {
 	password?: string;
 }
 
-export type UserListParams = ListParams;
+export interface UserListParams extends ListParams {
+	is_login_blocked?: boolean;
+}
 
 // users_user.type — hodim turi (role'dan alohida).
 export const USER_TYPE_OPTIONS = [

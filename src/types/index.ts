@@ -75,7 +75,7 @@ export interface AdvancedTableRow {
 }
 
 export interface PanelProps {
-	title: string;
+	title: ReactNode;
 	children: ReactNode;
 	actions?: ReactNode;
 	toolbar?: ReactNode;

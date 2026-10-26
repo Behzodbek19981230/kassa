@@ -41,6 +41,9 @@ const clientFormSchema = z.object({
 	phone: z.string().regex(UZ_PHONE_REGEX, "Telefon raqami to'liq kiritilishi shart"),
 	address: z.string(),
 	total_debt: z.string().min(1, 'Qarz miqdori kiritilishi shart'),
+	debt_limit: z
+		.string()
+		.refine((v) => !v.trim() || Number(v) >= 0, "Qarz limiti manfiy bo'lishi mumkin emas"),
 	keshbek: z
 		.string()
 		.refine((v) => {
@@ -75,6 +78,7 @@ function clientToFormValues(client: Client): ClientFormValues {
 		phone: formatUzPhone(client.phone ?? ''),
 		address: client.address ?? '',
 		total_debt: client.total_debt ?? '0',
+		debt_limit: client.debt_limit ?? '',
 		keshbek: client.keshbek ?? '0',
 		type: client.type,
 		worker_user: client.worker_user ? String(client.worker_user) : '',
@@ -111,6 +115,7 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 						phone: '+998',
 						address: '',
 						total_debt: '',
+						debt_limit: '',
 						keshbek: '',
 						type: '',
 						worker_user: '',
@@ -143,9 +148,12 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 	};
 
 	const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await userService.list({ search: search || undefined, page, limit: 20 });
+		const result = await userService.list({ search: search || undefined, page, limit: 20, is_login_blocked: false });
 		return {
-			options: result.results.map((u) => ({ value: String(u.id), label: userLabel(u) })),
+			// Bloklangan xodimlarni ko'rsatmaymiz (backend filterni e'tiborsiz qoldirsa ham).
+			options: result.results
+				.filter((u) => !u.is_login_blocked)
+				.map((u) => ({ value: String(u.id), label: userLabel(u) })),
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
 		};
 	};
@@ -182,6 +190,7 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 			phone: values.phone.trim(),
 			address: values.address.trim(),
 			total_debt: Number(values.total_debt) || 0,
+			debt_limit: values.debt_limit.trim() ? Number(values.debt_limit) : null,
 			keshbek: Number(values.keshbek) || 0,
 			type: values.type as ClientType,
 			region: Number(values.region),
@@ -303,7 +312,7 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 								/>
 							</FormField>
 						</div>
-						<div className='mb-3 grid grid-cols-2 gap-3'>
+						<div className='mb-3 grid grid-cols-3 gap-3'>
 							<FormField
 								label='Qarz miqdori ($)'
 								error={errors.total_debt?.message}
@@ -313,6 +322,18 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 							>
 								<Controller
 									name='total_debt'
+									control={control}
+									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+								/>
+							</FormField>
+							<FormField
+								label='Qarz limit ($)'
+								error={errors.debt_limit?.message}
+								horizontal={false}
+								className='mb-0'
+							>
+								<Controller
+									name='debt_limit'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 								/>

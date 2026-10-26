@@ -2,14 +2,20 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Panel, Tabs } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import { useOrderCartGroupedListQuery } from '@/services/order-cart/order-cart.queries';
 import OrderAccountHistoryTable from '@/pages/CustomerOrderHistoryPage/components/OrderAccountHistoryTable';
+import DebtRepaymentPage from '@/pages/settings/DebtRepaymentPage';
 
 export default function CustomerOrderHistoryPage() {
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
+	const { isSuperAdmin } = usePermissions();
 	const [searchParams, setSearchParams] = useSearchParams();
-	const activeTab = searchParams.get('tab') === 'debtors' ? 'debtors' : 'all';
+	const tabParam = searchParams.get('tab');
+	// "To'langan qarzlar" is Super Admin only, same as its /settings/debt-repayments route.
+	const activeTab =
+		tabParam === 'debtors' || (tabParam === 'debt-repayments' && isSuperAdmin) ? tabParam : 'all';
 	const [refetchActive, setRefetchActive] = useState<() => void>(() => () => undefined);
 
 	const { data: cartDraftData } = useOrderCartGroupedListQuery({ is_active: true, limit: 1 });
@@ -41,12 +47,21 @@ export default function CustomerOrderHistoryPage() {
 			items={[
 				{
 					value: 'all',
-					label: 'Barchasi',
+					label: 'Buyurtmalar',
 					content: renderPanel(false),
 				},
+				...(isSuperAdmin
+					? [
+							{
+								value: 'debt-repayments',
+								label: "To'langan qarzlar",
+								content: <DebtRepaymentPage />,
+							},
+						]
+					: []),
 				{
 					value: 'debtors',
-					label: 'Qarzdorlar',
+					label: 'Mijozdan qarzdorlik',
 					content: renderPanel(true),
 				},
 			]}

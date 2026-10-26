@@ -55,6 +55,7 @@ export interface Client {
   address: string
   /** Decimal fields are serialized as strings by the API. */
   total_debt: string | null
+  debt_limit?: string | null
   keshbek: string | null
   is_worker: number
   is_partner: number
@@ -83,6 +84,8 @@ export interface ClientPayload {
   phone: string
   address: string
   total_debt: number
+  /** Optional; null means no limit. */
+  debt_limit: number | null
   keshbek: number
   is_worker: 0 | 1
   is_partner: 0 | 1

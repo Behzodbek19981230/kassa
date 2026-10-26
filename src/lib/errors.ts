@@ -30,6 +30,11 @@ export function getApiErrorMessage(err: unknown, fallback: string): string {
 	if (!isAxiosError(err)) return fallback;
 
 	const data = err.response?.data as ApiErrorData;
+	// A crash returns Django's (or nginx's) HTML error page — never show the markup to the user.
+	if (typeof data === 'string' && /^\s*</.test(data)) {
+		const status = err.response?.status;
+		return status ? `${fallback} (${status})` : fallback;
+	}
 	if (typeof data === 'string' && data.trim()) return data;
 	if (data && typeof data === 'object') {
 		const message = firstMessage(data.detail) ?? firstMessage(data);

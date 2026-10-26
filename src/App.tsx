@@ -24,6 +24,7 @@ import PlaceOrderPage from '@/pages/PlaceOrderPage';
 import ImportPage from '@/pages/ImportPage';
 import CustomerOrderHistoryPage from '@/pages/CustomerOrderHistoryPage';
 import CartDraftsPage from '@/pages/CartDraftsPage';
+import OrderDeleteHistoryPage from '@/pages/OrderDeleteHistoryPage';
 import OrderCartPage from '@/pages/OrderCartPage';
 import OrderAccountHistoryDetailPage from '@/pages/OrderAccountHistoryDetailPage';
 import OrderAccountHistoryEditPage from '@/pages/OrderAccountHistoryEditPage';
@@ -97,6 +98,7 @@ export default function App() {
 						<Route path='my-debts' element={<MyDebtPage />} />
 						<Route path='my-debts/:id' element={<MyDebtDetailPage />} />
 						<Route path='cart-drafts' element={<CartDraftsPage />} />
+						<Route path='cart-drafts/deleted-orders' element={<OrderDeleteHistoryPage />} />
 						<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
 						<Route path='settings/debtors' element={<ClientDebtorPage />} />
 						<Route path='settings/debt-repayments-drafts' element={<DebtRepaymentDraftPage />} />
