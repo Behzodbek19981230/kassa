@@ -48,6 +48,7 @@ export interface Warehouse {
   type_sklad: number | null
   type_sklad_detail?: WarehouseSkladTypeDetail | null
   comment?: string | null
+  is_active?: boolean
 }
 
 /** One product (card) of a bulk create; see docs/backend-warehouse-prices-create.md. */
@@ -197,6 +198,7 @@ export interface WarehouseAllListTotal {
 export interface WarehouseAllListParams {
   brand?: number
   product_category?: number
+  is_active?: boolean
 }
 
 /** `warehouse/sklad-list/` — same shape as all-list, limited to one sklad's stock. */
@@ -232,6 +234,7 @@ export interface WarehouseSkladProductsResponse {
     size: string
     type: WarehouseSkladProductsRef | null
     total_count: number
+    is_active?: boolean
   }
   sklad_products: WarehouseSkladProductRow[]
 }
@@ -247,5 +250,6 @@ export interface WarehouseSkladProductsPayloadRow {
 }
 
 export interface WarehouseSkladProductsPayload {
+  is_active: boolean
   sklad_products: WarehouseSkladProductsPayloadRow[]
 }

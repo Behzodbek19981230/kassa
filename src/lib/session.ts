@@ -38,6 +38,25 @@ const state = {
   logoutStarted: false,
 }
 
+// Console tracing of the idle watcher: always on in dev; in production turn it on with
+// localStorage.setItem('ca_session_debug', '1') and reload.
+function debugEnabled() {
+  try {
+    return import.meta.env.DEV || localStorage.getItem('ca_session_debug') === '1'
+  } catch {
+    return false
+  }
+}
+
+function debug(message: string, ...rest: unknown[]) {
+  if (debugEnabled()) console.info(`[session ${new Date().toLocaleTimeString()}] ${message}`, ...rest)
+}
+
+const formatDuration = (ms: number) => {
+  const total = Math.max(0, Math.round(ms / 1000))
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
+}
+
 const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('savdo-soft-auth') : null
 
 function broadcast(message: ChannelMessage) {
@@ -60,6 +79,7 @@ function tokenExpiresAt(token: string): number {
 
 /** Clears the tokens and goes to the login page. `notifyTabs` is false for a logout another tab announced. */
 function endSession(reason: LogoutReason, notifyTabs: boolean) {
+  debug(`tokenlar o'chirildi, login sahifasiga o'tilmoqda (sabab: ${reason}${notifyTabs ? '' : ', boshqa tabdan'})`)
   state.logoutStarted = true
   clearSession()
   if (notifyTabs) broadcast({ type: 'logout', reason })
@@ -79,9 +99,14 @@ export async function logout(reason: LogoutReason = 'logout') {
   state.logoutStarted = true
   const refresh = getRefreshToken()
   try {
-    if (refresh) await apiClient.post('/auth/logout/', { refresh }, { timeout: 5_000 })
-  } catch {
+    if (refresh) {
+      debug(`POST /auth/logout/ yuborilmoqda (sabab: ${reason})`)
+      await apiClient.post('/auth/logout/', { refresh }, { timeout: 5_000 })
+      debug('POST /auth/logout/ muvaffaqiyatli')
+    }
+  } catch (error) {
     // offline or the session is already gone; the local logout below still happens
+    debug("POST /auth/logout/ o'tmadi (internet yo'q yoki sessiya allaqachon tugagan), lokal logout baribir qilinadi", error)
   } finally {
     endSession(reason, true)
   }
@@ -103,13 +128,16 @@ export async function refreshAccessToken(force = false): Promise<string | null> 
   if (!force && tokenExpiresAt(access) - Date.now() > REFRESH_BEFORE_EXPIRY_MS) return access
 
   if (!state.refreshPromise) {
+    debug(force ? 'access token yangilanmoqda (401 javobdan keyin)' : "access token yangilanmoqda (muddati tugashiga 2 daqiqadan kam qoldi)")
     state.refreshPromise = axios
       .post<{ access: string; refresh?: string }>(`${API_BASE_URL}/auth/token/refresh/`, { refresh })
       .then(({ data }) => {
         setTokens(data.access, data.refresh)
+        debug('access token yangilandi')
         return data.access
       })
       .catch((error) => {
+        debug("token yangilab bo'lmadi", error)
         forceLocalLogout('session_expired')
         throw error
       })
@@ -127,9 +155,11 @@ async function sendActivityIfNeeded() {
   // Set before the request so a burst of events doesn't send several pings.
   state.lastActivityPingAt = Date.now()
   try {
+    debug('POST /auth/activity/ yuborilmoqda')
     await apiClient.post('/auth/activity/')
     state.activityDirty = false
   } catch {
+    debug("POST /auth/activity/ o'tmadi, keyingi tekshiruvda qayta uriniladi")
     // stays dirty and is retried on the next check
     state.lastActivityPingAt = 0
   }
@@ -155,7 +185,10 @@ function verifyIdleImmediately() {
   // Another tab may have been active meanwhile.
   const stored = getLastActivity()
   if (stored) state.lastActivityAt = Math.max(state.lastActivityAt, stored)
-  if (idleFor() >= IDLE_LIMIT_MS) void logout('idle_timeout')
+  if (idleFor() >= IDLE_LIMIT_MS) {
+    debug(`darhol tekshiruv: ${formatDuration(idleFor())} faollik yo'q, limit oshgan`)
+    void logout('idle_timeout')
+  }
 }
 
 function onVisibilityChange() {
@@ -165,7 +198,10 @@ function onVisibilityChange() {
 function onChannelMessage(event: MessageEvent<ChannelMessage>) {
   const message = event.data
   if (message.type === 'activity') recordActivity(Number(message.at))
-  if (message.type === 'logout' && !state.logoutStarted) endSession(message.reason, false)
+  if (message.type === 'logout' && !state.logoutStarted) {
+    debug('boshqa tab logout qildi')
+    endSession(message.reason, false)
+  }
 }
 
 function startSessionWatcher() {
@@ -177,6 +213,7 @@ function startSessionWatcher() {
   state.activityDirty = false
   state.logoutStarted = false
   setLastActivity(state.lastActivityAt)
+  debug(`kuzatuv boshlandi: limit ${formatDuration(IDLE_LIMIT_MS)}, tekshiruv har ${CHECK_INTERVAL_MS / 1000} soniyada`)
   verifyIdleImmediately()
 
   for (const eventName of ACTIVITY_EVENTS) {
@@ -190,10 +227,16 @@ function startSessionWatcher() {
   // Only checks the local clock; the server is contacted at most once a minute.
   const timer = window.setInterval(async () => {
     if (!getToken() || state.logoutStarted) return
-    if (idleFor() >= IDLE_LIMIT_MS) {
+    const idle = idleFor()
+    if (idle >= IDLE_LIMIT_MS) {
+      debug(`lokal tekshiruv: ${formatDuration(idle)} faollik yo'q, limit oshdi, logout qilinmoqda`)
       await logout('idle_timeout')
       return
     }
+    debug(
+      `lokal tekshiruv: faolliksiz ${formatDuration(idle)}, logoutgacha ${formatDuration(IDLE_LIMIT_MS - idle)}` +
+        (state.activityDirty ? ' (yangi faollik bor, ping kutilmoqda)' : ''),
+    )
     await sendActivityIfNeeded()
     await refreshAccessToken().catch(() => undefined)
   }, CHECK_INTERVAL_MS)
@@ -207,6 +250,7 @@ function startSessionWatcher() {
     window.removeEventListener('focus', verifyIdleImmediately)
     window.removeEventListener('online', verifyIdleImmediately)
     channel?.removeEventListener('message', onChannelMessage)
+    debug("kuzatuv to'xtatildi")
   }
 }
 

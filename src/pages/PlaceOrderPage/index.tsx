@@ -138,6 +138,7 @@ export default function PlaceOrderPage() {
    } = useWarehouseAllListInfiniteQuery({
       brand: brandFilter ? Number(brandFilter) : undefined,
       product_category: categoryFilter ? Number(categoryFilter) : undefined,
+      is_active: true,
    });
    const groups = data?.groups ?? [];
 

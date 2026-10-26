@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { FaPlus, FaSpinner, FaTrash } from 'react-icons/fa';
 import {
 	Button,
+	Checkbox,
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
@@ -83,11 +84,15 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 	const updateMutation = useUpdateWarehouseSkladProductsMutation();
 
 	const [rows, setRows] = useState<SkladRow[] | null>(null);
+	const [isActive, setIsActive] = useState(true);
 	const [formError, setFormError] = useState('');
 
 	// Rows are taken from the server once (and again after a 409), so a background refetch doesn't wipe edits.
 	useEffect(() => {
-		if (query.data && rows === null) setRows(query.data.sklad_products.map(toRow));
+		if (query.data && rows === null) {
+			setRows(query.data.sklad_products.map(toRow));
+			setIsActive(query.data.warehouse.is_active ?? true);
+		}
 	}, [query.data, rows]);
 
 	const warehouse = query.data?.warehouse;
@@ -124,6 +129,7 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 		}
 
 		const payload = {
+			is_active: isActive,
 			sklad_products: rows.map((r) => ({
 				id: r.id,
 				type_sklad: Number(r.typeSklad),
@@ -263,9 +269,19 @@ export default function WarehouseEditModal({ open, setOpen, item }: WarehouseEdi
 					)}
 				</ModalBody>
 				<ModalFooter className='justify-between'>
-					<span className='text-ca-text'>
-						Jami qoldiq: <b className='text-ca-heading'>{formatNumber(totalCount)} dona</b>
-					</span>
+					<div className='flex flex-col gap-2'>
+						<span className='text-ca-text'>
+							Jami qoldiq: <b className='text-ca-heading'>{formatNumber(totalCount)} dona</b>
+						</span>
+						<Checkbox
+							id='warehouse-is-active'
+							label='Faol'
+							checked={isActive}
+							onCheckedChange={setIsActive}
+							disabled={rows === null}
+							inline
+						/>
+					</div>
 					<div className='flex gap-2'>
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>
 							Bekor qilish

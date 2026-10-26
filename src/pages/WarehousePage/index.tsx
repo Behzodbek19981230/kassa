@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { FaEdit, FaExclamationTriangle, FaImages, FaTelegramPlane, FaTrash } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import {
+   Badge,
    Button,
    buttonProps,
    buttonVariants,
@@ -202,6 +203,18 @@ export default function WarehousePage() {
          cell: (info) => formatNumber(info.getValue(), 2),
       }),
       columnHelper.accessor('cr_date', { header: 'Sana', size: 110, enableColumnFilter: false }),
+      columnHelper.accessor('is_active', {
+         header: 'Holati',
+         size: 100,
+         enableSorting: false,
+         enableColumnFilter: false,
+         cell: (info) =>
+            info.getValue() === false ? (
+               <Badge variant='danger'>Nofaol</Badge>
+            ) : (
+               <Badge variant='success'>Faol</Badge>
+            ),
+      }),
       columnHelper.accessor('status_count', {
          header: 'Mahsulotlar sanalganligi',
          size: 160,
