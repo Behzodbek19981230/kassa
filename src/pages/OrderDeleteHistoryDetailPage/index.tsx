@@ -1,6 +1,7 @@
 import { isAxiosError } from 'axios';
 import { type ReactNode, useEffect } from 'react';
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
 	Badge,
 	Button,
@@ -19,6 +20,8 @@ import { formatNumber } from '@/lib/number';
 import { formatTashkentDate, formatTashkentDateTime } from '@/pages/TwoStageImport/utils';
 import { useOrderDeleteHistoryQuery } from '@/services/order-delete-history/order-delete-history.queries';
 
+const LIST_PATH = '/cart-drafts/deleted-orders';
+
 const formatMoney = (value: unknown) => formatNumber(Number(value) || 0, 2);
 
 interface InfoRowProps {
@@ -35,22 +38,21 @@ function InfoRow({ label, children }: InfoRowProps) {
 	);
 }
 
-interface OrderDeleteHistoryDetailProps {
-	id: number;
-	onClose: () => void;
-}
-
-/** Read-only snapshot of one deleted order, shown under the history list. */
-export default function OrderDeleteHistoryDetail({ id, onClose }: OrderDeleteHistoryDetailProps) {
+/** Read-only snapshot of one deleted order (`/order-delete-history/{id}/`), opened from the history list. */
+export default function OrderDeleteHistoryDetailPage() {
+	const navigate = useNavigate();
+	const location = useLocation();
+	const { id } = useParams();
+	const auditId = Number(id) || undefined;
 	const { notify } = useNotification();
-	const { data, isLoading, isError, error } = useOrderDeleteHistoryQuery(id);
+	const { data, isLoading, isError, error } = useOrderDeleteHistoryQuery(auditId);
 	const isNotFound = isAxiosError(error) && error.response?.status === 404;
 
-	// The audit is purged after a month, so a stale row can 404 — drop back to the list.
+	// The audit is purged after a month, so a stale link can 404 — drop back to the list.
 	useEffect(() => {
 		if (!isNotFound) return;
 		notify({ title: 'Bu tarix topilmadi yoki saqlash muddati tugagan.' });
-		onClose();
+		navigate(LIST_PATH, { replace: true });
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isNotFound]);
 
@@ -76,8 +78,14 @@ export default function OrderDeleteHistoryDetail({ id, onClose }: OrderDeleteHis
 				</span>
 			}
 			actions={
-				<Button type='button' variant='white' size='xs' onClick={onClose}>
-					Orqaga
+				<Button
+					type='button'
+					variant='info'
+					size='xs'
+					// Going back keeps the list's page; a directly opened link has no history to return to.
+					onClick={() => (location.key === 'default' ? navigate(LIST_PATH) : navigate(-1))}
+				>
+					<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 				</Button>
 			}
 		>

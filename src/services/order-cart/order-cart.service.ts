@@ -37,7 +37,9 @@ export const orderCartService = {
 		await apiClient.delete(`/order-account-cart-draft/${id}/`);
 	},
 	clear: async (payload: ClearOrderCartPayload) => {
+		// The backend picks the cart by the `?client=` query param.
 		const { data } = await apiClient.delete<ClearOrderCartResponse>('/order-account-cart-draft/clear/', {
+			params: { client: payload.client },
 			data: payload,
 		});
 		return data;

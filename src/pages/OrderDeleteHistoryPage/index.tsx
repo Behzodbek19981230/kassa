@@ -1,5 +1,5 @@
 import { createColumnHelper, type PaginationState } from '@tanstack/react-table';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { FaArrowLeft, FaExclamationTriangle, FaEye, FaSyncAlt, FaTrashAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -12,7 +12,6 @@ import {
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
-import OrderDeleteHistoryDetail from '@/pages/OrderDeleteHistoryPage/components/OrderDeleteHistoryDetail';
 import StatCard from '@/pages/TwoStageImport/components/StatCard';
 import { formatTashkentDate, formatTashkentDateTime } from '@/pages/TwoStageImport/utils';
 import { clientService } from '@/services/client/client.service';
@@ -26,8 +25,6 @@ export default function OrderDeleteHistoryPage() {
 	const navigate = useNavigate();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [client, setClient] = useState('');
-	const [selectedId, setSelectedId] = useState<number>();
-	const detailRef = useRef<HTMLDivElement>(null);
 
 	const { data, isLoading, isFetching, isError, error, refetch } = useOrderDeleteHistoryListQuery({
 		client_id: client ? Number(client) : undefined,
@@ -36,10 +33,6 @@ export default function OrderDeleteHistoryPage() {
 	});
 
 	const paginationMeta = data?.pagination;
-
-	useEffect(() => {
-		if (selectedId !== undefined) detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-	}, [selectedId]);
 
 	const loadClientOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await clientService.list({ search: search || undefined, page, limit: 20 });
@@ -94,7 +87,12 @@ export default function OrderDeleteHistoryPage() {
 			size: 100,
 			meta: { align: 'right' },
 			cell: ({ row }) => (
-				<Button type='button' variant='primary' size='xs' onClick={() => setSelectedId(row.original.id)}>
+				<Button
+					type='button'
+					variant='primary'
+					size='xs'
+					onClick={() => navigate(`/cart-drafts/deleted-orders/${row.original.id}`)}
+				>
 					<FaEye className='mr-1.5' /> Ko'rish
 				</Button>
 			),
@@ -102,73 +100,64 @@ export default function OrderDeleteHistoryPage() {
 	];
 
 	return (
-		<>
-			<Panel
-				title="O'chirilgan buyurtmalar tarixi"
-				actions={
-					<Button type='button' variant='info' size='xs' onClick={() => navigate('/cart-drafts')}>
-						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
-					</Button>
-				}
-				onReload={() => refetch()}
-			>
-				<div className='mb-4 flex flex-wrap items-end gap-2'>
-					<div className='w-full sm:w-72'>
-						<label className='mb-1 block text-xs font-semibold text-ca-heading'>Mijoz:</label>
-						<Combobox
-							clearable
-							value={client}
-							onChange={handleClientChange}
-							loadOptions={loadClientOptions}
-							placeholder='Mijozni tanlang'
-							searchPlaceholder='Qidirish...'
-						/>
-					</div>
-					<Button type='button' variant='white' size='sm' disabled={!client} onClick={() => handleClientChange('')}>
-						<FaSyncAlt className='mr-1.5' /> Filtrni tozalash
-					</Button>
-				</div>
-
-				<div className='-mx-2.5 flex flex-wrap'>
-					<StatCard
-						icon={<FaTrashAlt />}
-						label="Jami o'chirilgan buyurtmalar"
-						value={formatNumber(paginationMeta?.total ?? 0)}
-						accent='danger'
+		<Panel
+			title="O'chirilgan buyurtmalar tarixi"
+			actions={
+				<Button type='button' variant='info' size='xs' onClick={() => navigate('/cart-drafts')}>
+					<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
+				</Button>
+			}
+			onReload={() => refetch()}
+		>
+			<div className='mb-4 flex flex-wrap items-end gap-2'>
+				<div className='w-full sm:w-72'>
+					<label className='mb-1 block text-xs font-semibold text-ca-heading'>Mijoz:</label>
+					<Combobox
+						clearable
+						value={client}
+						onChange={handleClientChange}
+						loadOptions={loadClientOptions}
+						placeholder='Mijozni tanlang'
+						searchPlaceholder='Qidirish...'
 					/>
 				</div>
+				<Button type='button' variant='white' size='sm' disabled={!client} onClick={() => handleClientChange('')}>
+					<FaSyncAlt className='mr-1.5' /> Filtrni tozalash
+				</Button>
+			</div>
 
-				<DataTable
-					columns={columns}
-					data={data?.results ?? []}
-					manualPagination
-					pageCount={paginationMeta?.lastPage ?? -1}
-					totalRows={paginationMeta?.total}
-					pagination={pagination}
-					onPaginationChange={setPagination}
-					enablePagination
-					enableSorting={false}
-					enableGlobalFilter={false}
-					enableColumnFilters={false}
-					enableColumnVisibility
-					columnVisibilityKey='order-delete-history'
-					enableStriping
-					getRowClassName={(row) => (row.id === selectedId ? 'bg-ca-theme/10' : undefined)}
-					isLoading={isLoading || isFetching}
-					emptyMessage={
-						isError
-							? getApiErrorMessage(error, 'Xatolik yuz berdi')
-							: "O'chirilgan buyurtmalar tarixi mavjud emas."
-					}
-					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
+			<div className='-mx-2.5 flex flex-wrap'>
+				<StatCard
+					icon={<FaTrashAlt />}
+					label="Jami o'chirilgan buyurtmalar"
+					value={formatNumber(paginationMeta?.total ?? 0)}
+					accent='danger'
 				/>
-			</Panel>
+			</div>
 
-			{selectedId !== undefined && (
-				<div ref={detailRef} className='scroll-mt-20'>
-					<OrderDeleteHistoryDetail key={selectedId} id={selectedId} onClose={() => setSelectedId(undefined)} />
-				</div>
-			)}
-		</>
+			<DataTable
+				columns={columns}
+				data={data?.results ?? []}
+				manualPagination
+				pageCount={paginationMeta?.lastPage ?? -1}
+				totalRows={paginationMeta?.total}
+				pagination={pagination}
+				onPaginationChange={setPagination}
+				enablePagination
+				enableSorting={false}
+				enableGlobalFilter={false}
+				enableColumnFilters={false}
+				enableColumnVisibility
+				columnVisibilityKey='order-delete-history'
+				enableStriping
+				isLoading={isLoading || isFetching}
+				emptyMessage={
+					isError
+						? getApiErrorMessage(error, 'Xatolik yuz berdi')
+						: "O'chirilgan buyurtmalar tarixi mavjud emas."
+				}
+				emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
+			/>
+		</Panel>
 	);
 }

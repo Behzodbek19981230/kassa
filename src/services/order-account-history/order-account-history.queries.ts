@@ -159,6 +159,10 @@ export function useHardDeleteOrderAccountHistoryMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (id: number) => orderAccountHistoryService.hardDelete(id),
-		onSuccess: () => invalidateAfterDraftAction(queryClient),
+		onSuccess: () => {
+			invalidateAfterDraftAction(queryClient);
+			// The backend writes an audit row on hard delete, so "O'chirilgan buyurtmalar tarixi" changes too.
+			queryClient.invalidateQueries({ queryKey: ['order-delete-history'] });
+		},
 	});
 }

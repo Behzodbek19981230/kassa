@@ -582,7 +582,7 @@ export default function PlaceOrderPage() {
                            disabled={!clientId || cartItems.length === 0}
                            onClick={() => setClearCartOpen(true)}
                         >
-                           Bekor qilish
+                           Tozalash
                         </Button>
                         <Button
                            type='button'

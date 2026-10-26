@@ -36,7 +36,7 @@ export default function ClearCartConfirmModal({ open, setOpen, companyId, client
 		<Modal open={open} onOpenChange={setOpen}>
 			<ModalContent>
 				<ModalHeader>
-					<ModalTitle>Bekor qilishni tasdiqlang</ModalTitle>
+					<ModalTitle>Tozalashni tasdiqlang</ModalTitle>
 				</ModalHeader>
 				<ModalBody>
 					<p>Savatchadagi barcha mahsulotlarni o'chirmoqchimisiz?</p>
