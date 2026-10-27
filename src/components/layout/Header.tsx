@@ -11,7 +11,6 @@ import {
    FaHistory,
    FaInfoCircle,
    FaPaperPlane,
-   FaPencilAlt,
    FaMoon,
    FaReceipt,
    FaShippingFast,
@@ -128,6 +127,22 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
    );
    const unconfirmedClientsCount = unconfirmedClientsData?.pagination.total ?? 0;
 
+   const yuanBadgeClassName = cn(
+      'flex items-center gap-1.5 rounded-full  px-2.5 py-1 font-semibold text-white',
+      isYuanExchangeRateSet ? 'bg-ca-green' : 'bg-ca-red',
+   );
+   const yuanBadgeContent = (
+      <>
+         <FaYenSign />
+         <span className='tabular-nums'>
+            {yuanExchangeRate
+               ? `1 $ = ${Number(yuanExchangeRate.dollar_per_yuan).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ¥`
+               : '...'}
+         </span>
+         {!isYuanExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}
+      </>
+   );
+
    // Header menus that fit stay in the bar; the rest (from the last one) move into the profile dropdown.
    const innerRef = useRef<HTMLDivElement>(null);
    const leftRef = useRef<HTMLDivElement>(null);
@@ -229,81 +244,57 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                         {formatDate(now)}
                      </span>
 
-                     <span className='flex items-center gap-1'>
-                        <Tooltip
-                           side='bottom'
-                           content={
-                              isExchangeRateSet
-                                 ? 'Bugungi dollar kursi'
-                                 : 'Bugungi dollar kursi hali belgilanmagan. Superadmin kursni yangilamaguncha kassada amallar bloklangan.'
-                           }
+                     <Tooltip
+                        side='bottom'
+                        content={
+                           isExchangeRateSet
+                              ? "Bugungi dollar kursi. O'zgartirish uchun bosing"
+                              : 'Bugungi dollar kursi hali belgilanmagan. Kurs yangilanmaguncha kassada amallar bloklangan. Yangilash uchun bosing'
+                        }
+                     >
+                        <button
+                           type='button'
+                           aria-label="Dollar kursini o'zgartirish"
+                           onClick={() => setRateModalCurrency('dollar')}
+                           className={cn(
+                              'flex items-center gap-1.5 rounded-full  px-2.5 py-1 font-semibold text-white transition-opacity hover:opacity-80 focus:outline-none',
+                              isExchangeRateSet ? 'bg-ca-green' : 'bg-ca-red',
+                           )}
                         >
-                           <span
-                              className={cn(
-                                 'flex items-center gap-1.5 rounded-full  px-2.5 py-1 font-semibold text-white',
-                                 isExchangeRateSet ? 'bg-ca-green' : 'bg-ca-red',
-                              )}
-                           >
-                              <FaDollarSign />
-                              <span className='tabular-nums'>
-                                 {exchangeRate
-                                    ? `1 $ = ${Number(exchangeRate.dollar).toLocaleString('ru-RU')} so'm`
-                                    : '...'}
-                              </span>
-                              {!isExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}
+                           <FaDollarSign />
+                           <span className='tabular-nums'>
+                              {exchangeRate
+                                 ? `1 $ = ${Number(exchangeRate.dollar).toLocaleString('ru-RU')} so'm`
+                                 : '...'}
                            </span>
-                        </Tooltip>
-                        {isSuperAdmin && (
-                           <Tooltip side='bottom' content="Kursni o'zgartirish">
-                              <button
-                                 type='button'
-                                 aria-label="Dollar kursini o'zgartirish"
-                                 onClick={() => setRateModalCurrency('dollar')}
-                                 className='rounded-full p-1.5 text-ca-nav-text/70 transition-colors hover:bg-white/10 hover:text-ca-theme focus:outline-none'
-                              >
-                                 <FaPencilAlt className='text-[11px]' />
-                              </button>
-                           </Tooltip>
-                        )}
-                     </span>
+                           {!isExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}
+                        </button>
+                     </Tooltip>
 
-                     <span className='flex items-center gap-1'>
-                        <Tooltip
-                           side='bottom'
-                           content={
-                              isYuanExchangeRateSet
-                                 ? 'Bugungi yuan kursi'
-                                 : 'Bugungi yuan kursi hali belgilanmagan. Superadmin kursni yangilamaguncha Logistika sahifalari bloklangan.'
-                           }
-                        >
-                           <span
-                              className={cn(
-                                 'flex items-center gap-1.5 rounded-full  px-2.5 py-1 font-semibold text-white',
-                                 isYuanExchangeRateSet ? 'bg-ca-green' : 'bg-ca-red',
-                              )}
+                     <Tooltip
+                        side='bottom'
+                        content={
+                           isYuanExchangeRateSet
+                              ? isSuperAdmin
+                                 ? "Bugungi yuan kursi. O'zgartirish uchun bosing"
+                                 : 'Bugungi yuan kursi'
+                              : 'Bugungi yuan kursi hali belgilanmagan. Superadmin kursni yangilamaguncha Logistika sahifalari bloklangan.'
+                        }
+                     >
+                        {/* Only Super Admin may change the yuan rate. */}
+                        {isSuperAdmin ? (
+                           <button
+                              type='button'
+                              aria-label="Yuan kursini o'zgartirish"
+                              onClick={() => setRateModalCurrency('yuan')}
+                              className={cn(yuanBadgeClassName, 'transition-opacity hover:opacity-80 focus:outline-none')}
                            >
-                              <FaYenSign />
-                              <span className='tabular-nums'>
-                                 {yuanExchangeRate
-                                    ? `1 $ = ${Number(yuanExchangeRate.dollar_per_yuan).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ¥`
-                                    : '...'}
-                              </span>
-                              {!isYuanExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}
-                           </span>
-                        </Tooltip>
-                        {isSuperAdmin && (
-                           <Tooltip side='bottom' content="Kursni o'zgartirish">
-                              <button
-                                 type='button'
-                                 aria-label="Yuan kursini o'zgartirish"
-                                 onClick={() => setRateModalCurrency('yuan')}
-                                 className='rounded-full p-1.5 text-ca-nav-text/70 transition-colors hover:bg-white/10 hover:text-ca-theme focus:outline-none'
-                              >
-                                 <FaPencilAlt className='text-[11px]' />
-                              </button>
-                           </Tooltip>
+                              {yuanBadgeContent}
+                           </button>
+                        ) : (
+                           <span className={yuanBadgeClassName}>{yuanBadgeContent}</span>
                         )}
-                     </span>
+                     </Tooltip>
                   </li>
                </div>
 
@@ -591,7 +582,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
             </div>
          </header>
 
-         {isSuperAdmin && companyId && (
+         {companyId && (
             <>
                <ExchangeRateEditModal
                   open={rateModalCurrency === 'dollar'}
@@ -601,14 +592,16 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                   rateId={exchangeRate?.id}
                   rateValue={exchangeRate?.dollar}
                />
-               <ExchangeRateEditModal
-                  open={rateModalCurrency === 'yuan'}
-                  setOpen={(open) => setRateModalCurrency(open ? 'yuan' : null)}
-                  companyId={companyId}
-                  currency='yuan'
-                  rateId={yuanExchangeRate?.id}
-                  rateValue={yuanExchangeRate?.dollar_per_yuan}
-               />
+               {isSuperAdmin && (
+                  <ExchangeRateEditModal
+                     open={rateModalCurrency === 'yuan'}
+                     setOpen={(open) => setRateModalCurrency(open ? 'yuan' : null)}
+                     companyId={companyId}
+                     currency='yuan'
+                     rateId={yuanExchangeRate?.id}
+                     rateValue={yuanExchangeRate?.dollar_per_yuan}
+                  />
+               )}
             </>
          )}
 

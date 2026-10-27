@@ -102,7 +102,7 @@ export default function Layout() {
 								Bugungi dollar kursi yangilanmagan
 							</div>
 							<div className='max-w-md text-sm text-ca-text'>
-								Shuning uchun hech qanday vazifa qila olmaysiz. Adminga murojaat qiling.
+								Shuning uchun hech qanday vazifa qila olmaysiz. Yuqoridagi dollar kursini bosib, kursni yangilang.
 							</div>
 						</div>
 					)}
@@ -119,7 +119,7 @@ export default function Layout() {
 						</ModalTitle>
 					</ModalHeader>
 					<ModalBody>
-						<p>Shuning uchun hech qanday vazifa qila olmaysiz. Adminga murojaat qiling.</p>
+						<p>Shuning uchun hech qanday vazifa qila olmaysiz. Yuqoridagi dollar kursini bosib, kursni yangilang.</p>
 					</ModalBody>
 					<ModalFooter>
 						<Button variant='danger' onClick={() => setRateModalOpen(false)}>
