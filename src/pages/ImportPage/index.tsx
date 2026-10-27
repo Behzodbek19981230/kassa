@@ -108,7 +108,7 @@ function buildBrandVariants(groups: WarehouseAllListBrandGroup[]): BrandVariants
 }
 
 export default function ImportPage() {
-   const { companyId, canWrite } = useCurrentCompany();
+   const { companyId, canWrite, isSuperAdmin } = useCurrentCompany();
    const productCols = useColumnVisibility('import-products', PRODUCT_COLUMNS);
    const cartCols = useColumnVisibility('import-cart', CART_COLUMNS);
    const cartLabelSpan = CART_LABEL_COLUMNS.filter((id) => cartCols.isVisible(id)).length;
@@ -374,12 +374,15 @@ export default function ImportPage() {
                <Panel
                   title='Mening buyurtmam'
                   actions={
-                     <OpenDialogButton
-                        element={(props) => <Button {...props} />}
-                        elementProps={buttonProps("+ Yuk jo'natuvchi qo'shish", 'warning', 'xs')}
-                        dialog={ConsignorFormModal}
-                        dialogProps={{ mode: 'create' as const }}
-                     />
+                     // Adding a consignor from here is Super Admin only.
+                     isSuperAdmin && (
+                        <OpenDialogButton
+                           element={(props) => <Button {...props} />}
+                           elementProps={buttonProps("+ Yuk jo'natuvchi qo'shish", 'warning', 'xs')}
+                           dialog={ConsignorFormModal}
+                           dialogProps={{ mode: 'create' as const }}
+                        />
+                     )
                   }
                >
                   <div className='mb-4 flex flex-wrap items-center gap-3'>

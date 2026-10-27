@@ -74,7 +74,7 @@ export default function ClientPage() {
 		limit: pagination.pageSize,
 		search: nameFilter || undefined,
 		type: (typeFilter as ClientType) || undefined,
-		is_profit_loss: profitLossFilter ? (Number(profitLossFilter) as 0 | 1) : undefined,
+		is_profit_loss: isSuperAdmin && profitLossFilter ? (Number(profitLossFilter) as 0 | 1) : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 		ordering,
 	});
@@ -144,6 +144,16 @@ export default function ClientPage() {
 			enableColumnFilter: false,
 			cell: (info) => <span className='font-semibold text-ca-red'>{formatNumber(info.getValue(), 2)}</span>,
 		}),
+		columnHelper.accessor('debt_limit', {
+			header: 'Qarz limit ($)',
+			size: 120,
+			enableColumnFilter: false,
+			// null means the client has no limit.
+			cell: (info) => {
+				const value = info.getValue();
+				return value == null ? 'Cheklanmagan' : formatNumber(value, 2);
+			},
+		}),
 		columnHelper.accessor('phone', { header: 'Telefon nomer', size: 160, enableColumnFilter: false }),
 		columnHelper.accessor('worker_user', {
 			header: "Mas'ul xodim",
@@ -182,21 +192,26 @@ export default function ClientPage() {
 				filterPlaceholder: 'Barchasi',
 			},
 		}),
-		columnHelper.accessor('is_profit_loss', {
-			header: 'Foyda/Zarar hisoblanasinmi?',
-			size: 170,
-			cell: (info) => (
-				<span className={info.getValue() ? 'font-semibold text-ca-green' : 'font-semibold text-ca-red'}>
-					{info.getValue() ? 'Hisoblansin' : 'Hisoblanmasin'}
-				</span>
-			),
-			meta: {
-				filterVariant: 'select',
-				filterOptions: CLIENT_PROFIT_LOSS_OPTIONS,
-				filterSelectedLabel: (value) => profitLossLabelByValue.get(value),
-				filterPlaceholder: 'Barchasi',
-			},
-		}),
+		// Foyda/Zarar and Keshbek are Super Admin only.
+		...(isSuperAdmin
+			? [
+					columnHelper.accessor('is_profit_loss', {
+						header: 'Foyda/Zarar hisoblanasinmi?',
+						size: 170,
+						cell: (info) => (
+							<span className={info.getValue() ? 'font-semibold text-ca-green' : 'font-semibold text-ca-red'}>
+								{info.getValue() ? 'Hisoblansin' : 'Hisoblanmasin'}
+							</span>
+						),
+						meta: {
+							filterVariant: 'select',
+							filterOptions: CLIENT_PROFIT_LOSS_OPTIONS,
+							filterSelectedLabel: (value) => profitLossLabelByValue.get(value),
+							filterPlaceholder: 'Barchasi',
+						},
+					}),
+				]
+			: []),
 		columnHelper.accessor('is_blocked', {
 			header: 'Bloklangan',
 			size: 130,
@@ -221,12 +236,16 @@ export default function ClientPage() {
 				filterPlaceholder: 'Barchasi',
 			},
 		}),
-		columnHelper.accessor('keshbek', {
-			header: 'Keshbek (%)',
-			size: 110,
-			enableColumnFilter: false,
-			cell: (info) => `${formatNumber(info.getValue(), 2)}%`,
-		}),
+		...(isSuperAdmin
+			? [
+					columnHelper.accessor('keshbek', {
+						header: 'Keshbek (%)',
+						size: 110,
+						enableColumnFilter: false,
+						cell: (info) => `${formatNumber(info.getValue(), 2)}%`,
+					}),
+				]
+			: []),
 		columnHelper.display({
 			id: 'actions',
 			header: 'Harakatlar',
@@ -236,17 +255,19 @@ export default function ClientPage() {
 			size: 150,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
-					<Tooltip content='Keshbek tarixi'>
-						<Button
-							type='button'
-							variant='info'
-							size='icon'
-							aria-label='Keshbek tarixi'
-							onClick={() => navigate(`/settings/clients/${row.original.id}/keshbek-history`)}
-						>
-							<FaList />
-						</Button>
-					</Tooltip>
+					{isSuperAdmin && (
+						<Tooltip content='Keshbek tarixi'>
+							<Button
+								type='button'
+								variant='info'
+								size='icon'
+								aria-label='Keshbek tarixi'
+								onClick={() => navigate(`/settings/clients/${row.original.id}/keshbek-history`)}
+							>
+								<FaList />
+							</Button>
+						</Tooltip>
+					)}
 					{canWrite && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
@@ -258,7 +279,7 @@ export default function ClientPage() {
 							dialogProps={{ mode: 'edit' as const, item: row.original }}
 						/>
 					)}
-					{canWrite && (
+					{canWrite && isSuperAdmin && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{

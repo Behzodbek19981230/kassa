@@ -10,7 +10,7 @@ import DebtRepaymentPage from '@/pages/settings/DebtRepaymentPage';
 export default function CustomerOrderHistoryPage() {
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
-	const { isSuperAdmin } = usePermissions();
+	const { isSuperAdmin, canManageOrderCart } = usePermissions();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const tabParam = searchParams.get('tab');
 	// "To'langan qarzlar" is Super Admin only, same as its /settings/debt-repayments route.
@@ -18,16 +18,20 @@ export default function CustomerOrderHistoryPage() {
 		tabParam === 'debtors' || (tabParam === 'debt-repayments' && isSuperAdmin) ? tabParam : 'all';
 	const [refetchActive, setRefetchActive] = useState<() => void>(() => () => undefined);
 
-	const { data: cartDraftData } = useOrderCartGroupedListQuery({ is_active: true, limit: 1 });
+	const { data: cartDraftData } = useOrderCartGroupedListQuery({ is_active: true, limit: 1 }, canManageOrderCart);
 	const cartDraftCount = cartDraftData?.pagination.total ?? 0;
 
 	const renderPanel = (isDebtorOnly: boolean) => (
 		<Panel
 			title="Ro'yxat"
 			actions={
-				<Button type='button' variant='danger' size='xs' onClick={() => navigate('/order-cart')}>
-					Karzinka {cartDraftCount > 0 && `(${cartDraftCount})`}
-				</Button>
+				// The "Mijozdan qarzdorlik" tab has no cart button.
+				!isDebtorOnly &&
+				canManageOrderCart && (
+					<Button type='button' variant='danger' size='xs' onClick={() => navigate('/order-cart')}>
+						Karzinka {cartDraftCount > 0 && `(${cartDraftCount})`}
+					</Button>
+				)
 			}
 			onReload={() => refetchActive()}
 			className='mb-0'

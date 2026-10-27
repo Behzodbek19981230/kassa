@@ -89,13 +89,29 @@ function clientToFormValues(client: Client): ClientFormValues {
 	};
 }
 
+type LockedClientField = 'total_debt' | 'debt_limit' | 'keshbek' | 'worker_user' | 'is_profit_loss' | 'is_blocked';
+
+/** Fields only Super Admin may change on an existing client; everyone else saves them unchanged. */
+function lockedClientFields(client: Client): Pick<ClientPayload, LockedClientField> {
+	return {
+		total_debt: Number(client.total_debt) || 0,
+		debt_limit: client.debt_limit != null && client.debt_limit !== '' ? Number(client.debt_limit) : null,
+		keshbek: Number(client.keshbek) || 0,
+		worker_user: client.worker_user ?? null,
+		is_profit_loss: client.is_profit_loss ? 1 : 0,
+		is_blocked: Boolean(client.is_blocked),
+	};
+}
+
 export default function ClientFormModal({ open, setOpen, mode, item, hideStatusFlags = false }: ClientFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
-	const { companyId } = useCurrentCompany();
+	const { companyId, isSuperAdmin } = useCurrentCompany();
 
 	const clientQuery = useClientQuery(mode === 'edit' ? item?.id : undefined);
 	const currentClient = clientQuery.data ?? item;
+	// When editing, everyone but Super Admin may only change F.I.Sh, telefon, turi, viloyat, tuman and manzil.
+	const isRestrictedEdit = mode === 'edit' && !isSuperAdmin;
 
 	const {
 		control,
@@ -202,6 +218,7 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 			is_profit_loss: values.is_profit_loss ? 1 : 0,
 			is_blocked: values.is_blocked,
 			company,
+			...(isRestrictedEdit && currentClient ? lockedClientFields(currentClient) : {}),
 		};
 
 		try {
@@ -290,74 +307,78 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 									)}
 								/>
 							</FormField>
-							<FormField label="Ma'sul xodim" horizontal={false} className='mb-0'>
-								<Controller
-									name='worker_user'
-									control={control}
-									render={({ field }) => (
-										<Combobox
-											value={field.value}
-											onChange={field.onChange}
-											loadOptions={loadUserOptions}
-											selectedLabel={
-												currentClient?.worker_user_detail
-													? userLabel(currentClient.worker_user_detail)
-													: undefined
-											}
-											placeholder='Tanlang...'
-											searchPlaceholder='Xodim qidirish...'
-											clearable
-										/>
-									)}
-								/>
-							</FormField>
+							{!isRestrictedEdit && (
+								<FormField label="Ma'sul xodim" horizontal={false} className='mb-0'>
+									<Controller
+										name='worker_user'
+										control={control}
+										render={({ field }) => (
+											<Combobox
+												value={field.value}
+												onChange={field.onChange}
+												loadOptions={loadUserOptions}
+												selectedLabel={
+													currentClient?.worker_user_detail
+														? userLabel(currentClient.worker_user_detail)
+														: undefined
+												}
+												placeholder='Tanlang...'
+												searchPlaceholder='Xodim qidirish...'
+												clearable
+											/>
+										)}
+									/>
+								</FormField>
+							)}
 						</div>
-						<div className='mb-3 grid grid-cols-3 gap-3'>
-							<FormField
-								label='Qarz miqdori ($)'
-								error={errors.total_debt?.message}
-								required
-								horizontal={false}
-								className='mb-0'
-							>
-								<Controller
-									name='total_debt'
-									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
-								/>
-							</FormField>
-							<FormField
-								label='Qarz limit ($)'
-								error={errors.debt_limit?.message}
-								horizontal={false}
-								className='mb-0'
-							>
-								<Controller
-									name='debt_limit'
-									control={control}
-									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
-								/>
-							</FormField>
-							<FormField
-								label='Keshbek (%)'
-								error={errors.keshbek?.message}
-								horizontal={false}
-								className='mb-0'
-							>
-								<Controller
-									name='keshbek'
-									control={control}
-									render={({ field }) => (
-										<PriceInput decimals={2}
-											max={100}
-											value={field.value}
-											onChange={(v) => field.onChange(v)}
-											onBlur={field.onBlur}
-										/>
-									)}
-								/>
-							</FormField>
-						</div>
+						{!isRestrictedEdit && (
+							<div className='mb-3 grid grid-cols-3 gap-3'>
+								<FormField
+									label='Qarz miqdori ($)'
+									error={errors.total_debt?.message}
+									required
+									horizontal={false}
+									className='mb-0'
+								>
+									<Controller
+										name='total_debt'
+										control={control}
+										render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									/>
+								</FormField>
+								<FormField
+									label='Qarz limit ($)'
+									error={errors.debt_limit?.message}
+									horizontal={false}
+									className='mb-0'
+								>
+									<Controller
+										name='debt_limit'
+										control={control}
+										render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									/>
+								</FormField>
+								<FormField
+									label='Keshbek (%)'
+									error={errors.keshbek?.message}
+									horizontal={false}
+									className='mb-0'
+								>
+									<Controller
+										name='keshbek'
+										control={control}
+										render={({ field }) => (
+											<PriceInput decimals={2}
+												max={100}
+												value={field.value}
+												onChange={(v) => field.onChange(v)}
+												onBlur={field.onBlur}
+											/>
+										)}
+									/>
+								</FormField>
+							</div>
+						)}
 						<div className='mb-3 grid grid-cols-2 gap-3'>
 							<FormField
 								label='Viloyat'
@@ -416,7 +437,7 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 							<Textarea rows={2} {...register('address')} />
 						</FormField>
 
-						{!hideStatusFlags && (
+						{!hideStatusFlags && !isRestrictedEdit && (
 							<div className='mb-3 flex flex-wrap gap-4'>
 								<Controller
 									name='is_profit_loss'

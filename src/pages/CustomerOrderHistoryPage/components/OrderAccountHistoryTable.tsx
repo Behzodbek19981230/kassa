@@ -55,7 +55,7 @@ export default function OrderAccountHistoryTable({
    onRefetchReady,
 }: OrderAccountHistoryTableProps) {
    const navigate = useNavigate();
-   const { canEditOwned, isSuperAdmin } = usePermissions();
+   const { canEditOrder, canDeleteOrders, isSuperAdmin } = usePermissions();
 
    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -261,10 +261,9 @@ export default function OrderAccountHistoryTable({
          size: isDebtorOnly ? 90 : 260,
          cell: ({ row }) => {
             const item = row.original;
-            const canEdit = canEditOwned(item);
             return (
                <div className='flex justify-end gap-1'>
-                  {item.update_status === 1 && canWrite && canEdit && (
+                  {item.update_status === 1 && canWrite && isSuperAdmin && (
                      <Tooltip content="Buyurtma o'zgartirilgan, tasdiqlash uchun bosing">
                         <OpenDialogButton
                            element={(props) => <Button {...props} />}
@@ -277,7 +276,7 @@ export default function OrderAccountHistoryTable({
                         />
                      </Tooltip>
                   )}
-                  {!isDebtorOnly && canWrite && canEdit && (
+                  {!isDebtorOnly && canWrite && canEditOrder(item) && (
                      <Button
                         type='button'
                         variant='info'
@@ -297,7 +296,7 @@ export default function OrderAccountHistoryTable({
                   >
                      <FaExpand />
                   </Button>
-                  {!isDebtorOnly && canWrite && canEdit && (
+                  {!isDebtorOnly && canWrite && canDeleteOrders && (
                      <>
                         <OpenDialogButton
                            element={(props) => <Button {...props} />}

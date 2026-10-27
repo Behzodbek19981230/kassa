@@ -379,7 +379,16 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
 export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile }: SidebarProps) {
    const { pathname } = useLocation();
    const { isAdminOrManager, isSuperAdmin } = useCurrentCompany();
-   const { canManageConsignor, canManageWarehouse, canImport, isManager } = usePermissions();
+   const {
+      canManageConsignor,
+      canManageWarehouse,
+      canImport,
+      canViewWarehouseProducts,
+      canManageOrderCart,
+      canViewWarehouseReport,
+      canViewClients,
+      isManager,
+   } = usePermissions();
    const menu = useMemo(
       () =>
          filterMenuByPermissions(sidebarMenu, {
@@ -388,10 +397,25 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
             canManageConsignor,
             canManageWarehouse,
             canImport,
+            canViewWarehouseProducts,
+            canManageOrderCart,
+            canViewWarehouseReport,
+            canViewClients,
             isManager,
             isNotManager: !isManager,
          }),
-      [isAdminOrManager, isSuperAdmin, canManageConsignor, canManageWarehouse, canImport, isManager],
+      [
+         isAdminOrManager,
+         isSuperAdmin,
+         canManageConsignor,
+         canManageWarehouse,
+         canImport,
+         canViewWarehouseProducts,
+         canManageOrderCart,
+         canViewWarehouseReport,
+         canViewClients,
+         isManager,
+      ],
    );
 
    const [expanded, setExpanded] = useState<Set<string>>(() => new Set(collectExpandedIds(menu, pathname)));

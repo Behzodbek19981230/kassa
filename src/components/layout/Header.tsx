@@ -25,6 +25,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { sidebarMenu } from '@/data/sidebarMenu';
 import { logout } from '@/lib/session';
 import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/theme';
 import { useClientListQuery } from '@/services/client/client.queries';
@@ -94,12 +95,12 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
       ownCompany,
       ownCompanyId,
       isSuperAdmin,
-      isAdminOrManager,
       exchangeRate,
       isExchangeRateSet,
       yuanExchangeRate,
       isYuanExchangeRateSet,
    } = useCurrentCompany();
+   const { canConfirmClients, canSendTelegramBroadcast } = usePermissions();
    const currentCompany = companies.find((c) => c.id === companyId);
    const { notify } = useNotification();
 
@@ -123,25 +124,9 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
          limit: 1,
       },
       // Loaded once per page load; mutations that change the count invalidate it.
-      { staleTime: Infinity, enabled: isSuperAdmin },
+      { staleTime: Infinity, enabled: canConfirmClients },
    );
    const unconfirmedClientsCount = unconfirmedClientsData?.pagination.total ?? 0;
-
-   const yuanBadgeClassName = cn(
-      'flex items-center gap-1.5 rounded-full  px-2.5 py-1 font-semibold text-white',
-      isYuanExchangeRateSet ? 'bg-ca-green' : 'bg-ca-red',
-   );
-   const yuanBadgeContent = (
-      <>
-         <FaYenSign />
-         <span className='tabular-nums'>
-            {yuanExchangeRate
-               ? `1 $ = ${Number(yuanExchangeRate.dollar_per_yuan).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ¥`
-               : '...'}
-         </span>
-         {!isYuanExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}
-      </>
-   );
 
    // Header menus that fit stay in the bar; the rest (from the last one) move into the profile dropdown.
    const innerRef = useRef<HTMLDivElement>(null);
@@ -152,8 +137,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
    const [measureTick, setMeasureTick] = useState(0);
    const inHeader = (index: number) => measuring || index < visibleCount;
    const inMenu = (index: number) => !measuring && index >= visibleCount;
-   // Clients (0) and transfers (2) are superadmin-only, telegram (1) is admin/manager. Hidden items keep their slot so indices stay stable.
-   const canSee = [isSuperAdmin, isAdminOrManager, isSuperAdmin, showCompanySelect && companies.length > 1];
+   // Clients (0) are Super Admin + Admin, telegram (1) is Super Admin + Admin + Manager, transfers (2) are superadmin-only. Hidden items keep their slot so indices stay stable.
+   const canSee = [canConfirmClients, canSendTelegramBroadcast, isSuperAdmin, showCompanySelect && companies.length > 1];
    const anyInMenu = [0, 1, 2, 3].some((i) => inMenu(i) && canSee[i]);
    const hasMenuTop = anyInMenu;
 
@@ -271,30 +256,35 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                         </button>
                      </Tooltip>
 
-                     <Tooltip
-                        side='bottom'
-                        content={
-                           isYuanExchangeRateSet
-                              ? isSuperAdmin
+                     {/* The yuan rate is Super Admin only — hidden from every other role. */}
+                     {isSuperAdmin && (
+                        <Tooltip
+                           side='bottom'
+                           content={
+                              isYuanExchangeRateSet
                                  ? "Bugungi yuan kursi. O'zgartirish uchun bosing"
-                                 : 'Bugungi yuan kursi'
-                              : 'Bugungi yuan kursi hali belgilanmagan. Superadmin kursni yangilamaguncha Logistika sahifalari bloklangan.'
-                        }
-                     >
-                        {/* Only Super Admin may change the yuan rate. */}
-                        {isSuperAdmin ? (
+                                 : 'Bugungi yuan kursi hali belgilanmagan. Kurs yangilanmaguncha Logistika sahifalari bloklangan. Yangilash uchun bosing'
+                           }
+                        >
                            <button
                               type='button'
                               aria-label="Yuan kursini o'zgartirish"
                               onClick={() => setRateModalCurrency('yuan')}
-                              className={cn(yuanBadgeClassName, 'transition-opacity hover:opacity-80 focus:outline-none')}
+                              className={cn(
+                                 'flex items-center gap-1.5 rounded-full  px-2.5 py-1 font-semibold text-white transition-opacity hover:opacity-80 focus:outline-none',
+                                 isYuanExchangeRateSet ? 'bg-ca-green' : 'bg-ca-red',
+                              )}
                            >
-                              {yuanBadgeContent}
+                              <FaYenSign />
+                              <span className='tabular-nums'>
+                                 {yuanExchangeRate
+                                    ? `1 $ = ${Number(yuanExchangeRate.dollar_per_yuan).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ¥`
+                                    : '...'}
+                              </span>
+                              {!isYuanExchangeRateSet && <FaExclamationTriangle className='animate-pulse' />}
                            </button>
-                        ) : (
-                           <span className={yuanBadgeClassName}>{yuanBadgeContent}</span>
-                        )}
-                     </Tooltip>
+                        </Tooltip>
+                     )}
                   </li>
                </div>
 

@@ -27,7 +27,7 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 export default function VozvratOrderHistoryPage() {
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
-	const { canEditOwned } = usePermissions();
+	const { canEditOrder, canDeleteOrders } = usePermissions();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [deletingItem, setDeletingItem] = useState<VozvratOrderListItem | null>(null);
@@ -119,10 +119,9 @@ export default function VozvratOrderHistoryPage() {
 			meta: { align: 'right' },
 			enableColumnFilter: false,
 			cell: ({ row }) => {
-				const canEdit = canEditOwned(row.original);
 				return (
 					<div className='flex justify-end gap-1'>
-						{canWrite && canEdit && (
+						{canWrite && canEditOrder(row.original) && (
 							<Button
 								type='button'
 								variant='warning'
@@ -142,7 +141,7 @@ export default function VozvratOrderHistoryPage() {
 						>
 							<FaExpand />
 						</Button>
-						{canWrite && canEdit && (
+						{canWrite && canDeleteOrders && (
 							<Button
 								type='button'
 								variant='danger'

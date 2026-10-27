@@ -38,13 +38,14 @@ import { roleService } from '@/services/role/role.service';
 import { useCreateUserMutation, useUpdateUserMutation, useUserQuery } from '@/services/user/user.queries';
 import { USER_TYPE_OPTIONS, type User, type UserPayload } from '@/services/user/user.types';
 import { getApiErrorMessage } from '@/lib/errors';
+import { ROLE } from '@/lib/permissions';
 
 const GENDER_OPTIONS = [
 	{ value: 'male', label: 'Erkak' },
 	{ value: 'female', label: 'Ayol' },
 ];
 
-const MULTI_COMPANY_ROLE_NAMES = ['Super Admin', 'Manager'];
+const MULTI_COMPANY_ROLE_KEYS: string[] = [ROLE.SUPER_ADMIN, ROLE.MANAGER];
 
 function buildUserFormSchema(mode: 'create' | 'edit') {
 	return z
@@ -113,6 +114,9 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 	const [avatarFile, setAvatarFile] = useState<File | null>(null);
 	const [avatarPreview, setAvatarPreview] = useState<string | null>(item?.avatar ?? null);
 	const [roleLabel, setRoleLabel] = useState(item?.roles?.name ?? '');
+	const [roleKey, setRoleKey] = useState(item?.roles?.key ?? '');
+	// Combobox options only carry id + label, so remember each loaded role's key by id.
+	const roleKeyByIdRef = useRef<Record<string, string>>({});
 	const avatarInputRef = useRef<HTMLInputElement>(null);
 
 	const userQuery = useUserQuery(mode === 'edit' ? item?.id : undefined);
@@ -160,6 +164,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 			reset(userToFormValues(userQuery.data));
 			setAvatarPreview(userQuery.data.avatar ?? null);
 			setRoleLabel(userQuery.data.roles?.name ?? '');
+			setRoleKey(userQuery.data.roles?.key ?? '');
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [userQuery.data]);
@@ -167,7 +172,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 	const regionValue = watch('region');
 	const companiesValue = watch('companies');
 	const tradeCompanyValue = watch('trade_company');
-	const isMultiCompanyRole = MULTI_COMPANY_ROLE_NAMES.includes(roleLabel);
+	const isMultiCompanyRole = MULTI_COMPANY_ROLE_KEYS.includes(roleKey);
 
 	const createMutation = useCreateUserMutation();
 	const updateMutation = useUpdateUserMutation();
@@ -232,6 +237,9 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 
 	const loadRoleOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await roleService.list({ search: search || undefined, page, limit: 20 });
+		result.results.forEach((r) => {
+			roleKeyByIdRef.current[String(r.id)] = r.key;
+		});
 		return {
 			options: result.results.map((r) => ({ value: String(r.id), label: r.name })),
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
@@ -258,8 +266,10 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 
 	const handleRoleChange = (value: string, option: ComboboxOption | null) => {
 		setValue('role', value, { shouldValidate: true });
+		const key = option ? (roleKeyByIdRef.current[value] ?? '') : '';
 		setRoleLabel(option?.label ?? '');
-		if (option && !MULTI_COMPANY_ROLE_NAMES.includes(option.label)) {
+		setRoleKey(key);
+		if (option && !MULTI_COMPANY_ROLE_KEYS.includes(key)) {
 			setValue('companies', tradeCompanyValue ? [tradeCompanyValue] : [], { shouldValidate: true });
 		}
 	};

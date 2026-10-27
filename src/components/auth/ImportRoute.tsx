@@ -2,7 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { usePermissions } from '@/lib/permissions'
 import { useUserInfoQuery } from '@/services/user/user.queries'
 
-/** Import page: closed for Manager, who is sent back to the products list. */
+/** Import page: Super Admin + Sklad Manager only; everyone else is sent back to the products list. */
 export default function ImportRoute() {
   const { isLoading } = useUserInfoQuery()
   const { canImport } = usePermissions()

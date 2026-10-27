@@ -2,7 +2,13 @@ import type { SidebarMenuItem } from '@/types';
 
 export const sidebarMenu: SidebarMenuItem[] = [
 	{ id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/', requiredPermission: 'isSuperAdmin' },
-	{ id: 'warehouse-products', icon: 'boxes', label: 'Ombor mahsulotlari', path: '/warehouse-products' },
+	{
+		id: 'warehouse-products',
+		icon: 'boxes',
+		label: 'Ombor mahsulotlari',
+		path: '/warehouse-products',
+		requiredPermission: 'canViewWarehouseProducts',
+	},
 	{ id: 'place-order', icon: 'cart', label: 'Buyurtma qilish', path: '/place-order' },
 	{
 		id: 'customer-order-history',
@@ -18,6 +24,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		icon: 'tags',
 		label: 'Tovarlar va Narxlar',
 		path: '/warehouse-prices',
+		requiredPermission: 'isSuperAdmin',
 	},
 	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '/import', requiredPermission: 'canImport' },
 	{
@@ -60,7 +67,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		icon: 'warehouse',
 		label: 'Omborxona hisobi',
 		path: '/warehouse-report',
-		requiredPermission: 'isSuperAdmin',
+		requiredPermission: 'canViewWarehouseReport',
 	},
 	{
 		id: 'my-debts',
@@ -95,6 +102,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: 'shipping-fast',
 				label: 'Logistika firmalari',
 				path: '/system/logistics-companies',
+				requiredPermission: 'isSuperAdmin',
 			},
 			{
 				id: 'users',
@@ -113,7 +121,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		label: 'Sozlamalar',
 		requiredPermission: 'isNotManager',
 		children: [
-			{ id: 'clients', icon: 'users', label: 'Mijozlar', path: '/settings/clients' },
+			{ id: 'clients', icon: 'users', label: 'Mijozlar', path: '/settings/clients', requiredPermission: 'canViewClients' },
 			{
 				id: 'debtors',
 				icon: 'bookmark',
@@ -133,7 +141,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: 'cart',
 				label: 'Buyurtma Karzinka',
 				path: '/cart-drafts',
-				requiredPermission: 'isSuperAdmin',
+				requiredPermission: 'canManageOrderCart',
 			},
 			{
 				id: 'debt-payment-cart-drafts',
@@ -144,19 +152,12 @@ export const sidebarMenu: SidebarMenuItem[] = [
 			},
 		],
 	},
-	// Manager doesn't get the "Tizim boshqaruvi" / "Sozlamalar" groups, only these two items.
+	// Manager doesn't get the "Tizim boshqaruvi" / "Sozlamalar" groups, only this item.
 	{
 		id: 'product-categories-manager',
 		icon: 'layer-group',
 		label: 'Mahsulot toifalari',
 		path: '/system/product-categories',
-		requiredPermission: 'isManager',
-	},
-	{
-		id: 'clients-manager',
-		icon: 'users',
-		label: 'Mijozlar',
-		path: '/settings/clients',
 		requiredPermission: 'isManager',
 	},
 ];

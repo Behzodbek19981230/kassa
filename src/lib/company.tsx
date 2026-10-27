@@ -5,9 +5,7 @@ import { useYuanExchangeRateQuery } from '@/services/yuan-exchange-rate/yuan-exc
 import type { YuanExchangeRateItem } from '@/services/yuan-exchange-rate/yuan-exchange-rate.types';
 import { useUpdateUserMutation, useUserInfoQuery } from '@/services/user/user.queries';
 import type { UserPayload } from '@/services/user/user.types';
-
-const SUPER_ADMIN_ROLE_NAME = 'Super Admin';
-const MANAGER_ROLE_NAME = 'Manager';
+import { ROLE } from '@/lib/permissions';
 
 export interface CompanyOption {
 	id: number;
@@ -21,7 +19,7 @@ interface CompanyContextValue {
 	companies: CompanyOption[];
 	isSuperAdmin: boolean;
 	isManager: boolean;
-	/** Super Admin or Manager: sees the company selector and can browse other companies' data. */
+	/** Super Admin or Manager: may be browsing another company's data (read-only there). */
 	isAdminOrManager: boolean;
 
 	/** The company the current user actually belongs to (their own trade_company). */
@@ -46,8 +44,8 @@ const CompanyContext = createContext<CompanyContextValue | null>(null);
 
 export function CompanyProvider({ children }: { children: ReactNode }) {
 	const { data: userInfo } = useUserInfoQuery();
-	const isSuperAdmin = userInfo?.roles?.name === SUPER_ADMIN_ROLE_NAME;
-	const isManager = userInfo?.roles?.name === MANAGER_ROLE_NAME;
+	const isSuperAdmin = userInfo?.roles?.key === ROLE.SUPER_ADMIN;
+	const isManager = userInfo?.roles?.key === ROLE.MANAGER;
 	const isAdminOrManager = isSuperAdmin || isManager;
 
 	const companies: CompanyOption[] = useMemo(() => {
@@ -102,7 +100,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 		window.location.reload();
 	};
 
-	const showCompanySelect = isAdminOrManager;
+	const showCompanySelect = isSuperAdmin;
 
 	const { data: exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRateQuery(companyId);
 	// The lock applies to everyone, including Super Admin/Manager — they fix it via the

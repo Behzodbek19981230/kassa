@@ -237,17 +237,21 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 			enableColumnFilter: false,
 			cell: ({ row }) => <span className='text-ca-orange'>{row.original.status_order_label}</span>,
 		}),
-		columnHelper.display({
-			id: 'keshbek',
-			header: 'Keshbek ($)',
-			size: 110,
-			enableColumnFilter: false,
-			cell: ({ row }) => (
-				<span className='font-semibold text-ca-green'>
-					{formatNumber(row.original.client_detail?.keshbek ?? 0, 2)} $
-				</span>
-			),
-		}),
+		...(isSuperAdmin
+			? [
+					columnHelper.display({
+						id: 'keshbek',
+						header: 'Keshbek ($)',
+						size: 110,
+						enableColumnFilter: false,
+						cell: ({ row }) => (
+							<span className='font-semibold text-ca-green'>
+								{formatNumber(row.original.client_detail?.keshbek ?? 0, 2)} $
+							</span>
+						),
+					}),
+				]
+			: []),
 		columnHelper.display({
 			id: 'actions',
 			header: 'Harakatlar',

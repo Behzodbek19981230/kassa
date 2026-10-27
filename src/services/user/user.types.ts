@@ -13,6 +13,8 @@ export interface UserDistrictDetail {
 export interface UserRoleDetail {
 	id: number;
 	name: string;
+	/** Stable role identifier (e.g. 'super_admin'); compare against this, not `name`. */
+	key: string;
 }
 
 export interface UserCompanyDetail {

@@ -133,35 +133,38 @@ export default function OrderAndDebtPage() {
 			title='Buyurtmalar va qarzlar'
 			className='mb-0'
 			actions={
-				<div className='flex flex-wrap items-center gap-2'>
-					<Button
-						type='button'
-						variant='warning'
-						size='xs'
-						disabled={downloadingPdf === 'pdf1'}
-						onClick={() => handleDownloadPdf('pdf1')}
-					>
-						<FaFilePdf className='mr-1.5' /> PDF1
-					</Button>
-					<Button
-						type='button'
-						variant='danger'
-						size='xs'
-						disabled={downloadingPdf === 'pdf2'}
-						onClick={() => handleDownloadPdf('pdf2')}
-					>
-						<FaFilePdf className='mr-1.5' /> PDF2 Hisob uchun
-					</Button>
-					<Button
-						type='button'
-						variant='info'
-						size='xs'
-						disabled={downloadingPdf === 'pdf3'}
-						onClick={() => handleDownloadPdf('pdf3')}
-					>
-						<FaFilePdf className='mr-1.5' /> PDF3 Hodim turi
-					</Button>
-				</div>
+				// Report PDFs are Super Admin only.
+				isSuperAdmin && (
+					<div className='flex flex-wrap items-center gap-2'>
+						<Button
+							type='button'
+							variant='warning'
+							size='xs'
+							disabled={downloadingPdf === 'pdf1'}
+							onClick={() => handleDownloadPdf('pdf1')}
+						>
+							<FaFilePdf className='mr-1.5' /> PDF1
+						</Button>
+						<Button
+							type='button'
+							variant='danger'
+							size='xs'
+							disabled={downloadingPdf === 'pdf2'}
+							onClick={() => handleDownloadPdf('pdf2')}
+						>
+							<FaFilePdf className='mr-1.5' /> PDF2 Hisob uchun
+						</Button>
+						<Button
+							type='button'
+							variant='info'
+							size='xs'
+							disabled={downloadingPdf === 'pdf3'}
+							onClick={() => handleDownloadPdf('pdf3')}
+						>
+							<FaFilePdf className='mr-1.5' /> PDF3 Hodim turi
+						</Button>
+					</div>
+				)
 			}
 		>
 			<div className='mb-4 flex flex-wrap items-end gap-2'>

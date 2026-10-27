@@ -70,11 +70,12 @@ export default function WarehouseAccountEditPage() {
 	const { id } = useParams();
 	const skladId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
-	const { canWrite } = useCurrentCompany();
+	const { canWrite, isSuperAdmin } = useCurrentCompany();
 
 	useEffect(() => {
-		if (!canWrite) navigate('/warehouse-report', { replace: true });
-	}, [canWrite, navigate]);
+		// Editing an import is Super Admin only.
+		if (!canWrite || !isSuperAdmin) navigate('/warehouse-report', { replace: true });
+	}, [canWrite, isSuperAdmin, navigate]);
 
 	const { data, isLoading, isError } = useSkladDetailQuery(skladId);
 	const { data: skladTypesData } = useSkladTypeListQuery({ limit: 100 });

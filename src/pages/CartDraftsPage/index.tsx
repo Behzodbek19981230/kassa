@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { FaArrowLeft, FaHistory } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { Button, Panel, Tabs } from '@/components/ui';
+import { usePermissions } from '@/lib/permissions';
 import OrderAccountHistoryDraftTab from '@/pages/CartDraftsPage/components/OrderAccountHistoryDraftTab';
 
 export default function CartDraftsPage() {
 	const navigate = useNavigate();
+	const { isSuperAdmin } = usePermissions();
 	const [refetchActive, setRefetchActive] = useState<() => void>(() => () => undefined);
 
 	return (
@@ -15,14 +17,17 @@ export default function CartDraftsPage() {
 				title={
 					<span className='flex flex-wrap items-center gap-3'>
 						Ro'yxat
-						<Button
-							type='button'
-							variant='danger'
-							size='xs'
-							onClick={() => navigate('/cart-drafts/deleted-orders')}
-						>
-							<FaHistory className='mr-1.5' /> O'chirilgan buyurtmalar tarixi
-						</Button>
+						{/* Deleted orders history is Super Admin only. */}
+						{isSuperAdmin && (
+							<Button
+								type='button'
+								variant='danger'
+								size='xs'
+								onClick={() => navigate('/cart-drafts/deleted-orders')}
+							>
+								<FaHistory className='mr-1.5' /> O'chirilgan buyurtmalar tarixi
+							</Button>
+						)}
 					</span>
 				}
 				actions={

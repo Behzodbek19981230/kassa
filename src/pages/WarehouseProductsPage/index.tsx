@@ -19,6 +19,7 @@ import {
 import OpenDialogButton from '@/components/OpenDialogButton';
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { SCROLL_AREA_CLASS, SCROLL_BODY_CLASS, SCROLL_PANEL_CLASS } from '@/lib/layout';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -45,7 +46,7 @@ const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'count', label: 'Soni' },
 	{ id: 'real_price', label: 'Asl Narxi ($)', superAdminOnly: true },
 	{ id: 'total', label: 'Jami narxi ($)', superAdminOnly: true },
-	{ id: 'is_active', label: 'Holati' },
+	{ id: 'is_active', label: 'Holati', superAdminOnly: true },
 	{ id: 'actions', label: 'Harakatlar', hideable: false },
 ];
 
@@ -54,6 +55,7 @@ const LABEL_COLUMNS = ['index', 'brand', 'category', 'size', 'type'];
 
 export default function WarehouseProductsPage() {
 	const { canWrite } = useCurrentCompany();
+	const { canManageWarehouse, canExportWarehouseProducts } = usePermissions();
 	const cols = useColumnVisibility('warehouse-products', COLUMNS);
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
@@ -229,9 +231,11 @@ export default function WarehouseProductsPage() {
 							>
 								Tozalash
 							</Button>
-							<Button type='button' variant='success' size='sm' loading={exporting} onClick={handleExport}>
-								<FaFileExport className='mr-1.5' /> Export
-							</Button>
+							{canExportWarehouseProducts && (
+								<Button type='button' variant='success' size='sm' loading={exporting} onClick={handleExport}>
+									<FaFileExport className='mr-1.5' /> Export
+								</Button>
+							)}
 						</div>
 					</div>
 				</div>
@@ -338,7 +342,7 @@ export default function WarehouseProductsPage() {
 															)}
 														{cols.isVisible('real_price') && (
 															<TableCell>
-																{canWrite ? (
+																{canWrite && canManageWarehouse ? (
 																	<button
 																		type='button'
 																		className='font-semibold text-ca-green hover:underline'

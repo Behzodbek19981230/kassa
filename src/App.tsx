@@ -3,6 +3,9 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useKeyboardInsetCssVar } from '@/lib/useDropdownPlacement';
 import { useSessionWatcher } from '@/lib/session';
 import ImportRoute from '@/components/auth/ImportRoute';
+import OrderCartRoute from '@/components/auth/OrderCartRoute';
+import WarehouseReportRoute from '@/components/auth/WarehouseReportRoute';
+import ClientsRoute from '@/components/auth/ClientsRoute';
 import SuperAdminRoute from '@/components/auth/SuperAdminRoute';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
@@ -93,22 +96,27 @@ export default function App() {
 						<Route path='two-stage-import/uzbekistan-in-road' element={<UzbekistanInRoadPage />} />
 						<Route path='two-stage-import/debts' element={<LogisticsDebtPage />} />
 						<Route path='two-stage-import/china-debts' element={<ChinaDebtPage />} />
-						<Route path='warehouse-report' element={<WarehouseAccountPage />} />
-						<Route path='warehouse-report/:id' element={<WarehouseAccountDetailPage />} />
-						<Route path='warehouse-report/:id/edit' element={<WarehouseAccountEditPage />} />
 						<Route path='my-debts' element={<MyDebtPage />} />
 						<Route path='my-debts/:id' element={<MyDebtDetailPage />} />
-						<Route path='cart-drafts' element={<CartDraftsPage />} />
-						<Route path='cart-drafts/deleted-orders' element={<OrderDeleteHistoryPage />} />
-						<Route path='cart-drafts/deleted-orders/:id' element={<OrderDeleteHistoryDetailPage />} />
 						<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
 						<Route path='settings/debtors' element={<ClientDebtorPage />} />
 						<Route path='settings/debt-repayments-drafts' element={<DebtRepaymentDraftPage />} />
+						<Route path='settings/clients/:id/keshbek-history' element={<ClientKeshbekHistoryPage />} />
+						<Route path='cart-drafts/deleted-orders' element={<OrderDeleteHistoryPage />} />
+						<Route path='cart-drafts/deleted-orders/:id' element={<OrderDeleteHistoryDetailPage />} />
+					</Route>
+					<Route element={<WarehouseReportRoute />}>
+						<Route path='warehouse-report' element={<WarehouseAccountPage />} />
+						<Route path='warehouse-report/:id' element={<WarehouseAccountDetailPage />} />
+						<Route path='warehouse-report/:id/edit' element={<WarehouseAccountEditPage />} />
+					</Route>
+					<Route element={<OrderCartRoute />}>
+						<Route path='order-cart' element={<OrderCartPage />} />
+						<Route path='cart-drafts' element={<CartDraftsPage />} />
 					</Route>
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
 					<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
 					<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
-					<Route path='order-cart' element={<OrderCartPage />} />
 					<Route path='order-and-debt' element={<OrderAndDebtPage />} />
 					<Route path='vozvrat' element={<VozvratPage />} />
 					<Route path='vozvrat-order-history' element={<VozvratOrderHistoryPage />} />
@@ -128,16 +136,21 @@ export default function App() {
 					<Route path='system/locations' element={<LocationPage />} />
 					<Route path='system/sklad-types' element={<SkladTypePage />} />
 					<Route path='system/countries' element={<CountryPage />} />
-					<Route path='system/logistics-companies' element={<LogisticsCompanyPage />} />
-					<Route path='system/logistics-warehouses' element={<LogisticsWarehousePage />} />
-					<Route path='warehouse-prices' element={<WarehousePage />} />
-					<Route path='warehouse-prices/create' element={<WarehouseFormPage mode='create' />} />
-					<Route path='warehouse-prices/:id/edit' element={<WarehouseFormPage mode='edit' />} />
+					<Route element={<SuperAdminRoute />}>
+						<Route path='system/logistics-companies' element={<LogisticsCompanyPage />} />
+						<Route path='system/logistics-warehouses' element={<LogisticsWarehousePage />} />
+					</Route>
+					<Route element={<SuperAdminRoute />}>
+						<Route path='warehouse-prices' element={<WarehousePage />} />
+						<Route path='warehouse-prices/create' element={<WarehouseFormPage mode='create' />} />
+						<Route path='warehouse-prices/:id/edit' element={<WarehouseFormPage mode='edit' />} />
+					</Route>
 					<Route path='system/expenses' element={<ExpensePage />} />
 					<Route path='system/about' element={<AboutPage />} />
 					<Route path='system/event-log' element={<CompanyEventLogPage />} />
-					<Route path='settings/clients' element={<ClientPage />} />
-					<Route path='settings/clients/:id/keshbek-history' element={<ClientKeshbekHistoryPage />} />
+					<Route element={<ClientsRoute />}>
+						<Route path='settings/clients' element={<ClientPage />} />
+					</Route>
 					<Route path='telegram-broadcast' element={<TelegramBroadcastPage />} />
 					<Route path='telegram-broadcast/create' element={<TelegramBroadcastCreatePage />} />
 					<Route path='telegram-broadcast/:id' element={<TelegramBroadcastDetailPage />} />

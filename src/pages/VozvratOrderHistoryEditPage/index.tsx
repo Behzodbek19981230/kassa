@@ -52,7 +52,7 @@ export default function VozvratOrderHistoryEditPage() {
 	const vozvratId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
 	const { canWrite } = useCurrentCompany();
-	const { canEditOwned } = usePermissions();
+	const { canEditOrder } = usePermissions();
 	const [formError, setFormError] = useState('');
 
 	useEffect(() => {
@@ -63,8 +63,8 @@ export default function VozvratOrderHistoryEditPage() {
 	const { data: productsData } = useVozvratOrderProductsQuery(vozvratId);
 
 	useEffect(() => {
-		if (item && !canEditOwned(item)) navigate('/vozvrat-order-history', { replace: true });
-	}, [item, canEditOwned, navigate]);
+		if (item && !canEditOrder(item)) navigate('/vozvrat-order-history', { replace: true });
+	}, [item, canEditOrder, navigate]);
 
 	const [rows, setRows] = useState<EditableVozvratRow[]>([]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
