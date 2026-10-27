@@ -35,10 +35,12 @@ export function usePermissions() {
 	const canConfirmClients = isSuperAdmin || isAdmin;
 	// "Telegram xabarnoma": Super Admin + Admin + Manager
 	const canSendTelegramBroadcast = isSuperAdmin || isAdmin || isManager;
-	// "Ombor mahsulotlari" menu: Super Admin + Admin + Manager
-	const canViewWarehouseProducts = isSuperAdmin || isAdmin || isManager;
-	// "Ombor mahsulotlari" Excel export: Super Admin + Admin
-	const canExportWarehouseProducts = isSuperAdmin || isAdmin;
+	// "Ombor mahsulotlari" menu: Super Admin + Admin + Manager + Sklad Manager
+	const canViewWarehouseProducts = isSuperAdmin || isAdmin || isManager || isSkladManager;
+	// "Ombor mahsulotlari" Excel export: Super Admin only
+	const canExportWarehouseProducts = isSuperAdmin;
+	// "Ombor mahsulotlari" Telegram send ("Harakatlar" column): Super Admin + Admin + Manager
+	const canSendProductToTelegram = isSuperAdmin || isAdmin || isManager;
 	// "Karzinka" button on the order history (/order-cart) and "Buyurtma Karzinka" (/cart-drafts): Super Admin + Admin
 	const canManageOrderCart = isSuperAdmin || isAdmin;
 	// Delete in "Mijoz buyurtmalar tarixi" (Draftga olish) and "Vozvrat buyurtmalar tarixi": Super Admin + Admin
@@ -89,6 +91,7 @@ export function usePermissions() {
 		canSendTelegramBroadcast,
 		canViewWarehouseProducts,
 		canExportWarehouseProducts,
+		canSendProductToTelegram,
 		canManageOrderCart,
 		canDeleteOrders,
 		canManageConsignor,

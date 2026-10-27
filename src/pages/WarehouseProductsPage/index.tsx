@@ -55,8 +55,13 @@ const LABEL_COLUMNS = ['index', 'brand', 'category', 'size', 'type'];
 
 export default function WarehouseProductsPage() {
 	const { canWrite } = useCurrentCompany();
-	const { canManageWarehouse, canExportWarehouseProducts } = usePermissions();
-	const cols = useColumnVisibility('warehouse-products', COLUMNS);
+	const { canManageWarehouse, canExportWarehouseProducts, canSendProductToTelegram } = usePermissions();
+	// "Harakatlar" only holds the Telegram send button, so roles that can't send lose the whole column.
+	const columns = useMemo(
+		() => (canSendProductToTelegram ? COLUMNS : COLUMNS.filter((c) => c.id !== 'actions')),
+		[canSendProductToTelegram],
+	);
+	const cols = useColumnVisibility('warehouse-products', columns);
 	const [brandFilter, setBrandFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
 	const [exporting, setExporting] = useState(false);
@@ -167,7 +172,7 @@ export default function WarehouseProductsPage() {
 
 	/** One total row's cells, following the visible columns. */
 	function renderTotalCells(count: number, sum: number, className = '') {
-		return COLUMNS.filter((c) => cols.isVisible(c.id)).map((c) => {
+		return columns.filter((c) => cols.isVisible(c.id)).map((c) => {
 			const content =
 				c.id === labelColumn
 					? 'Jami:'
@@ -268,7 +273,9 @@ export default function WarehouseProductsPage() {
 								{cols.isVisible('real_price') && <TableHead className='bg-ca-theme text-white'>Asl Narxi ($)</TableHead>}
 								{cols.isVisible('total') && <TableHead className='bg-ca-theme text-white'>Jami narxi ($)</TableHead>}
 								{cols.isVisible('is_active') && <TableHead className='bg-ca-theme text-white'>Holati</TableHead>}
-								<TableHead className='bg-ca-theme text-right text-white'>Harakatlar</TableHead>
+								{canSendProductToTelegram && (
+									<TableHead className='bg-ca-theme text-right text-white'>Harakatlar</TableHead>
+								)}
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -371,22 +378,24 @@ export default function WarehouseProductsPage() {
 																)}
 															</TableCell>
 														)}
-														<TableCell>
-															<div className='flex justify-end'>
-																<OpenDialogButton
-																	element={(props) => <Button {...props} />}
-																	elementProps={{
-																		...buttonProps(<FaTelegramPlane />, 'success', 'icon'),
-																		'aria-label': 'Telegramga yuborish',
-																	}}
-																	dialog={WarehouseSendTelegramModal}
-																	dialogProps={{
-																		item: { id: catalogCardId(item) },
-																		productLabel: `${group.brand.name} ${item.product_category_name}`,
-																	}}
-																/>
-															</div>
-														</TableCell>
+														{canSendProductToTelegram && (
+															<TableCell>
+																<div className='flex justify-end'>
+																	<OpenDialogButton
+																		element={(props) => <Button {...props} />}
+																		elementProps={{
+																			...buttonProps(<FaTelegramPlane />, 'success', 'icon'),
+																			'aria-label': 'Telegramga yuborish',
+																		}}
+																		dialog={WarehouseSendTelegramModal}
+																		dialogProps={{
+																			item: { id: catalogCardId(item) },
+																			productLabel: `${group.brand.name} ${item.product_category_name}`,
+																		}}
+																	/>
+																</div>
+															</TableCell>
+														)}
 													</TableRow>
 												);
 											})}

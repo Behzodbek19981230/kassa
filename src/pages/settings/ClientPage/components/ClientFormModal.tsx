@@ -70,6 +70,8 @@ interface ClientFormModalProps {
 	mode: 'create' | 'edit';
 	item?: Client;
 	hideStatusFlags?: boolean;
+	/** Hides Qarz miqdori, Qarz limit and Keshbek; a new client is then saved with 0 debt, no limit and 0 keshbek. */
+	hideDebtFields?: boolean;
 }
 
 function clientToFormValues(client: Client): ClientFormValues {
@@ -103,7 +105,14 @@ function lockedClientFields(client: Client): Pick<ClientPayload, LockedClientFie
 	};
 }
 
-export default function ClientFormModal({ open, setOpen, mode, item, hideStatusFlags = false }: ClientFormModalProps) {
+export default function ClientFormModal({
+	open,
+	setOpen,
+	mode,
+	item,
+	hideStatusFlags = false,
+	hideDebtFields = false,
+}: ClientFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 	const { companyId, isSuperAdmin } = useCurrentCompany();
@@ -130,7 +139,8 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 						fio: '',
 						phone: '+998',
 						address: '',
-						total_debt: '',
+						// With the debt fields hidden the client starts with 0 debt (and passes the required check).
+						total_debt: hideDebtFields ? '0' : '',
 						debt_limit: '',
 						keshbek: '',
 						type: '',
@@ -331,8 +341,9 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 								</FormField>
 							)}
 						</div>
-						{!isRestrictedEdit && (
-							<div className='mb-3 grid grid-cols-3 gap-3'>
+						{!isRestrictedEdit && !hideDebtFields && (
+							// Qarz limit and Keshbek are Super Admin only, on create as well.
+							<div className={`mb-3 grid gap-3 ${isSuperAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
 								<FormField
 									label='Qarz miqdori ($)'
 									error={errors.total_debt?.message}
@@ -346,37 +357,41 @@ export default function ClientFormModal({ open, setOpen, mode, item, hideStatusF
 										render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 									/>
 								</FormField>
-								<FormField
-									label='Qarz limit ($)'
-									error={errors.debt_limit?.message}
-									horizontal={false}
-									className='mb-0'
-								>
-									<Controller
-										name='debt_limit'
-										control={control}
-										render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
-									/>
-								</FormField>
-								<FormField
-									label='Keshbek (%)'
-									error={errors.keshbek?.message}
-									horizontal={false}
-									className='mb-0'
-								>
-									<Controller
-										name='keshbek'
-										control={control}
-										render={({ field }) => (
-											<PriceInput decimals={2}
-												max={100}
-												value={field.value}
-												onChange={(v) => field.onChange(v)}
-												onBlur={field.onBlur}
+								{isSuperAdmin && (
+									<>
+										<FormField
+											label='Qarz limit ($)'
+											error={errors.debt_limit?.message}
+											horizontal={false}
+											className='mb-0'
+										>
+											<Controller
+												name='debt_limit'
+												control={control}
+												render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 											/>
-										)}
-									/>
-								</FormField>
+										</FormField>
+										<FormField
+											label='Keshbek (%)'
+											error={errors.keshbek?.message}
+											horizontal={false}
+											className='mb-0'
+										>
+											<Controller
+												name='keshbek'
+												control={control}
+												render={({ field }) => (
+													<PriceInput decimals={2}
+														max={100}
+														value={field.value}
+														onChange={(v) => field.onChange(v)}
+														onBlur={field.onBlur}
+													/>
+												)}
+											/>
+										</FormField>
+									</>
+								)}
 							</div>
 						)}
 						<div className='mb-3 grid grid-cols-2 gap-3'>

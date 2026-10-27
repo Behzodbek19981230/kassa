@@ -80,13 +80,14 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		id: 'system-management',
 		icon: 'cogs',
 		label: 'Tizim boshqaruvi',
-		requiredPermission: 'isNotManager',
+		requiredPermission: 'isSuperAdmin',
 		children: [
 			{
 				id: 'product-categories',
 				icon: 'layer-group',
 				label: 'Mahsulot toifalari',
 				path: '/system/product-categories',
+				requiredPermission: 'isSuperAdmin',
 			},
 			{
 				id: 'shippers',
@@ -151,13 +152,5 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				requiredPermission: 'isSuperAdmin',
 			},
 		],
-	},
-	// Manager doesn't get the "Tizim boshqaruvi" / "Sozlamalar" groups, only this item.
-	{
-		id: 'product-categories-manager',
-		icon: 'layer-group',
-		label: 'Mahsulot toifalari',
-		path: '/system/product-categories',
-		requiredPermission: 'isManager',
 	},
 ];

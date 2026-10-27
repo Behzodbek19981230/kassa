@@ -126,17 +126,16 @@ export default function App() {
 					<Route path='warehouse-transfer/history' element={<WarehouseTransferHistoryPage />} />
 					<Route path='warehouse-transfer/:id' element={<WarehouseTransferDetailPage />} />
 
-					{/* System management */}
-					<Route path='system/product-categories' element={<ProductCategoriesPage />} />
-					<Route path='system/models' element={<Navigate to='/system/product-categories' replace />} />
-					<Route path='system/consignors' element={<ConsignorPage />} />
-					<Route path='system/users' element={<UserPage />} />
-
-					<Route path='system/companies' element={<CompanyPage />} />
-					<Route path='system/locations' element={<LocationPage />} />
-					<Route path='system/sklad-types' element={<SkladTypePage />} />
-					<Route path='system/countries' element={<CountryPage />} />
+					{/* System management ("Tizim boshqaruvi") is Super Admin only. */}
 					<Route element={<SuperAdminRoute />}>
+						<Route path='system/product-categories' element={<ProductCategoriesPage />} />
+						<Route path='system/models' element={<Navigate to='/system/product-categories' replace />} />
+						<Route path='system/consignors' element={<ConsignorPage />} />
+						<Route path='system/users' element={<UserPage />} />
+						<Route path='system/companies' element={<CompanyPage />} />
+						<Route path='system/locations' element={<LocationPage />} />
+						<Route path='system/sklad-types' element={<SkladTypePage />} />
+						<Route path='system/countries' element={<CountryPage />} />
 						<Route path='system/logistics-companies' element={<LogisticsCompanyPage />} />
 						<Route path='system/logistics-warehouses' element={<LogisticsWarehousePage />} />
 					</Route>

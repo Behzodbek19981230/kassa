@@ -402,7 +402,8 @@ export default function ImportPage() {
                            <span className='font-bold text-ca-red'>
                               {formatNumber(consignorDebt?.total_debt ?? 0, 2)}
                            </span>
-                           {canWrite && companyId && (
+                           {/* Paying the consignor debt is Super Admin only. */}
+                           {canWrite && isSuperAdmin && companyId && (
                               <OpenDialogButton
                                  element={(props) => <Button {...props} />}
                                  elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
