@@ -109,3 +109,12 @@ export interface ClientListParams extends ListParams {
   is_blocked?: boolean
   status?: string
 }
+
+/** Filters honoured by `/client/export/{pdf,xlsx}/` (Super Admin only). */
+export interface ClientExportParams {
+  worker_user?: number
+  region?: number
+  district?: number
+  is_blocked?: boolean
+  status?: string
+}

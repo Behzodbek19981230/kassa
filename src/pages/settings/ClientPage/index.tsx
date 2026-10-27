@@ -15,16 +15,20 @@ import {
 	DataTable,
 	Panel,
 	Tooltip,
+	useNotification,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
+import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
-import { getApiErrorMessage } from '@/lib/errors';
+import { getApiErrorMessage, getApiErrorMessageAsync } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import ClientFormModal from '@/pages/settings/ClientPage/components/ClientFormModal';
 import DeleteClientModal from '@/pages/settings/ClientPage/components/DeleteClientModal';
 import { useClientListQuery } from '@/services/client/client.queries';
+import { clientService } from '@/services/client/client.service';
 import { CLIENT_BLOCKED_OPTIONS, CLIENT_PROFIT_LOSS_OPTIONS, CLIENT_TYPE_OPTIONS } from '@/services/client/client.types';
-import type { Client, ClientType } from '@/services/client/client.types';
+import type { Client, ClientExportParams, ClientType } from '@/services/client/client.types';
 import { districtService } from '@/services/district/district.service';
 import { useRegionListQuery } from '@/services/region/region.queries';
 import { regionService } from '@/services/region/region.service';
@@ -39,6 +43,8 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 
 export default function ClientPage() {
 	const { canWrite } = useCurrentCompany();
+	const { isSuperAdmin } = usePermissions();
+	const { notify } = useNotification();
 	const navigate = useNavigate();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
@@ -54,16 +60,21 @@ export default function ClientPage() {
 	const blockedFilter = columnFilters.find((f) => f.id === 'is_blocked')?.value as string | undefined;
 	const createdByFilter = columnFilters.find((f) => f.id === 'created_by')?.value as string | undefined;
 
-	const { data, isLoading, isFetching, isError, error, refetch } = useClientListQuery({
-		page: pagination.pageIndex + 1,
-		limit: pagination.pageSize,
-		search: nameFilter || undefined,
+	// The subset of the table's filters that the server-side export understands.
+	const exportParams: ClientExportParams = {
 		worker_user: workerUserFilter ? Number(workerUserFilter) : undefined,
 		region: regionFilter ? Number(regionFilter) : undefined,
 		district: districtFilter ? Number(districtFilter) : undefined,
+		is_blocked: blockedFilter ? blockedFilter === 'true' : undefined,
+	};
+
+	const { data, isLoading, isFetching, isError, error, refetch } = useClientListQuery({
+		...exportParams,
+		page: pagination.pageIndex + 1,
+		limit: pagination.pageSize,
+		search: nameFilter || undefined,
 		type: (typeFilter as ClientType) || undefined,
 		is_profit_loss: profitLossFilter ? (Number(profitLossFilter) as 0 | 1) : undefined,
-		is_blocked: blockedFilter ? blockedFilter === 'true' : undefined,
 		created_by: createdByFilter ? Number(createdByFilter) : undefined,
 		ordering,
 	});
@@ -97,6 +108,33 @@ export default function ClientPage() {
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,
 		};
 	};
+
+	async function handleExportPdf() {
+		const tab = openPendingTab();
+		try {
+			const blob = await clientService.exportPdf(exportParams);
+			loadBlobIntoTab(blob, tab);
+		} catch (err) {
+			tab?.close();
+			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
+		}
+	}
+
+	async function handleExportExcel() {
+		try {
+			const blob = await clientService.exportXlsx(exportParams);
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = 'mijozlar.xlsx';
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			setTimeout(() => URL.revokeObjectURL(url), 10_000);
+		} catch (err) {
+			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "Excel yuklab bo'lmadi") });
+		}
+	}
 
 	const columns = [
 		columnHelper.accessor('fio', { header: 'FIO', meta: { align: 'left' } }),
@@ -279,9 +317,10 @@ export default function ClientPage() {
 					columnVisibilityKey='clients'
 					enableSorting
 					enableStriping
-					enableExportPdf
-					enableExportExcel
-					exportFileName='mijozlar.csv'
+					enableExportPdf={isSuperAdmin}
+					enableExportExcel={isSuperAdmin}
+					onExportPdf={handleExportPdf}
+					onExportExcel={handleExportExcel}
 					isLoading={isLoading || isFetching}
 					emptyMessage={isError ? getApiErrorMessage(error, 'Xatolik yuz berdi') : "Ma'lumot topilmadi"}
 					emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}

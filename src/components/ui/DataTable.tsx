@@ -143,6 +143,9 @@ interface DataTableProps<TData> {
 	enableExport?: boolean;
 	enableExportPdf?: boolean;
 	enableExportExcel?: boolean;
+	/** Replaces the built-in client-side PDF/Excel export, e.g. with a server-generated file. */
+	onExportPdf?: () => Promise<void> | void;
+	onExportExcel?: () => Promise<void> | void;
 	renderExpandedRow?: (row: TData) => ReactNode;
 	/** Returns extra classes (e.g. a background color) applied to every cell of a row, based on its data. */
 	getRowClassName?: (row: TData) => string | undefined;
@@ -192,6 +195,8 @@ export function DataTable<TData>({
 	enableExport = false,
 	enableExportPdf = false,
 	enableExportExcel = false,
+	onExportPdf,
+	onExportExcel,
 	renderExpandedRow,
 	getRowClassName,
 	exportFileName = 'table-export.csv',
@@ -219,6 +224,7 @@ export function DataTable<TData>({
 	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 	const [expanded, setExpanded] = useState<ExpandedState>({});
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+	const [isExporting, setIsExporting] = useState(false);
 	const [internalPagination, setInternalPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: pageSizeOptions[0],
@@ -495,6 +501,15 @@ export function DataTable<TData>({
 		URL.revokeObjectURL(url);
 	}
 
+	async function runExport(exporter: () => Promise<void> | void) {
+		setIsExporting(true);
+		try {
+			await exporter();
+		} finally {
+			setIsExporting(false);
+		}
+	}
+
 	return (
 		<div className={className}>
 			<div className='mb-2.5 flex flex-wrap items-center justify-between gap-3'>
@@ -520,12 +535,24 @@ export function DataTable<TData>({
 					{(enableExportPdf || enableExportExcel) && (
 						<div className='flex gap-1'>
 							{enableExportPdf && (
-								<Button type='button' variant='warning' size='sm' onClick={handleExportPdf}>
+								<Button
+									type='button'
+									variant='warning'
+									size='sm'
+									disabled={isExporting}
+									onClick={() => runExport(onExportPdf ?? handleExportPdf)}
+								>
 									<FaFilePdf className='mr-1.5' /> PDF yuklash
 								</Button>
 							)}
 							{enableExportExcel && (
-								<Button type='button' variant='info' size='sm' onClick={handleExportExcel}>
+								<Button
+									type='button'
+									variant='info'
+									size='sm'
+									disabled={isExporting}
+									onClick={() => runExport(onExportExcel ?? handleExportExcel)}
+								>
 									<FaFileExcel className='mr-1.5' /> Excel yuklash
 								</Button>
 							)}

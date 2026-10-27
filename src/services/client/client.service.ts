@@ -1,6 +1,6 @@
 import { apiClient } from '@/services/api/client'
 import type { PaginatedResponse } from '@/services/api/types'
-import type { Client, ClientListParams, ClientPayload } from '@/services/client/client.types'
+import type { Client, ClientExportParams, ClientListParams, ClientPayload } from '@/services/client/client.types'
 
 export const clientService = {
   list: async (params?: ClientListParams) => {
@@ -25,5 +25,13 @@ export const clientService = {
   },
   remove: async (id: number) => {
     await apiClient.delete(`/client/${id}/`)
+  },
+  exportPdf: async (params?: ClientExportParams) => {
+    const { data } = await apiClient.get<Blob>('/client/export/pdf/', { params, responseType: 'blob', timeout: 120_000 })
+    return data
+  },
+  exportXlsx: async (params?: ClientExportParams) => {
+    const { data } = await apiClient.get<Blob>('/client/export/xlsx/', { params, responseType: 'blob', timeout: 120_000 })
+    return data
   },
 }
