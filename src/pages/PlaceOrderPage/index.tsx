@@ -395,7 +395,7 @@ export default function PlaceOrderPage() {
                            element={(props) => <Button {...props} />}
                            elementProps={buttonProps("+ Mijoz qo'shish", 'warning', 'xs')}
                            dialog={ClientFormModal}
-                           dialogProps={{ mode: 'create' as const, hideStatusFlags: true, hideDebtFields: true }}
+                           dialogProps={{ mode: 'create' as const, hideStatusFlags: true }}
                         />
                      )
                   }
