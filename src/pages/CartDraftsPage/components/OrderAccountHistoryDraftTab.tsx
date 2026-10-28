@@ -50,7 +50,7 @@ interface OrderAccountHistoryDraftTabProps {
 export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAccountHistoryDraftTabProps) {
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
-	const { canEditOwned, isSuperAdmin } = usePermissions();
+	const { canEditOwned, canDeleteOrders, isSuperAdmin } = usePermissions();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -283,7 +283,7 @@ export default function OrderAccountHistoryDraftTab({ onRefetchReady }: OrderAcc
 								dialogProps={{ id: item.id, clientName: item.client_name }}
 							/>
 						)}
-						{canWrite && canEdit && (
+						{canWrite && (canEdit || canDeleteOrders) && (
 							<OpenDialogButton
 								element={(props) => <Button {...props} />}
 								elementProps={{
