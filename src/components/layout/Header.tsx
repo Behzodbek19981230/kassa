@@ -447,7 +447,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                               <span className='-my-[6px] hidden flex-col text-left leading-tight md:flex'>
                                  <span>{user?.username ?? 'Admin'}</span>
                                  {user?.roles?.name && (
-                                    <span className='text-[11px] opacity-70'>({user.roles.name})</span>
+                                    <span className='text-[11px] opacity-70'>{user.roles.name}</span>
                                  )}
                               </span>
                               <span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />

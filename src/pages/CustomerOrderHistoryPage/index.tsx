@@ -14,15 +14,13 @@ export default function CustomerOrderHistoryPage() {
 	const { isSuperAdmin, canManageOrderCart } = usePermissions();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const tabParam = searchParams.get('tab');
-	// "To'langan qarzlar" is Super Admin only, same as its /settings/debt-repayments route.
-	const activeTab =
-		tabParam === 'debtors' || (tabParam === 'debt-repayments' && isSuperAdmin) ? tabParam : 'all';
+	const activeTab = tabParam === 'debtors' || tabParam === 'debt-repayments' ? tabParam : 'all';
 	const [refetchActive, setRefetchActive] = useState<() => void>(() => () => undefined);
 
 	const { data: cartDraftData } = useOrderCartGroupedListQuery({ is_active: true, limit: 1 }, canManageOrderCart);
 	const cartDraftCount = cartDraftData?.pagination.total ?? 0;
 
-	// Unread count for the "To'langan qarzlar" tab badge, fetched even while another tab is open.
+	// Unread count for the "To'langan qarzlar" tab badge (Super Admin only), fetched even while another tab is open.
 	const { data: debtRepaymentData } = useDebtRepaymentGroupedListQuery({ page: 1, limit: 1 }, isSuperAdmin);
 	const debtRepaymentUnread = debtRepaymentData?.unreadTotal ?? 0;
 
@@ -59,20 +57,16 @@ export default function CustomerOrderHistoryPage() {
 					label: 'Buyurtmalar',
 					content: renderPanel(false),
 				},
-				...(isSuperAdmin
-					? [
-							{
-								value: 'debt-repayments',
-								label: (
-									<span className='flex items-center gap-1.5'>
-										To'langan qarzlar
-										{debtRepaymentUnread > 0 && <Badge variant='danger'>{debtRepaymentUnread}</Badge>}
-									</span>
-								),
-								content: <DebtRepaymentPage />,
-							},
-						]
-					: []),
+				{
+					value: 'debt-repayments',
+					label: (
+						<span className='flex items-center gap-1.5'>
+							To'langan qarzlar
+							{isSuperAdmin && debtRepaymentUnread > 0 && <Badge variant='danger'>{debtRepaymentUnread}</Badge>}
+						</span>
+					),
+					content: <DebtRepaymentPage />,
+				},
 				{
 					value: 'debtors',
 					label: 'Mijozdan qarzdorlik',

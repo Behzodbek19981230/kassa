@@ -243,7 +243,22 @@ export default function OrderAccountHistoryTable({
          header: 'Buyurtma holati',
          size: 130,
          enableColumnFilter: false,
-         cell: ({ row }) => <span className='text-ca-orange'>{row.original.status_order_label}</span>,
+         cell: ({ row }) => {
+            const parts = row.original.status_order_parts ?? [];
+            if (parts.length === 0) return <span className='text-ca-orange'>{row.original.status_order_label}</span>;
+            return (
+               <span>
+                  {parts.map((part, index) => (
+                     <span key={part.type_sklad}>
+                        {index > 0 && <span className='text-ca-orange'>, </span>}
+                        <span className={part.status_key === 'ready' ? 'text-ca-green' : 'text-ca-orange'}>
+                           {part.type_sklad_name}: {part.text}
+                        </span>
+                     </span>
+                  ))}
+               </span>
+            );
+         },
       }),
       ...(isSuperAdmin
          ? [

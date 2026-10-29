@@ -1,10 +1,9 @@
 import { createColumnHelper, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaFilePdf, FaTrash } from 'react-icons/fa';
+import { FaCheck, FaEdit, FaExclamationTriangle, FaFilePdf, FaTrash } from 'react-icons/fa';
 import {
 	Button,
 	buttonProps,
-	Checkbox,
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
@@ -22,13 +21,11 @@ import { formatNumber } from '@/lib/number';
 import { usePermissions } from '@/lib/permissions';
 import { clientService } from '@/services/client/client.service';
 import { debtRepaymentService } from '@/services/debt-repayment/debt-repayment.service';
-import {
-	useDebtRepaymentGroupedListQuery,
-	useSetDebtRepaymentReadMutation,
-} from '@/services/debt-repayment/debt-repayment.queries';
+import { useDebtRepaymentGroupedListQuery } from '@/services/debt-repayment/debt-repayment.queries';
 import type { DebtRepayment, DebtRepaymentGroupedItem } from '@/services/debt-repayment/debt-repayment.types';
 import DebtRepaymentDraftDeleteModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentDraftDeleteModal';
 import DebtRepaymentFormModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentFormModal';
+import DebtRepaymentReadConfirmModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentReadConfirmModal';
 
 type GroupedDebtRepaymentRow = DebtRepaymentGroupedItem & {
 	_dateLabel: string;
@@ -77,13 +74,14 @@ function toDebtRepayment(item: DebtRepaymentGroupedItem): DebtRepayment {
 
 export default function DebtRepaymentPage() {
 	const { canWrite } = useCurrentCompany();
-	const { canEditOwned } = usePermissions();
+	const { canEditOwned, isSuperAdmin } = usePermissions();
+	// Everyone can view the list; add/edit/delete/confirm are Super Admin only.
+	const canManage = canWrite && isSuperAdmin;
 	const { notify } = useNotification();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
 	const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);
 	const [printingId, setPrintingId] = useState<number | null>(null);
-	const setReadMutation = useSetDebtRepaymentReadMutation();
 
 	const hasAppliedFilters = Object.values(appliedFilters).some(Boolean);
 
@@ -141,14 +139,6 @@ export default function DebtRepaymentPage() {
 			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 		} finally {
 			setPrintingId(null);
-		}
-	}
-
-	async function handleToggleRead(item: GroupedDebtRepaymentRow, isRead: boolean) {
-		try {
-			await setReadMutation.mutateAsync({ id: item.id, isRead });
-		} catch (err) {
-			notify({ title: 'Xatolik', text: getApiErrorMessage(err, "Holatni o'zgartirib bo'lmadi") });
 		}
 	}
 
@@ -212,14 +202,18 @@ export default function DebtRepaymentPage() {
 				const canEdit = canEditOwned(item);
 				return (
 					<div className='flex items-center justify-end gap-1'>
-						<span title={item.is_read ? "O'qilgan" : "O'qilmagan"} className='mr-1'>
-							<Checkbox
-								checked={item.is_read}
-								onCheckedChange={(checked) => handleToggleRead(item, checked === true)}
-								disabled={setReadMutation.isPending && setReadMutation.variables?.id === item.id}
-								inline
+						{canManage && !item.is_read && (
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{
+									...buttonProps(<FaCheck />, 'success', 'icon'),
+									title: 'Tasdiqlash',
+									'aria-label': 'Tasdiqlash',
+								}}
+								dialog={DebtRepaymentReadConfirmModal}
+								dialogProps={{ id: item.id, isRead: true, clientName: item.client_name }}
 							/>
-						</span>
+						)}
 						<Button
 							type='button'
 							variant='default'
@@ -230,7 +224,7 @@ export default function DebtRepaymentPage() {
 						>
 							<FaFilePdf />
 						</Button>
-						{canWrite && canEdit && (
+						{canManage && canEdit && (
 							<OpenDialogButton
 								element={(props) => <Button {...props} />}
 								elementProps={{
@@ -241,7 +235,7 @@ export default function DebtRepaymentPage() {
 								dialogProps={{ mode: 'edit' as const, item: toDebtRepayment(item) }}
 							/>
 						)}
-						{canWrite && canEdit && (
+						{canManage && canEdit && (
 							<OpenDialogButton
 								element={(props) => <Button {...props} />}
 								elementProps={{
@@ -264,7 +258,7 @@ export default function DebtRepaymentPage() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					canWrite && (
+					canManage && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
