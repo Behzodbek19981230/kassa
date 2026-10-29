@@ -49,6 +49,7 @@ interface SidebarProps {
    mobileOpen: boolean;
    onMinify: () => void;
    onCloseMobile: () => void;
+   onReload: () => void;
 }
 
 const iconMap: Record<SidebarIcon, ReactNode> = {
@@ -110,7 +111,7 @@ interface SubMenuItemProps {
    pathname: string;
    expanded: Set<string>;
    onToggle: (id: string) => void;
-   onNavigate: () => void;
+   onNavigate: (path: string) => void;
    nested?: boolean;
    inFlyout?: boolean;
 }
@@ -186,7 +187,7 @@ function SubMenuItem({
    return (
       <li className='list-none'>
          {item.path && item.path !== '#' ? (
-            <Link to={item.path} onClick={onNavigate} className={linkClass}>
+            <Link to={item.path} onClick={() => onNavigate(item.path!)} className={linkClass}>
                <SubMenuMarker icon={item.icon} active={isActive} />
                <span className='pl-4'>{item.label}</span>
             </Link>
@@ -205,7 +206,7 @@ interface MenuItemProps {
    pathname: string;
    expanded: Set<string>;
    onToggle: (id: string) => void;
-   onNavigate: () => void;
+   onNavigate: (path: string) => void;
    minified: boolean;
 }
 
@@ -242,7 +243,7 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
             {item.path && item.path !== '#' ? (
                <Link
                   to={item.path}
-                  onClick={onNavigate}
+                  onClick={() => onNavigate(item.path!)}
                   className={linkClass}
                   title={minified ? item.label : undefined}
                >
@@ -376,12 +377,13 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
    );
 }
 
-export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile }: SidebarProps) {
+export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile, onReload }: SidebarProps) {
    const { pathname } = useLocation();
    const { isAdminOrManager, isSuperAdmin } = useCurrentCompany();
    const {
       canManageConsignor,
       canManageWarehouse,
+      canViewWarehousePrices,
       canImport,
       canViewWarehouseProducts,
       canManageOrderCart,
@@ -396,6 +398,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
             isSuperAdmin,
             canManageConsignor,
             canManageWarehouse,
+            canViewWarehousePrices,
             canImport,
             canViewWarehouseProducts,
             canManageOrderCart,
@@ -409,6 +412,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
          isSuperAdmin,
          canManageConsignor,
          canManageWarehouse,
+         canViewWarehousePrices,
          canImport,
          canViewWarehouseProducts,
          canManageOrderCart,
@@ -433,6 +437,12 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
          else next.add(id);
          return next;
       });
+   };
+
+   // Clicking the menu item of the page already open reloads that page.
+   const handleNavigate = (path: string) => {
+      onCloseMobile();
+      if (path === pathname) onReload();
    };
 
    const widthClass = minified ? 'w-[60px]' : 'w-[220px]';
@@ -496,7 +506,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile 
                      pathname={pathname}
                      expanded={expanded}
                      onToggle={toggleExpanded}
-                     onNavigate={onCloseMobile}
+                     onNavigate={handleNavigate}
                      minified={minified}
                   />
                ))}

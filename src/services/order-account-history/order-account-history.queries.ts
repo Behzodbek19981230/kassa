@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
 import type {
+	OrderTypeSkladStatusPart,
 	OrderAccountHistoryDraftListParams,
 	OrderAccountHistoryGroupedListParams,
 	OrderAccountHistoryListParams,
@@ -104,6 +105,17 @@ export function useUpdateOrderAccountHistoryStatusMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: OrderAccountHistoryUpdateStatusPayload }) =>
 			orderAccountHistoryService.updateStatus(id, payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all });
+		},
+	});
+}
+
+export function useMarkTypeSkladReadyMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ part }: { orderId: number; part: OrderTypeSkladStatusPart }) =>
+			orderAccountHistoryService.markTypeSkladReady(part.ready_url),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: orderAccountHistoryKeys.all });
 		},

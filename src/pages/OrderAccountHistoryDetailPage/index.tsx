@@ -56,7 +56,7 @@ export default function OrderAccountHistoryDetailPage() {
    const { data, isLoading, isError } = useOrderAccountHistoryProductsQuery(orderId);
    const { notify } = useNotification();
    const { canWrite } = useCurrentCompany();
-   const { canEditOwned, canViewChangeLogs } = usePermissions();
+   const { canEditOwned, canViewChangeLogs, isSuperAdmin } = usePermissions();
    const cols = useColumnVisibility('order-account-history-detail', COLUMNS);
    const labelSpan = LABEL_COLUMNS.filter((c) => cols.isVisible(c)).length;
    const [printingRole, setPrintingRole] = useState<PrintRole | null>(null);
@@ -212,16 +212,19 @@ export default function OrderAccountHistoryDetailPage() {
                   <FaDownload className='mr-1.5' />{' '}
                   {printingRole === 'mijoz' ? 'Yuklanmoqda...' : 'Chop qilish Mijoz uchun'}
                </Button>
-               <Button
-                  type='button'
-                  variant='danger'
-                  size='xs'
-                  disabled={printingRole === 'admin'}
-                  onClick={() => printFor('admin')}
-               >
-                  <FaDownload className='mr-1.5' />{' '}
-                  {printingRole === 'admin' ? 'Yuklanmoqda...' : 'Chop qilish Admin uchun'}
-               </Button>
+               {/* The admin print is Super Admin only. */}
+               {isSuperAdmin && (
+                  <Button
+                     type='button'
+                     variant='danger'
+                     size='xs'
+                     disabled={printingRole === 'admin'}
+                     onClick={() => printFor('admin')}
+                  >
+                     <FaDownload className='mr-1.5' />{' '}
+                     {printingRole === 'admin' ? 'Yuklanmoqda...' : 'Chop qilish Admin uchun'}
+                  </Button>
+               )}
                <Button type='button' variant='success' size='xs' disabled={exportingExcel} onClick={handleExportExcel}>
                   <FaFileExcel className='mr-1.5' /> {exportingExcel ? 'Yuklanmoqda...' : 'Excel yuklash'}
                </Button>

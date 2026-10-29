@@ -1,4 +1,5 @@
 import { useUserInfoQuery } from '@/services/user/user.queries';
+import { todayTashkent } from '@/pages/TwoStageImport/utils';
 
 // Role keys as sent by the backend in `roles.key` (the display `name` may change).
 export const ROLE = {
@@ -48,6 +49,8 @@ export function usePermissions() {
 
 	// consignor: full CRUD only for Super Admin + Sklad Manager
 	const canManageConsignor = isSuperAdmin || isSkladManager;
+	// "Tovarlar va Narxlar" (warehouse pricing) menu: Super Admin + Admin + Manager
+	const canViewWarehousePrices = isSuperAdmin || isAdmin || isManager;
 	// warehouse (pricing): add / edit / delete only for Super Admin
 	const canManageWarehouse = isSuperAdmin;
 
@@ -79,6 +82,13 @@ export function usePermissions() {
 		return currentUserId != null && item.created_by === currentUserId;
 	}
 
+	// "Mijoz buyurtmalar tarixi" edit (Tahrirlash): Super Admin any order; everyone else only
+	// their own orders dated today.
+	function canEditCustomerOrder(item: { created_by?: number | null; date?: string | null }) {
+		if (isSuperAdmin) return true;
+		return canEditOrder(item) && item.date?.slice(0, 10) === todayTashkent();
+	}
+
 	// order-account-history/{id}/change-logs: closed for every role except Super Admin
 	const canViewChangeLogs = isSuperAdmin;
 
@@ -96,12 +106,14 @@ export function usePermissions() {
 		canDeleteOrders,
 		canManageConsignor,
 		canManageWarehouse,
+		canViewWarehousePrices,
 		canImport,
 		canViewWarehouseReport,
 		canViewClients,
 		canEditSklad,
 		canEditOwned,
 		canEditOrder,
+		canEditCustomerOrder,
 		canViewChangeLogs,
 	};
 }

@@ -40,7 +40,7 @@ const columnHelper = createColumnHelper<Warehouse>();
 
 export default function WarehousePage() {
    const { canWrite } = useCurrentCompany();
-   const { canManageWarehouse, isSuperAdmin } = usePermissions();
+   const { canManageWarehouse, canSendProductToTelegram, isSuperAdmin } = usePermissions();
    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
    const [sorting, setSorting] = useState<SortingState>([]);
    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -239,7 +239,7 @@ export default function WarehousePage() {
 
             return (
                <div className='flex justify-end gap-1'>
-                  {isSuperAdmin && (
+                  {canSendProductToTelegram && (
                      <OpenDialogButton
                         element={(props) => <Button {...props} />}
                         elementProps={{

@@ -422,7 +422,11 @@ export default function PlaceOrderPage() {
                                  element={(props) => <Button {...props} />}
                                  elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
                                  dialog={PayDebtModal}
-                                 dialogProps={{ companyId, clientId: Number(clientId) }}
+                                 dialogProps={{
+                                    companyId,
+                                    clientId: Number(clientId),
+                                    onPaid: () => navigate('/customer-order-history?tab=debt-repayments'),
+                                 }}
                               />
                            )}
                         </div>

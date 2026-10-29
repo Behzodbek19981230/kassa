@@ -163,7 +163,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
    // Re-measure with every menu rendered whenever the width or the menu contents change.
    useLayoutEffect(() => {
       setMeasuring(true);
-   }, [measureTick, unconfirmedClientsCount, unconfirmedTransfersCount, showCompanySelect, companies.length, currentCompany?.name, user?.username]);
+   }, [measureTick, unconfirmedClientsCount, unconfirmedTransfersCount, showCompanySelect, companies.length, currentCompany?.name, user?.username, user?.roles?.name]);
 
    useLayoutEffect(() => {
       if (!measuring) return;
@@ -443,7 +443,13 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                                  alt=''
                                  className='-mt-[5px] mr-2.5 h-[30px] w-[30px] rounded-full '
                               />
-                              <span className='hidden md:inline'>{user?.username ?? 'Admin'}</span>
+                              {/* Negative margin keeps the two-line block within the header height. */}
+                              <span className='-my-[6px] hidden flex-col text-left leading-tight md:flex'>
+                                 <span>{user?.username ?? 'Admin'}</span>
+                                 {user?.roles?.name && (
+                                    <span className='text-[11px] opacity-70'>({user.roles.name})</span>
+                                 )}
+                              </span>
                               <span className='ml-1 inline-block h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-ca-nav-text' />
                            </button>
                         </DropdownMenuTrigger>

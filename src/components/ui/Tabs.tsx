@@ -5,7 +5,7 @@ interface TabsProps {
   defaultValue?: string
   value?: string
   onValueChange?: (value: string) => void
-  items: { value: string; label: string; content: React.ReactNode }[]
+  items: { value: string; label: React.ReactNode; content: React.ReactNode }[]
   inverse?: boolean
   className?: string
 }

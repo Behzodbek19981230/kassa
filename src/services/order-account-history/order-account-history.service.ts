@@ -1,6 +1,7 @@
 import { apiClient, API_BASE_URL } from '@/services/api/client';
 import type { PaginatedResponse } from '@/services/api/types';
 import type {
+	MarkTypeSkladReadyResponse,
 	OrderAccountHistoryChangeLogsParams,
 	OrderAccountHistoryChangeLogsResponse,
 	OrderAccountHistoryDraftDeleteResponse,
@@ -51,6 +52,11 @@ export const orderAccountHistoryService = {
 	},
 	updateStatus: async (id: number, payload: OrderAccountHistoryUpdateStatusPayload) => {
 		const { data } = await apiClient.patch<OrderAccountHistoryItem>(`/order-account-history/${id}/`, payload);
+		return data;
+	},
+	/** `readyUrl` is the `ready_url` of a `status_order_parts` entry. */
+	markTypeSkladReady: async (readyUrl: string) => {
+		const { data } = await apiClient.post<MarkTypeSkladReadyResponse>(toApiPath(readyUrl), {});
 		return data;
 	},
 	updateSale: async (id: number, payload: OrderAccountHistoryUpdateSalePayload) => {

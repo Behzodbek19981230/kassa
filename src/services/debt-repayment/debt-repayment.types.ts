@@ -121,6 +121,7 @@ export interface DebtRepaymentGroupedItem {
   zdacha_dollar: string
   text: string
   print_url: string
+  is_read: boolean
 }
 
 export interface DebtRepaymentGroup {
@@ -145,6 +146,8 @@ export interface DebtRepaymentGroupedResponse {
   pagination: PaginationMeta
   filters: DebtRepaymentGroupedFilters
   results: DebtRepaymentGroupedResults
+  /** Repayments not yet marked as read (`is_read`), across all pages. */
+  unreadTotal?: number
 }
 
 export interface DebtRepaymentGroupedListParams extends ListParams {

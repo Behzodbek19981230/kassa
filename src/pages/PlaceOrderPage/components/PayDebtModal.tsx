@@ -49,7 +49,7 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 	const [formError, setFormError] = useState('');
 
 	const { data: client } = useClientQuery(clientId);
-	const { exchangeRate } = useCurrentCompany();
+	const { exchangeRate, isSuperAdmin } = useCurrentCompany();
 	const rate = Number(exchangeRate?.dollar ?? 0);
 
 	const {
@@ -145,7 +145,10 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 								<Controller
 									name='date'
 									control={control}
-									render={({ field }) => <DatePicker value={field.value} onChange={field.onChange} />}
+									render={({ field }) => (
+										// Only Super Admin may back-date or post-date a payment.
+										<DatePicker value={field.value} onChange={field.onChange} disabled={!isSuperAdmin} />
+									)}
 								/>
 							</FormField>
 							<FormField label='Jami summa ($)' horizontal={false} className='mb-0'>

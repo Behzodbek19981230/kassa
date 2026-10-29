@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
+import { useQueryClient } from '@tanstack/react-query';
 import { Outlet, useLocation } from 'react-router-dom';
 import {
 	Button,
@@ -38,6 +39,14 @@ export default function Layout() {
 	const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 	const [rateModalOpen, setRateModalOpen] = useState(false);
 	const rateModalShownRef = useRef(false);
+	const queryClient = useQueryClient();
+	const [pageKey, setPageKey] = useState(0);
+
+	// Remount the current page (fresh local state) and refetch its data.
+	const reloadPage = () => {
+		setPageKey((key) => key + 1);
+		void queryClient.invalidateQueries();
+	};
 
 	const toggleSidebarMinified = () => {
 		const next = !sidebarMinified;
@@ -82,11 +91,12 @@ export default function Layout() {
 					mobileOpen={mobileSidebarOpen}
 					onMinify={toggleSidebarMinified}
 					onCloseMobile={closeMobileSidebar}
+					onReload={reloadPage}
 				/>
 
 				<main id='content' className={`px-[25px] py-5 transition-all duration-200 ${contentMargin}`}>
 					{isExchangeRateSet && !isYuanBlocked ? (
-						<Outlet />
+						<Outlet key={pageKey} />
 					) : isExchangeRateSet ? (
 						<div className='flex min-h-[70vh] flex-col items-center justify-center gap-3 text-center'>
 							<FaExclamationTriangle className='text-5xl text-ca-red' />

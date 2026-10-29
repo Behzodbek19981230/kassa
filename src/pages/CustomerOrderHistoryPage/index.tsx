@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Button, Panel, Tabs } from '@/components/ui';
+import { Badge, Button, Panel, Tabs } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { usePermissions } from '@/lib/permissions';
 import { useOrderCartGroupedListQuery } from '@/services/order-cart/order-cart.queries';
+import { useDebtRepaymentGroupedListQuery } from '@/services/debt-repayment/debt-repayment.queries';
 import OrderAccountHistoryTable from '@/pages/CustomerOrderHistoryPage/components/OrderAccountHistoryTable';
 import DebtRepaymentPage from '@/pages/settings/DebtRepaymentPage';
 
@@ -20,6 +21,10 @@ export default function CustomerOrderHistoryPage() {
 
 	const { data: cartDraftData } = useOrderCartGroupedListQuery({ is_active: true, limit: 1 }, canManageOrderCart);
 	const cartDraftCount = cartDraftData?.pagination.total ?? 0;
+
+	// Unread count for the "To'langan qarzlar" tab badge, fetched even while another tab is open.
+	const { data: debtRepaymentData } = useDebtRepaymentGroupedListQuery({ page: 1, limit: 1 }, isSuperAdmin);
+	const debtRepaymentUnread = debtRepaymentData?.unreadTotal ?? 0;
 
 	const renderPanel = (isDebtorOnly: boolean) => (
 		<Panel
@@ -58,7 +63,12 @@ export default function CustomerOrderHistoryPage() {
 					? [
 							{
 								value: 'debt-repayments',
-								label: "To'langan qarzlar",
+								label: (
+									<span className='flex items-center gap-1.5'>
+										To'langan qarzlar
+										{debtRepaymentUnread > 0 && <Badge variant='danger'>{debtRepaymentUnread}</Badge>}
+									</span>
+								),
 								content: <DebtRepaymentPage />,
 							},
 						]

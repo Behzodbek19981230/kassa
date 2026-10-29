@@ -4,6 +4,7 @@ import { FaEdit, FaExclamationTriangle, FaFilePdf, FaTrash } from 'react-icons/f
 import {
 	Button,
 	buttonProps,
+	Checkbox,
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
@@ -21,7 +22,10 @@ import { formatNumber } from '@/lib/number';
 import { usePermissions } from '@/lib/permissions';
 import { clientService } from '@/services/client/client.service';
 import { debtRepaymentService } from '@/services/debt-repayment/debt-repayment.service';
-import { useDebtRepaymentGroupedListQuery } from '@/services/debt-repayment/debt-repayment.queries';
+import {
+	useDebtRepaymentGroupedListQuery,
+	useSetDebtRepaymentReadMutation,
+} from '@/services/debt-repayment/debt-repayment.queries';
 import type { DebtRepayment, DebtRepaymentGroupedItem } from '@/services/debt-repayment/debt-repayment.types';
 import DebtRepaymentDraftDeleteModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentDraftDeleteModal';
 import DebtRepaymentFormModal from '@/pages/settings/DebtRepaymentPage/components/DebtRepaymentFormModal';
@@ -79,6 +83,7 @@ export default function DebtRepaymentPage() {
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
 	const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);
 	const [printingId, setPrintingId] = useState<number | null>(null);
+	const setReadMutation = useSetDebtRepaymentReadMutation();
 
 	const hasAppliedFilters = Object.values(appliedFilters).some(Boolean);
 
@@ -136,6 +141,14 @@ export default function DebtRepaymentPage() {
 			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 		} finally {
 			setPrintingId(null);
+		}
+	}
+
+	async function handleToggleRead(item: GroupedDebtRepaymentRow, isRead: boolean) {
+		try {
+			await setReadMutation.mutateAsync({ id: item.id, isRead });
+		} catch (err) {
+			notify({ title: 'Xatolik', text: getApiErrorMessage(err, "Holatni o'zgartirib bo'lmadi") });
 		}
 	}
 
@@ -198,7 +211,15 @@ export default function DebtRepaymentPage() {
 				const item = row.original;
 				const canEdit = canEditOwned(item);
 				return (
-					<div className='flex justify-end gap-1'>
+					<div className='flex items-center justify-end gap-1'>
+						<span title={item.is_read ? "O'qilgan" : "O'qilmagan"} className='mr-1'>
+							<Checkbox
+								checked={item.is_read}
+								onCheckedChange={(checked) => handleToggleRead(item, checked === true)}
+								disabled={setReadMutation.isPending && setReadMutation.variables?.id === item.id}
+								inline
+							/>
+						</span>
 						<Button
 							type='button'
 							variant='default'

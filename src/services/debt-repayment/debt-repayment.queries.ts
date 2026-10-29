@@ -24,11 +24,12 @@ export function useDebtRepaymentListQuery(params?: DebtRepaymentListParams) {
   })
 }
 
-export function useDebtRepaymentGroupedListQuery(params?: DebtRepaymentGroupedListParams) {
+export function useDebtRepaymentGroupedListQuery(params?: DebtRepaymentGroupedListParams, enabled = true) {
   return useQuery({
     queryKey: debtRepaymentKeys.groupedList(params),
     queryFn: () => debtRepaymentService.listGrouped(params),
     placeholderData: (prev) => prev,
+    enabled,
   })
 }
 
@@ -67,6 +68,16 @@ export function useUpdateDebtRepaymentMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: debtRepaymentKeys.all })
       queryClient.invalidateQueries({ queryKey: ['clients'] })
+    },
+  })
+}
+
+export function useSetDebtRepaymentReadMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, isRead }: { id: number; isRead: boolean }) => debtRepaymentService.setRead(id, isRead),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: debtRepaymentKeys.all })
     },
   })
 }

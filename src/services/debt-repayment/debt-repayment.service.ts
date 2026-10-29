@@ -44,6 +44,10 @@ export const debtRepaymentService = {
     const { data } = await apiClient.put<DebtRepayment>(`/debt-repayment/${id}/`, payload)
     return data
   },
+  setRead: async (id: number, isRead: boolean) => {
+    const { data } = await apiClient.patch<DebtRepayment>(`/debt-repayment/${id}/`, { is_read: isRead })
+    return data
+  },
   listDraftGrouped: async (params?: DebtRepaymentDraftListParams) => {
     const { data } = await apiClient.get<DebtRepaymentDraftListResponse>('/debt-repayment/grouped/draft/', {
       params,

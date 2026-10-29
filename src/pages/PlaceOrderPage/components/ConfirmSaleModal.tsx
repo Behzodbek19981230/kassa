@@ -64,7 +64,7 @@ export default function ConfirmSaleModal({
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
 
-	const { exchangeRate } = useCurrentCompany();
+	const { exchangeRate, isSuperAdmin } = useCurrentCompany();
 	const rate = Number(exchangeRate?.dollar ?? 0);
 
 	const {
@@ -187,7 +187,10 @@ export default function ConfirmSaleModal({
 								<Controller
 									name='date'
 									control={control}
-									render={({ field }) => <DatePicker value={field.value} onChange={field.onChange} disabled />}
+									render={({ field }) => (
+										// Only Super Admin may back-date or post-date a sale.
+										<DatePicker value={field.value} onChange={field.onChange} disabled={!isSuperAdmin} />
+									)}
 								/>
 							</FormField>
 							<FormField label='Dollar kursi' horizontal={false} className='mb-0'>

@@ -84,7 +84,35 @@ export interface OrderAccountHistoryItem {
 	company: number;
 	client: number;
 	status_order_label?: string;
+	/** Per-TypeSklad readiness of the order's products. */
+	status_order_parts?: OrderTypeSkladStatusPart[];
+	all_type_sklads_ready?: boolean;
 	is_price_diff: boolean;
+}
+
+export interface OrderTypeSkladStatusPart {
+	type: string;
+	type_sklad: number;
+	type_sklad_name: string;
+	status: 1 | 2;
+	status_key: 'in_progress' | 'ready';
+	text: string;
+	label: string;
+	color: 'red' | 'green';
+	ready_at: string | null;
+	ready_by: number | null;
+	can_mark_ready: boolean;
+	ready_url: string;
+}
+
+export interface MarkTypeSkladReadyResponse {
+	order_account_history: number;
+	type_sklad: { id: number; name: string };
+	status: 'ready';
+	status_value: 2;
+	status_label: string;
+	ready_at: string;
+	ready_by: number;
 }
 
 export interface OrderAccountHistoryUpdateStatusPayload {

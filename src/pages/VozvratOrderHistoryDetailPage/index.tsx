@@ -11,8 +11,6 @@ import { vozvratService } from '@/services/vozvrat/vozvrat.service';
 
 import { getApiErrorMessageAsync } from '@/lib/errors';
 
-type PrintRole = 'mijoz' | 'admin';
-
 const COLUMNS: ColumnVisibilityDef[] = [
 	{ id: 'index', label: '#', hideable: false },
 	{ id: 'location', label: 'Joyi' },
@@ -38,22 +36,22 @@ export default function VozvratOrderHistoryDetailPage() {
 	const { notify } = useNotification();
 	const cols = useColumnVisibility('vozvrat-order-history-detail', COLUMNS);
 	const labelSpan = LABEL_COLUMNS.filter((c) => cols.isVisible(c)).length;
-	const [printingRole, setPrintingRole] = useState<PrintRole | null>(null);
+	const [isPrinting, setIsPrinting] = useState(false);
 
-	async function printFor(role: PrintRole) {
+	// The client printout uses the admin print endpoint; there is no separate admin print here.
+	async function printForClient() {
 		if (!orderId) return;
 
 		const tab = openPendingTab();
-		setPrintingRole(role);
+		setIsPrinting(true);
 		try {
-			const blob =
-				role === 'mijoz' ? await vozvratService.printForClient(orderId) : await vozvratService.printForAdmin(orderId);
+			const blob = await vozvratService.printForAdmin(orderId);
 			loadBlobIntoTab(blob, tab);
 		} catch (err) {
 			tab?.close();
 			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 		} finally {
-			setPrintingRole(null);
+			setIsPrinting(false);
 		}
 	}
 
@@ -79,23 +77,8 @@ export default function VozvratOrderHistoryDetailPage() {
 					<Button type='button' variant='info' size='xs' onClick={() => navigate(-1)}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 					</Button>
-					<Button
-						type='button'
-						variant='warning'
-						size='xs'
-						disabled={printingRole === 'mijoz'}
-						onClick={() => printFor('mijoz')}
-					>
-						<FaDownload className='mr-1.5' /> {printingRole === 'mijoz' ? 'Yuklanmoqda...' : 'Chop qilish Mijoz uchun'}
-					</Button>
-					<Button
-						type='button'
-						variant='danger'
-						size='xs'
-						disabled={printingRole === 'admin'}
-						onClick={() => printFor('admin')}
-					>
-						<FaDownload className='mr-1.5' /> {printingRole === 'admin' ? 'Yuklanmoqda...' : 'Chop qilish Admin uchun'}
+					<Button type='button' variant='warning' size='xs' disabled={isPrinting} onClick={printForClient}>
+						<FaDownload className='mr-1.5' /> {isPrinting ? 'Yuklanmoqda...' : 'Chop qilish Mijoz uchun'}
 					</Button>
 				</div>
 			</div>

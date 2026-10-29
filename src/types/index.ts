@@ -35,6 +35,7 @@ export interface SidebarMenuPermissions {
 	isSuperAdmin: boolean;
 	canManageConsignor: boolean;
 	canManageWarehouse: boolean;
+	canViewWarehousePrices: boolean;
 	canImport: boolean;
 	canViewWarehouseProducts: boolean;
 	canManageOrderCart: boolean;

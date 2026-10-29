@@ -81,7 +81,7 @@ export default function OrderAccountHistoryEditPage() {
    const orderId = id ? Number(id) : undefined;
    const { notify } = useNotification();
    const { canWrite } = useCurrentCompany();
-   const { canEditOrder, isSuperAdmin } = usePermissions();
+   const { canEditCustomerOrder, isSuperAdmin } = usePermissions();
    const [formError, setFormError] = useState('');
 
    useEffect(() => {
@@ -95,8 +95,8 @@ export default function OrderAccountHistoryEditPage() {
    );
 
    useEffect(() => {
-      if (item && !canEditOrder(item)) navigate('/customer-order-history', { replace: true });
-   }, [item, canEditOrder, navigate]);
+      if (item && !canEditCustomerOrder(item)) navigate('/customer-order-history', { replace: true });
+   }, [item, canEditCustomerOrder, navigate]);
 
    const [rows, setRows] = useState<EditableProductRow[]>([]);
    const [rowErrors, setRowErrors] = useState<Record<number, string>>({});

@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnFiltersState, type PaginationState } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
-import { FaCheck, FaEdit, FaExclamationTriangle, FaExpand, FaTimesCircle, FaTrash } from 'react-icons/fa';
+import { FaCheck, FaClipboardCheck, FaEdit, FaExclamationTriangle, FaExpand, FaTimesCircle, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import {
    Button,
@@ -22,6 +22,7 @@ import { userService } from '@/services/user/user.service';
 import ConfirmOrderUpdateModal from '@/pages/CustomerOrderHistoryPage/components/ConfirmOrderUpdateModal';
 import OrderDraftDeleteModal from '@/pages/CustomerOrderHistoryPage/components/OrderDraftDeleteModal';
 import OrderHardDeleteModal from '@/pages/CustomerOrderHistoryPage/components/OrderHardDeleteModal';
+import TypeSkladReadyModal from '@/pages/CustomerOrderHistoryPage/components/TypeSkladReadyModal';
 import { cn } from '@/lib/utils';
 
 type GroupedOrderAccountHistoryItem = OrderAccountHistoryItem & {
@@ -55,7 +56,7 @@ export default function OrderAccountHistoryTable({
    onRefetchReady,
 }: OrderAccountHistoryTableProps) {
    const navigate = useNavigate();
-   const { canEditOrder, canDeleteOrders, isSuperAdmin } = usePermissions();
+   const { canEditCustomerOrder, canDeleteOrders, isSuperAdmin } = usePermissions();
 
    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -188,6 +189,12 @@ export default function OrderAccountHistoryTable({
          enableColumnFilter: false,
          cell: (info) => `${formatNumber(info.getValue(), 2)} $`,
       }),
+      columnHelper.accessor('discount_amount', {
+         header: 'Chegirma ($)',
+         size: 120,
+         enableColumnFilter: false,
+         cell: (info) => `${formatNumber(info.getValue(), 2)} $`,
+      }),
       columnHelper.display({
          id: 'zdacha',
          header: 'Qaytim',
@@ -261,8 +268,23 @@ export default function OrderAccountHistoryTable({
          size: isDebtorOnly ? 90 : 260,
          cell: ({ row }) => {
             const item = row.original;
+            const parts = item.status_order_parts ?? [];
+            const hasReadyAction = parts.some((p) => p.can_mark_ready && p.status_key === 'in_progress');
             return (
                <div className='flex justify-end gap-1'>
+                  {hasReadyAction && canWrite && (
+                     <Tooltip content='Tayyorlanganini tasdiqlash'>
+                        <OpenDialogButton
+                           element={(props) => <Button {...props} />}
+                           elementProps={{
+                              ...buttonProps(<FaClipboardCheck />, 'success', 'icon'),
+                              'aria-label': 'Tayyorlanganini tasdiqlash',
+                           }}
+                           dialog={TypeSkladReadyModal}
+                           dialogProps={{ orderId: item.id, parts }}
+                        />
+                     </Tooltip>
+                  )}
                   {item.update_status === 1 && canWrite && isSuperAdmin && (
                      <Tooltip content="Buyurtma o'zgartirilgan, tasdiqlash uchun bosing">
                         <OpenDialogButton
@@ -276,7 +298,7 @@ export default function OrderAccountHistoryTable({
                         />
                      </Tooltip>
                   )}
-                  {!isDebtorOnly && canWrite && canEditOrder(item) && (
+                  {!isDebtorOnly && canWrite && canEditCustomerOrder(item) && (
                      <Button
                         type='button'
                         variant='info'

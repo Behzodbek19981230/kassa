@@ -6,6 +6,7 @@ import ImportRoute from '@/components/auth/ImportRoute';
 import OrderCartRoute from '@/components/auth/OrderCartRoute';
 import WarehouseReportRoute from '@/components/auth/WarehouseReportRoute';
 import ClientsRoute from '@/components/auth/ClientsRoute';
+import WarehousePricesRoute from '@/components/auth/WarehousePricesRoute';
 import SuperAdminRoute from '@/components/auth/SuperAdminRoute';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
@@ -139,8 +140,10 @@ export default function App() {
 						<Route path='system/logistics-companies' element={<LogisticsCompanyPage />} />
 						<Route path='system/logistics-warehouses' element={<LogisticsWarehousePage />} />
 					</Route>
-					<Route element={<SuperAdminRoute />}>
+					<Route element={<WarehousePricesRoute />}>
 						<Route path='warehouse-prices' element={<WarehousePage />} />
+					</Route>
+					<Route element={<SuperAdminRoute />}>
 						<Route path='warehouse-prices/create' element={<WarehouseFormPage mode='create' />} />
 						<Route path='warehouse-prices/:id/edit' element={<WarehouseFormPage mode='edit' />} />
 					</Route>
