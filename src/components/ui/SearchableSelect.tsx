@@ -63,6 +63,9 @@ type Group = GroupBase<Option>
 
 export const MENU_MAX_HEIGHT = 240
 
+/** How many extra pages to load on open while looking for the selected option. */
+const MAX_PAGES_TO_FIND_SELECTED = 10
+
 export const baseClassNames: ClassNamesConfig<Option, boolean, Group> = {
   container: () => 'w-full',
   control: ({ isFocused, isDisabled }) =>
@@ -122,6 +125,18 @@ export function SearchableSelect({
   const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(false)
   const [knownLabels, setKnownLabels] = useState<Record<string, string>>({})
+  // react-select finds the selected/focused option by object identity, so the same value must keep the
+  // same object across refetches and in `value`; otherwise the menu always opens at the first option.
+  const optionCache = useRef(new Map<string, Option>())
+  // Set when an open-time load brought the selected option in, so the menu can jump to it.
+  const focusSelectedPending = useRef(false)
+
+  const stable = (option: Option) => {
+    const cached = optionCache.current.get(option.value)
+    if (cached && cached.label === option.label) return cached
+    optionCache.current.set(option.value, option)
+    return option
+  }
 
   useCloseOnModalOpen(() => selectRef.current?.blur())
 
@@ -145,9 +160,24 @@ export function SearchableSelect({
     try {
       const result = await loadOptions({ search: searchTerm, page: pageNum })
       if (thisRequest !== requestId.current) return
-      setItems((prev) => (append ? [...prev, ...result.options] : result.options))
-      setHasMore(result.hasMore)
-      setPage(pageNum)
+      let loaded = result.options
+      let lastPage = pageNum
+      let more = result.hasMore
+      // Opening a single select whose value sits on a later page: keep loading until it's in the list,
+      // so the menu can open at it instead of at the top.
+      const wanted = !multi && !append && !searchTerm ? value[0] : undefined
+      while (wanted && more && !loaded.some((o) => o.value === wanted) && lastPage - pageNum < MAX_PAGES_TO_FIND_SELECTED) {
+        const next = await loadOptions({ search: searchTerm, page: lastPage + 1 })
+        if (thisRequest !== requestId.current) return
+        loaded = [...loaded, ...next.options]
+        lastPage += 1
+        more = next.hasMore
+      }
+      const options = loaded.map(stable)
+      setItems((prev) => (append ? [...prev, ...options] : options))
+      setHasMore(more)
+      setPage(lastPage)
+      if (wanted && options.some((o) => o.value === wanted)) focusSelectedPending.current = true
     } finally {
       if (thisRequest === requestId.current) setLoading(false)
     }
@@ -160,14 +190,30 @@ export function SearchableSelect({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, menuOpen, isAsync])
 
+  // Prefer the very option object shown in the menu (see `optionCache`).
   const selectedOptions: Option[] = useMemo(
     () =>
-      value.map((v) => ({
-        value: v,
-        label: labels?.[v] ?? knownLabels[v] ?? staticOptions?.find((o) => o.value === v)?.label ?? '',
-      })),
-    [value, labels, knownLabels, staticOptions],
+      value.map((v) => {
+        const shown = items.find((o) => o.value === v)
+        if (shown && (!labels?.[v] || labels[v] === shown.label)) return shown
+        return stable({
+          value: v,
+          label: labels?.[v] ?? knownLabels[v] ?? staticOptions?.find((o) => o.value === v)?.label ?? '',
+        })
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [value, labels, knownLabels, staticOptions, items],
   )
+
+  // The open-time load replaced the list: focus the selected option again and scroll the menu to it.
+  useEffect(() => {
+    if (!focusSelectedPending.current || !menuOpen) return
+    focusSelectedPending.current = false
+    const select = selectRef.current
+    if (!select) return
+    select.openMenu('first')
+    select.scrollToFocusedOptionOnUpdate = true
+  }, [items, menuOpen])
 
   const handleMenuOpen = () => {
     setMenuOpen(true)
