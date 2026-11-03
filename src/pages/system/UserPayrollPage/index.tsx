@@ -1,8 +1,8 @@
 import { createColumnHelper, type SortingState } from '@tanstack/react-table';
 import { useState, type ReactNode } from 'react';
-import { FaArrowRight, FaCalculator, FaDatabase, FaExclamationTriangle, FaGift, FaMinusCircle, FaPen, FaPlus, FaUser } from 'react-icons/fa';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { DataTable, Panel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
+import { FaArrowLeft, FaArrowRight, FaCalculator, FaDatabase, FaExclamationTriangle, FaGift, FaMinusCircle, FaPen, FaPlus, FaUser } from 'react-icons/fa';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Button, DataTable, Panel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import PayrollActionModal from '@/pages/system/UserPayrollPage/PayrollActionModal';
@@ -108,6 +108,8 @@ function MoneyPills({ dollar, som, className, prefix = '' }: { dollar: number; s
 
 export default function UserPayrollPage() {
 	const { id } = useParams();
+	const navigate = useNavigate();
+	const location = useLocation();
 	const userId = Number(id) || 0;
 	const { year, month, set } = useYearMonth();
 	const [typeFilter, setTypeFilter] = useState<PayrollTransactionType | typeof ALL_TYPES>(ALL_TYPES);
@@ -200,7 +202,21 @@ export default function UserPayrollPage() {
 
 	return (
 		<>
-			<Panel title="Oylik to'lovlar tarixi" bodyClassName='p-0'>
+			<Panel
+				title="Oylik to'lovlar tarixi"
+				bodyClassName='p-0'
+				actions={
+					<Button
+						type='button'
+						variant='info'
+						size='xs'
+						// Going back keeps the users list's page; a directly opened link has no history to return to.
+						onClick={() => (location.key === 'default' ? navigate('/system/users') : navigate(-1))}
+					>
+						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
+					</Button>
+				}
+			>
 				<div className='space-y-4 p-4'>
 					<div className='flex flex-wrap items-center gap-3'>
 						<div className='flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-ca-border bg-ca-silver'>

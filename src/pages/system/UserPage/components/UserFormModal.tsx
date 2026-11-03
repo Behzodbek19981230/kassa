@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, Controller } from 'react-hook-form';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { FaCamera, FaUser } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
 import { z } from 'zod';
 import {
 	Button,
@@ -41,6 +40,10 @@ import { useCreateUserMutation, useUpdateUserMutation, useUserQuery } from '@/se
 import { USER_TYPE_OPTIONS, type User, type UserPayload } from '@/services/user/user.types';
 import { getApiErrorMessage } from '@/lib/errors';
 import { ROLE } from '@/lib/permissions';
+import { useCurrentCompany } from '@/lib/company';
+import { formatNumber } from '@/lib/number';
+import { currentYearMonth } from '@/pages/system/UserPayrollPage/utils';
+import { useUpdateSalaryRateMutation } from '@/services/payroll/payroll.queries';
 
 const GENDER_OPTIONS = [
 	{ value: 'male', label: 'Erkak' },
@@ -116,6 +119,9 @@ interface UserFormModalProps {
 
 export default function UserFormModal({ open, setOpen, mode, item }: UserFormModalProps) {
 	const { notify } = useNotification();
+	const { exchangeRate } = useCurrentCompany();
+	// Today's $ → so'm rate; 0 when not set, and then the two salary fields are filled independently.
+	const dollarRate = Number(exchangeRate?.dollar) || 0;
 	const [formError, setFormError] = useState('');
 	const [avatarFile, setAvatarFile] = useState<File | null>(null);
 	const [avatarPreview, setAvatarPreview] = useState<string | null>(item?.avatar ?? null);
@@ -184,7 +190,8 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 
 	const createMutation = useCreateUserMutation();
 	const updateMutation = useUpdateUserMutation();
-	const isSaving = createMutation.isPending || updateMutation.isPending;
+	const salaryRateMutation = useUpdateSalaryRateMutation();
+	const isSaving = createMutation.isPending || updateMutation.isPending || salaryRateMutation.isPending;
 
 	useEffect(() => {
 		return () => {
@@ -310,15 +317,31 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 			address: values.address.trim(),
 		};
 		if (values.password) payload.password = values.password;
-		// The salary is set here only for a new user; afterwards it changes via the payroll page's rate modal so history is kept.
+		const oylikDollar = (Number(values.oylik_dollar) || 0).toFixed(2);
+		const oylikSom = (Number(values.oylik_som) || 0).toFixed(2);
+		// A new user gets the salary with the user itself; later changes go through the payroll rate
+		// endpoint so they land in the salary history.
 		if (mode === 'create') {
-			payload.oylik_dollar = (Number(values.oylik_dollar) || 0).toFixed(2);
-			payload.oylik_som = (Number(values.oylik_som) || 0).toFixed(2);
+			payload.oylik_dollar = oylikDollar;
+			payload.oylik_som = oylikSom;
 		}
 
 		try {
 			if (mode === 'edit' && item) {
 				await updateMutation.mutateAsync({ id: item.id, payload, avatar: avatarFile });
+				const salaryChanged =
+					oylikDollar !== (Number(currentUser?.oylik_dollar) || 0).toFixed(2) ||
+					oylikSom !== (Number(currentUser?.oylik_som) || 0).toFixed(2);
+				if (salaryChanged) {
+					const { year, month } = currentYearMonth();
+					await salaryRateMutation.mutateAsync({
+						user: item.id,
+						oylik_dollar: oylikDollar,
+						oylik_som: oylikSom,
+						effective_year: year,
+						effective_month: month,
+					});
+				}
 				notify({ title: 'Foydalanuvchi yangilandi' });
 			} else {
 				await createMutation.mutateAsync({ payload, avatar: avatarFile });
@@ -665,9 +688,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 									render={({ field }) => (
 										<PriceInput
 											value={field.value}
-											onChange={field.onChange}
+											onChange={(v) => {
+												field.onChange(v);
+												if (dollarRate > 0) {
+													setValue('oylik_som', v === '' ? '' : String(Math.round((Number(v) || 0) * dollarRate)));
+												}
+											}}
 											placeholder='0.00'
-											disabled={mode === 'edit'}
 										/>
 									)}
 								/>
@@ -679,26 +706,24 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 									render={({ field }) => (
 										<PriceInput
 											value={field.value}
-											onChange={field.onChange}
+											onChange={(v) => {
+												field.onChange(v);
+												if (dollarRate > 0) {
+													const dollar = Math.round(((Number(v) || 0) / dollarRate) * 100) / 100;
+													setValue('oylik_dollar', v === '' ? '' : String(dollar));
+												}
+											}}
 											placeholder='0'
-											disabled={mode === 'edit'}
 										/>
 									)}
 								/>
 							</FormField>
-							{mode === 'edit' && item && (
-								<p className='col-span-2 -mt-1 text-[11px] text-ca-text'>
-									Oylikni o'zgartirish tarixi saqlanishi uchun{' '}
-									<Link
-										to={`/system/users/${item.id}/payroll`}
-										className='font-semibold text-ca-theme hover:underline'
-										onClick={() => setOpen(false)}
-									>
-										Oylik to'lovlar tarixi
-									</Link>{' '}
-									sahifasidagi tarif tugmasidan foydalaning.
-								</p>
-							)}
+							<p className='col-span-2 -mt-1 text-[11px] text-ca-text'>
+								{dollarRate > 0
+									? `1 $ = ${formatNumber(dollarRate)} so'm kursi bo'yicha biri kiritilsa, ikkinchisi avtomatik hisoblanadi.`
+									: "Bugungi dollar kursi kiritilmagan — summalar avtomatik hisoblanmaydi."}
+								{mode === 'edit' && " O'zgartirilgan oylik joriy oydan amal qiladi va tarixda saqlanadi."}
+							</p>
 						</div>
 						<FormField
 							label='Manzil'

@@ -4,14 +4,17 @@ import {
 	type PaginationState,
 	type SortingState,
 } from '@tanstack/react-table';
-import { useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaFileInvoiceDollar, FaLock, FaTelegramPlane, FaTrash, FaUnlock, FaUser } from 'react-icons/fa';
+import { useState, type ReactNode } from 'react';
+import { FaCheck, FaClock, FaEdit, FaExclamationTriangle, FaFileInvoiceDollar, FaLock, FaTelegramPlane, FaTrash, FaUnlock, FaUser, FaUsers } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { Badge, Button, buttonProps, buttonVariants, DataTable, Panel, Tooltip } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { cn } from '@/lib/utils';
 import { getApiErrorMessage } from '@/lib/errors';
 import DeleteUserModal from '@/pages/system/UserPage/components/DeleteUserModal';
+import SalaryHistoryModal from '@/pages/system/UserPage/components/SalaryHistoryModal';
+import { fmtDollar, fmtSom } from '@/pages/system/UserPayrollPage/utils';
 import TelegramBotRegisterModal from '@/pages/system/UserPage/components/TelegramBotRegisterModal';
 import UnblockUserModal from '@/pages/system/UserPage/components/UnblockUserModal';
 import UserFormModal from '@/pages/system/UserPage/components/UserFormModal';
@@ -20,6 +23,37 @@ import { USER_TYPE_OPTIONS, type User } from '@/services/user/user.types';
 
 const columnHelper = createColumnHelper<User>();
 
+const SUMMARY_TONES = {
+	green: 'bg-emerald-500/15 text-emerald-500',
+	teal: 'bg-teal-500/15 text-teal-500',
+	amber: 'bg-amber-500/15 text-amber-500',
+	red: 'bg-red-500/15 text-red-500',
+};
+
+function PayrollSummaryCard({
+	icon,
+	label,
+	value,
+	tone,
+}: {
+	icon: ReactNode;
+	label: string;
+	value: number | undefined;
+	tone: keyof typeof SUMMARY_TONES;
+}) {
+	return (
+		<div className='flex items-center gap-4 rounded-lg border border-ca-border bg-ca-silver-light px-4 py-3'>
+			<span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg', SUMMARY_TONES[tone])}>
+				{icon}
+			</span>
+			<div className='min-w-0'>
+				<div className='truncate text-xs text-ca-heading'>{label}</div>
+				<div className='text-xl font-bold text-ca-heading'>{value ?? '—'}</div>
+			</div>
+		</div>
+	);
+}
+
 export default function UserPage() {
 	const { canWrite, isAdminOrManager } = useCurrentCompany();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -27,6 +61,7 @@ export default function UserPage() {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [unblockTarget, setUnblockTarget] = useState<User | null>(null);
 	const [telegramTarget, setTelegramTarget] = useState<User | null>(null);
+	const [salaryTarget, setSalaryTarget] = useState<User | null>(null);
 
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const usernameFilter = columnFilters.find((f) => f.id === 'username')?.value as string | undefined;
@@ -40,6 +75,7 @@ export default function UserPage() {
 
 	const results = data?.results ?? [];
 	const paginationMeta = data?.pagination;
+	const payrollSummary = data?.payroll_summary;
 
 	const columns = [
 		columnHelper.accessor('avatar', {
@@ -95,6 +131,22 @@ export default function UserPage() {
 			meta: { align: 'left' },
 			enableColumnFilter: false,
 			cell: (info) => info.getValue() || '—',
+		}),
+		columnHelper.display({
+			id: 'salary',
+			header: 'Ish haqi',
+			meta: { align: 'left' },
+			enableColumnFilter: false,
+			cell: ({ row }) => (
+				<button
+					type='button'
+					title="Ish haqi o'zgarishlar tarixi"
+					onClick={() => setSalaryTarget(row.original)}
+					className='text-left font-semibold whitespace-nowrap text-ca-theme hover:underline'
+				>
+					{fmtDollar(row.original.oylik_dollar)} / {fmtSom(row.original.oylik_som)}
+				</button>
+			),
 		}),
 		columnHelper.accessor('is_active', {
 			header: 'Holati',
@@ -206,6 +258,18 @@ export default function UserPage() {
 					refetch();
 				}}
 			>
+				{/* This month's salary status; the backend sends it with the user list. */}
+				<div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'>
+					<PayrollSummaryCard icon={<FaUsers />} label='Jami xodimlar' value={payrollSummary?.total_employees} tone='green' />
+					<PayrollSummaryCard icon={<FaCheck />} label="To'liq to'langan" value={payrollSummary?.fully_paid} tone='teal' />
+					<PayrollSummaryCard icon={<FaClock />} label="Qisman to'langan" value={payrollSummary?.partially_paid} tone='amber' />
+					<PayrollSummaryCard
+						icon={<FaExclamationTriangle />}
+						label="To'lanmagan"
+						value={payrollSummary?.unpaid}
+						tone='red'
+					/>
+				</div>
 				<DataTable
 					columns={columns}
 					data={results}
@@ -241,6 +305,16 @@ export default function UserPage() {
 						if (!open) setUnblockTarget(null);
 					}}
 					item={unblockTarget}
+				/>
+			)}
+
+			{salaryTarget && (
+				<SalaryHistoryModal
+					open
+					setOpen={(open) => {
+						if (!open) setSalaryTarget(null);
+					}}
+					item={salaryTarget}
 				/>
 			)}
 

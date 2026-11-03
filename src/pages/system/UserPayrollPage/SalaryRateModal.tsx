@@ -14,17 +14,9 @@ import {
 	SelectValue,
 	useNotification,
 } from '@/components/ui';
-import {
-	apiFieldErrors,
-	fmtDateTime,
-	fmtDollar,
-	fmtSom,
-	MONTH_TABS,
-	personName,
-	toMoneyString,
-	toNumber,
-} from '@/pages/system/UserPayrollPage/utils';
-import { useUpdateSalaryRateMutation, useUserSalaryHistoryQuery } from '@/services/payroll/payroll.queries';
+import SalaryHistoryTable from '@/pages/system/UserPayrollPage/SalaryHistoryTable';
+import { apiFieldErrors, MONTH_TABS, toMoneyString, toNumber } from '@/pages/system/UserPayrollPage/utils';
+import { useUpdateSalaryRateMutation } from '@/services/payroll/payroll.queries';
 
 const FIELDS = ['oylik_dollar', 'oylik_som', 'effective_year', 'effective_month'] as const;
 type FieldErrors = Partial<Record<(typeof FIELDS)[number] | 'form', string>>;
@@ -52,8 +44,6 @@ export default function SalaryRateModal({
 }: SalaryRateModalProps) {
 	const { notify } = useNotification();
 	const mutation = useUpdateSalaryRateMutation();
-	const historyQuery = useUserSalaryHistoryQuery({ user: userId, ordering: '-changed_time', limit: 100 }, open);
-	const history = historyQuery.data?.results ?? [];
 
 	const [dollar, setDollar] = useState('');
 	const [som, setSom] = useState('');
@@ -156,44 +146,7 @@ export default function SalaryRateModal({
 
 						<div>
 							<h3 className='mb-2 text-sm font-semibold text-ca-heading'>O'zgarishlar tarixi</h3>
-							<div className='max-h-60 overflow-auto rounded-lg border border-ca-border'>
-								<table className='w-full text-xs'>
-									<thead className='sticky top-0 bg-ca-silver text-left text-ca-heading'>
-										<tr>
-											<th className='px-3 py-2 font-semibold'>Oydan</th>
-											<th className='px-3 py-2 font-semibold'>Eski</th>
-											<th className='px-3 py-2 font-semibold'>Yangi</th>
-											<th className='px-3 py-2 font-semibold'>Sana</th>
-											<th className='px-3 py-2 font-semibold'>Kim</th>
-										</tr>
-									</thead>
-									<tbody>
-										{history.length === 0 ? (
-											<tr>
-												<td colSpan={5} className='px-3 py-4 text-center text-ca-text'>
-													{historyQuery.isLoading ? 'Yuklanmoqda...' : "O'zgarishlar yo'q"}
-												</td>
-											</tr>
-										) : (
-											history.map((h) => (
-												<tr key={h.id} className='border-t border-ca-border text-ca-heading'>
-													<td className='px-3 py-2 whitespace-nowrap'>
-														{MONTH_TABS[h.effective_month - 1]} {h.effective_year}
-													</td>
-													<td className='px-3 py-2'>
-														{fmtDollar(h.old_oylik_dollar)} · {fmtSom(h.old_oylik_som)}
-													</td>
-													<td className='px-3 py-2'>
-														{fmtDollar(h.new_oylik_dollar)} · {fmtSom(h.new_oylik_som)}
-													</td>
-													<td className='px-3 py-2 whitespace-nowrap'>{fmtDateTime(h.changed_time)}</td>
-													<td className='px-3 py-2'>{personName(h.created_by_detail) || '—'}</td>
-												</tr>
-											))
-										)}
-									</tbody>
-								</table>
-							</div>
+							<SalaryHistoryTable userId={userId} enabled={open} />
 						</div>
 					</ModalBody>
 					<ModalFooter className='gap-3 px-6 py-4 [&>:first-child:not(:only-child)]:mr-0'>

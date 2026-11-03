@@ -61,6 +61,16 @@ export interface User {
 	oylik_som?: string;
 }
 
+/** Current month's salary status across employees, sent alongside `GET /user/`. */
+export interface UserPayrollSummary {
+	year: number;
+	month: number;
+	total_employees: number;
+	fully_paid: number;
+	partially_paid: number;
+	unpaid: number;
+}
+
 export interface UserTelegramBotRegisterPayload {
 	send_bot_type: string;
 	is_send_bot: boolean;

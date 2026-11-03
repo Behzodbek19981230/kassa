@@ -1,6 +1,6 @@
 import { apiClient } from '@/services/api/client'
 import type { PaginatedResponse } from '@/services/api/types'
-import type { User, UserListParams, UserPayload, UserTelegramBotRegisterPayload } from '@/services/user/user.types'
+import type { User, UserListParams, UserPayload, UserPayrollSummary, UserTelegramBotRegisterPayload } from '@/services/user/user.types'
 
 function buildUserFormData(payload: UserPayload, avatar?: File | null) {
   const formData = new FormData()
@@ -34,7 +34,9 @@ export const userService = {
     return data
   },
   list: async (params?: UserListParams) => {
-    const { data } = await apiClient.get<PaginatedResponse<User>>('/user/', { params })
+    const { data } = await apiClient.get<PaginatedResponse<User> & { payroll_summary?: UserPayrollSummary }>('/user/', {
+      params,
+    })
     return data
   },
   get: async (id: number) => {
