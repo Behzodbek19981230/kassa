@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
 	Combobox,
 	type ComboboxLoadParams,
@@ -138,25 +138,30 @@ export function PageTitle({
 	title,
 	subtitle,
 	back = false,
+	backTo = '/payroll/employees',
 	actions,
 }: {
 	icon?: ReactNode;
 	title: ReactNode;
 	subtitle?: ReactNode;
 	back?: boolean;
+	/** Where "Orqaga" goes when there is no previous page to return to. */
+	backTo?: string;
 	actions?: ReactNode;
 }) {
 	const navigate = useNavigate();
+	const location = useLocation();
 	return (
 		<div className='mb-5 flex flex-wrap items-center gap-3'>
 			{back && (
 				<button
 					type='button'
 					aria-label='Orqaga'
-					onClick={() => navigate(-1)}
-					className='flex h-10 w-10 items-center justify-center rounded-lg border border-ca-border bg-ca-silver-light text-ca-heading shadow-sm hover:bg-ca-silver'
+					// Opened directly (no in-app history): fall back to the payroll list.
+					onClick={() => (location.key === 'default' ? navigate(backTo) : navigate(-1))}
+					className='flex h-10 items-center gap-2 rounded-lg border border-ca-border bg-ca-silver-light px-3 text-xs font-semibold text-ca-heading shadow-sm hover:bg-ca-silver'
 				>
-					<FaArrowLeft />
+					<FaArrowLeft /> Orqaga
 				</button>
 			)}
 			{icon && (

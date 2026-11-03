@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
 	FaCalendarAlt,
 	FaDollarSign,
@@ -14,7 +14,7 @@ import {
 import { FaCoins } from 'react-icons/fa6';
 import { Link, useParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { AdjustmentBadge, MonthSelect, PageTitle, SectionTitle, StatusBadge } from '@/pages/PayrollPage/shared/components';
+import { AdjustmentBadge, GreenButton, MonthSelect, PageTitle, SectionTitle, StatusBadge } from '@/pages/PayrollPage/shared/components';
 import {
 	ADJUSTMENT_META,
 	CARD,
@@ -25,6 +25,7 @@ import {
 	toNumber,
 	useYearMonthParams,
 } from '@/pages/PayrollPage/shared/utils';
+import SalaryPaymentModal from '@/pages/PayrollPage/SalaryPaymentModal';
 import {
 	useSalaryAdjustmentListQuery,
 	useSalaryPaymentListQuery,
@@ -102,6 +103,7 @@ export default function EmployeePayrollPage() {
 	const { userId } = useParams();
 	const id = Number(userId) || undefined;
 	const [ym, setYm] = useYearMonthParams();
+	const [payOpen, setPayOpen] = useState(false);
 
 	const userQuery = useUserQuery(id);
 	const user = userQuery.data;
@@ -266,12 +268,9 @@ export default function EmployeePayrollPage() {
 								>
 									<FaPlus /> Jarima yoki bonus
 								</Link>
-								<Link
-									to={`/payroll/pay?user=${user.id}&${monthQuery}`}
-									className='inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700'
-								>
+								<GreenButton type='button' onClick={() => setPayOpen(true)}>
 									<FaHandHoldingUsd /> Pul berish
-								</Link>
+								</GreenButton>
 							</>
 						)}
 					</div>
@@ -320,6 +319,8 @@ export default function EmployeePayrollPage() {
 					</tbody>
 				</table>
 			</div>
+
+			<SalaryPaymentModal open={payOpen} setOpen={setPayOpen} initialYm={ym} initialUserId={user.id} />
 		</>
 	);
 }

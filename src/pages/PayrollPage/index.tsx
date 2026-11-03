@@ -13,7 +13,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Pagination } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
-import { MonthSelect, PageTitle, StatusBadge } from '@/pages/PayrollPage/shared/components';
+import { CreatorName, GreenButton, MonthSelect, PageTitle, StatusBadge } from '@/pages/PayrollPage/shared/components';
 import {
 	CARD,
 	fmtDollar,
@@ -22,6 +22,7 @@ import {
 	personName,
 	useYearMonthParams,
 } from '@/pages/PayrollPage/shared/utils';
+import SalaryPaymentModal from '@/pages/PayrollPage/SalaryPaymentModal';
 import { usePayrollDashboardQuery } from '@/services/payroll/payroll.queries';
 import type { PayrollDashboardRow } from '@/services/payroll/payroll.types';
 
@@ -39,17 +40,38 @@ function StatCard({ icon, label, value, tone }: { icon: ReactNode; label: string
 	);
 }
 
-/** One number for the row's money columns: what the employee is owed, before the month has a period. */
-function rowValues(row: PayrollDashboardRow) {
+type Loose = Record<string, unknown>;
+
+/**
+ * Reads a dashboard row whatever shape the employee comes in: a nested `user` object, a bare `user` id
+ * with `user_detail`, or the employee's fields on the row itself.
+ */
+function normalizeRow(row: PayrollDashboardRow) {
+	const raw = row as unknown as Loose;
+	const nested = raw.user && typeof raw.user === 'object' ? (raw.user as Loose) : null;
+	const detail = raw.user_detail && typeof raw.user_detail === 'object' ? (raw.user_detail as Loose) : null;
+	const src: Loose = { ...raw, ...(detail ?? {}), ...(nested ?? {}) };
+	const id = Number(nested?.id ?? detail?.id ?? (typeof raw.user === 'number' ? raw.user : raw.user_id ?? raw.id));
+	const str = (v: unknown) => (typeof v === 'string' ? v : '');
+	const name =
+		personName({ first_name: str(src.first_name), last_name: str(src.last_name) }) ||
+		str(src.full_name) ||
+		str(src.user_full_name) ||
+		str(src.name) ||
+		str(src.username);
+	const oylikDollar = (src.oylik_dollar ?? 0) as string | number;
+	const oylikSom = (src.oylik_som ?? 0) as string | number;
 	const p = row.period;
 	return {
-		payableDollar: p?.payable_dollar ?? row.user.oylik_dollar,
-		payableSom: p?.payable_som ?? row.user.oylik_som,
+		id: Number.isFinite(id) && id > 0 ? id : undefined,
+		name,
+		payableDollar: p?.payable_dollar ?? oylikDollar,
+		payableSom: p?.payable_som ?? oylikSom,
 		paidDollar: p?.paid_dollar ?? 0,
 		paidSom: p?.paid_som ?? 0,
 		paidCard: p?.paid_card ?? 0,
-		remainingDollar: p?.remaining_dollar ?? row.user.oylik_dollar,
-		remainingSom: p?.remaining_som ?? row.user.oylik_som,
+		remainingDollar: p?.remaining_dollar ?? oylikDollar,
+		remainingSom: p?.remaining_som ?? oylikSom,
 	};
 }
 
@@ -57,6 +79,7 @@ export default function PayrollPage() {
 	const [ym, setYm] = useYearMonthParams();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const page = Math.max(1, Number(searchParams.get('page')) || 1);
+	const [payOpen, setPayOpen] = useState(false);
 	const [searchText, setSearchText] = useState(searchParams.get('search') ?? '');
 	const search = searchParams.get('search') ?? '';
 
@@ -123,12 +146,9 @@ export default function PayrollPage() {
 						>
 							Jarima / Bonus
 						</Link>
-						<Link
-							to={`/payroll/pay?year=${ym.year}&month=${ym.month}`}
-							className='inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700'
-						>
+						<GreenButton type='button' onClick={() => setPayOpen(true)}>
 							<FaHandHoldingUsd /> Pul berish
-						</Link>
+						</GreenButton>
 					</>
 				}
 			/>
@@ -219,18 +239,16 @@ export default function PayrollPage() {
 								</tr>
 							) : (
 								rows.map((row, index) => {
-									const v = rowValues(row);
-									const detailUrl = `/payroll/employees/${row.user.id}?year=${ym.year}&month=${ym.month}`;
+									const v = normalizeRow(row);
+									const detailUrl = v.id ? `/payroll/rates?user=${v.id}` : undefined;
 									return (
 										<tr
-											key={row.user.id}
+											key={v.id ?? index}
 											className='border-b border-ca-border last:border-b-0 hover:bg-ca-table-hover'
 										>
 											<td className='px-4 py-3 text-ca-heading'>{startIndex + index + 1}</td>
 											<td className='px-4 py-3 text-sm font-semibold text-ca-heading'>
-												<Link to={detailUrl} className='hover:text-emerald-600'>
-													{personName(row.user)}
-												</Link>
+												{v.name || (v.id ? <CreatorName id={v.id} /> : '—')}
 											</td>
 											<td className='px-4 py-3 text-right text-ca-heading'>{fmtDollar(v.payableDollar)}</td>
 											<td className='px-4 py-3 text-right text-ca-heading'>{fmtSom(v.payableSom)}</td>
@@ -246,7 +264,7 @@ export default function PayrollPage() {
 											</td>
 											<td className='px-4 py-3 text-center'>
 												<Link
-													to={detailUrl}
+													to={detailUrl ?? '#'}
 													className='inline-flex h-8 items-center rounded-lg border border-emerald-600 px-4 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10'
 												>
 													Batafsil
@@ -264,6 +282,8 @@ export default function PayrollPage() {
 					{totalPages > 1 && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
 				</div>
 			</div>
+
+			<SalaryPaymentModal open={payOpen} setOpen={setPayOpen} initialYm={ym} />
 		</>
 	);
 }

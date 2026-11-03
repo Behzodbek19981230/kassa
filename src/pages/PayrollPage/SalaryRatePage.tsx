@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { FaBuilding, FaClock, FaRegCalendarAlt, FaSyncAlt, FaUser, FaUserTie } from 'react-icons/fa';
+import { FaBuilding, FaClock, FaListAlt, FaRegCalendarAlt, FaSyncAlt, FaUser, FaUserTie } from 'react-icons/fa';
 import { FaCoins } from 'react-icons/fa6';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { PriceInput, useNotification } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import {
@@ -118,9 +118,19 @@ export default function SalaryRatePage() {
 				back
 				title='Oylik tarifi'
 				actions={
-					<div className='w-64'>
-						<EmployeeSelect value={userId} onChange={setUser} />
-					</div>
+					<>
+						{userId && (
+							<Link
+								to={`/payroll/employees/${userId}`}
+								className='inline-flex h-9 items-center gap-2 rounded-lg border border-emerald-600 px-4 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10'
+							>
+								<FaListAlt /> Oylik hisobi
+							</Link>
+						)}
+						<div className='w-64'>
+							<EmployeeSelect value={userId} onChange={setUser} />
+						</div>
+					</>
 				}
 			/>
 
