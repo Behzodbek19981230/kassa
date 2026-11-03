@@ -13,7 +13,6 @@ import {
 	currentYearMonth,
 	fmtDateTime,
 	fmtDollar,
-	fmtMixed,
 	fmtSom,
 	MONTH_TABS,
 	personName,
@@ -354,20 +353,11 @@ export default function UserPayrollPage() {
 							<StatCard
 								tone='green'
 								icon={<FaCalculator />}
-								title='Oylikdan berilishi kerak'
-								footer={
-									s && (
-										<>
-											Berilgan: {fmtMixed(toNumber(s.paid_dollar), toNumber(s.paid_som) + toNumber(s.paid_card), '0')}
-											{' · '}
-											Qolgan: {fmtMixed(toNumber(s.remaining_dollar), toNumber(s.remaining_som), '0')}
-										</>
-									)
-								}
+								title='Oylikdan qolgan summa'
 							>
 								<MoneyPills
-									dollar={toNumber(s?.payable_dollar)}
-									som={toNumber(s?.payable_som)}
+									dollar={toNumber(s?.remaining_dollar)}
+									som={toNumber(s?.remaining_som)}
 									className='bg-emerald-600 text-white'
 								/>
 							</StatCard>
