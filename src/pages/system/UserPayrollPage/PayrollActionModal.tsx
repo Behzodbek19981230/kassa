@@ -203,7 +203,7 @@ export default function PayrollActionModal({ open, setOpen, userId, year, month,
 			if (dollar > remainingDollar) next.summa_dollar = `${what} oylik qoldig'idan oshmasin: ${fmtDollar(remainingDollar)}`;
 			if (som + card > remainingSom) next.summa_som = `${what} oylik qoldig'idan oshmasin: ${fmtSom(remainingSom)}`;
 		}
-		if (form.type !== 'SALARY' && !form.note.trim()) next.note = 'Izoh kiritilishi shart';
+		if (!form.note.trim()) next.note = 'Izoh kiritilishi shart';
 		return next;
 	}
 
@@ -239,7 +239,13 @@ export default function PayrollActionModal({ open, setOpen, userId, year, month,
 				delete mapped.transaction_time;
 			}
 			if (mapped.transaction_key || mapped.transaction_type) {
-				mapped.form = [mapped.form, mapped.transaction_key, mapped.transaction_type].filter(Boolean).join(' ');
+				mapped.form = [
+					mapped.form,
+					mapped.transaction_type && `Tip: ${mapped.transaction_type}`,
+					mapped.transaction_key && `UUID: ${mapped.transaction_key}`,
+				]
+					.filter(Boolean)
+					.join(' ');
 				delete mapped.transaction_key;
 				delete mapped.transaction_type;
 			}
@@ -343,7 +349,7 @@ export default function PayrollActionModal({ open, setOpen, userId, year, month,
 							</Field>
 						</div>
 
-						<Field label='Izoh' required={form.type !== 'SALARY'} error={errors.note}>
+						<Field label='Izoh' required error={errors.note}>
 							<Textarea
 								rows={3}
 								value={form.note}

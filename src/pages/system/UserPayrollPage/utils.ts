@@ -92,23 +92,70 @@ export function useTransactionKey() {
 	};
 }
 
+/** Uzbek names for API field keys, so a message the form can't place still says which field it is about. */
+const FIELD_LABELS: Record<string, string> = {
+	user: 'Xodim',
+	year: 'Yil',
+	month: 'Oy',
+	transaction_type: 'Tip',
+	transaction_time: 'Sana va vaqt',
+	summa_dollar: 'Summa dollar',
+	summa_som: "Summa so'm",
+	summa_karta: 'Summa karta',
+	all_summa_dollar: 'All summa dollar',
+	note: 'Izoh',
+	transaction_key: 'UUID',
+	oylik_dollar: 'Oylik dollar',
+	oylik_som: "Oylik so'm",
+	effective_year: 'Qaysi yildan',
+	effective_month: 'Qaysi oydan',
+};
+
+// Keys that wrap the real field errors (`{ errors: { note: [...] } }`) or carry form-wide messages.
+const WRAPPER_KEYS = new Set(['errors', 'error', 'data', 'detail', 'message', 'non_field_errors']);
+
+function firstText(value: unknown): string {
+	if (typeof value === 'string') return value.trim();
+	if (Array.isArray(value)) {
+		for (const entry of value) {
+			const text = firstText(entry);
+			if (text) return text;
+		}
+	}
+	return '';
+}
+
 /**
- * Maps a DRF 400 body (`{ field: ['msg'] }`) onto the form's fields, so each message shows under its input.
- * Messages for other fields, and non-400 errors, are collected under `form`.
+ * Maps a DRF 400 body (`{ field: ['msg'] }`, possibly nested under `errors`/`data`) onto the form's fields,
+ * so each message shows under its input. Messages for other fields go under `form`, prefixed with the
+ * field's name ("Izoh: Ushbu maydon to'ldirilishi shart."); non-400 errors also go under `form`.
  */
 export function apiFieldErrors<F extends string>(err: unknown, fields: readonly F[]): Partial<Record<F | 'form', string>> {
 	const response = (err as { response?: { status?: number; data?: unknown } })?.response;
 	const result: Partial<Record<F | 'form', string>> = {};
-	const body = response?.data;
-	if (response?.status === 400 && body && typeof body === 'object' && !Array.isArray(body)) {
-		for (const [key, value] of Object.entries(body as Record<string, unknown>)) {
-			const message = Array.isArray(value) ? String(value[0] ?? '') : typeof value === 'string' ? value : '';
+	const addForm = (message: string) => {
+		result.form = result.form ? `${result.form} ${message}` : message;
+	};
+
+	const walk = (body: Record<string, unknown>) => {
+		for (const [key, value] of Object.entries(body)) {
+			if (value && typeof value === 'object' && !Array.isArray(value)) {
+				walk(value as Record<string, unknown>);
+				continue;
+			}
+			const message = firstText(value);
 			if (!message) continue;
 			if ((fields as readonly string[]).includes(key)) result[key as F] = message;
-			else result.form = result.form ? `${result.form} ${message}` : message;
+			else if (WRAPPER_KEYS.has(key)) addForm(message);
+			else addForm(`${FIELD_LABELS[key] ?? key}: ${message}`);
 		}
+	};
+
+	const body = response?.data;
+	if (response?.status === 400 && body && typeof body === 'object' && !Array.isArray(body)) {
+		walk(body as Record<string, unknown>);
 		if (Object.keys(result).length) return result;
 	}
-	result.form = getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi');
+	addForm(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 	return result;
 }

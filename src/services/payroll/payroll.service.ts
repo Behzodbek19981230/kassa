@@ -29,6 +29,10 @@ export const payrollService = {
 		return data;
 	},
 
+	deleteTransaction: async (id: number) => {
+		await apiClient.delete(`/payroll-transaction/${id}/`);
+	},
+
 	updateRate: async (payload: SalaryRateUpdatePayload) => {
 		const { data } = await apiClient.post<unknown>('/payroll/rate/update/', payload);
 		return data;

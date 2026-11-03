@@ -42,8 +42,6 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { ROLE } from '@/lib/permissions';
 import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
-import { currentYearMonth } from '@/pages/system/UserPayrollPage/utils';
-import { useUpdateSalaryRateMutation } from '@/services/payroll/payroll.queries';
 
 const GENDER_OPTIONS = [
 	{ value: 'male', label: 'Erkak' },
@@ -190,8 +188,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 
 	const createMutation = useCreateUserMutation();
 	const updateMutation = useUpdateUserMutation();
-	const salaryRateMutation = useUpdateSalaryRateMutation();
-	const isSaving = createMutation.isPending || updateMutation.isPending || salaryRateMutation.isPending;
+	const isSaving = createMutation.isPending || updateMutation.isPending;
 
 	useEffect(() => {
 		return () => {
@@ -317,31 +314,16 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 			address: values.address.trim(),
 		};
 		if (values.password) payload.password = values.password;
-		const oylikDollar = (Number(values.oylik_dollar) || 0).toFixed(2);
-		const oylikSom = (Number(values.oylik_som) || 0).toFixed(2);
-		// A new user gets the salary with the user itself; later changes go through the payroll rate
-		// endpoint so they land in the salary history.
+		// The salary is set only for a new user; later changes go through the payroll page's rate modal
+		// so they land in the salary history.
 		if (mode === 'create') {
-			payload.oylik_dollar = oylikDollar;
-			payload.oylik_som = oylikSom;
+			payload.oylik_dollar = (Number(values.oylik_dollar) || 0).toFixed(2);
+			payload.oylik_som = (Number(values.oylik_som) || 0).toFixed(2);
 		}
 
 		try {
 			if (mode === 'edit' && item) {
 				await updateMutation.mutateAsync({ id: item.id, payload, avatar: avatarFile });
-				const salaryChanged =
-					oylikDollar !== (Number(currentUser?.oylik_dollar) || 0).toFixed(2) ||
-					oylikSom !== (Number(currentUser?.oylik_som) || 0).toFixed(2);
-				if (salaryChanged) {
-					const { year, month } = currentYearMonth();
-					await salaryRateMutation.mutateAsync({
-						user: item.id,
-						oylik_dollar: oylikDollar,
-						oylik_som: oylikSom,
-						effective_year: year,
-						effective_month: month,
-					});
-				}
 				notify({ title: 'Foydalanuvchi yangilandi' });
 			} else {
 				await createMutation.mutateAsync({ payload, avatar: avatarFile });
@@ -680,51 +662,52 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								}
 							/>
 						</FormField>
-						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label='Oylik dollar' horizontal={false} className='mb-0'>
-								<Controller
-									name='oylik_dollar'
-									control={control}
-									render={({ field }) => (
-										<PriceInput
-											value={field.value}
-											onChange={(v) => {
-												field.onChange(v);
-												if (dollarRate > 0) {
-													setValue('oylik_som', v === '' ? '' : String(Math.round((Number(v) || 0) * dollarRate)));
-												}
-											}}
-											placeholder='0.00'
-										/>
-									)}
-								/>
-							</FormField>
-							<FormField label="Oylik so'm" horizontal={false} className='mb-0'>
-								<Controller
-									name='oylik_som'
-									control={control}
-									render={({ field }) => (
-										<PriceInput
-											value={field.value}
-											onChange={(v) => {
-												field.onChange(v);
-												if (dollarRate > 0) {
-													const dollar = Math.round(((Number(v) || 0) / dollarRate) * 100) / 100;
-													setValue('oylik_dollar', v === '' ? '' : String(dollar));
-												}
-											}}
-											placeholder='0'
-										/>
-									)}
-								/>
-							</FormField>
-							<p className='col-span-2 -mt-1 text-[11px] text-ca-text'>
-								{dollarRate > 0
-									? `1 $ = ${formatNumber(dollarRate)} so'm kursi bo'yicha biri kiritilsa, ikkinchisi avtomatik hisoblanadi.`
-									: "Bugungi dollar kursi kiritilmagan — summalar avtomatik hisoblanmaydi."}
-								{mode === 'edit' && " O'zgartirilgan oylik joriy oydan amal qiladi va tarixda saqlanadi."}
-							</p>
-						</div>
+						{mode === 'create' && (
+							<div className='mb-3 grid grid-cols-2 gap-3'>
+								<FormField label='Oylik dollar' horizontal={false} className='mb-0'>
+									<Controller
+										name='oylik_dollar'
+										control={control}
+										render={({ field }) => (
+											<PriceInput
+												value={field.value}
+												onChange={(v) => {
+													field.onChange(v);
+													if (dollarRate > 0) {
+														setValue('oylik_som', v === '' ? '' : String(Math.round((Number(v) || 0) * dollarRate)));
+													}
+												}}
+												placeholder='0.00'
+											/>
+										)}
+									/>
+								</FormField>
+								<FormField label="Oylik so'm" horizontal={false} className='mb-0'>
+									<Controller
+										name='oylik_som'
+										control={control}
+										render={({ field }) => (
+											<PriceInput
+												value={field.value}
+												onChange={(v) => {
+													field.onChange(v);
+													if (dollarRate > 0) {
+														const dollar = Math.round(((Number(v) || 0) / dollarRate) * 100) / 100;
+														setValue('oylik_dollar', v === '' ? '' : String(dollar));
+													}
+												}}
+												placeholder='0'
+											/>
+										)}
+									/>
+								</FormField>
+								<p className='col-span-2 -mt-1 text-[11px] text-ca-text'>
+									{dollarRate > 0
+										? `1 $ = ${formatNumber(dollarRate)} so'm kursi bo'yicha biri kiritilsa, ikkinchisi avtomatik hisoblanadi.`
+										: "Bugungi dollar kursi kiritilmagan — summalar avtomatik hisoblanmaydi."}
+								</p>
+							</div>
+						)}
 						<FormField
 							label='Manzil'
 							error={errors.address?.message}

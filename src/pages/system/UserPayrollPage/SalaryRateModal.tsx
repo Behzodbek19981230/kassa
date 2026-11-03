@@ -14,6 +14,8 @@ import {
 	SelectValue,
 	useNotification,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
+import { formatNumber } from '@/lib/number';
 import SalaryHistoryTable from '@/pages/system/UserPayrollPage/SalaryHistoryTable';
 import { apiFieldErrors, MONTH_TABS, toMoneyString, toNumber } from '@/pages/system/UserPayrollPage/utils';
 import { useUpdateSalaryRateMutation } from '@/services/payroll/payroll.queries';
@@ -43,6 +45,9 @@ export default function SalaryRateModal({
 	month,
 }: SalaryRateModalProps) {
 	const { notify } = useNotification();
+	const { exchangeRate } = useCurrentCompany();
+	// Today's $ → so'm rate; 0 when not set, and then the two fields are filled independently.
+	const dollarRate = toNumber(exchangeRate?.dollar);
 	const mutation = useUpdateSalaryRateMutation();
 
 	const [dollar, setDollar] = useState('');
@@ -61,6 +66,15 @@ export default function SalaryRateModal({
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [open]);
+
+	const onDollarChange = (v: string) => {
+		setDollar(v);
+		if (dollarRate > 0) setSom(v === '' ? '' : String(Math.round(toNumber(v) * dollarRate)));
+	};
+	const onSomChange = (v: string) => {
+		setSom(v);
+		if (dollarRate > 0) setDollar(v === '' ? '' : String(Math.round((toNumber(v) / dollarRate) * 100) / 100));
+	};
 
 	const years = Array.from({ length: 4 }, (_, i) => year - 1 + i);
 
@@ -88,7 +102,7 @@ export default function SalaryRateModal({
 
 	return (
 		<Modal open={open} onOpenChange={(next) => !mutation.isPending && setOpen(next)}>
-			<ModalContent className='max-w-[640px] rounded-xl'>
+			<ModalContent className='max-w-[760px] rounded-xl'>
 				<form onSubmit={onSubmit} noValidate>
 					<ModalHeader className='px-6 py-5'>
 						<ModalTitle className='text-xl font-bold'>Oylik tarifini o'zgartirish</ModalTitle>
@@ -102,14 +116,19 @@ export default function SalaryRateModal({
 						<div className='grid grid-cols-2 gap-4'>
 							<div>
 								<label className='mb-1.5 block text-sm font-semibold text-ca-heading'>Oylik dollar</label>
-								<PriceInput value={dollar} onChange={setDollar} placeholder='0' />
+								<PriceInput value={dollar} onChange={onDollarChange} placeholder='0' />
 								{errors.oylik_dollar && <p className='mt-1 text-[11px] text-ca-red'>{errors.oylik_dollar}</p>}
 							</div>
 							<div>
 								<label className='mb-1.5 block text-sm font-semibold text-ca-heading'>Oylik so'm</label>
-								<PriceInput value={som} onChange={setSom} placeholder='0' />
+								<PriceInput value={som} onChange={onSomChange} placeholder='0' />
 								{errors.oylik_som && <p className='mt-1 text-[11px] text-ca-red'>{errors.oylik_som}</p>}
 							</div>
+							<p className='col-span-2 -mt-2 text-[11px] text-ca-text'>
+								{dollarRate > 0
+									? `1 $ = ${formatNumber(dollarRate)} so'm kursi bo'yicha biri kiritilsa, ikkinchisi avtomatik hisoblanadi.`
+									: "Bugungi dollar kursi kiritilmagan — summalar avtomatik hisoblanmaydi."}
+							</p>
 							<div>
 								<label className='mb-1.5 block text-sm font-semibold text-ca-heading'>Qaysi yildan</label>
 								<Select value={String(effYear)} onValueChange={(v) => setEffYear(Number(v))}>

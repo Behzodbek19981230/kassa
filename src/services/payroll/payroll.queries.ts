@@ -61,6 +61,15 @@ export function useCreatePayrollTransactionMutation() {
 	});
 }
 
+export function useDeletePayrollTransactionMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: number) => payrollService.deleteTransaction(id),
+		// Totals, active months and the list all change; the backend recomputes them.
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: payrollKeys.all }),
+	});
+}
+
 export function useUpdateSalaryRateMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({

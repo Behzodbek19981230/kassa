@@ -1,10 +1,12 @@
 import { createColumnHelper, type PaginationState, type SortingState } from '@tanstack/react-table';
 import { useState, type ReactNode } from 'react';
-import { FaArrowLeft, FaArrowRight, FaCalculator, FaDatabase, FaExclamationTriangle, FaGift, FaMinusCircle, FaPen, FaPlus, FaUser } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaCalculator, FaDatabase, FaExclamationTriangle, FaGift, FaMinusCircle, FaPen, FaPlus, FaTrash, FaUser } from 'react-icons/fa';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Button, DataTable, Panel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
+import OpenDialogButton from '@/components/OpenDialogButton';
+import { Button, buttonProps, DataTable, Panel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import DeletePayrollTransactionModal from '@/pages/system/UserPayrollPage/DeletePayrollTransactionModal';
 import PayrollActionModal from '@/pages/system/UserPayrollPage/PayrollActionModal';
 import SalaryRateModal from '@/pages/system/UserPayrollPage/SalaryRateModal';
 import {
@@ -199,6 +201,22 @@ export default function UserPayrollPage() {
 			header: 'Kim amalga oshirdi',
 			meta: { align: 'left' },
 			cell: ({ row }) => personName(row.original.created_by_detail) || '—',
+		}),
+		columnHelper.display({
+			id: 'actions',
+			header: 'Harakatlar',
+			size: 90,
+			meta: { align: 'right' },
+			cell: ({ row }) => (
+				<div className='flex justify-end'>
+					<OpenDialogButton
+						element={(props) => <Button {...props} />}
+						elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+						dialog={DeletePayrollTransactionModal}
+						dialogProps={{ item: row.original }}
+					/>
+				</div>
+			),
 		}),
 	];
 
