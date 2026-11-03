@@ -55,6 +55,10 @@ export interface User {
 	is_send_bot: boolean;
 	telegram_connect_code: string | null;
 	telegram_id: string | number | null;
+	/** Monthly salary in dollars (`"600.00"`). Change it through `POST /payroll/rate/update/` so history is kept. */
+	oylik_dollar?: string;
+	/** Monthly salary in so'm (`"2500000.00"`). */
+	oylik_som?: string;
 }
 
 export interface UserTelegramBotRegisterPayload {
@@ -81,6 +85,9 @@ export interface UserPayload {
 	companies: number[];
 	address: string;
 	password?: string;
+	/** Only sent when creating a user; later changes go through the payroll rate endpoint. */
+	oylik_dollar?: string;
+	oylik_som?: string;
 }
 
 export interface UserListParams extends ListParams {

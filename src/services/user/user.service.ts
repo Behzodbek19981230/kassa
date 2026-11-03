@@ -22,6 +22,8 @@ function buildUserFormData(payload: UserPayload, avatar?: File | null) {
   payload.companies.forEach((companyId) => formData.append('companies', String(companyId)))
   formData.append('address', payload.address)
   if (payload.password) formData.append('password', payload.password)
+  if (payload.oylik_dollar != null) formData.append('oylik_dollar', payload.oylik_dollar)
+  if (payload.oylik_som != null) formData.append('oylik_som', payload.oylik_som)
   if (avatar) formData.append('avatar', avatar)
   return formData
 }

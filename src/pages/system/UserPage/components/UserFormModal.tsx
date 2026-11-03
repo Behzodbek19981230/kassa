@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, Controller } from 'react-hook-form';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { FaCamera, FaUser } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import { z } from 'zod';
 import {
 	Button,
@@ -20,6 +21,7 @@ import {
 	ModalHeader,
 	ModalTitle,
 	MultiCombobox,
+	PriceInput,
 	Select,
 	SelectContent,
 	SelectItem,
@@ -66,6 +68,8 @@ function buildUserFormSchema(mode: 'create' | 'edit') {
 			trade_company: z.string().min(1, 'Asosiy tashkilot tanlanishi shart'),
 			address: z.string().min(1, 'Manzil kiritilishi shart'),
 			active: z.boolean(),
+			oylik_dollar: z.string(),
+			oylik_som: z.string(),
 			password:
 				mode === 'create'
 					? z.string().min(6, "Parol kamida 6 ta belgidan iborat bo'lishi kerak")
@@ -97,6 +101,8 @@ function userToFormValues(user: User): UserFormValues {
 		trade_company: user.trade_company ? String(user.trade_company) : '',
 		address: user.address ?? '',
 		active: user.is_active,
+		oylik_dollar: user.oylik_dollar != null ? String(Number(user.oylik_dollar) || 0) : '',
+		oylik_som: user.oylik_som != null ? String(Number(user.oylik_som) || 0) : '',
 		password: '',
 	};
 }
@@ -155,6 +161,8 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 						trade_company: '',
 						address: '',
 						active: true,
+						oylik_dollar: '',
+						oylik_som: '',
 						password: '',
 					},
 	});
@@ -302,6 +310,11 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 			address: values.address.trim(),
 		};
 		if (values.password) payload.password = values.password;
+		// The salary is set here only for a new user; afterwards it changes via "Oylik tarifi" so history is kept.
+		if (mode === 'create') {
+			payload.oylik_dollar = (Number(values.oylik_dollar) || 0).toFixed(2);
+			payload.oylik_som = (Number(values.oylik_som) || 0).toFixed(2);
+		}
 
 		try {
 			if (mode === 'edit' && item) {
@@ -644,6 +657,49 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								}
 							/>
 						</FormField>
+						<div className='mb-3 grid grid-cols-2 gap-3'>
+							<FormField label='Oylik dollar' horizontal={false} className='mb-0'>
+								<Controller
+									name='oylik_dollar'
+									control={control}
+									render={({ field }) => (
+										<PriceInput
+											value={field.value}
+											onChange={field.onChange}
+											placeholder='0.00'
+											disabled={mode === 'edit'}
+										/>
+									)}
+								/>
+							</FormField>
+							<FormField label="Oylik so'm" horizontal={false} className='mb-0'>
+								<Controller
+									name='oylik_som'
+									control={control}
+									render={({ field }) => (
+										<PriceInput
+											value={field.value}
+											onChange={field.onChange}
+											placeholder='0'
+											disabled={mode === 'edit'}
+										/>
+									)}
+								/>
+							</FormField>
+							{mode === 'edit' && item && (
+								<p className='col-span-2 -mt-1 text-[11px] text-ca-text'>
+									Oylikni o'zgartirish tarixi saqlanishi uchun{' '}
+									<Link
+										to={`/payroll/rates?user=${item.id}`}
+										className='font-semibold text-ca-theme hover:underline'
+										onClick={() => setOpen(false)}
+									>
+										Oylik tarifi
+									</Link>{' '}
+									sahifasidan foydalaning.
+								</p>
+							)}
+						</div>
 						<FormField
 							label='Manzil'
 							error={errors.address?.message}
