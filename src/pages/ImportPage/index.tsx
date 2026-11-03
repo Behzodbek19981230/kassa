@@ -252,8 +252,7 @@ export default function ImportPage() {
                                  value={categoryFilter}
                                  onChange={(value) => setCategoryFilter(value)}
                                  loadOptions={loadCategoryOptions}
-                                 disabled={!brandFilter}
-                                 placeholder={brandFilter ? 'Kategoriyani tanlang' : 'Avval modelni tanlang'}
+                                 placeholder={brandFilter ? 'Kategoriyani tanlang' : 'Barcha kategoriyalar'}
                                  clearable
                               />
                            </div>
