@@ -30,7 +30,6 @@ import {
    FaUndo,
    FaUsers,
    FaUsersCog,
-   FaWallet,
    FaWarehouse,
 } from 'react-icons/fa';
 import { sidebarMenu } from '@/data/sidebarMenu';
@@ -81,7 +80,6 @@ const iconMap: Record<SidebarIcon, ReactNode> = {
    settings: <FaCogs />,
    'paper-plane': <FaPaperPlane />,
    globe: <FaGlobe />,
-   wallet: <FaWallet />,
 };
 
 function SubMenuBullet({ active }: { active: boolean }) {

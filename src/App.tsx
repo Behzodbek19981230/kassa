@@ -54,12 +54,10 @@ import ClientKeshbekHistoryPage from '@/pages/settings/ClientKeshbekHistoryPage'
 import DebtRepaymentPage from '@/pages/settings/DebtRepaymentPage';
 import ClientDebtorPage from '@/pages/settings/ClientDebtorPage';
 import DebtRepaymentDraftPage from '@/pages/settings/DebtRepaymentDraftPage';
+import DebtRepaymentDeleteHistoryPage from '@/pages/DebtRepaymentDeleteHistoryPage';
+import DebtRepaymentDeleteHistoryDetailPage from '@/pages/DebtRepaymentDeleteHistoryDetailPage';
 import TelegramBroadcastPage from '@/pages/TelegramBroadcastPage';
-import PayrollPage from '@/pages/PayrollPage';
-import EmployeePayrollPage from '@/pages/PayrollPage/EmployeePayrollPage';
-import SalaryPaymentPage from '@/pages/PayrollPage/SalaryPaymentPage';
-import SalaryAdjustmentPage from '@/pages/PayrollPage/SalaryAdjustmentPage';
-import SalaryRatePage from '@/pages/PayrollPage/SalaryRatePage';
+import UserPayrollPage from '@/pages/system/UserPayrollPage';
 import TelegramBroadcastCreatePage from '@/pages/TelegramBroadcastPage/CreatePage';
 import TelegramBroadcastDetailPage from '@/pages/TelegramBroadcastPage/DetailPage';
 import ChinaDispatchPage from '@/pages/TwoStageImport/ChinaDispatchPage';
@@ -107,15 +105,14 @@ export default function App() {
 						<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
 						<Route path='settings/debtors' element={<ClientDebtorPage />} />
 						<Route path='settings/debt-repayments-drafts' element={<DebtRepaymentDraftPage />} />
+						<Route path='settings/debt-repayments-drafts/deleted' element={<DebtRepaymentDeleteHistoryPage />} />
+						<Route
+							path='settings/debt-repayments-drafts/deleted/:id'
+							element={<DebtRepaymentDeleteHistoryDetailPage />}
+						/>
 						<Route path='settings/clients/:id/keshbek-history' element={<ClientKeshbekHistoryPage />} />
 						<Route path='cart-drafts/deleted-orders' element={<OrderDeleteHistoryPage />} />
 						<Route path='cart-drafts/deleted-orders/:id' element={<OrderDeleteHistoryDetailPage />} />
-						<Route path='payroll' element={<Navigate to='/payroll/employees' replace />} />
-						<Route path='payroll/employees' element={<PayrollPage />} />
-						<Route path='payroll/employees/:userId' element={<EmployeePayrollPage />} />
-						<Route path='payroll/pay' element={<SalaryPaymentPage />} />
-						<Route path='payroll/adjustments' element={<SalaryAdjustmentPage />} />
-						<Route path='payroll/rates' element={<SalaryRatePage />} />
 					</Route>
 					<Route element={<WarehouseReportRoute />}>
 						<Route path='warehouse-report' element={<WarehouseAccountPage />} />
@@ -144,6 +141,7 @@ export default function App() {
 						<Route path='system/models' element={<Navigate to='/system/product-categories' replace />} />
 						<Route path='system/consignors' element={<ConsignorPage />} />
 						<Route path='system/users' element={<UserPage />} />
+						<Route path='system/users/:id/payroll' element={<UserPayrollPage />} />
 						<Route path='system/companies' element={<CompanyPage />} />
 						<Route path='system/locations' element={<LocationPage />} />
 						<Route path='system/sklad-types' element={<SkladTypePage />} />

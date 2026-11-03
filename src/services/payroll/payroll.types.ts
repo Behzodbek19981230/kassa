@@ -3,36 +3,39 @@ import type { ListParams, PaginationMeta } from '@/services/api/types';
 /** Money values travel as strings, e.g. `"500.00"`. */
 export type Money = string;
 
-export type SalaryPeriodStatus = 'OPEN' | 'PARTIAL' | 'PAID' | 'CLOSED';
+export type PayrollTransactionType = 'SALARY' | 'BONUS' | 'PENALTY';
 
-export type SalaryAdjustmentType = 'PENALTY' | 'BONUS' | 'ADDITION' | 'CORRECTION';
+export interface PayrollPersonDetail {
+	id: number;
+	username?: string;
+	first_name?: string;
+	last_name?: string;
+}
 
-/** Lists may answer `{ results, pagination }` (project standard) or DRF-style `{ count, results }`. */
 export interface PayrollListResponse<T> {
 	results: T[];
 	pagination?: PaginationMeta;
-	count?: number;
-	next?: string | null;
-	previous?: string | null;
 }
 
-export interface PayrollUserBrief {
-	id: number;
-	username?: string;
-	first_name: string;
-	last_name: string;
-	oylik_dollar: Money;
-	oylik_som: Money;
-	avatar?: string | null;
-}
+/* ---------- GET /payroll/summary/ ---------- */
 
-export interface SalaryPeriod {
-	id: number;
+export interface PayrollSummaryParams {
 	user: number;
 	year: number;
 	month: number;
-	base_oylik_dollar?: Money;
-	base_oylik_som?: Money;
+}
+
+export interface PayrollSummaryUser extends PayrollPersonDetail {
+	oylik_dollar: Money;
+	oylik_som: Money;
+}
+
+/** The month's totals as the backend computed them; the page shows these as-is. */
+export interface PayrollSummaryTotals {
+	base_oylik_dollar: Money;
+	base_oylik_som: Money;
+	penalty_dollar: Money;
+	penalty_som: Money;
 	payable_dollar: Money;
 	payable_som: Money;
 	paid_dollar: Money;
@@ -40,127 +43,67 @@ export interface SalaryPeriod {
 	paid_card: Money;
 	remaining_dollar: Money;
 	remaining_som: Money;
-	status: SalaryPeriodStatus;
+	bonus_dollar: Money;
+	bonus_som: Money;
+	bonus_card: Money;
 }
 
-/** `GET /payroll/dashboard/` row. `period` is null until the first payment/adjustment of the month. */
-export interface PayrollDashboardRow {
-	user: PayrollUserBrief;
-	period: SalaryPeriod | null;
-}
-
-export interface PayrollDashboardSummary {
-	total?: number;
-	open?: number;
-	partial?: number;
-	paid?: number;
-	closed?: number;
-}
-
-export interface PayrollDashboardResponse extends PayrollListResponse<PayrollDashboardRow> {
-	summary?: PayrollDashboardSummary;
-}
-
-export interface PayrollDashboardParams {
+export interface PayrollSummaryResponse {
+	user: PayrollSummaryUser;
 	year: number;
 	month: number;
-	page?: number;
-	page_size?: number;
-	search?: string;
+	/** Months of `year` that have at least one transaction. */
+	active_months: number[];
+	summary: PayrollSummaryTotals;
 }
 
-export interface SalaryPeriodListParams extends ListParams {
-	user?: number;
-	year?: number;
-	month?: number;
-}
+/* ---------- /payroll-transaction/ ---------- */
 
-export interface PayrollCreatorDetail {
-	id: number;
-	username?: string;
-	first_name?: string;
-	last_name?: string;
-}
-
-export interface SalaryPayment {
+export interface PayrollTransaction {
 	id: number;
 	user: number;
-	period: number;
-	year?: number;
-	month?: number;
+	year: number;
+	month: number;
+	transaction_type: PayrollTransactionType;
+	transaction_type_display?: string;
 	summa_dollar: Money;
 	summa_som: Money;
 	summa_karta: Money;
-	payment_date: string;
-	note: string | null;
-	payment_key?: string;
-	created_time?: string;
+	transaction_time: string;
+	note?: string | null;
 	created_by?: number | null;
-	created_by_detail?: PayrollCreatorDetail | null;
+	created_by_detail?: PayrollPersonDetail | null;
 }
 
-export interface SalaryPaymentPayload {
+export interface PayrollTransactionListParams extends ListParams {
 	user: number;
 	year: number;
 	month: number;
+	transaction_type?: PayrollTransactionType;
+}
+
+export interface PayrollTransactionPayload {
+	user: number;
+	year: number;
+	month: number;
+	transaction_type: PayrollTransactionType;
 	summa_dollar: Money;
 	summa_som: Money;
 	summa_karta: Money;
-	/** YYYY-MM-DD */
-	payment_date: string;
+	/** ISO 8601 with offset, e.g. `2026-11-03T14:30:00+05:00`. */
+	transaction_time: string;
 	note: string;
-	payment_key: string;
+	/** Idempotency key: a new UUID per operation, the same one when retrying it. */
+	transaction_key: string;
 }
 
-export interface SalaryPaymentResponse extends Partial<SalaryPayment> {
-	salary_period?: SalaryPeriod;
+export interface PayrollTransactionCreateResponse {
+	transaction: PayrollTransaction;
+	/** May hold only some of the totals; merged over the cached summary. */
+	summary?: Partial<PayrollSummaryTotals>;
 }
 
-export interface SalaryPaymentListParams extends ListParams {
-	period?: number;
-	user?: number;
-}
-
-export interface SalaryAdjustment {
-	id: number;
-	user: number;
-	period: number;
-	year?: number;
-	month?: number;
-	adjustment_type: SalaryAdjustmentType;
-	summa_dollar: Money;
-	summa_som: Money;
-	reason: string;
-	adjustment_date: string;
-	adjustment_key?: string;
-	created_time?: string;
-	created_by?: number | null;
-	created_by_detail?: PayrollCreatorDetail | null;
-	user_detail?: PayrollCreatorDetail | null;
-	period_detail?: Pick<SalaryPeriod, 'id' | 'year' | 'month'> | null;
-}
-
-export interface SalaryAdjustmentPayload {
-	user: number;
-	year: number;
-	month: number;
-	adjustment_type: SalaryAdjustmentType;
-	summa_dollar: Money;
-	summa_som: Money;
-	reason: string;
-	/** YYYY-MM-DD */
-	adjustment_date: string;
-	adjustment_key: string;
-}
-
-export interface SalaryAdjustmentResponse extends Partial<SalaryAdjustment> {
-	salary_period?: SalaryPeriod;
-}
-
-export interface SalaryAdjustmentListParams extends ListParams {
-	period?: number;
-	user?: number;
-}
+/* ---------- salary rate ---------- */
 
 export interface SalaryRateUpdatePayload {
 	user: number;
@@ -181,9 +124,9 @@ export interface UserSalaryHistory {
 	effective_month: number;
 	changed_time: string;
 	created_by: number | null;
-	created_by_detail?: PayrollCreatorDetail | null;
+	created_by_detail?: PayrollPersonDetail | null;
 }
 
 export interface UserSalaryHistoryListParams extends ListParams {
-	user?: number;
+	user: number;
 }

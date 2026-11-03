@@ -27,8 +27,7 @@ export type SidebarIcon =
 	| 'users'
 	| 'settings'
 	| 'paper-plane'
-	| 'globe'
-	| 'wallet';
+	| 'globe';
 
 /** Permission flags a menu item's visibility can be gated on; see src/utils/sidebarUtils.ts. */
 export interface SidebarMenuPermissions {

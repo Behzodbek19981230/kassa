@@ -196,6 +196,16 @@ function Message({ text }: { text: string }) {
    );
 }
 
+/**
+ * Size as a comparable key: numeric sizes drop trailing zeros ("60.00" → "60") so the same size from
+ * different endpoints matches; text sizes ("60x120") are kept as typed.
+ */
+function normalizeSize(value: string | number | null | undefined) {
+   const text = String(value ?? '').trim();
+   const num = Number(text);
+   return text !== '' && Number.isFinite(num) ? String(num) : text;
+}
+
 /** A $ and ¥ input side by side under one label, kept in sync with today's yuan rate. */
 function DualPriceInput({
    dollar,
@@ -277,7 +287,7 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
          snapshot: {
             brand: item.brand_snapshot ?? '',
             category: item.category_snapshot ?? '',
-            size: item.size_snapshot ? formatNumber(Number(item.size_snapshot)) : '',
+            size: item.size_snapshot ? formatNumber(normalizeSize(item.size_snapshot)) : '',
             type: item.type_snapshot ?? '',
          },
          typeQuantity: String(Number(item.type_quantity)),
@@ -316,7 +326,7 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
             brandName: w.brand_name,
             category: String(w.product_category_id),
             categoryName: w.product_category_name,
-            size: String(Number(w.size)),
+            size: normalizeSize(w.size),
             typeName: w.type_name ?? '-',
          }));
       }
@@ -330,7 +340,7 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
             brandName: s.warehouse_detail?.brand_name ?? '',
             category: String(s.warehouse_detail?.product_category ?? ''),
             categoryName: s.warehouse_detail?.product_category_name ?? '',
-            size: String(Number(s.warehouse_detail?.size ?? 0)),
+            size: normalizeSize(s.warehouse_detail?.size ?? 0),
             typeName: `${s.warehouse_detail?.type_name ?? '-'} (mavjud: ${formatNumber(s.available_quantity)})`,
             typeQuantity: String(Number(s.current_type_quantity)),
             priceYuan: String(Number(s.current_price_yuan)),
@@ -621,7 +631,7 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                const sizeOptions = uniqueOptions(
                   products
                      .filter((p) => p.brand === sel.brand && p.category === sel.category)
-                     .map((p) => ({ value: p.size, label: formatNumber(Number(p.size)) })),
+                     .map((p) => ({ value: p.size, label: formatNumber(p.size) })),
                );
                const typeOptions = products
                   .filter((p) => p.brand === sel.brand && p.category === sel.category && p.size === sel.size)

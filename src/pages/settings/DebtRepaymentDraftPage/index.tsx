@@ -1,6 +1,7 @@
 import { createColumnHelper, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { FaTrash, FaExclamationTriangle, FaUndo } from 'react-icons/fa';
+import { FaTrash, FaExclamationTriangle, FaHistory, FaUndo } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import {
 	Button,
 	buttonProps,
@@ -17,6 +18,7 @@ import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { usePermissions } from '@/lib/permissions';
+import { DEBT_DELETE_HISTORY_PATH } from '@/pages/DebtRepaymentDeleteHistoryPage/utils';
 import { clientService } from '@/services/client/client.service';
 import { useDebtRepaymentDraftGroupedListQuery } from '@/services/debt-repayment/debt-repayment.queries';
 import type { DebtRepaymentGroupedItem } from '@/services/debt-repayment/debt-repayment.types';
@@ -41,7 +43,8 @@ const emptyFilters: FilterState = { client: '', startDate: '', endDate: '', sear
 
 export default function DebtRepaymentDraftPage() {
 	const { canWrite } = useCurrentCompany();
-	const { canEditOwned } = usePermissions();
+	const { canEditOwned, isSuperAdmin } = usePermissions();
+	const navigate = useNavigate();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
 	const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);
@@ -173,7 +176,20 @@ export default function DebtRepaymentDraftPage() {
 	return (
 		<>
 
-			<Panel title="O'chirilgan to'lovlar" onReload={() => refetch()}>
+			<Panel
+				title={
+					<span className='flex flex-wrap items-center gap-3'>
+						O'chirilgan to'lovlar
+						{/* Deleted repayments history is Super Admin only, like the deleted orders history. */}
+						{isSuperAdmin && (
+							<Button type='button' variant='danger' size='xs' onClick={() => navigate(DEBT_DELETE_HISTORY_PATH)}>
+								<FaHistory className='mr-1.5' /> O'chirilgan qarz to'lovlar tarixi
+							</Button>
+						)}
+					</span>
+				}
+				onReload={() => refetch()}
+			>
 				<div className='mb-4 flex flex-wrap items-end gap-2'>
 					<div className='w-40'>
 						<DatePicker

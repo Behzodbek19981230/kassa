@@ -25,6 +25,10 @@ export const myDebtHistoryService = {
 		const { data } = await apiClient.patch<MyDebtHistoryItem>(`/my-total-debt-history/${id}/`, payload);
 		return data;
 	},
+	print: async (id: number) => {
+		const { data } = await apiClient.get(`/my-total-debt-history/${id}/print/`, { responseType: 'blob' });
+		return data as Blob;
+	},
 	draftDelete: async (id: number) => {
 		const { data } = await apiClient.delete<MyDebtHistoryDraftDeleteResponse>(
 			`/my-total-debt-history/${id}/draft-delete/`,

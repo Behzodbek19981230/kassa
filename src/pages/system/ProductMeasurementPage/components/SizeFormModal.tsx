@@ -16,7 +16,6 @@ import {
 	ModalHeader,
 	ModalTitle,
 	useNotification,
-	PriceInput,
 } from '@/components/ui';
 import {
 	useCreateBrandSizeMutation,
@@ -35,7 +34,7 @@ const sizeFormSchema = z.object({
 	brand: z.string().min(1, 'Model tanlanishi shart'),
 	product_category: z.string().min(1, 'Mahsulot toifasi tanlanishi shart'),
 	type: z.string().min(1, "O'lcham turi tanlanishi shart"),
-	size: z.string(),
+	size: z.string().trim().min(1, "O'lcham kiritilishi shart"),
 });
 
 type SizeFormValues = z.infer<typeof sizeFormSchema>;
@@ -77,7 +76,7 @@ export default function SizeFormModal({ open, setOpen, mode, item }: SizeFormMod
 						type: String(item.type),
 						size: item.size,
 					}
-				: { brand: '', product_category: '', type: '', size: '0' },
+				: { brand: '', product_category: '', type: '', size: '' },
 	});
 
 	const brandValue = watch('brand');
@@ -119,7 +118,7 @@ export default function SizeFormModal({ open, setOpen, mode, item }: SizeFormMod
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
 		const payload: BrandSizePayload = {
-			size: Number(values.size) || 0,
+			size: values.size.trim(),
 			type: Number(values.type),
 			brand: Number(values.brand),
 			product_category: Number(values.product_category),
@@ -217,12 +216,12 @@ export default function SizeFormModal({ open, setOpen, mode, item }: SizeFormMod
 								/>
 							</FormField>
 							<FormField
-								label="O'lchami (Misol: 9.99)"
+								label="O'lchami"
 								error={errors.size?.message}
 								horizontal={false}
 								className='mb-0'
 							>
-								<Controller name='size' control={control} render={({ field }) => <PriceInput decimals={2} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
+								<Input {...register('size')} />
 							</FormField>
 						</div>
 					</ModalBody>

@@ -1,6 +1,6 @@
 import { createColumnHelper, type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaPrint, FaTrash } from 'react-icons/fa';
 import {
 	Button,
 	buttonProps,
@@ -11,13 +11,17 @@ import {
 	DatePicker,
 	Input,
 	Panel,
+	Tooltip,
+	useNotification,
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
-import { getApiErrorMessage } from '@/lib/errors';
+import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
+import { getApiErrorMessage, getApiErrorMessageAsync } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { consignorService } from '@/services/consignor/consignor.service';
 import { useMyDebtHistoryGroupedListQuery } from '@/services/my-debt/my-debt-history.queries';
+import { myDebtHistoryService } from '@/services/my-debt/my-debt-history.service';
 import MyDebtHistoryEditModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryEditModal';
 import MyDebtHistoryHardDeleteModal from '@/pages/MyDebtDetailPage/components/MyDebtHistoryHardDeleteModal';
 import type { MyDebtHistoryGroupedItem } from '@/services/my-debt/my-debt-history.types';
@@ -33,6 +37,34 @@ interface FilterState {
 	startDate: string;
 	endDate: string;
 	search: string;
+}
+
+/** Opens the payment's PDF receipt in a new tab. */
+function PrintButton({ id }: { id: number }) {
+	const { notify } = useNotification();
+	const [isPrinting, setIsPrinting] = useState(false);
+
+	async function print() {
+		// Open the tab synchronously on click so the popup blocker allows it, then load the PDF into it.
+		const tab = openPendingTab();
+		setIsPrinting(true);
+		try {
+			loadBlobIntoTab(await myDebtHistoryService.print(id), tab);
+		} catch (err) {
+			tab?.close();
+			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
+		} finally {
+			setIsPrinting(false);
+		}
+	}
+
+	return (
+		<Tooltip content='PDF chop qilish'>
+			<Button type='button' variant='info' size='icon' aria-label='PDF chop qilish' disabled={isPrinting} onClick={print}>
+				<FaPrint />
+			</Button>
+		</Tooltip>
+	);
 }
 
 const emptyFilters: FilterState = { consignor: '', startDate: '', endDate: '', search: '' };
@@ -133,25 +165,29 @@ export default function MyDebtHistoryTab() {
 		columnHelper.display({
 			id: 'actions',
 			header: 'Harakatlar',
-			size: 100,
+			size: 130,
 			meta: { align: 'right' },
-			cell: ({ row }) =>
-				canWrite && (
-					<div className='flex justify-end gap-1'>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}
-							dialog={MyDebtHistoryEditModal}
-							dialogProps={{ item: row.original }}
-						/>
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
-							dialog={MyDebtHistoryHardDeleteModal}
-							dialogProps={{ id: row.original.id, consignorName: row.original.consignor?.name }}
-						/>
-					</div>
-				),
+			cell: ({ row }) => (
+				<div className='flex justify-end gap-1'>
+					<PrintButton id={row.original.id} />
+					{canWrite && (
+						<>
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{ ...buttonProps(<FaEdit />, 'warning', 'icon'), 'aria-label': 'Tahrirlash' }}
+								dialog={MyDebtHistoryEditModal}
+								dialogProps={{ item: row.original }}
+							/>
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+								dialog={MyDebtHistoryHardDeleteModal}
+								dialogProps={{ id: row.original.id, consignorName: row.original.consignor?.name }}
+							/>
+						</>
+					)}
+				</div>
+			),
 		}),
 	];
 

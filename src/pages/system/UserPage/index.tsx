@@ -5,8 +5,9 @@ import {
 	type SortingState,
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import { FaEdit, FaExclamationTriangle, FaLock, FaTelegramPlane, FaTrash, FaUnlock, FaUser } from 'react-icons/fa';
-import { Badge, Button, buttonProps, DataTable, Panel } from '@/components/ui';
+import { FaEdit, FaExclamationTriangle, FaFileInvoiceDollar, FaLock, FaTelegramPlane, FaTrash, FaUnlock, FaUser } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import { Badge, Button, buttonProps, buttonVariants, DataTable, Panel, Tooltip } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -125,9 +126,18 @@ export default function UserPage() {
 			meta: { align: 'right' },
 			enableSorting: false,
 			enableColumnFilter: false,
-			size: 190,
+			size: 220,
 			cell: ({ row }) => (
 				<div className='flex items-center justify-end gap-1'>
+					<Tooltip content="Oylik to'lovlar tarixi">
+						<Link
+							to={`/system/users/${row.original.id}/payroll`}
+							aria-label="Oylik to'lovlar tarixi"
+							className={buttonVariants({ variant: 'success', size: 'icon' })}
+						>
+							<FaFileInvoiceDollar />
+						</Link>
+					</Tooltip>
 					{row.original.is_login_blocked && canWrite && (
 						<Button
 							type='button'

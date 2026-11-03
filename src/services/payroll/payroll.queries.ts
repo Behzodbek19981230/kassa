@@ -1,74 +1,34 @@
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { payrollService } from '@/services/payroll/payroll.service';
 import type {
-	PayrollDashboardParams,
-	SalaryAdjustmentListParams,
-	SalaryAdjustmentPayload,
-	SalaryPaymentListParams,
-	SalaryPaymentPayload,
-	SalaryPeriod,
+	PayrollSummaryParams,
+	PayrollSummaryResponse,
+	PayrollTransactionListParams,
+	PayrollTransactionPayload,
 	SalaryRateUpdatePayload,
 	UserSalaryHistoryListParams,
 } from '@/services/payroll/payroll.types';
 
-interface PeriodLookup {
-	user?: number;
-	year: number;
-	month: number;
-}
-
 export const payrollKeys = {
 	all: ['payroll'] as const,
-	dashboard: (params: PayrollDashboardParams) => ['payroll', 'dashboard', params] as const,
-	periodLookup: (lookup: PeriodLookup) => ['payroll', 'period', 'lookup', lookup] as const,
-	payments: (params: SalaryPaymentListParams) => ['payroll', 'payments', params] as const,
-	adjustments: (params: SalaryAdjustmentListParams) => ['payroll', 'adjustments', params] as const,
+	summary: (params: PayrollSummaryParams) => ['payroll', 'summary', params] as const,
+	transactions: (params: PayrollTransactionListParams) => ['payroll', 'transactions', params] as const,
 	salaryHistory: (params: UserSalaryHistoryListParams) => ['payroll', 'salary-history', params] as const,
 };
 
-export function usePayrollDashboardQuery(params: PayrollDashboardParams) {
+export function usePayrollSummaryQuery(params: PayrollSummaryParams, enabled = true) {
 	return useQuery({
-		queryKey: payrollKeys.dashboard(params),
-		queryFn: () => payrollService.dashboard(params),
-		placeholderData: (prev) => prev,
-	});
-}
-
-/**
- * The salary period of one employee for one month, or `null` when the backend has not created it yet
- * (it does so on the first payment or adjustment of that month).
- */
-export function useSalaryPeriodLookupQuery(lookup: PeriodLookup) {
-	return useQuery({
-		queryKey: payrollKeys.periodLookup(lookup),
-		queryFn: async () => {
-			const periods = await payrollService.listPeriods({
-				user: lookup.user,
-				year: lookup.year,
-				month: lookup.month,
-				limit: 1,
-			});
-			return (
-				periods.find((p) => p.user === lookup.user && p.year === lookup.year && p.month === lookup.month) ?? null
-			);
-		},
-		enabled: typeof lookup.user === 'number',
-	});
-}
-
-export function useSalaryPaymentListQuery(params: SalaryPaymentListParams, enabled = true) {
-	return useQuery({
-		queryKey: payrollKeys.payments(params),
-		queryFn: () => payrollService.listPayments(params),
+		queryKey: payrollKeys.summary(params),
+		queryFn: () => payrollService.summary(params),
 		enabled,
 		placeholderData: (prev) => prev,
 	});
 }
 
-export function useSalaryAdjustmentListQuery(params: SalaryAdjustmentListParams, enabled = true) {
+export function usePayrollTransactionListQuery(params: PayrollTransactionListParams, enabled = true) {
 	return useQuery({
-		queryKey: payrollKeys.adjustments(params),
-		queryFn: () => payrollService.listAdjustments(params),
+		queryKey: payrollKeys.transactions(params),
+		queryFn: () => payrollService.listTransactions(params),
 		enabled,
 		placeholderData: (prev) => prev,
 	});
@@ -82,37 +42,22 @@ export function useUserSalaryHistoryQuery(params: UserSalaryHistoryListParams, e
 	});
 }
 
-/** Stores the period the backend returned, then refetches everything else that depends on it. */
-function applyPeriodFromResponse(queryClient: QueryClient, period: SalaryPeriod | undefined) {
-	if (period) {
-		queryClient.setQueryData(
-			payrollKeys.periodLookup({ user: period.user, year: period.year, month: period.month }),
-			period,
-		);
-	}
-	queryClient.invalidateQueries({
-		queryKey: payrollKeys.all,
-		predicate: (query) => {
-			const key = query.queryKey as unknown[];
-			// The lookup set above is the backend's own answer; don't overwrite it with a refetch.
-			return !(period && key[1] === 'period');
+export function useCreatePayrollTransactionMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (payload: PayrollTransactionPayload) => payrollService.createTransaction(payload),
+		onSuccess: (data, payload) => {
+			const key = payrollKeys.summary({ user: payload.user, year: payload.year, month: payload.month });
+			// The backend's summary is final: show it right away, then refetch the full one
+			// (active_months and any totals the POST response left out).
+			if (data.summary) {
+				queryClient.setQueryData<PayrollSummaryResponse>(key, (prev) =>
+					prev ? { ...prev, summary: { ...prev.summary, ...data.summary } } : prev,
+				);
+			}
+			queryClient.invalidateQueries({ queryKey: ['payroll', 'summary'] });
+			queryClient.invalidateQueries({ queryKey: ['payroll', 'transactions'] });
 		},
-	});
-}
-
-export function useCreateSalaryPaymentMutation() {
-	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: (payload: SalaryPaymentPayload) => payrollService.createPayment(payload),
-		onSuccess: (data) => applyPeriodFromResponse(queryClient, data.salary_period),
-	});
-}
-
-export function useCreateSalaryAdjustmentMutation() {
-	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: (payload: SalaryAdjustmentPayload) => payrollService.createAdjustment(payload),
-		onSuccess: (data) => applyPeriodFromResponse(queryClient, data.salary_period),
 	});
 }
 

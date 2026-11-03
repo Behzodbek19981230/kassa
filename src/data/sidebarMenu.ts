@@ -77,18 +77,6 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		requiredPermission: 'isSuperAdmin',
 	},
 	{
-		id: 'payroll',
-		icon: 'wallet',
-		label: 'Oyliklar',
-		requiredPermission: 'isSuperAdmin',
-		children: [
-			{ id: 'payroll-employees', icon: 'users', label: 'Xodimlar oyliklari', path: '/payroll/employees' },
-			{ id: 'payroll-pay', icon: 'receipt', label: 'Pul berish', path: '/payroll/pay' },
-			{ id: 'payroll-adjustments', icon: 'balance-scale', label: 'Jarima / Bonus', path: '/payroll/adjustments' },
-			{ id: 'payroll-rates', icon: 'history', label: 'Oylik tarifi', path: '/payroll/rates' },
-		],
-	},
-	{
 		id: 'system-management',
 		icon: 'cogs',
 		label: 'Tizim boshqaruvi',

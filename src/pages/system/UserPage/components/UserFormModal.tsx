@@ -310,7 +310,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 			address: values.address.trim(),
 		};
 		if (values.password) payload.password = values.password;
-		// The salary is set here only for a new user; afterwards it changes via "Oylik tarifi" so history is kept.
+		// The salary is set here only for a new user; afterwards it changes via the payroll page's rate modal so history is kept.
 		if (mode === 'create') {
 			payload.oylik_dollar = (Number(values.oylik_dollar) || 0).toFixed(2);
 			payload.oylik_som = (Number(values.oylik_som) || 0).toFixed(2);
@@ -690,13 +690,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								<p className='col-span-2 -mt-1 text-[11px] text-ca-text'>
 									Oylikni o'zgartirish tarixi saqlanishi uchun{' '}
 									<Link
-										to={`/payroll/rates?user=${item.id}`}
+										to={`/system/users/${item.id}/payroll`}
 										className='font-semibold text-ca-theme hover:underline'
 										onClick={() => setOpen(false)}
 									>
-										Oylik tarifi
+										Oylik to'lovlar tarixi
 									</Link>{' '}
-									sahifasidan foydalaning.
+									sahifasidagi tarif tugmasidan foydalaning.
 								</p>
 							)}
 						</div>

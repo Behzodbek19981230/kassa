@@ -53,7 +53,7 @@ interface SizeRowState {
 	type: string;
 }
 
-const emptySizeRow: SizeRowState = { size: '0', type: '' };
+const emptySizeRow: SizeRowState = { size: '', type: '' };
 
 interface CategoryFormModalProps {
 	open: boolean;
@@ -170,7 +170,7 @@ export default function CategoryFormModal({ open, setOpen, mode, item, defaultBr
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
 
-		const validRows = sizeRows.filter((row) => row.type && Number(row.size) > 0);
+		const validRows = sizeRows.filter((row) => row.type && row.size.trim());
 		if (validRows.length === 0) {
 			setFormError("Kamida bitta o'lcham va tur qo'shilishi shart");
 			return;
@@ -196,7 +196,7 @@ export default function CategoryFormModal({ open, setOpen, mode, item, defaultBr
 			await Promise.all(
 				validRows.map((row) => {
 					const sizePayload: BrandSizePayload = {
-						size: Number(row.size),
+						size: row.size.trim(),
 						type: Number(row.type),
 						brand,
 						product_category: categoryId,
@@ -267,7 +267,7 @@ export default function CategoryFormModal({ open, setOpen, mode, item, defaultBr
 							<div className='border-t border-ca-border pt-3'>
 								<div className='mb-2 grid grid-cols-[1fr_1fr_32px] gap-3'>
 									<label className='text-xs font-semibold text-ca-heading'>
-										O'lchami (Misol: 9.99)
+										O'lchami
 										<span className='text-ca-red'> *</span>
 									</label>
 									<label className='text-xs font-semibold text-ca-heading'>
@@ -278,9 +278,9 @@ export default function CategoryFormModal({ open, setOpen, mode, item, defaultBr
 								</div>
 								{sizeRows.map((row, index) => (
 									<div key={index} className='mb-2 grid grid-cols-[1fr_1fr_32px] items-center gap-3'>
-										<PriceInput decimals={2}
+										<Input
 											value={row.size}
-											onChange={(v) => updateSizeRow(index, { size: v })}
+											onChange={(e) => updateSizeRow(index, { size: e.target.value })}
 										/>
 										<Combobox
 											value={row.type}

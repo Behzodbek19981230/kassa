@@ -16,7 +16,8 @@ export interface BrandSize {
 }
 
 export interface BrandSizePayload {
-  size: number
+  /** Free text since the backend accepts it: "9.99", "60x120", ... */
+  size: string
   type: number
   brand: number
   product_category: number
