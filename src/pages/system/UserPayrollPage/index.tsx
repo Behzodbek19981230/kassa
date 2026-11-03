@@ -1,4 +1,4 @@
-import { createColumnHelper, type SortingState } from '@tanstack/react-table';
+import { createColumnHelper, type PaginationState, type SortingState } from '@tanstack/react-table';
 import { useState, type ReactNode } from 'react';
 import { FaArrowLeft, FaArrowRight, FaCalculator, FaDatabase, FaExclamationTriangle, FaGift, FaMinusCircle, FaPen, FaPlus, FaUser } from 'react-icons/fa';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -114,6 +114,9 @@ export default function UserPayrollPage() {
 	const { year, month, set } = useYearMonth();
 	const [typeFilter, setTypeFilter] = useState<PayrollTransactionType | typeof ALL_TYPES>(ALL_TYPES);
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'transaction_time', desc: true }]);
+	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+	// A different month, year or type is a different list: start it from the first page.
+	const toFirstPage = () => setPagination((p) => ({ ...p, pageIndex: 0 }));
 	const [actionOpen, setActionOpen] = useState(false);
 	const [rateOpen, setRateOpen] = useState(false);
 
@@ -127,7 +130,8 @@ export default function UserPayrollPage() {
 			year,
 			month,
 			ordering,
-			limit: 100,
+			page: pagination.pageIndex + 1,
+			limit: pagination.pageSize,
 			transaction_type: typeFilter === ALL_TYPES ? undefined : typeFilter,
 		},
 		userId > 0,
@@ -139,21 +143,21 @@ export default function UserPayrollPage() {
 	const user = data?.user;
 	const activeMonths = new Set(data && data.year === year ? data.active_months : []);
 	const transactions = transactionsQuery.data?.results ?? [];
+	const transactionsMeta = transactionsQuery.data?.pagination;
 	const years = Array.from({ length: 6 }, (_, i) => currentYearMonth().year + 1 - i);
 	if (!years.includes(year)) years.push(year);
 
 	const columns = [
-		columnHelper.display({
-			id: 'total',
-			header: "Jami to'langan",
+		columnHelper.accessor('all_summa_dollar', {
+			header: 'Jami summa dollarda',
 			meta: { align: 'left' },
-			cell: ({ row }) => {
-				const t = row.original;
-				const text = fmtMixed(toNumber(t.summa_dollar), toNumber(t.summa_som) + toNumber(t.summa_karta));
-				return t.transaction_type === 'PENALTY' && text !== '—' ? (
-					<span className='font-semibold text-red-500'>− {text}</span>
+			cell: ({ row, getValue }) => {
+				const value = toNumber(getValue());
+				if (!value) return '—';
+				return row.original.transaction_type === 'PENALTY' ? (
+					<span className='font-semibold text-red-500'>− {fmtDollar(value)}</span>
 				) : (
-					<span className='font-semibold'>{text}</span>
+					<span className='font-semibold'>{fmtDollar(value)}</span>
 				);
 			},
 		}),
@@ -244,7 +248,10 @@ export default function UserPayrollPage() {
 						</button>
 						<div className='ml-auto flex items-center gap-3'>
 							<div className='w-32'>
-								<Select value={String(year)} onValueChange={(v) => set({ year: Number(v) })}>
+								<Select value={String(year)} onValueChange={(v) => {
+									set({ year: Number(v) });
+									toFirstPage();
+								}}>
 									<SelectTrigger>
 										<SelectValue />
 									</SelectTrigger>
@@ -278,7 +285,10 @@ export default function UserPayrollPage() {
 									type='button'
 									role='tab'
 									aria-selected={active}
-									onClick={() => set({ month: m })}
+									onClick={() => {
+										set({ month: m });
+										toFirstPage();
+									}}
 									className={cn(
 										'flex h-10 items-center justify-center gap-1.5 border-ca-border text-sm font-medium transition-colors not-last:border-r',
 										active ? 'bg-ca-theme text-white' : 'text-ca-heading hover:bg-ca-silver',
@@ -359,7 +369,10 @@ export default function UserPayrollPage() {
 					<div className='flex items-center gap-3'>
 						<span className='text-sm text-ca-heading'>Tip:</span>
 						<div className='w-52'>
-							<Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}>
+							<Select value={typeFilter} onValueChange={(v) => {
+								setTypeFilter(v as typeof typeFilter);
+								toFirstPage();
+							}}>
 								<SelectTrigger>
 									<SelectValue />
 								</SelectTrigger>
@@ -382,9 +395,16 @@ export default function UserPayrollPage() {
 						sorting={sorting}
 						onSortingChange={setSorting}
 						enableSorting
-						enablePagination={false}
+						manualPagination
+						pageCount={transactionsMeta?.lastPage ?? -1}
+						totalRows={transactionsMeta?.total}
+						pagination={pagination}
+						onPaginationChange={setPagination}
+						enablePagination
 						enableGlobalFilter={false}
 						enableColumnFilters={false}
+						enableColumnVisibility
+						columnVisibilityKey='user-payroll-transactions'
 						enableStriping
 						isLoading={transactionsQuery.isLoading || transactionsQuery.isFetching}
 						emptyMessage={

@@ -69,6 +69,8 @@ export interface PayrollTransaction {
 	summa_dollar: Money;
 	summa_som: Money;
 	summa_karta: Money;
+	/** Whole amount in dollars: summa_dollar + (summa_som + summa_karta) / rate. */
+	all_summa_dollar?: Money;
 	transaction_time: string;
 	note?: string | null;
 	created_by?: number | null;
@@ -90,6 +92,8 @@ export interface PayrollTransactionPayload {
 	summa_dollar: Money;
 	summa_som: Money;
 	summa_karta: Money;
+	/** Whole amount in dollars, computed from the three amounts at today's rate. */
+	all_summa_dollar: Money;
 	/** ISO 8601 with offset, e.g. `2026-11-03T14:30:00+05:00`. */
 	transaction_time: string;
 	note: string;

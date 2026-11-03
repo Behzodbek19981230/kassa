@@ -13,6 +13,8 @@ import {
 	Textarea,
 	useNotification,
 } from '@/components/ui';
+import { useCurrentCompany } from '@/lib/company';
+import { formatNumber } from '@/lib/number';
 import { cn } from '@/lib/utils';
 import { nowTashkentLocal, toApiDateTime } from '@/pages/TwoStageImport/utils';
 import {
@@ -27,7 +29,16 @@ import {
 import { useCreatePayrollTransactionMutation } from '@/services/payroll/payroll.queries';
 import type { PayrollSummaryTotals, PayrollTransactionType } from '@/services/payroll/payroll.types';
 
-const FIELDS = ['transaction_type', 'transaction_time', 'summa_dollar', 'summa_som', 'summa_karta', 'note', 'transaction_key'] as const;
+const FIELDS = [
+	'transaction_type',
+	'transaction_time',
+	'summa_dollar',
+	'summa_som',
+	'summa_karta',
+	'all_summa_dollar',
+	'note',
+	'transaction_key',
+] as const;
 type FieldName = (typeof FIELDS)[number];
 type FieldErrors = Partial<Record<FieldName | 'date' | 'time' | 'form', string>>;
 
@@ -140,6 +151,7 @@ interface PayrollActionModalProps {
 /** "Oylik amali": salary payment, bonus or penalty for one employee and month. */
 export default function PayrollActionModal({ open, setOpen, userId, year, month, summary }: PayrollActionModalProps) {
 	const { notify } = useNotification();
+	const { exchangeRate } = useCurrentCompany();
 	const mutation = useCreatePayrollTransactionMutation();
 	const transactionKey = useTransactionKey();
 	const [form, setForm] = useState<FormState>(() => emptyForm());
@@ -160,6 +172,9 @@ export default function PayrollActionModal({ open, setOpen, userId, year, month,
 	const dollar = toNumber(form.summa_dollar);
 	const som = toNumber(form.summa_som);
 	const card = isPenalty ? 0 : toNumber(form.summa_karta);
+	// So'm and card amounts converted at today's rate; 0 when the rate isn't set yet.
+	const dollarRate = toNumber(exchangeRate?.dollar);
+	const allDollar = dollarRate > 0 ? Math.round((dollar + (som + card) / dollarRate) * 100) / 100 : dollar;
 	const remainingDollar = toNumber(summary?.remaining_dollar);
 	const remainingSom = toNumber(summary?.remaining_som);
 	const afterDollar = isBonus ? remainingDollar : remainingDollar - dollar;
@@ -207,6 +222,7 @@ export default function PayrollActionModal({ open, setOpen, userId, year, month,
 			summa_dollar: toMoneyString(dollar),
 			summa_som: toMoneyString(som),
 			summa_karta: toMoneyString(card),
+			all_summa_dollar: toMoneyString(allDollar),
 			transaction_time: toApiDateTime(`${form.date}T${form.time}`),
 			note: form.note.trim(),
 		};
@@ -302,7 +318,15 @@ export default function PayrollActionModal({ open, setOpen, userId, year, month,
 							</Field>
 						</div>
 
-						<div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
+						<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+							<Field label='All summa dollar' error={errors.all_summa_dollar}>
+								<PriceInput value={allDollar ? String(allDollar) : ''} placeholder='0' disabled readOnly />
+								<p className='mt-1 text-[11px] text-ca-text'>
+									{dollarRate > 0
+										? `Avtomatik: 1 $ = ${formatNumber(dollarRate)} so'm`
+										: "Bugungi kurs kiritilmagan — so'm hisobga olinmaydi"}
+								</p>
+							</Field>
 							<Field label='Summa dollar' required error={errors.summa_dollar}>
 								<PriceInput value={form.summa_dollar} onChange={update('summa_dollar')} placeholder='0' />
 							</Field>
