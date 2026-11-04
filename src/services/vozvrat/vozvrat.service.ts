@@ -9,6 +9,7 @@ import type {
 	VozvratOrderListParams,
 	VozvratOrderProductsResponse,
 	VozvratOrderUpdatePayload,
+	VozvratOrderUpdateStatusPayload,
 	VozvratProductsParams,
 	VozvratProductsResponse,
 	VozvratUpdateVozvratPayload,
@@ -50,6 +51,10 @@ export const vozvratService = {
 	},
 	update: async (id: number, payload: VozvratOrderUpdatePayload) => {
 		const { data } = await apiClient.put<VozvratOrderListItem>(`/vozvrat-order/${id}/`, payload);
+		return data;
+	},
+	updateStatus: async (id: number, payload: VozvratOrderUpdateStatusPayload) => {
+		const { data } = await apiClient.patch<VozvratOrderListItem>(`/vozvrat-order/${id}/`, payload);
 		return data;
 	},
 	updateVozvrat: async (id: number, payload: VozvratUpdateVozvratPayload) => {

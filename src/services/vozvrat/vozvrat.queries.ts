@@ -5,6 +5,7 @@ import type {
 	VozvratConfirmPayload,
 	VozvratOrderListParams,
 	VozvratOrderUpdatePayload,
+	VozvratOrderUpdateStatusPayload,
 	VozvratProductsParams,
 	VozvratUpdateVozvratPayload,
 } from '@/services/vozvrat/vozvrat.types';
@@ -65,6 +66,17 @@ export function useUpdateVozvratOrderMutation() {
 	return useMutation({
 		mutationFn: ({ id, payload }: { id: number; payload: VozvratOrderUpdatePayload }) =>
 			vozvratService.update(id, payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['vozvrat'] });
+		},
+	});
+}
+
+export function useUpdateVozvratOrderStatusMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }: { id: number; payload: VozvratOrderUpdateStatusPayload }) =>
+			vozvratService.updateStatus(id, payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['vozvrat'] });
 		},

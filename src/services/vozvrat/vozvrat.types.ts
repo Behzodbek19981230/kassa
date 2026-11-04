@@ -385,3 +385,8 @@ export interface VozvratOrderProductsResponse {
 	products: VozvratOrderProducts;
 	actions: VozvratOrderProductsActions;
 }
+
+/** `update_status`: 2 = edited and waiting for review, 1 = the edit was confirmed. */
+export interface VozvratOrderUpdateStatusPayload {
+	update_status: number;
+}

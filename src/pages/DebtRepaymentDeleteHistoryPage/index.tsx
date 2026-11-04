@@ -5,13 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button, DataTable, Panel } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
-import {
-	DEBT_DELETE_HISTORY_PATH,
-	formatMoney,
-	PAID_KEYS,
-	pickField,
-	pickText,
-} from '@/pages/DebtRepaymentDeleteHistoryPage/utils';
+import DebtRepaymentDeleteHistoryModal from '@/pages/DebtRepaymentDeleteHistoryPage/DebtRepaymentDeleteHistoryModal';
+import { formatMoney, PAID_KEYS, pickField, pickText } from '@/pages/DebtRepaymentDeleteHistoryPage/utils';
 import StatCard from '@/pages/TwoStageImport/components/StatCard';
 import { formatTashkentDate, formatTashkentDateTime } from '@/pages/TwoStageImport/utils';
 import { useDebtRepaymentDeleteHistoryListQuery } from '@/services/debt-repayment-delete-history/debt-repayment-delete-history.queries';
@@ -23,6 +18,9 @@ const columnHelper = createColumnHelper<DebtRepaymentDeleteHistoryRow>();
 export default function DebtRepaymentDeleteHistoryPage() {
 	const navigate = useNavigate();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+	// The row stays set after closing so the modal keeps its content during the close animation.
+	const [viewRow, setViewRow] = useState<DebtRepaymentDeleteHistoryRow | null>(null);
+	const [viewOpen, setViewOpen] = useState(false);
 
 	const { data, isLoading, isFetching, isError, error, refetch } = useDebtRepaymentDeleteHistoryListQuery({
 		page: pagination.pageIndex + 1,
@@ -118,7 +116,10 @@ export default function DebtRepaymentDeleteHistoryPage() {
 					variant='primary'
 					size='icon'
 					aria-label="Ko'rish"
-					onClick={() => navigate(`${DEBT_DELETE_HISTORY_PATH}/${row.original.id}`)}
+					onClick={() => {
+						setViewRow(row.original);
+						setViewOpen(true);
+					}}
 				>
 					<FaEye />
 				</Button>
@@ -166,6 +167,8 @@ export default function DebtRepaymentDeleteHistoryPage() {
 				}
 				emptyIcon={isError ? <FaExclamationTriangle className='text-4xl text-ca-red' /> : undefined}
 			/>
+
+			<DebtRepaymentDeleteHistoryModal open={viewOpen} setOpen={setViewOpen} row={viewRow} />
 		</Panel>
 	);
 }
