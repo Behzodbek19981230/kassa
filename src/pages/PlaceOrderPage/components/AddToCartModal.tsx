@@ -39,6 +39,25 @@ export interface ProductVariant {
 	rows: WarehouseAllListItem[];
 }
 
+// The last chosen "Joy" (type_sklad id), reused as the default the next time the modal opens.
+const LAST_JOY_KEY = 'add-to-cart:last-joy';
+
+function readLastJoy() {
+	try {
+		return localStorage.getItem(LAST_JOY_KEY);
+	} catch {
+		return null;
+	}
+}
+
+function saveLastJoy(value: string) {
+	try {
+		localStorage.setItem(LAST_JOY_KEY, value);
+	} catch {
+		// Storage may be unavailable (private mode / quota); the default then falls back to the first sklad.
+	}
+}
+
 interface AddToCartModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
@@ -164,9 +183,12 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 	const selectedOption = locationOptions.find((option) => option.value === joyValue);
 	const workerPrice = selectedOption?.stock.worker_price;
 
-	// Preselect the first sklad once the list has loaded.
+	// Preselect the last chosen sklad (if this product is stocked there), otherwise the first one.
 	useEffect(() => {
-		if (!getValues('joy') && locationOptions[0]) setValue('joy', locationOptions[0].value);
+		if (getValues('joy') || !locationOptions[0]) return;
+		const lastJoy = readLastJoy();
+		const preferred = locationOptions.find((option) => option.value === lastJoy) ?? locationOptions[0];
+		setValue('joy', preferred.value);
 	}, [locationOptions, getValues, setValue]);
 
 	useEffect(() => {
@@ -279,7 +301,10 @@ export default function AddToCartModal({ open, setOpen, variant, clientId }: Add
 											onOpenChange={handleJoyOpenChange}
 											disabled={isStocksLoading}
 										value={field.value}
-										onValueChange={(value) => field.onChange(value)}
+										onValueChange={(value) => {
+											field.onChange(value);
+											saveLastJoy(value);
+										}}
 									>
 										<SelectTrigger>
 											<SelectValue placeholder='Tanlang...' />

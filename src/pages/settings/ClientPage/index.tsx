@@ -43,7 +43,9 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 
 export default function ClientPage() {
 	const { canWrite } = useCurrentCompany();
-	const { isSuperAdmin } = usePermissions();
+	const { isSuperAdmin, isManager } = usePermissions();
+	// Manager sees the clients read-only: no add / edit (delete is Super Admin only anyway).
+	const canManageClients = canWrite && !isManager;
 	const { notify } = useNotification();
 	const navigate = useNavigate();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -212,21 +214,26 @@ export default function ClientPage() {
 					}),
 				]
 			: []),
-		columnHelper.accessor('is_blocked', {
-			header: 'Bloklangan',
-			size: 130,
-			cell: (info) => (
-				<span className={info.getValue() ? 'font-semibold text-ca-red' : 'font-semibold text-ca-green'}>
-					{info.getValue() ? 'Bloklangan' : 'Bloklanmagan'}
-				</span>
-			),
-			meta: {
-				filterVariant: 'select',
-				filterOptions: CLIENT_BLOCKED_OPTIONS,
-				filterSelectedLabel: (value) => CLIENT_BLOCKED_OPTIONS.find((o) => o.value === value)?.label,
-				filterPlaceholder: 'Barchasi',
-			},
-		}),
+		// "Bloklangan" is hidden for Manager.
+		...(!isManager
+			? [
+					columnHelper.accessor('is_blocked', {
+						header: 'Bloklangan',
+						size: 130,
+						cell: (info) => (
+							<span className={info.getValue() ? 'font-semibold text-ca-red' : 'font-semibold text-ca-green'}>
+								{info.getValue() ? 'Bloklangan' : 'Bloklanmagan'}
+							</span>
+						),
+						meta: {
+							filterVariant: 'select',
+							filterOptions: CLIENT_BLOCKED_OPTIONS,
+							filterSelectedLabel: (value) => CLIENT_BLOCKED_OPTIONS.find((o) => o.value === value)?.label,
+							filterPlaceholder: 'Barchasi',
+						},
+					}),
+				]
+			: []),
 		columnHelper.accessor('created_by', {
 			header: "Kim qo'shgan",
 			cell: (info) => info.row.original.created_by_detail && userLabel(info.row.original.created_by_detail),
@@ -268,7 +275,7 @@ export default function ClientPage() {
 							</Button>
 						</Tooltip>
 					)}
-					{canWrite && (
+					{canManageClients && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
@@ -294,6 +301,8 @@ export default function ClientPage() {
 			),
 		}),
 	];
+	// Manager has no actions left in "Harakatlar", so the column is dropped for that role.
+	const visibleColumns = isManager ? columns.filter((c) => c.id !== 'actions') : columns;
 
 	return (
 		<>
@@ -301,7 +310,7 @@ export default function ClientPage() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					canWrite && (
+					canManageClients && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
@@ -315,7 +324,7 @@ export default function ClientPage() {
 				}}
 			>
 				<DataTable
-					columns={columns}
+					columns={visibleColumns}
 					data={results}
 					manualPagination
 					manualSorting

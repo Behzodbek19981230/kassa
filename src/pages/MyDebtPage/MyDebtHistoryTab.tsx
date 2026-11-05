@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { getApiErrorMessage, getApiErrorMessageAsync } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
@@ -70,7 +71,10 @@ function PrintButton({ id }: { id: number }) {
 const emptyFilters: FilterState = { consignor: '', startDate: '', endDate: '', search: '' };
 
 export default function MyDebtHistoryTab() {
-	const { canWrite } = useCurrentCompany();
+	const { canWrite: companyCanWrite } = useCurrentCompany();
+	// Edit / delete are Super Admin only; Sklad Manager sees the history read-only.
+	const { canManageMyDebts } = usePermissions();
+	const canWrite = companyCanWrite && canManageMyDebts;
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
 	const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);

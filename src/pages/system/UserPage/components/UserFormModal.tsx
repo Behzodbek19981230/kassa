@@ -36,8 +36,10 @@ import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
 import { regionService } from '@/services/region/region.service';
 import { useRegionQuery } from '@/services/region/region.queries';
 import { roleService } from '@/services/role/role.service';
+import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import { useCreateUserMutation, useUpdateUserMutation, useUserQuery } from '@/services/user/user.queries';
-import { USER_TYPE_OPTIONS, type User, type UserPayload } from '@/services/user/user.types';
+import { getUserTypeSkladIds, USER_TYPE_OPTIONS, type User, type UserPayload } from '@/services/user/user.types';
+
 import { getApiErrorMessage } from '@/lib/errors';
 import { ROLE } from '@/lib/permissions';
 import { useCurrentCompany } from '@/lib/company';
@@ -67,6 +69,7 @@ function buildUserFormSchema(mode: 'create' | 'edit') {
 			type: z.string().min(1, 'Turi tanlanishi shart'),
 			companies: z.array(z.string()).min(1, 'Kamida bitta tashkilot tanlanishi shart'),
 			trade_company: z.string().min(1, 'Asosiy tashkilot tanlanishi shart'),
+			type_sklads: z.array(z.string()),
 			address: z.string().min(1, 'Manzil kiritilishi shart'),
 			active: z.boolean(),
 			oylik_dollar: z.string(),
@@ -100,6 +103,7 @@ function userToFormValues(user: User): UserFormValues {
 		type: user.type ? String(user.type) : '',
 		companies: user.companies.map(String),
 		trade_company: user.trade_company ? String(user.trade_company) : '',
+		type_sklads: getUserTypeSkladIds(user).map(String),
 		address: user.address ?? '',
 		active: user.is_active,
 		oylik_dollar: user.oylik_dollar != null ? String(Number(user.oylik_dollar) || 0) : '',
@@ -163,6 +167,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 						type: '',
 						companies: [],
 						trade_company: '',
+						type_sklads: [],
 						address: '',
 						active: true,
 						oylik_dollar: '',
@@ -180,6 +185,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [userQuery.data]);
+
+	// Sklad types are a short list, so they're loaded once and offered as static options.
+	const { data: skladTypeData } = useSkladTypeListQuery({ limit: 100 });
+	const skladTypeOptions = (skladTypeData?.results ?? []).map((t) => ({ value: String(t.id), label: t.name }));
+	const skladTypeLabels = Object.fromEntries(
+		(currentUser?.type_sklads_detail ?? []).map((t) => [String(t.id), t.name]),
+	);
 
 	const regionValue = watch('region');
 	const companiesValue = watch('companies');
@@ -311,6 +323,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 			type: Number(values.type),
 			companies: values.companies.map(Number),
 			trade_company: Number(values.trade_company),
+			type_sklads: values.type_sklads.map(Number),
 			address: values.address.trim(),
 		};
 		if (values.password) payload.password = values.password;
@@ -621,47 +634,70 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								/>
 							</FormField>
 						)}
-						<FormField
-							label='Asosiy tashkilot'
-							error={errors.trade_company?.message}
-							required
-							horizontal={false}
-							className='mb-3'
-						>
-							<Controller
-								name='trade_company'
-								control={control}
-								render={({ field }) =>
-									isMultiCompanyRole ? (
-										<Combobox
+						<div className='mb-3 grid grid-cols-2 gap-3'>
+							<FormField
+								label='Asosiy tashkilot'
+								error={errors.trade_company?.message}
+								required
+								horizontal={false}
+								className='mb-0'
+							>
+								<Controller
+									name='trade_company'
+									control={control}
+									render={({ field }) =>
+										isMultiCompanyRole ? (
+											<Combobox
+												value={field.value}
+												onChange={handleTradeCompanyChange}
+												options={tradeCompanyOptions}
+												placeholder={
+													companiesValue.length ? 'Tanlang...' : 'Avval tashkilot tanlang'
+												}
+												searchPlaceholder='Tashkilot qidirish...'
+												disabled={companiesValue.length === 0}
+												clearable
+											/>
+										) : (
+											<Combobox
+												value={field.value}
+												onChange={handleTradeCompanyChange}
+												loadOptions={loadCompanyOptions}
+												selectedLabel={
+													(field.value === String(currentUser?.trade_company ?? '')
+														? currentUser?.trade_company_detail?.name
+														: undefined) ?? companyLabelCache[field.value]
+												}
+												placeholder='Tanlang...'
+												searchPlaceholder='Tashkilot qidirish...'
+												clearable
+											/>
+										)
+									}
+								/>
+							</FormField>
+							<FormField
+								label='Sklad turi'
+								error={errors.type_sklads?.message}
+								horizontal={false}
+								className='mb-0'
+							>
+								<Controller
+									name='type_sklads'
+									control={control}
+									render={({ field }) => (
+										<MultiCombobox
 											value={field.value}
-											onChange={handleTradeCompanyChange}
-											options={tradeCompanyOptions}
-											placeholder={
-												companiesValue.length ? 'Tanlang...' : 'Avval tashkilot tanlang'
-											}
-											searchPlaceholder='Tashkilot qidirish...'
-											disabled={companiesValue.length === 0}
-											clearable
-										/>
-									) : (
-										<Combobox
-											value={field.value}
-											onChange={handleTradeCompanyChange}
-											loadOptions={loadCompanyOptions}
-											selectedLabel={
-												(field.value === String(currentUser?.trade_company ?? '')
-													? currentUser?.trade_company_detail?.name
-													: undefined) ?? companyLabelCache[field.value]
-											}
+											onChange={field.onChange}
+											options={skladTypeOptions}
+											selectedLabels={skladTypeLabels}
 											placeholder='Tanlang...'
-											searchPlaceholder='Tashkilot qidirish...'
-											clearable
+											searchPlaceholder='Sklad turi qidirish...'
 										/>
-									)
-								}
-							/>
-						</FormField>
+									)}
+								/>
+							</FormField>
+						</div>
 						{mode === 'create' && (
 							<div className='mb-3 grid grid-cols-2 gap-3'>
 								<FormField label='Oylik dollar' horizontal={false} className='mb-0'>

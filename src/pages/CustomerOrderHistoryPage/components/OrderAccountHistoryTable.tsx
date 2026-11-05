@@ -56,7 +56,7 @@ export default function OrderAccountHistoryTable({
    onRefetchReady,
 }: OrderAccountHistoryTableProps) {
    const navigate = useNavigate();
-   const { canEditCustomerOrder, canDeleteOrders, isSuperAdmin } = usePermissions();
+   const { canEditCustomerOrder, canDeleteOrders, isSuperAdmin, canMarkTypeSkladReady } = usePermissions();
 
    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -284,10 +284,14 @@ export default function OrderAccountHistoryTable({
          cell: ({ row }) => {
             const item = row.original;
             const parts = item.status_order_parts ?? [];
-            const hasReadyAction = parts.some((p) => p.can_mark_ready && p.status_key === 'in_progress');
+            const hasReadyAction = parts.some(
+               (p) => p.can_mark_ready && p.status_key === 'in_progress' && canMarkTypeSkladReady(p.type_sklad),
+            );
+            // Ready/update-confirm actions are hidden until the order itself is confirmed.
+            const isConfirmed = Boolean(item.order_account_status);
             return (
                <div className='flex justify-end gap-1'>
-                  {hasReadyAction && canWrite && (
+                  {isConfirmed && hasReadyAction && canWrite && (
                      <Tooltip content='Tayyorlanganini tasdiqlash'>
                         <OpenDialogButton
                            element={(props) => <Button {...props} />}
@@ -300,7 +304,7 @@ export default function OrderAccountHistoryTable({
                         />
                      </Tooltip>
                   )}
-                  {item.update_status === 1 && canWrite && isSuperAdmin && (
+                  {isConfirmed && item.update_status === 1 && canWrite && isSuperAdmin && (
                      <Tooltip content="Buyurtma o'zgartirilgan, tasdiqlash uchun bosing">
                         <OpenDialogButton
                            element={(props) => <Button {...props} />}
@@ -378,7 +382,12 @@ export default function OrderAccountHistoryTable({
                setColumnFilters(filters);
                setPagination((p) => ({ ...p, pageIndex: 0 }));
             }}
-            getRowClassName={(row) => (row.update_status === 1 ? 'bg-ca-orange/10' : undefined)}
+            getRowClassName={(row) => {
+               // Unconfirmed orders take precedence over every other row background (stripe, hover, update status).
+               if (!row.order_account_status) return 'bg-ca-red/20!';
+               if (row.update_status === 1) return 'bg-ca-orange/10';
+               return undefined;
+            }}
             enablePagination
             enableSorting={false}
             enableGlobalFilter={false}

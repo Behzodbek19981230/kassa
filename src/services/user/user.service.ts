@@ -20,6 +20,7 @@ function buildUserFormData(payload: UserPayload, avatar?: File | null) {
   if (payload.trade_company != null) formData.append('trade_company', String(payload.trade_company))
   if (payload.current_company != null) formData.append('current_company', String(payload.current_company))
   payload.companies.forEach((companyId) => formData.append('companies', String(companyId)))
+  payload.type_sklads?.forEach((typeSkladId) => formData.append('type_sklads', String(typeSkladId)))
   formData.append('address', payload.address)
   if (payload.password) formData.append('password', payload.password)
   if (payload.oylik_dollar != null) formData.append('oylik_dollar', payload.oylik_dollar)

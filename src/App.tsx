@@ -8,6 +8,11 @@ import WarehouseReportRoute from '@/components/auth/WarehouseReportRoute';
 import ClientsRoute from '@/components/auth/ClientsRoute';
 import WarehousePricesRoute from '@/components/auth/WarehousePricesRoute';
 import SuperAdminRoute from '@/components/auth/SuperAdminRoute';
+import WarehouseProductsRoute from '@/components/auth/WarehouseProductsRoute';
+import OrderAndDebtRoute from '@/components/auth/OrderAndDebtRoute';
+import ConsignorRoute from '@/components/auth/ConsignorRoute';
+import MyDebtRoute from '@/components/auth/MyDebtRoute';
+import ClientDebtorRoute from '@/components/auth/ClientDebtorRoute';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
 import LoginPage from '@/pages/LoginPage';
@@ -84,7 +89,9 @@ export default function App() {
 						<Route index element={<Dashboard />} />
 					</Route>
 
-					<Route path='warehouse-products' element={<WarehouseProductsPage />} />
+					<Route element={<WarehouseProductsRoute />}>
+						<Route path='warehouse-products' element={<WarehouseProductsPage />} />
+					</Route>
 					<Route path='place-order' element={<PlaceOrderPage />} />
 					<Route element={<ImportRoute />}>
 						<Route path='import' element={<ImportPage />} />
@@ -100,10 +107,7 @@ export default function App() {
 						<Route path='two-stage-import/uzbekistan-in-road' element={<UzbekistanInRoadPage />} />
 						<Route path='two-stage-import/debts' element={<LogisticsDebtPage />} />
 						<Route path='two-stage-import/china-debts' element={<ChinaDebtPage />} />
-						<Route path='my-debts' element={<MyDebtPage />} />
-						<Route path='my-debts/:id' element={<MyDebtDetailPage />} />
 						<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
-						<Route path='settings/debtors' element={<ClientDebtorPage />} />
 						<Route path='settings/debt-repayments-drafts' element={<DebtRepaymentDraftPage />} />
 						<Route path='settings/debt-repayments-drafts/deleted' element={<DebtRepaymentDeleteHistoryPage />} />
 						<Route
@@ -126,7 +130,9 @@ export default function App() {
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
 					<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
 					<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
-					<Route path='order-and-debt' element={<OrderAndDebtPage />} />
+					<Route element={<OrderAndDebtRoute />}>
+						<Route path='order-and-debt' element={<OrderAndDebtPage />} />
+					</Route>
 					<Route path='vozvrat' element={<VozvratPage />} />
 					<Route path='vozvrat-order-history' element={<VozvratOrderHistoryPage />} />
 					<Route path='vozvrat-order-history/:id' element={<VozvratOrderHistoryDetailPage />} />
@@ -135,11 +141,21 @@ export default function App() {
 					<Route path='warehouse-transfer/history' element={<WarehouseTransferHistoryPage />} />
 					<Route path='warehouse-transfer/:id' element={<WarehouseTransferDetailPage />} />
 
+					<Route element={<ClientDebtorRoute />}>
+						<Route path='settings/debtors' element={<ClientDebtorPage />} />
+					</Route>
+					<Route element={<MyDebtRoute />}>
+						<Route path='my-debts' element={<MyDebtPage />} />
+						<Route path='my-debts/:id' element={<MyDebtDetailPage />} />
+					</Route>
+					<Route element={<ConsignorRoute />}>
+						<Route path='system/consignors' element={<ConsignorPage />} />
+					</Route>
+
 					{/* System management ("Tizim boshqaruvi") is Super Admin only. */}
 					<Route element={<SuperAdminRoute />}>
 						<Route path='system/product-categories' element={<ProductCategoriesPage />} />
 						<Route path='system/models' element={<Navigate to='/system/product-categories' replace />} />
-						<Route path='system/consignors' element={<ConsignorPage />} />
 						<Route path='system/users' element={<UserPage />} />
 						<Route path='system/users/:id/payroll' element={<UserPayrollPage />} />
 						<Route path='system/companies' element={<CompanyPage />} />

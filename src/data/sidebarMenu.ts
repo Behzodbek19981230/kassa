@@ -16,7 +16,13 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		label: 'Mijoz buyurtmalar tarixi',
 		path: '/customer-order-history',
 	},
-	{ id: 'orders-debts', icon: 'chart-pie', label: 'Buyurtmalar va qarzlar', path: '/order-and-debt' },
+	{
+		id: 'orders-debts',
+		icon: 'chart-pie',
+		label: 'Buyurtmalar va qarzlar',
+		path: '/order-and-debt',
+		requiredPermission: 'canViewOrderAndDebt',
+	},
 	{ id: 'return', icon: 'undo', label: 'Vozvrat', path: '/vozvrat' },
 	{ id: 'return-history', icon: 'file-invoice', label: 'Vozvrat buyurtmalar tarixi', path: '/vozvrat-order-history' },
 	{
@@ -25,6 +31,21 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		label: 'Tovarlar va Narxlar',
 		path: '/warehouse-prices',
 		requiredPermission: 'canViewWarehousePrices',
+	},
+	{
+		// Manager has no "Sozlamalar" menu, so "Mijozlar" and "Qarzdorlar ro'yxati" are shown on their own.
+		id: 'clients-top',
+		icon: 'users',
+		label: 'Mijozlar',
+		path: '/settings/clients',
+		requiredPermission: 'isManager',
+	},
+	{
+		id: 'debtors-top',
+		icon: 'bookmark',
+		label: "Qarzdorlar ro'yxati",
+		path: '/settings/debtors',
+		requiredPermission: 'isManager',
 	},
 	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '/import', requiredPermission: 'canImport' },
 	{
@@ -74,7 +95,14 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		icon: 'bookmark',
 		label: 'Mening qarzlarim',
 		path: '/my-debts',
-		requiredPermission: 'isSuperAdmin',
+		requiredPermission: 'canViewMyDebts',
+	},
+	{
+		id: 'shippers-top',
+		icon: 'shipping-fast',
+		label: "Yuk jo'natuvchilar",
+		path: '/system/consignors',
+		requiredPermission: 'isSkladManager',
 	},
 	{
 		id: 'system-management',

@@ -17,7 +17,7 @@ import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { useCurrentCompany } from '@/lib/company';
 import { getApiErrorMessage, getApiErrorMessageAsync } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
-import { usePermissions } from '@/lib/permissions';
+import { ROLE, usePermissions } from '@/lib/permissions';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useOrderAccountHistoryProductsQuery } from '@/services/order-account-history/order-account-history.queries';
 import { orderAccountHistoryService } from '@/services/order-account-history/order-account-history.service';
@@ -39,7 +39,7 @@ const COLUMNS: ColumnVisibilityDef[] = [
    { id: 'size', label: "O'lchami" },
    { id: 'type', label: 'Tip' },
    { id: 'count', label: 'Soni' },
-   { id: 'given_count', label: 'Berilgan soni' },
+   { id: 'given_count', label: 'Berilgan soni', hiddenForRoles: [ROLE.SOTUVCHI, ROLE.SKLAD_XODIM] },
    { id: 'price', label: 'Narxi ($)' },
    { id: 'real_price', label: 'Asl Narxi ($)', superAdminOnly: true },
    { id: 'profit', label: 'Foyda ($)', superAdminOnly: true },
@@ -56,7 +56,7 @@ export default function OrderAccountHistoryDetailPage() {
    const { data, isLoading, isError } = useOrderAccountHistoryProductsQuery(orderId);
    const { notify } = useNotification();
    const { canWrite } = useCurrentCompany();
-   const { canEditOwned, canViewChangeLogs, isSuperAdmin } = usePermissions();
+   const { canEditGivenCount, canViewChangeLogs, isSuperAdmin } = usePermissions();
    const cols = useColumnVisibility('order-account-history-detail', COLUMNS);
    const labelSpan = LABEL_COLUMNS.filter((c) => cols.isVisible(c)).length;
    const [printingRole, setPrintingRole] = useState<PrintRole | null>(null);
@@ -356,7 +356,7 @@ export default function OrderAccountHistoryDetailPage() {
                                     )}
                                     {cols.isVisible('given_count') && (
                                        <TableCell>
-                                          {canWrite && canEditOwned(order) ? (
+                                          {canWrite && canEditGivenCount(order) ? (
                                              <button
                                                 type='button'
                                                 className='inline-flex items-center gap-1.5 font-semibold text-ca-green hover:underline'

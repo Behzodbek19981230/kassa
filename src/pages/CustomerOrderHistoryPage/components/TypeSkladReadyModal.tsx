@@ -9,6 +9,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
+import { usePermissions } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import { useMarkTypeSkladReadyMutation } from '@/services/order-account-history/order-account-history.queries';
 import type { OrderTypeSkladStatusPart } from '@/services/order-account-history/order-account-history.types';
@@ -24,6 +25,7 @@ interface TypeSkladReadyModalProps {
 export default function TypeSkladReadyModal({ open, setOpen, orderId, parts }: TypeSkladReadyModalProps) {
 	const { notify } = useNotification();
 	const readyMutation = useMarkTypeSkladReadyMutation();
+	const { canMarkTypeSkladReady } = usePermissions();
 
 	async function handleReady(part: OrderTypeSkladStatusPart) {
 		try {
@@ -57,7 +59,9 @@ export default function TypeSkladReadyModal({ open, setOpen, orderId, parts }: T
 											{part.text}
 										</span>
 									</div>
-									{part.can_mark_ready && part.status_key === 'in_progress' && (
+									{part.can_mark_ready &&
+										part.status_key === 'in_progress' &&
+										canMarkTypeSkladReady(part.type_sklad) && (
 										<Button
 											type='button'
 											variant='success'

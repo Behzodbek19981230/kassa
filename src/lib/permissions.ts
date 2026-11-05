@@ -1,4 +1,5 @@
 import { useUserInfoQuery } from '@/services/user/user.queries';
+import { getUserTypeSkladIds } from '@/services/user/user.types';
 import { todayTashkent } from '@/pages/TwoStageImport/utils';
 
 // Role keys as sent by the backend in `roles.key` (the display `name` may change).
@@ -15,6 +16,14 @@ export const ROLE = {
 // blocklist of restricted roles) so an unrecognized/future role key
 // defaults to the safer own-records-only behavior instead of silently
 // getting unrestricted access.
+/** Roles that start on (and fall back to) the order page instead of the warehouse products list. */
+const PLACE_ORDER_HOME_ROLES: string[] = [ROLE.SOTUVCHI, ROLE.SKLAD_XODIM];
+
+/** Landing page after login, and where route guards send a role that may not open a page. */
+export function getHomePath(roleKey: string | null | undefined) {
+	return roleKey && PLACE_ORDER_HOME_ROLES.includes(roleKey) ? '/place-order' : '/warehouse-products';
+}
+
 const UNRESTRICTED_ROLES: string[] = [ROLE.SUPER_ADMIN, ROLE.MANAGER];
 
 export function usePermissions() {
@@ -40,6 +49,8 @@ export function usePermissions() {
 	const canViewWarehouseProducts = isSuperAdmin || isAdmin || isManager || isSkladManager;
 	// "Ombor mahsulotlari" Excel export: Super Admin only
 	const canExportWarehouseProducts = isSuperAdmin;
+	// Grand total row at the bottom of warehouse-products table
+	const canViewWarehouseProductsTotal = isSuperAdmin || isAdmin;
 	// "Ombor mahsulotlari" Telegram send ("Harakatlar" column): Super Admin + Admin + Manager
 	const canSendProductToTelegram = isSuperAdmin || isAdmin || isManager;
 	// "Karzinka" button on the order history (/order-cart) and "Buyurtma Karzinka" (/cart-drafts): Super Admin + Admin
@@ -47,15 +58,23 @@ export function usePermissions() {
 	// Delete in "Mijoz buyurtmalar tarixi" (Draftga olish) and "Vozvrat buyurtmalar tarixi": Super Admin + Admin
 	const canDeleteOrders = isSuperAdmin || isAdmin;
 
-	// consignor: full CRUD only for Super Admin + Sklad Manager
+	// "Qarzdorlar ro'yxati" (/settings/debtors, read-only): Super Admin under "Sozlamalar", Manager as its own menu item.
+	const canViewClientDebtors = isSuperAdmin || isManager;
+
+	// "Mening qarzlarim" menu + pages: Super Admin + Sklad Manager; add / edit / delete stay Super Admin only.
+	const canViewMyDebts = isSuperAdmin || isSkladManager;
+	const canManageMyDebts = isSuperAdmin;
+
+	// "Yuk jo'natuvchilar": Super Admin + Sklad Manager may view and add; only Super Admin may edit / delete.
 	const canManageConsignor = isSuperAdmin || isSkladManager;
+	const canEditConsignor = isSuperAdmin;
 	// "Tovarlar va Narxlar" (warehouse pricing) menu: Super Admin + Admin + Manager
 	const canViewWarehousePrices = isSuperAdmin || isAdmin || isManager;
 	// warehouse (pricing): add / edit / delete only for Super Admin
 	const canManageWarehouse = isSuperAdmin;
 
-	// "Mijozlar" menu + pages: Super Admin + Admin
-	const canViewClients = isSuperAdmin || isAdmin;
+	// "Mijozlar" menu + pages: Super Admin + Admin (under "Sozlamalar") + Manager (as its own menu item)
+	const canViewClients = isSuperAdmin || isAdmin || isManager;
 
 	// "Omborxona hisobi" menu + pages: Super Admin + Sklad Manager
 	const canViewWarehouseReport = isSuperAdmin || isSkladManager;
@@ -76,6 +95,11 @@ export function usePermissions() {
 		return item.created_by === currentUserId;
 	}
 
+	// "Berilgan soni" on an order's detail page: whoever may edit the order (canEditOwned), plus Sklad Manager on any order.
+	function canEditGivenCount(item: { created_by?: number | string | null }) {
+		return isSkladManager || canEditOwned(item);
+	}
+
 	// "Mijoz buyurtmalar tarixi" / "Vozvrat buyurtmalar tarixi" edit (Tahrirlash): Super Admin, or whoever created the order.
 	function canEditOrder(item: { created_by?: number | null }) {
 		if (isSuperAdmin) return true;
@@ -89,8 +113,21 @@ export function usePermissions() {
 		return canEditOrder(item) && item.date?.slice(0, 10) === todayTashkent();
 	}
 
+	// "Buyurtmalar va qarzlar" menu + page: every role except Sotuvchi and Sklad xodim (hidden until the role is known).
+	const canViewOrderAndDebt = roleKey != null && roleKey !== ROLE.SOTUVCHI && !isSkladXodim;
+
+	// "Buyurtmalar va qarzlar" report PDFs: PDF1 Super Admin; PDF2 Super Admin + Admin;
+	// PDF3 every role except Sotuvchi and Sklad xodim (hidden until the role is known).
+	const canDownloadOrderDebtPdf1 = isSuperAdmin;
+	const canDownloadOrderDebtPdf2 = isSuperAdmin || isAdmin;
+	const canDownloadOrderDebtPdf3 = roleKey != null && roleKey !== ROLE.SOTUVCHI && !isSkladXodim;
+
 	// order-account-history/{id}/change-logs: closed for every role except Super Admin
 	const canViewChangeLogs = isSuperAdmin;
+
+	// "Tayyorlandi" for an order's TypeSklad part: only for the sklad types assigned to the user (users.type_sklads).
+	const userTypeSkladIds = new Set(userInfo ? getUserTypeSkladIds(userInfo) : []);
+	const canMarkTypeSkladReady = (typeSkladId: number) => userTypeSkladIds.has(typeSkladId);
 
 	return {
 		roleKey,
@@ -101,10 +138,16 @@ export function usePermissions() {
 		canSendTelegramBroadcast,
 		canViewWarehouseProducts,
 		canExportWarehouseProducts,
+		canViewWarehouseProductsTotal,
 		canSendProductToTelegram,
 		canManageOrderCart,
 		canDeleteOrders,
 		canManageConsignor,
+		canEditConsignor,
+		canViewMyDebts,
+		canViewClientDebtors,
+		canManageMyDebts,
+		isSkladManager,
 		canManageWarehouse,
 		canViewWarehousePrices,
 		canImport,
@@ -112,8 +155,15 @@ export function usePermissions() {
 		canViewClients,
 		canEditSklad,
 		canEditOwned,
+		canEditGivenCount,
 		canEditOrder,
 		canEditCustomerOrder,
 		canViewChangeLogs,
+		canMarkTypeSkladReady,
+		homePath: getHomePath(roleKey),
+		canViewOrderAndDebt,
+		canDownloadOrderDebtPdf1,
+		canDownloadOrderDebtPdf2,
+		canDownloadOrderDebtPdf3,
 	};
 }

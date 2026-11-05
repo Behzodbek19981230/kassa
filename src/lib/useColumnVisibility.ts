@@ -10,6 +10,8 @@ export interface ColumnVisibilityDef {
 	hideable?: boolean;
 	/** Set to true for columns only Super Admin may see (cost prices...). Hidden for every other role. */
 	superAdminOnly?: boolean;
+	/** Role keys (`ROLE.*`) the column is hidden for. Also hidden while the role is still unknown. */
+	hiddenForRoles?: string[];
 }
 
 export interface ColumnVisibilityState {
@@ -25,10 +27,16 @@ export interface ColumnVisibilityState {
  * `/user-columns/` — the same storage `DataTable`'s `columnVisibilityKey` uses.
  */
 export function useColumnVisibility(key: string, allColumns: ColumnVisibilityDef[]): ColumnVisibilityState {
-	const { isSuperAdmin } = usePermissions();
+	const { isSuperAdmin, roleKey } = usePermissions();
+	const isAvailable = (def: ColumnVisibilityDef | undefined) => {
+		if (def?.superAdminOnly && !isSuperAdmin) return false;
+		if (def?.hiddenForRoles && (!roleKey || def.hiddenForRoles.includes(roleKey))) return false;
+		return true;
+	};
 	const columns = useMemo(
-		() => (isSuperAdmin ? allColumns : allColumns.filter((c) => !c.superAdminOnly)),
-		[allColumns, isSuperAdmin],
+		() => allColumns.filter(isAvailable),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[allColumns, isSuperAdmin, roleKey],
 	);
 	const [visibility, setVisibility] = useState<Record<string, boolean>>({});
 	const { data: currentUser } = useUserInfoQuery();
@@ -51,7 +59,7 @@ export function useColumnVisibility(key: string, allColumns: ColumnVisibilityDef
 
 	const isVisible = (id: string) => {
 		const def = allColumns.find((c) => c.id === id);
-		if (def?.superAdminOnly && !isSuperAdmin) return false;
+		if (!isAvailable(def)) return false;
 		if (def?.hideable === false) return true;
 		return visibility[id] ?? true;
 	};

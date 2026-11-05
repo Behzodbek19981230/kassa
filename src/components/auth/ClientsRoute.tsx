@@ -5,10 +5,10 @@ import { useUserInfoQuery } from '@/services/user/user.queries'
 /** "Mijozlar" pages: Super Admin + Admin only; everyone else is sent back to the products list. */
 export default function ClientsRoute() {
   const { isLoading } = useUserInfoQuery()
-  const { canViewClients } = usePermissions()
+  const { canViewClients, homePath } = usePermissions()
 
   if (isLoading) return null
-  if (!canViewClients) return <Navigate to="/warehouse-products" replace />
+  if (!canViewClients) return <Navigate to={homePath} replace />
 
   return <Outlet />
 }

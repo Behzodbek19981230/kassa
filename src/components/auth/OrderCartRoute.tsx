@@ -8,10 +8,10 @@ import { useUserInfoQuery } from '@/services/user/user.queries'
  */
 export default function OrderCartRoute() {
   const { isLoading } = useUserInfoQuery()
-  const { canManageOrderCart } = usePermissions()
+  const { canManageOrderCart, homePath } = usePermissions()
 
   if (isLoading) return null
-  if (!canManageOrderCart) return <Navigate to="/warehouse-products" replace />
+  if (!canManageOrderCart) return <Navigate to={homePath} replace />
 
   return <Outlet />
 }

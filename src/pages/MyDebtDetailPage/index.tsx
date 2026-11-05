@@ -4,6 +4,7 @@ import { Button, buttonProps, Table, TableBody, TableCell, TableHead, TableHeade
 import ColumnVisibilityMenu from '@/components/ColumnVisibilityMenu';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import { formatNumber } from '@/lib/number';
 import { type ColumnVisibilityDef, useColumnVisibility } from '@/lib/useColumnVisibility';
 import { useMyDebtHistoryListQuery } from '@/services/my-debt/my-debt-history.queries';
@@ -34,7 +35,10 @@ export default function MyDebtDetailPage() {
 	const navigate = useNavigate();
 	const { id } = useParams();
 	const myDebtId = id ? Number(id) : undefined;
-	const { canWrite } = useCurrentCompany();
+	const { canWrite: companyCanWrite } = useCurrentCompany();
+	// Edit / delete are Super Admin only; Sklad Manager sees the history read-only.
+	const { canManageMyDebts } = usePermissions();
+	const canWrite = companyCanWrite && canManageMyDebts;
 	const cols = useColumnVisibility('my-debt-detail', COLUMNS);
 
 	const { data, isLoading, isError } = useMyDebtHistoryListQuery(

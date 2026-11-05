@@ -18,8 +18,9 @@ import { fmtDollar, fmtSom } from '@/pages/system/UserPayrollPage/utils';
 import TelegramBotRegisterModal from '@/pages/system/UserPage/components/TelegramBotRegisterModal';
 import UnblockUserModal from '@/pages/system/UserPage/components/UnblockUserModal';
 import UserFormModal from '@/pages/system/UserPage/components/UserFormModal';
+import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
 import { useUserListQuery } from '@/services/user/user.queries';
-import { USER_TYPE_OPTIONS, type User } from '@/services/user/user.types';
+import { getUserTypeSkladIds, USER_TYPE_OPTIONS, type User } from '@/services/user/user.types';
 
 const columnHelper = createColumnHelper<User>();
 
@@ -77,6 +78,16 @@ export default function UserPage() {
 	const paginationMeta = data?.pagination;
 	const payrollSummary = data?.payroll_summary;
 
+	const { data: skladTypeData } = useSkladTypeListQuery({ limit: 100 });
+	const skladTypeNameById = new Map((skladTypeData?.results ?? []).map((t) => [t.id, t.name]));
+	const userTypeSkladNames = (user: User) => {
+		const detailNames = new Map((user.type_sklads_detail ?? []).map((t) => [t.id, t.name]));
+		(user.type_sklads ?? []).forEach((t) => typeof t !== 'number' && detailNames.set(t.id, t.name));
+		return getUserTypeSkladIds(user)
+			.map((id) => detailNames.get(id) ?? skladTypeNameById.get(id) ?? `#${id}`)
+			.join(', ');
+	};
+
 	const columns = [
 		columnHelper.accessor('avatar', {
 			header: 'Avatar',
@@ -129,6 +140,14 @@ export default function UserPage() {
 			id: 'trade_company',
 			header: 'Asosiy tashkilot',
 			meta: { align: 'left' },
+			enableColumnFilter: false,
+			cell: (info) => info.getValue() || '—',
+		}),
+		columnHelper.accessor((row) => userTypeSkladNames(row), {
+			id: 'type_sklads',
+			header: 'Sklad turi',
+			meta: { align: 'left' },
+			enableSorting: false,
 			enableColumnFilter: false,
 			cell: (info) => info.getValue() || '—',
 		}),

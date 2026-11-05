@@ -4,7 +4,7 @@ import type { ExchangeRateItem } from '@/services/exchange-rate/exchange-rate.ty
 import { useYuanExchangeRateQuery } from '@/services/yuan-exchange-rate/yuan-exchange-rate.queries';
 import type { YuanExchangeRateItem } from '@/services/yuan-exchange-rate/yuan-exchange-rate.types';
 import { useUpdateUserMutation, useUserInfoQuery } from '@/services/user/user.queries';
-import type { UserPayload } from '@/services/user/user.types';
+import { getUserTypeSkladIds, type UserPayload } from '@/services/user/user.types';
 import { ROLE } from '@/lib/permissions';
 
 export interface CompanyOption {
@@ -92,6 +92,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 				trade_company: userInfo.trade_company ?? undefined,
 				current_company: id,
 				companies: userInfo.companies,
+				// Keep the user's sklad types on this full update (PUT) so switching company doesn't clear them.
+				type_sklads: userInfo.type_sklads ? getUserTypeSkladIds(userInfo) : undefined,
 				address: userInfo.address ?? '',
 			};
 			await updateUserMutation.mutateAsync({ id: userInfo.id, payload });

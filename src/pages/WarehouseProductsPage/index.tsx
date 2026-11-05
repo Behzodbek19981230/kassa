@@ -55,7 +55,8 @@ const LABEL_COLUMNS = ['index', 'brand', 'category', 'size', 'type'];
 
 export default function WarehouseProductsPage() {
 	const { canWrite } = useCurrentCompany();
-	const { canManageWarehouse, canExportWarehouseProducts, canSendProductToTelegram } = usePermissions();
+	const { canManageWarehouse, canExportWarehouseProducts, canSendProductToTelegram, canViewWarehouseProductsTotal } =
+		usePermissions();
 	// "Harakatlar" only holds the Telegram send button, so roles that can't send lose the whole column.
 	const columns = useMemo(
 		() => (canSendProductToTelegram ? COLUMNS : COLUMNS.filter((c) => c.id !== 'actions')),
@@ -399,7 +400,9 @@ export default function WarehouseProductsPage() {
 													</TableRow>
 												);
 											})}
-											<TableRow>{renderTotalCells(groupCount, groupSum)}</TableRow>
+											{canViewWarehouseProductsTotal && (
+												<TableRow>{renderTotalCells(groupCount, groupSum)}</TableRow>
+											)}
 										</Fragment>
 									);
 								})}
@@ -410,7 +413,7 @@ export default function WarehouseProductsPage() {
 										</TableCell>
 									</TableRow>
 								)}
-								{!isLoading && !isError && brandGroups.length > 0 && (
+								{canViewWarehouseProductsTotal && !isLoading && !isError && brandGroups.length > 0 && (
 								<TableRow className='bg-ca-heading dark:bg-ca-header'>
 									{renderTotalCells(totalCount, totalSum, 'bg-ca-heading text-white dark:bg-ca-header')}
 								</TableRow>

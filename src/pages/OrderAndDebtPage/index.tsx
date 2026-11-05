@@ -22,7 +22,8 @@ import type { OrderAndDebtItem } from '@/services/order-account-history/order-ac
 import MainTab from '@/pages/OrderAndDebtPage/components/MainTab';
 import { ORDER_AND_DEBT_COLUMNS } from '@/pages/OrderAndDebtPage/components/OrderAndDebtTableHeader';
 import type { OrderAndDebtPrintRole } from '@/pages/OrderAndDebtPage/components/OrderAndDebtRow';
-import WorkerTypeTab from '@/pages/OrderAndDebtPage/components/WorkerTypeTab';
+import WorkerTypeTab from '@/pages/OrderAndDebtPage/components/WorkerTypeTab';
+
 import { getApiErrorMessageAsync } from '@/lib/errors';
 
 interface FilterState {
@@ -46,7 +47,8 @@ export default function OrderAndDebtPage() {
 	// Both tabs share one table layout, so they share the column choice too.
 	const cols = useColumnVisibility('order-and-debt', ORDER_AND_DEBT_COLUMNS);
 	const [searchParams, setSearchParams] = useSearchParams();
-	const { isSuperAdmin } = usePermissions();
+	const { isSuperAdmin, canDownloadOrderDebtPdf1, canDownloadOrderDebtPdf2, canDownloadOrderDebtPdf3 } =
+		usePermissions();
 	// "Umumiy hisobot" is Super Admin only; every other role sees just the worker-type tab.
 	const activeTab = !isSuperAdmin || searchParams.get('tab') === 'worker' ? 'worker' : 'main';
 	const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters);
@@ -133,36 +135,41 @@ export default function OrderAndDebtPage() {
 			title='Buyurtmalar va qarzlar'
 			className='mb-0'
 			actions={
-				// Report PDFs are Super Admin only.
-				isSuperAdmin && (
+				(canDownloadOrderDebtPdf1 || canDownloadOrderDebtPdf2 || canDownloadOrderDebtPdf3) && (
 					<div className='flex flex-wrap items-center gap-2'>
-						<Button
-							type='button'
-							variant='warning'
-							size='xs'
-							disabled={downloadingPdf === 'pdf1'}
-							onClick={() => handleDownloadPdf('pdf1')}
-						>
-							<FaFilePdf className='mr-1.5' /> PDF1
-						</Button>
-						<Button
-							type='button'
-							variant='danger'
-							size='xs'
-							disabled={downloadingPdf === 'pdf2'}
-							onClick={() => handleDownloadPdf('pdf2')}
-						>
-							<FaFilePdf className='mr-1.5' /> PDF2 Hisob uchun
-						</Button>
-						<Button
-							type='button'
-							variant='info'
-							size='xs'
-							disabled={downloadingPdf === 'pdf3'}
-							onClick={() => handleDownloadPdf('pdf3')}
-						>
-							<FaFilePdf className='mr-1.5' /> PDF3 Hodim turi
-						</Button>
+						{canDownloadOrderDebtPdf1 && (
+							<Button
+								type='button'
+								variant='warning'
+								size='xs'
+								disabled={downloadingPdf === 'pdf1'}
+								onClick={() => handleDownloadPdf('pdf1')}
+							>
+								<FaFilePdf className='mr-1.5' /> PDF1
+							</Button>
+						)}
+						{canDownloadOrderDebtPdf2 && (
+							<Button
+								type='button'
+								variant='danger'
+								size='xs'
+								disabled={downloadingPdf === 'pdf2'}
+								onClick={() => handleDownloadPdf('pdf2')}
+							>
+								<FaFilePdf className='mr-1.5' /> PDF2 Hisob uchun
+							</Button>
+						)}
+						{canDownloadOrderDebtPdf3 && (
+							<Button
+								type='button'
+								variant='info'
+								size='xs'
+								disabled={downloadingPdf === 'pdf3'}
+								onClick={() => handleDownloadPdf('pdf3')}
+							>
+								<FaFilePdf className='mr-1.5' /> PDF3 Hodim turi
+							</Button>
+						)}
 					</div>
 				)
 			}

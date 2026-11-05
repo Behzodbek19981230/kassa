@@ -18,6 +18,7 @@ import {
 import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
 import { getApiErrorMessage, getApiErrorMessageAsync } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
 import StatCard from '@/pages/TwoStageImport/components/StatCard';
 import { clientService } from '@/services/client/client.service';
 import { useClientDebtorListQuery } from '@/services/client-debtor/client-debtor.queries';
@@ -38,6 +39,8 @@ function formatDate(value: string | null) {
 
 export default function ClientDebtorPage() {
 	const { notify } = useNotification();
+	// Manager sees the list without the total debt card and the PDF export.
+	const { isManager } = usePermissions();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 100 });
 	const [type, setType] = useState('');
 	const [client, setClient] = useState('');
@@ -118,9 +121,11 @@ export default function ClientDebtorPage() {
 		<Panel
 			title="Qarzdorlar ro'yxati"
 			actions={
-				<Button type='button' variant='warning' size='xs' disabled={isExporting} onClick={handleExportPdf}>
-					<FaFilePdf className='mr-1.5' /> {isExporting ? 'Yuklanmoqda...' : 'PDF Export qilish'}
-				</Button>
+				!isManager && (
+					<Button type='button' variant='warning' size='xs' disabled={isExporting} onClick={handleExportPdf}>
+						<FaFilePdf className='mr-1.5' /> {isExporting ? 'Yuklanmoqda...' : 'PDF Export qilish'}
+					</Button>
+				)
 			}
 			onReload={() => refetch()}
 		>
@@ -172,12 +177,14 @@ export default function ClientDebtorPage() {
 					label='Jami qarzdorlar soni'
 					value={formatNumber(summary?.debtor_count ?? 0)}
 				/>
-				<StatCard
-					icon={<FaDollarSign />}
-					label='Jami qarz summasi ($)'
-					value={<span className='text-ca-red'>{formatNumber(summary?.total_debt ?? 0, 2)}</span>}
-					accent='danger'
-				/>
+				{!isManager && (
+					<StatCard
+						icon={<FaDollarSign />}
+						label='Jami qarz summasi ($)'
+						value={<span className='text-ca-red'>{formatNumber(summary?.total_debt ?? 0, 2)}</span>}
+						accent='danger'
+					/>
+				)}
 			</div>
 
 			<DataTable

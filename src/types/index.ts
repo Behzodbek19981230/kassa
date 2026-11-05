@@ -34,6 +34,8 @@ export interface SidebarMenuPermissions {
 	isAdminOrManager: boolean;
 	isSuperAdmin: boolean;
 	canManageConsignor: boolean;
+	/** Sklad Manager gets "Yuk jo'natuvchilar" as a top-level menu item (Super Admin has it under "Tizim boshqaruvi"). */
+	isSkladManager: boolean;
 	canManageWarehouse: boolean;
 	canViewWarehousePrices: boolean;
 	canImport: boolean;
@@ -41,6 +43,8 @@ export interface SidebarMenuPermissions {
 	canManageOrderCart: boolean;
 	canViewWarehouseReport: boolean;
 	canViewClients: boolean;
+	canViewOrderAndDebt: boolean;
+	canViewMyDebts: boolean;
 	/** True for the Manager role, which only gets a trimmed-down "Tizim boshqaruvi"/"Sozlamalar". */
 	isManager: boolean;
 	isNotManager: boolean;

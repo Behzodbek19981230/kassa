@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Panel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import { useDashboardStatisticsQuery } from '@/services/dashboard/dashboard.queries';
 import DashboardEmployeeSection from '@/pages/Dashboard/components/DashboardEmployeeSection';
 import DashboardMonthlyChart from '@/pages/Dashboard/components/DashboardMonthlyChart';
@@ -12,6 +13,7 @@ const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
 
 export default function Dashboard() {
 	const { companyId, isSuperAdmin } = useCurrentCompany();
+	const { homePath } = usePermissions();
 	const [year, setYear] = useState(CURRENT_YEAR);
 
 	const { data, isLoading, isFetching, refetch } = useDashboardStatisticsQuery({
@@ -19,7 +21,7 @@ export default function Dashboard() {
 		company: companyId ?? undefined,
 	});
 
-	if (!isSuperAdmin) return <Navigate to='/warehouse-products' replace />;
+	if (!isSuperAdmin) return <Navigate to={homePath} replace />;
 
 	return (
 		<>

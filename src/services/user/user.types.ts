@@ -59,6 +59,19 @@ export interface User {
 	oylik_dollar?: string;
 	/** Monthly salary in so'm (`"2500000.00"`). */
 	oylik_som?: string;
+	/** Sklad turlari (TypeSklad, many-to-many). Ids, or `{ id, name }` objects when the backend expands them. */
+	type_sklads?: (number | UserTypeSkladDetail)[];
+	type_sklads_detail?: UserTypeSkladDetail[];
+}
+
+export interface UserTypeSkladDetail {
+	id: number;
+	name: string;
+}
+
+/** The user's sklad type ids, whether `type_sklads` holds ids or expanded objects. */
+export function getUserTypeSkladIds(user: Pick<User, 'type_sklads'>): number[] {
+	return (user.type_sklads ?? []).map((t) => (typeof t === 'number' ? t : t.id));
 }
 
 /** Current month's salary status across employees, sent alongside `GET /user/`. */
@@ -93,6 +106,8 @@ export interface UserPayload {
 	trade_company?: number;
 	current_company?: number;
 	companies: number[];
+	/** Omit to leave the user's sklad types untouched (the field isn't appended to the form data). */
+	type_sklads?: number[];
 	address: string;
 	password?: string;
 	/** Only sent when creating a user; later changes go through the payroll rate endpoint. */

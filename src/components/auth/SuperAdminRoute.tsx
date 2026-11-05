@@ -5,10 +5,10 @@ import { useUserInfoQuery } from '@/services/user/user.queries'
 /** Pages only Super Admin may open; every other role is sent back to the products list. */
 export default function SuperAdminRoute() {
   const { isLoading } = useUserInfoQuery()
-  const { isSuperAdmin } = usePermissions()
+  const { isSuperAdmin, homePath } = usePermissions()
 
   if (isLoading) return null
-  if (!isSuperAdmin) return <Navigate to="/warehouse-products" replace />
+  if (!isSuperAdmin) return <Navigate to={homePath} replace />
 
   return <Outlet />
 }

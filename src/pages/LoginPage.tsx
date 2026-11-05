@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash, FaExclamationCircle, FaLock, FaUser } from 'react-icons/fa';
@@ -6,6 +7,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '@/components/ui';
 import { setSession } from '@/lib/auth';
+import { getHomePath } from '@/lib/permissions';
+import { userService } from '@/services/user/user.service';
 import { useLoginMutation } from '@/services/auth/auth.queries';
 import { isAxiosError } from 'axios';
 
@@ -24,6 +27,7 @@ const LOGOUT_REASON_MESSAGES: Record<string, string> = {
 
 export default function LoginPage() {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [remember, setRemember] = useState(false);
 	const [searchParams] = useSearchParams();
 	const [formError, setFormError] = useState(() => LOGOUT_REASON_MESSAGES[searchParams.get('reason') ?? ''] ?? '');
@@ -44,8 +48,12 @@ export default function LoginPage() {
 		try {
 			const tokens = await loginMutation.mutateAsync({ username, password });
 			setSession(tokens, remember);
-			const redirectTo = '/warehouse-products';
-			navigate(redirectTo, { replace: true });
+			// The landing page depends on the role, so the user info is loaded (and cached) before navigating.
+			// If it fails, the default page is used and the route guards redirect once the role is known.
+			const userInfo = await queryClient
+				.fetchQuery({ queryKey: ['user-info'], queryFn: userService.getMe, staleTime: 0 })
+				.catch(() => null);
+			navigate(getHomePath(userInfo?.roles?.key), { replace: true });
 		} catch (err) {
 			const message = isAxiosError(err)
 				? ((err.response?.data as { detail?: string } | undefined)?.detail ?? 'Invalid username or password')

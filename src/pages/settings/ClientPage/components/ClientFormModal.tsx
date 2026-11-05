@@ -32,7 +32,6 @@ import { districtService } from '@/services/district/district.service';
 import { useCurrentCompany } from '@/lib/company';
 import { formatUzPhone, UZ_PHONE_REGEX } from '@/lib/phone';
 import { regionService } from '@/services/region/region.service';
-import { userService } from '@/services/user/user.service';
 
 import { getApiErrorMessage } from '@/lib/errors';
 
@@ -60,9 +59,6 @@ const clientFormSchema = z.object({
 });
 
 type ClientFormValues = z.infer<typeof clientFormSchema>;
-
-const userLabel = (u: { username: string; first_name: string; last_name: string }) =>
-	`${u.last_name} ${u.first_name}`.trim() || u.username;
 
 interface ClientFormModalProps {
 	open: boolean;
@@ -121,6 +117,7 @@ export default function ClientFormModal({
 	const currentClient = clientQuery.data ?? item;
 	// When editing, everyone but Super Admin may only change F.I.Sh, telefon, turi, viloyat, tuman and manzil.
 	const isRestrictedEdit = mode === 'edit' && !isSuperAdmin;
+	const showDebtField = !isRestrictedEdit && !hideDebtFields;
 
 	const {
 		control,
@@ -173,17 +170,6 @@ export default function ClientFormModal({
 		};
 	};
 
-	const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await userService.list({ search: search || undefined, page, limit: 20, is_login_blocked: false });
-		return {
-			// Bloklangan xodimlarni ko'rsatmaymiz (backend filterni e'tiborsiz qoldirsa ham).
-			options: result.results
-				.filter((u) => !u.is_login_blocked)
-				.map((u) => ({ value: String(u.id), label: userLabel(u) })),
-			hasMore: result.pagination.currentPage < result.pagination.lastPage,
-		};
-	};
-
 	const loadDistrictOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		if (!regionValue) return { options: [], hasMore: false };
 		const result = await districtService.list({
@@ -223,7 +209,8 @@ export default function ClientFormModal({
 			district: Number(values.district),
 			// Ishchi/Hamkor flags are no longer edited in this form; keep the client's existing values.
 			is_worker: currentClient?.is_worker ? 1 : 0,
-			worker_user: values.worker_user ? Number(values.worker_user) : null,
+			// Ma'sul xodim is no longer edited in this form; keep the client's existing value.
+			worker_user: currentClient?.worker_user ?? null,
 			is_partner: currentClient?.is_partner ? 1 : 0,
 			is_profit_loss: values.is_profit_loss ? 1 : 0,
 			is_blocked: values.is_blocked,
@@ -290,7 +277,7 @@ export default function ClientFormModal({
 								/>
 							</FormField>
 						</div>
-						<div className='mb-3 grid grid-cols-2 gap-3'>
+						<div className={`mb-3 grid gap-3 ${showDebtField ? 'grid-cols-2' : 'grid-cols-1'}`}>
 							<FormField
 								label='Turi'
 								error={errors.type?.message}
@@ -317,33 +304,7 @@ export default function ClientFormModal({
 									)}
 								/>
 							</FormField>
-							{!isRestrictedEdit && (
-								<FormField label="Ma'sul xodim" horizontal={false} className='mb-0'>
-									<Controller
-										name='worker_user'
-										control={control}
-										render={({ field }) => (
-											<Combobox
-												value={field.value}
-												onChange={field.onChange}
-												loadOptions={loadUserOptions}
-												selectedLabel={
-													currentClient?.worker_user_detail
-														? userLabel(currentClient.worker_user_detail)
-														: undefined
-												}
-												placeholder='Tanlang...'
-												searchPlaceholder='Xodim qidirish...'
-												clearable
-											/>
-										)}
-									/>
-								</FormField>
-							)}
-						</div>
-						{!isRestrictedEdit && !hideDebtFields && (
-							// Qarz limit and Keshbek are Super Admin only, on create as well.
-							<div className={`mb-3 grid gap-3 ${isSuperAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
+							{showDebtField && (
 								<FormField
 									label='Qarz miqdori ($)'
 									error={errors.total_debt?.message}
@@ -357,41 +318,42 @@ export default function ClientFormModal({
 										render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
 									/>
 								</FormField>
-								{isSuperAdmin && (
-									<>
-										<FormField
-											label='Qarz limit ($)'
-											error={errors.debt_limit?.message}
-											horizontal={false}
-											className='mb-0'
-										>
-											<Controller
-												name='debt_limit'
-												control={control}
-												render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+							)}
+						</div>
+						{showDebtField && isSuperAdmin && (
+							// Qarz limit and Keshbek are Super Admin only, on create as well.
+							<div className='mb-3 grid grid-cols-2 gap-3'>
+								<FormField
+									label='Qarz limit ($)'
+									error={errors.debt_limit?.message}
+									horizontal={false}
+									className='mb-0'
+								>
+									<Controller
+										name='debt_limit'
+										control={control}
+										render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
+									/>
+								</FormField>
+								<FormField
+									label='Keshbek (%)'
+									error={errors.keshbek?.message}
+									horizontal={false}
+									className='mb-0'
+								>
+									<Controller
+										name='keshbek'
+										control={control}
+										render={({ field }) => (
+											<PriceInput decimals={2}
+												max={100}
+												value={field.value}
+												onChange={(v) => field.onChange(v)}
+												onBlur={field.onBlur}
 											/>
-										</FormField>
-										<FormField
-											label='Keshbek (%)'
-											error={errors.keshbek?.message}
-											horizontal={false}
-											className='mb-0'
-										>
-											<Controller
-												name='keshbek'
-												control={control}
-												render={({ field }) => (
-													<PriceInput decimals={2}
-														max={100}
-														value={field.value}
-														onChange={(v) => field.onChange(v)}
-														onBlur={field.onBlur}
-													/>
-												)}
-											/>
-										</FormField>
-									</>
-								)}
+										)}
+									/>
+								</FormField>
 							</div>
 						)}
 						<div className='mb-3 grid grid-cols-2 gap-3'>

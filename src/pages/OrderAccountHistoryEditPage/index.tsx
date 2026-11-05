@@ -462,6 +462,8 @@ export default function OrderAccountHistoryEditPage() {
                            label='Tasdiqlash:'
                            checked={field.value}
                            onCheckedChange={field.onChange}
+                           // Once an order is confirmed it can't be reverted to unconfirmed.
+                           disabled={Boolean(item?.order_account_status)}
                            inline
                         />
                      )}

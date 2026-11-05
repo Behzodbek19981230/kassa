@@ -12,6 +12,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { consignorService } from '@/services/consignor/consignor.service';
@@ -36,6 +37,9 @@ function formatDate(value: string) {
 export default function MyDebtTab() {
 	const navigate = useNavigate();
 	const { canWrite } = useCurrentCompany();
+	// Sklad Manager sees the list read-only: adding, paying and deleting debts is Super Admin only.
+	const { canManageMyDebts } = usePermissions();
+	const canManage = canWrite && canManageMyDebts;
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 200 });
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [addModalOpen, setAddModalOpen] = useState(false);
@@ -121,7 +125,7 @@ export default function MyDebtTab() {
 			enableColumnFilter: false,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
-					{canWrite && (
+					{canManage && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
@@ -146,7 +150,7 @@ export default function MyDebtTab() {
 					>
 						<FaExpand />
 					</Button>
-					{canWrite && (
+					{canManage && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
@@ -172,7 +176,7 @@ export default function MyDebtTab() {
 				title={`Mening barcha qarzim: ${formatNumber(totalDebt, 2)} $`}
 				onReload={() => refetch()}
 				actions={
-					canWrite && (
+					canManage && (
 						<Button type='button' variant='info' size='xs' onClick={() => setAddModalOpen(true)}>
 							<FaPlus className='mr-1.5' /> Qarz qo'shish
 						</Button>

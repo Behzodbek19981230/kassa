@@ -24,6 +24,7 @@ import { useCreateConsignorMutation, useUpdateConsignorMutation } from '@/servic
 import { CONSIGNOR_TYPE_OPTIONS } from '@/services/consignor/consignor.types';
 import type { Consignor, ConsignorPayload, ConsignorType } from '@/services/consignor/consignor.types';
 import { getApiErrorMessage } from '@/lib/errors';
+import { usePermissions } from '@/lib/permissions';
 
 const consignorFormSchema = z.object({
 	name: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -44,6 +45,9 @@ interface ConsignorFormModalProps {
 export default function ConsignorFormModal({ open, setOpen, mode, item }: ConsignorFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
+	// Sklad Manager may only add consignors inside Uzbekistan: Turi is fixed to that and locked.
+	const { isSkladManager } = usePermissions();
+	const lockedType: ConsignorType | null = isSkladManager ? 'inside_uzbekistan' : null;
 
 	const {
 		register,
@@ -55,7 +59,7 @@ export default function ConsignorFormModal({ open, setOpen, mode, item }: Consig
 		defaultValues:
 			mode === 'edit' && item
 				? { name: item.name, phone: item.phone ?? '', address: item.address, type: item.type ?? '' }
-				: { name: '', phone: '', address: '', type: '' },
+				: { name: '', phone: '', address: '', type: lockedType ?? '' },
 	});
 
 	const createMutation = useCreateConsignorMutation();
@@ -68,7 +72,7 @@ export default function ConsignorFormModal({ open, setOpen, mode, item }: Consig
 			name: values.name.trim(),
 			phone: values.phone.trim(),
 			address: values.address.trim(),
-			type: values.type as ConsignorType,
+			type: lockedType ?? (values.type as ConsignorType),
 		};
 
 		try {
@@ -119,7 +123,7 @@ export default function ConsignorFormModal({ open, setOpen, mode, item }: Consig
 								name='type'
 								control={control}
 								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
+									<Select value={field.value} onValueChange={field.onChange} disabled={lockedType != null}>
 										<SelectTrigger>
 											<SelectValue placeholder='Tanlang...' />
 										</SelectTrigger>

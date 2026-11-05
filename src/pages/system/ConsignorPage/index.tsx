@@ -21,7 +21,8 @@ const columnHelper = createColumnHelper<Consignor>();
 
 export default function ConsignorPage() {
 	const { canWrite } = useCurrentCompany();
-	const { canManageConsignor } = usePermissions();
+	// Sklad Manager may view and add; editing and deleting stay Super Admin only.
+	const { canManageConsignor, canEditConsignor } = usePermissions();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -64,7 +65,7 @@ export default function ConsignorPage() {
 			size: 150,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
-					{canWrite && canManageConsignor && (
+					{canWrite && canEditConsignor && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
@@ -75,7 +76,7 @@ export default function ConsignorPage() {
 							dialogProps={{ mode: 'edit' as const, item: row.original }}
 						/>
 					)}
-					{canWrite && canManageConsignor && (
+					{canWrite && canEditConsignor && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
