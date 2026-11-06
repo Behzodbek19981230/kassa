@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash, FaExclamationCircle, FaLock, FaUser } from 'react-icons/fa';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '@/components/ui';
 import { setSession } from '@/lib/auth';
+import { LOGOUT_MESSAGE_KEY } from '@/lib/session';
 import { getHomePath } from '@/lib/permissions';
 import { userService } from '@/services/user/user.service';
 import { useLoginMutation } from '@/services/auth/auth.queries';
@@ -23,16 +24,38 @@ const LOGOUT_REASON_MESSAGES: Record<string, string> = {
 	idle_timeout: "10 daqiqa davomida faollik bo'lmagani uchun tizimdan chiqildi. Qaytadan kiring.",
 	session_expired: 'Sessiya muddati tugadi. Qaytadan kiring.',
 	session_invalid: 'Sessiya yaroqsiz. Qaytadan kiring.',
+	user_inactive: 'Foydalanuvchi faol emas. Administratorga murojaat qiling.',
+	unauthorized: 'Tizimga qaytadan kiring.',
 };
+
+/** The backend's `detail` saved on logout, else the default text for the `?reason=`. */
+function initialLogoutMessage(reason: string | null): string {
+	let detail: string | null = null;
+	try {
+		detail = sessionStorage.getItem(LOGOUT_MESSAGE_KEY);
+	} catch {
+		// storage unavailable
+	}
+	return (reason && detail) || LOGOUT_REASON_MESSAGES[reason ?? ''] || '';
+}
 
 export default function LoginPage() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [remember, setRemember] = useState(false);
 	const [searchParams] = useSearchParams();
-	const [formError, setFormError] = useState(() => LOGOUT_REASON_MESSAGES[searchParams.get('reason') ?? ''] ?? '');
+	const [formError, setFormError] = useState(() => initialLogoutMessage(searchParams.get('reason')));
 	const [showPassword, setShowPassword] = useState(false);
 	const loginMutation = useLoginMutation();
+
+	// Shown once: a later visit to the login page must not repeat an old logout message.
+	useEffect(() => {
+		try {
+			sessionStorage.removeItem(LOGOUT_MESSAGE_KEY);
+		} catch {
+			// storage unavailable
+		}
+	}, []);
 
 	const {
 		register,

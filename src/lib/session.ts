@@ -25,9 +25,27 @@ const REFRESH_BEFORE_EXPIRY_MS = 2 * 60 * 1000
 
 const ACTIVITY_EVENTS: Array<keyof WindowEventMap> = ['pointerdown', 'keydown', 'scroll', 'touchstart']
 
-export type LogoutReason = 'idle_timeout' | 'session_expired' | 'session_invalid' | 'logout'
+export type LogoutReason =
+  | 'idle_timeout'
+  | 'session_expired'
+  | 'session_invalid'
+  | 'user_inactive'
+  | 'unauthorized'
+  | 'logout'
 
-type ChannelMessage = { type: 'activity'; at: number } | { type: 'logout'; reason: LogoutReason }
+const BACKEND_LOGOUT_CODES: LogoutReason[] = ['session_expired', 'session_invalid', 'user_inactive']
+
+/** Maps a backend 401 `code` to a logout reason (`unauthorized` for anything unknown). */
+export function logoutReasonFor(code: string | undefined): LogoutReason {
+  return BACKEND_LOGOUT_CODES.find((reason) => reason === code) ?? 'unauthorized'
+}
+
+/** The login page shows this text (the backend's `detail`) instead of its default message. */
+export const LOGOUT_MESSAGE_KEY = 'ca_logout_message'
+
+type ChannelMessage =
+  | { type: 'activity'; at: number }
+  | { type: 'logout'; reason: LogoutReason; detail?: string }
 
 const state = {
   lastActivityAt: Date.now(),
@@ -78,19 +96,26 @@ function tokenExpiresAt(token: string): number {
 }
 
 /** Clears the tokens and goes to the login page. `notifyTabs` is false for a logout another tab announced. */
-function endSession(reason: LogoutReason, notifyTabs: boolean) {
+function endSession(reason: LogoutReason, notifyTabs: boolean, detail?: string) {
   debug(`tokenlar o'chirildi, login sahifasiga o'tilmoqda (sabab: ${reason}${notifyTabs ? '' : ', boshqa tabdan'})`)
   state.logoutStarted = true
   clearSession()
-  if (notifyTabs) broadcast({ type: 'logout', reason })
+  try {
+    if (detail) sessionStorage.setItem(LOGOUT_MESSAGE_KEY, detail)
+    else sessionStorage.removeItem(LOGOUT_MESSAGE_KEY)
+  } catch {
+    // storage unavailable: the login page falls back to its own message
+  }
+  if (notifyTabs) broadcast({ type: 'logout', reason, detail })
   if (window.location.pathname !== '/login') {
     window.location.replace(reason === 'logout' ? '/login' : `/login?reason=${reason}`)
   }
 }
 
-export function forceLocalLogout(reason: LogoutReason) {
+/** Ends the session locally only (the backend already considers it over). */
+export function forceLocalLogout(reason: LogoutReason, detail?: string) {
   if (state.logoutStarted) return
-  endSession(reason, true)
+  endSession(reason, true, detail)
 }
 
 /** Ends the session on the backend too; tokens are cleared locally even when the request fails. */
@@ -112,6 +137,57 @@ export async function logout(reason: LogoutReason = 'logout') {
   }
 }
 
+/** Tabs share the tokens through localStorage, so only one of them may refresh at a time. */
+function withRefreshLock<T>(fn: () => Promise<T>): Promise<T> {
+  // Web Locks exist only in secure contexts (https/localhost); elsewhere the 401 check below covers it.
+  if (typeof navigator !== 'undefined' && 'locks' in navigator && navigator.locks) {
+    return navigator.locks.request('savdo-soft-token-refresh', fn)
+  }
+  return fn()
+}
+
+/** Calls `/auth/token/refresh/`. Logs out only when the backend rejects the refresh token. */
+async function requestNewAccessToken(staleAccess: string): Promise<string> {
+  // Another tab may have refreshed while this one waited for the lock.
+  const current = getToken()
+  if (current && current !== staleAccess) {
+    debug('access token boshqa tabda yangilangan, o\'shasi olinadi')
+    return current
+  }
+  const refresh = getRefreshToken()
+  if (!refresh) throw new Error('No refresh token')
+
+  try {
+    const { data } = await axios.post<{ access: string; refresh?: string }>(
+      `${API_BASE_URL}/auth/token/refresh/`,
+      { refresh },
+      { timeout: 15_000 },
+    )
+    setTokens(data.access, data.refresh)
+    debug('access token yangilandi')
+    return data.access
+  } catch (error) {
+    const status = axios.isAxiosError(error) ? error.response?.status : undefined
+    if (status !== undefined && status >= 400 && status < 500) {
+      // With refresh token rotation the old one is rejected if another tab rotated it meanwhile.
+      const latest = getToken()
+      if (getRefreshToken() !== refresh && latest) return latest
+
+      const body = (axios.isAxiosError(error) ? error.response?.data : undefined) as
+        | { code?: string; detail?: string }
+        | undefined
+      debug("refresh token rad etildi, logout qilinmoqda", error)
+      const reason = logoutReasonFor(body?.code)
+      if (reason === 'unauthorized') forceLocalLogout('session_expired')
+      else forceLocalLogout(reason, body?.detail)
+    } else {
+      // offline / timeout / 5xx: the session is still valid, the next attempt may succeed
+      debug("token yangilab bo'lmadi (tarmoq yoki server xatosi), sessiya saqlanadi", error)
+    }
+    throw error
+  }
+}
+
 /**
  * Refreshes the access token. Concurrent callers share one request. Without `force` it only
  * refreshes when the token is about to expire.
@@ -129,21 +205,9 @@ export async function refreshAccessToken(force = false): Promise<string | null> 
 
   if (!state.refreshPromise) {
     debug(force ? 'access token yangilanmoqda (401 javobdan keyin)' : "access token yangilanmoqda (muddati tugashiga 2 daqiqadan kam qoldi)")
-    state.refreshPromise = axios
-      .post<{ access: string; refresh?: string }>(`${API_BASE_URL}/auth/token/refresh/`, { refresh })
-      .then(({ data }) => {
-        setTokens(data.access, data.refresh)
-        debug('access token yangilandi')
-        return data.access
-      })
-      .catch((error) => {
-        debug("token yangilab bo'lmadi", error)
-        forceLocalLogout('session_expired')
-        throw error
-      })
-      .finally(() => {
-        state.refreshPromise = null
-      })
+    state.refreshPromise = withRefreshLock(() => requestNewAccessToken(access)).finally(() => {
+      state.refreshPromise = null
+    })
   }
   return state.refreshPromise
 }
@@ -200,7 +264,7 @@ function onChannelMessage(event: MessageEvent<ChannelMessage>) {
   if (message.type === 'activity') recordActivity(Number(message.at))
   if (message.type === 'logout' && !state.logoutStarted) {
     debug('boshqa tab logout qildi')
-    endSession(message.reason, false)
+    endSession(message.reason, false, message.detail)
   }
 }
 
