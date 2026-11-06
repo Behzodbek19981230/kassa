@@ -68,6 +68,7 @@ import {
 	FaSortDown,
 	FaSortUp,
 } from 'react-icons/fa';
+import { formatIfIsoDate } from '@/lib/date';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
@@ -373,6 +374,13 @@ export function DataTable<TData>({
 		manualSorting,
 		manualFiltering,
 		pageCount: manualPagination ? (pageCount ?? -1) : undefined,
+		// Columns without their own `cell` show ISO dates ("2026-05-01") in the app-wide "01.05.2026" format.
+		defaultColumn: {
+			cell: (info) => {
+				const value = formatIfIsoDate(info.renderValue());
+				return value == null ? null : String(value);
+			},
+		},
 	});
 
 	useEffect(() => {
@@ -425,7 +433,7 @@ export function DataTable<TData>({
 		);
 		const rows = table
 			.getFilteredRowModel()
-			.rows.map((row) => exportableColumns.map((col) => String(row.getValue(col.id) ?? '')));
+			.rows.map((row) => exportableColumns.map((col) => String(formatIfIsoDate(row.getValue(col.id)) ?? '')));
 		return { headers, rows };
 	}
 

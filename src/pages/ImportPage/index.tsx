@@ -1,5 +1,6 @@
 import { Fragment, type UIEvent, useMemo, useState } from 'react';
 import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import {
    Button,
    buttonProps,
@@ -108,6 +109,7 @@ function buildBrandVariants(groups: WarehouseAllListBrandGroup[]): BrandVariants
 }
 
 export default function ImportPage() {
+   const navigate = useNavigate();
    const { companyId, canWrite, isSuperAdmin } = useCurrentCompany();
    const productCols = useColumnVisibility('import-products', PRODUCT_COLUMNS);
    const cartCols = useColumnVisibility('import-cart', CART_COLUMNS);
@@ -412,6 +414,7 @@ export default function ImportPage() {
                                     consignorId: Number(consignorId),
                                     consignorName: selectedConsignor?.name,
                                     currentDebt: Number(consignorDebt?.total_debt ?? 0),
+                                    onPaid: () => navigate('/my-debts?tab=history'),
                                  }}
                               />
                            )}

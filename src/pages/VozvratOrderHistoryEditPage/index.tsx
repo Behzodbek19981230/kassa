@@ -29,6 +29,7 @@ import {
 } from '@/services/vozvrat/vozvrat.queries';
 import { resolveStockId } from '@/services/sklad-product/catalog-stock';
 import type { VozvratProductItem, VozvratUpdateVozvratItemPayload } from '@/services/vozvrat/vozvrat.types';
+import { formatDate } from '@/lib/date';
 
 const editVozvratFormSchema = z.object({
 	date: z.string().min(1, 'Sana kiritilishi shart'),
@@ -52,7 +53,7 @@ export default function VozvratOrderHistoryEditPage() {
 	const vozvratId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
 	const { canWrite } = useCurrentCompany();
-	const { canEditOrder } = usePermissions();
+	const { canEditVozvratOrder, isSuperAdmin } = usePermissions();
 	const [formError, setFormError] = useState('');
 
 	useEffect(() => {
@@ -63,8 +64,8 @@ export default function VozvratOrderHistoryEditPage() {
 	const { data: productsData } = useVozvratOrderProductsQuery(vozvratId);
 
 	useEffect(() => {
-		if (item && !canEditOrder(item)) navigate('/vozvrat-order-history', { replace: true });
-	}, [item, canEditOrder, navigate]);
+		if (item && !canEditVozvratOrder(item)) navigate('/vozvrat-order-history', { replace: true });
+	}, [item, canEditVozvratOrder, navigate]);
 
 	const [rows, setRows] = useState<EditableVozvratRow[]>([]);
 	const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
@@ -205,7 +206,8 @@ export default function VozvratOrderHistoryEditPage() {
 					sum_som: values.sum_som || '0',
 					sum_cart: values.sum_cart || '0',
 					comment: values.comment?.trim(),
-					confirmation: values.confirmation,
+					// Only a Super Admin may confirm, and a confirmed vozvrat stays confirmed.
+					confirmation: item.confirmation || (isSuperAdmin && values.confirmation),
 					items,
 				},
 			});
@@ -233,7 +235,7 @@ export default function VozvratOrderHistoryEditPage() {
 		<>
 			<div className='mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[3px] bg-ca-theme px-4 py-3 text-white'>
 				<h4 className='text-sm font-normal'>
-					<span className='font-semibold'>{item.client_detail?.fio}</span> ning {item.date} sanadagi vozvrat
+					<span className='font-semibold'>{item.client_detail?.fio}</span> ning {formatDate(item.date)} sanadagi vozvrat
 					buyurtmasini o'zgartirish
 				</h4>
 				<Button type='button' variant='warning' size='xs' onClick={() => navigate(-1)}>
@@ -347,7 +349,14 @@ export default function VozvratOrderHistoryEditPage() {
 							name='confirmation'
 							control={control}
 							render={({ field }) => (
-								<Checkbox label='Tasdiqlash:' checked={field.value} onCheckedChange={field.onChange} inline />
+								<Checkbox
+									label='Tasdiqlash:'
+									checked={field.value}
+									onCheckedChange={field.onChange}
+									// Only a Super Admin may confirm; once confirmed it can't be reverted, even by a Super Admin.
+									disabled={!isSuperAdmin || Boolean(item?.confirmation)}
+									inline
+								/>
 							)}
 						/>
 					</div>

@@ -12,6 +12,7 @@ import type {
 	WarehouseTransferStatus,
 } from '@/services/warehouse-transfer/warehouse-transfer.types';
 import ReverseTransferModal from '@/pages/WarehouseTransferDetailPage/components/ReverseTransferModal';
+import { formatDateTime } from '@/lib/date';
 
 const STATUS_LABEL: Record<WarehouseTransferStatus, string> = {
 	completed: 'Bajarilgan',
@@ -86,7 +87,7 @@ export default function TransferHistoryTab() {
 				size: 100,
 				enableColumnFilter: false,
 				cell: (info) =>
-					new Date(info.getValue()).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' }),
+					formatDateTime(info.getValue()),
 			}),
 			historyColumnHelper.accessor('from_type_sklad', {
 				header: 'Qayerdan',
@@ -137,7 +138,7 @@ export default function TransferHistoryTab() {
 				cell: (info) => {
 					const value = info.getValue();
 					return value
-						? new Date(value).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' })
+						? formatDateTime(value)
 						: '';
 				},
 			}),

@@ -23,6 +23,7 @@ import {
 } from '@/services/order-account-history/order-account-history.queries';
 import type { OrderAccountHistoryUpdateSaleItemPayload } from '@/services/order-account-history/order-account-history.types';
 import { useProductAccountHistoryListQuery } from '@/services/product-account-history/product-account-history.queries';
+import { formatDate } from '@/lib/date';
 
 const editOrderFormSchema = z.object({
    date: z.string().min(1, 'Sana kiritilishi shart'),
@@ -240,7 +241,8 @@ export default function OrderAccountHistoryEditPage() {
                sum_transfers: values.sum_transfers || '0',
                driver_info: values.driver_info?.trim(),
                comment: values.order_commit?.trim(),
-               order_account_status: values.order_account_status,
+               // Only a Super Admin may confirm, and a confirmed order stays confirmed.
+               order_account_status: Boolean(item.order_account_status) || (isSuperAdmin && values.order_account_status),
                fast_order: values.fast_order,
                items,
             },
@@ -276,7 +278,7 @@ export default function OrderAccountHistoryEditPage() {
          <div className='mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[3px] bg-ca-theme px-4 py-3 text-white'>
             <h4 className='text-sm font-normal'>
                <span className='font-semibold'>{item.client_name ?? item.client_detail?.fio}</span> ning{' '}
-               {item.date} sanadagi mahsulotlarini o'zgartirish
+               {formatDate(item.date)} sanadagi mahsulotlarini o'zgartirish
             </h4>
             <Button type='button' variant='warning' size='xs' onClick={() => navigate(-1)}>
                <FaArrowLeft className='mr-1.5' /> Orqaga qaytish
@@ -462,8 +464,8 @@ export default function OrderAccountHistoryEditPage() {
                            label='Tasdiqlash:'
                            checked={field.value}
                            onCheckedChange={field.onChange}
-                           // Once an order is confirmed it can't be reverted to unconfirmed.
-                           disabled={Boolean(item?.order_account_status)}
+                           // Only a Super Admin may confirm; once confirmed it can't be reverted to unconfirmed.
+                           disabled={!isSuperAdmin || Boolean(item?.order_account_status)}
                            inline
                         />
                      )}

@@ -22,6 +22,7 @@ import type {
   TelegramBroadcastDelivery,
   TelegramBroadcastWarehouse,
 } from '@/services/telegram-broadcast/telegram-broadcast.types'
+import { formatDate } from '@/lib/date';
 
 interface DeliveryWarehouseModalProps {
   open: boolean
@@ -125,7 +126,7 @@ export default function DeliveryWarehouseModal({ open, setOpen, delivery, wareho
                       <TableCell>
                         <WarehouseStocks warehouseId={warehouse.id} />
                       </TableCell>
-                      <TableCell className='whitespace-nowrap'>{warehouse.cr_date}</TableCell>
+                      <TableCell className='whitespace-nowrap'>{formatDate(warehouse.cr_date)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

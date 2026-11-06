@@ -113,6 +113,18 @@ export function usePermissions() {
 		return canEditOrder(item) && item.date?.slice(0, 10) === todayTashkent();
 	}
 
+	// "Vozvrat buyurtmalar tarixi" edit (Tahrirlash): Super Admin any vozvrat; everyone else only
+	// their own vozvrats dated today.
+	function canEditVozvratOrder(item: { created_by?: number | null; date?: string | null }) {
+		return canEditCustomerOrder(item);
+	}
+
+	// "To'langan qarzlar" (debt-repayment) edit: Super Admin any payment; everyone else only
+	// the payments they accepted themselves, dated today.
+	function canEditDebtRepayment(item: { created_by?: number | null; date?: string | null }) {
+		return canEditCustomerOrder(item);
+	}
+
 	// "Buyurtmalar va qarzlar" menu + page: every role except Sotuvchi and Sklad xodim (hidden until the role is known).
 	const canViewOrderAndDebt = roleKey != null && roleKey !== ROLE.SOTUVCHI && !isSkladXodim;
 
@@ -158,6 +170,8 @@ export function usePermissions() {
 		canEditGivenCount,
 		canEditOrder,
 		canEditCustomerOrder,
+		canEditDebtRepayment,
+		canEditVozvratOrder,
 		canViewChangeLogs,
 		canMarkTypeSkladReady,
 		homePath: getHomePath(roleKey),

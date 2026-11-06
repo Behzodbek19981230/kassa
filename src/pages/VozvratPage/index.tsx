@@ -1,5 +1,6 @@
 import { Fragment, useState } from 'react';
 import { FaExclamationTriangle, FaTrash, FaUndo } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import {
    Button,
    Combobox,
@@ -92,6 +93,7 @@ function toCartItemInput(row: VozvratCartRow): VozvratCartItemInput {
 }
 
 export default function VozvratPage() {
+   const navigate = useNavigate();
    const { companyId, canWrite } = useCurrentCompany();
    const productCols = useColumnVisibility('vozvrat-products', PRODUCT_COLUMNS);
    const cartCols = useColumnVisibility('vozvrat-cart', CART_COLUMNS);
@@ -189,6 +191,8 @@ export default function VozvratPage() {
       notify({ title: message });
       setCartRows([]);
       setCalcResult(null);
+      // The vozvrat list is invalidated by the mutation, so the history page shows the new vozvrat at once.
+      navigate('/vozvrat-order-history');
    }
 
    const loadBrandOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {

@@ -13,6 +13,7 @@ import type {
 } from '@/services/warehouse-transfer/warehouse-transfer.types';
 import ConfirmDispatchModal from '@/pages/WarehouseTransferHistoryPage/components/ConfirmDispatchModal';
 import DispatchListModal from '@/pages/WarehouseTransferHistoryPage/components/DispatchListModal';
+import { formatDateTime } from '@/lib/date';
 
 const userLabel = (u: { username: string; first_name: string; last_name: string }) =>
 	`${u.last_name} ${u.first_name}`.trim() || u.username;
@@ -91,7 +92,7 @@ export default function WarehouseStaffTab() {
 				size: 100,
 				enableColumnFilter: false,
 				cell: (info) =>
-					new Date(info.getValue()).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' }),
+					formatDateTime(info.getValue()),
 			}),
 			staffColumnHelper.accessor('from_type_sklad', {
 				header: 'Qayerdan',
@@ -141,7 +142,7 @@ export default function WarehouseStaffTab() {
 				cell: (info) => {
 					const value = info.getValue();
 					return value
-						? new Date(value).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' })
+						? formatDateTime(value)
 						: '';
 				},
 			}),

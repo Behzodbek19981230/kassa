@@ -1,5 +1,6 @@
 import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalTitle } from '@/components/ui';
 import type { Brand } from '@/services/brand/brand.types';
+import { formatDateTime } from '@/lib/date';
 
 interface BrandViewModalProps {
 	open: boolean;
@@ -31,7 +32,7 @@ export default function BrandViewModal({ open, setOpen, item }: BrandViewModalPr
 						<div className='flex justify-between'>
 							<dt className='text-ca-text'>Yaratilgan</dt>
 							<dd className='font-medium text-ca-heading'>
-								{new Date(item.created_time).toLocaleString()}
+								{formatDateTime(item.created_time)}
 							</dd>
 						</div>
 					</dl>

@@ -43,6 +43,8 @@ interface MyDebtPayModalProps {
 	consignorId: number;
 	consignorName?: string;
 	currentDebt?: number;
+	/** Called after a successful payment (e.g. to redirect to the payment history). */
+	onPaid?: () => void;
 }
 
 export default function MyDebtPayModal({
@@ -52,6 +54,7 @@ export default function MyDebtPayModal({
 	consignorId,
 	consignorName,
 	currentDebt = 0,
+	onPaid,
 }: MyDebtPayModalProps) {
 	const { notify } = useNotification();
 	const { exchangeRate } = useCurrentCompany();
@@ -104,6 +107,7 @@ export default function MyDebtPayModal({
 				text: `Qolgan qarz: ${formatNumber(result.summary.my_total_debt, 2)} $`,
 			});
 			handleOpenChange(false);
+			onPaid?.();
 		} catch (err) {
 			setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
 		}

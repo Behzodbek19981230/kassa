@@ -74,8 +74,9 @@ function toDebtRepayment(item: DebtRepaymentGroupedItem): DebtRepayment {
 
 export default function DebtRepaymentPage() {
 	const { canWrite } = useCurrentCompany();
-	const { canEditOwned, isSuperAdmin } = usePermissions();
-	// Everyone can view the list; add/edit/delete/confirm are Super Admin only.
+	const { canEditOwned, canEditDebtRepayment, isSuperAdmin } = usePermissions();
+	// Everyone can view the list; add/delete/confirm are Super Admin only.
+	// Edit: Super Admin always, everyone else only their own payments dated today.
 	const canManage = canWrite && isSuperAdmin;
 	const { notify } = useNotification();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -200,6 +201,7 @@ export default function DebtRepaymentPage() {
 			cell: ({ row }) => {
 				const item = row.original;
 				const canEdit = canEditOwned(item);
+				const canEditPayment = canWrite && canEditDebtRepayment(item);
 				return (
 					<div className='flex items-center justify-end gap-1'>
 						{canManage && !item.is_read && (
@@ -224,7 +226,7 @@ export default function DebtRepaymentPage() {
 						>
 							<FaFilePdf />
 						</Button>
-						{canManage && canEdit && (
+						{canEditPayment && (
 							<OpenDialogButton
 								element={(props) => <Button {...props} />}
 								elementProps={{

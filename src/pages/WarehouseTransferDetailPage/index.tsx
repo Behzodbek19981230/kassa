@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatDateTime } from '@/lib/date';
 import { FaArrowLeft, FaDownload, FaExclamationTriangle, FaUndo } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -101,10 +102,7 @@ export default function WarehouseTransferDetailPage() {
 					<div className='w-full px-2.5 sm:w-1/2'>
 						<span className='font-semibold text-ca-orange'>Sana:</span>{' '}
 						<span className='font-bold text-ca-orange'>
-							{new Date(data.created_time).toLocaleString('uz-UZ', {
-								dateStyle: 'short',
-								timeStyle: 'short',
-							})}
+							{formatDateTime(data.created_time)}
 						</span>
 					</div>
 					<div className='w-full px-2.5 sm:w-1/2'>

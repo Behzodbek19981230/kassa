@@ -1,6 +1,7 @@
 import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalTitle } from '@/components/ui';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
 import type { ProductCategory } from '@/services/product-category/product-category.types';
+import { formatDateTime } from '@/lib/date';
 
 interface CategoryViewModalProps {
 	open: boolean;
@@ -39,7 +40,7 @@ export default function CategoryViewModal({ open, setOpen, item }: CategoryViewM
 						<div className='flex justify-between'>
 							<dt className='text-ca-text'>Yaratilgan</dt>
 							<dd className='font-medium text-ca-heading'>
-								{new Date(item.created_time).toLocaleString()}
+								{formatDateTime(item.created_time)}
 							</dd>
 						</div>
 					</dl>

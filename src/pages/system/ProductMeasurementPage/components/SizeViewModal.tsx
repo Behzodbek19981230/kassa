@@ -3,6 +3,7 @@ import type { BrandSize } from '@/services/brand-size/brand-size.types';
 import { useBrandSizeTypeListQuery } from '@/services/brand-size-type/brand-size-type.queries';
 import { useBrandListQuery } from '@/services/brand/brand.queries';
 import { useProductCategoryListQuery } from '@/services/product-category/product-category.queries';
+import { formatDateTime } from '@/lib/date';
 
 interface SizeViewModalProps {
 	open: boolean;
@@ -49,7 +50,7 @@ export default function SizeViewModal({ open, setOpen, item }: SizeViewModalProp
 						<div className='flex justify-between'>
 							<dt className='text-ca-text'>Yaratilgan</dt>
 							<dd className='font-medium text-ca-heading'>
-								{new Date(item.created_time).toLocaleString()}
+								{formatDateTime(item.created_time)}
 							</dd>
 						</div>
 					</dl>

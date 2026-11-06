@@ -31,7 +31,7 @@ const userLabel = (u: { username: string; first_name: string; last_name: string 
 export default function VozvratOrderHistoryPage() {
    const navigate = useNavigate();
    const { canWrite } = useCurrentCompany();
-   const { canEditOrder, canDeleteOrders, isSuperAdmin } = usePermissions();
+   const { canEditVozvratOrder, canDeleteOrders, isSuperAdmin } = usePermissions();
    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
    const [deletingItem, setDeletingItem] = useState<VozvratOrderListItem | null>(null);
@@ -139,7 +139,7 @@ export default function VozvratOrderHistoryPage() {
                         />
                      </Tooltip>
                   )}
-                  {canWrite && canEditOrder(row.original) && (
+                  {canWrite && canEditVozvratOrder(row.original) && (
                      <Button
                         type='button'
                         variant='warning'
