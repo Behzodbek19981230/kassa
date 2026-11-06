@@ -40,7 +40,8 @@ function formatDate(value: string | null) {
 export default function ClientDebtorPage() {
 	const { notify } = useNotification();
 	// Manager sees the list without the total debt card and the PDF export.
-	const { isManager } = usePermissions();
+	// PDF export and the total debt sum stay Super Admin only (Manager / Admin get a read-only view).
+	const { isSuperAdmin } = usePermissions();
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 100 });
 	const [type, setType] = useState('');
 	const [client, setClient] = useState('');
@@ -121,7 +122,7 @@ export default function ClientDebtorPage() {
 		<Panel
 			title="Qarzdorlar ro'yxati"
 			actions={
-				!isManager && (
+				isSuperAdmin && (
 					<Button type='button' variant='warning' size='xs' disabled={isExporting} onClick={handleExportPdf}>
 						<FaFilePdf className='mr-1.5' /> {isExporting ? 'Yuklanmoqda...' : 'PDF Export qilish'}
 					</Button>
@@ -177,7 +178,7 @@ export default function ClientDebtorPage() {
 					label='Jami qarzdorlar soni'
 					value={formatNumber(summary?.debtor_count ?? 0)}
 				/>
-				{!isManager && (
+				{isSuperAdmin && (
 					<StatCard
 						icon={<FaDollarSign />}
 						label='Jami qarz summasi ($)'

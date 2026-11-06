@@ -9,6 +9,7 @@ import { FaEdit, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Button, buttonProps, DataTable, Panel } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import { getApiErrorMessage } from '@/lib/errors';
 import BrandFormModal from '@/pages/system/ModelsPage/components/BrandFormModal';
 import DeleteBrandModal from '@/pages/system/ModelsPage/components/DeleteBrandModal';
@@ -19,6 +20,9 @@ const columnHelper = createColumnHelper<Brand>();
 
 export default function ModelsTab() {
 	const { canWrite } = useCurrentCompany();
+	// Admin may only add; edit / delete (and so the actions column) are Super Admin only.
+	const { canEditProductCategories } = usePermissions();
+	const canEdit = canWrite && canEditProductCategories;
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -50,7 +54,7 @@ export default function ModelsTab() {
 			size: 150,
 			cell: ({ row }) => (
 				<div className='flex justify-end gap-1'>
-					{canWrite && (
+					{canEdit && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
@@ -61,7 +65,7 @@ export default function ModelsTab() {
 							dialogProps={{ mode: 'edit' as const, item: row.original }}
 						/>
 					)}
-					{canWrite && (
+					{canEdit && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
@@ -96,7 +100,7 @@ export default function ModelsTab() {
 				}}
 			>
 				<DataTable
-					columns={columns}
+					columns={canEdit ? columns : columns.filter((column) => column.id !== 'actions')}
 					data={results}
 					manualPagination
 					manualSorting

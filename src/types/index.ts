@@ -33,18 +33,23 @@ export type SidebarIcon =
 export interface SidebarMenuPermissions {
 	isAdminOrManager: boolean;
 	isSuperAdmin: boolean;
+	/** Admin gets "Mahsulot toifalari" under "Sozlamalar" (Super Admin has it under "Tizim boshqaruvi"). */
+	isAdmin: boolean;
 	canManageConsignor: boolean;
-	/** Sklad Manager gets "Yuk jo'natuvchilar" as a top-level menu item (Super Admin has it under "Tizim boshqaruvi"). */
 	isSkladManager: boolean;
+	/** Sklad Manager and Manager get "Yuk jo'natuvchilar" as a top-level menu item (Super Admin has it under "Tizim boshqaruvi"). */
+	hasTopLevelConsignorMenu: boolean;
 	canManageWarehouse: boolean;
 	canViewWarehousePrices: boolean;
 	canImport: boolean;
 	canViewWarehouseProducts: boolean;
 	canManageOrderCart: boolean;
+	canViewDebtRepaymentDrafts: boolean;
 	canViewWarehouseReport: boolean;
 	canViewClients: boolean;
 	canViewOrderAndDebt: boolean;
 	canViewMyDebts: boolean;
+	canViewClientDebtors: boolean;
 	/** True for the Manager role, which only gets a trimmed-down "Tizim boshqaruvi"/"Sozlamalar". */
 	isManager: boolean;
 	isNotManager: boolean;

@@ -45,9 +45,9 @@ interface ConsignorFormModalProps {
 export default function ConsignorFormModal({ open, setOpen, mode, item }: ConsignorFormModalProps) {
 	const { notify } = useNotification();
 	const [formError, setFormError] = useState('');
-	// Sklad Manager may only add consignors inside Uzbekistan: Turi is fixed to that and locked.
-	const { isSkladManager } = usePermissions();
-	const lockedType: ConsignorType | null = isSkladManager ? 'inside_uzbekistan' : null;
+	// Sklad Manager, Manager and Admin may only add consignors inside Uzbekistan: Turi is fixed to that and locked.
+	const { hasTopLevelConsignorMenu } = usePermissions();
+	const lockedType: ConsignorType | null = hasTopLevelConsignorMenu ? 'inside_uzbekistan' : null;
 
 	const {
 		register,

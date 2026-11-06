@@ -3,6 +3,8 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useKeyboardInsetCssVar } from '@/lib/useDropdownPlacement';
 import { useSessionWatcher } from '@/lib/session';
 import ImportRoute from '@/components/auth/ImportRoute';
+import DebtRepaymentDraftRoute from '@/components/auth/DebtRepaymentDraftRoute';
+import ProductCategoriesRoute from '@/components/auth/ProductCategoriesRoute';
 import OrderCartRoute from '@/components/auth/OrderCartRoute';
 import WarehouseReportRoute from '@/components/auth/WarehouseReportRoute';
 import ClientsRoute from '@/components/auth/ClientsRoute';
@@ -108,7 +110,6 @@ export default function App() {
 						<Route path='two-stage-import/debts' element={<LogisticsDebtPage />} />
 						<Route path='two-stage-import/china-debts' element={<ChinaDebtPage />} />
 						<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
-						<Route path='settings/debt-repayments-drafts' element={<DebtRepaymentDraftPage />} />
 						<Route path='settings/debt-repayments-drafts/deleted' element={<DebtRepaymentDeleteHistoryPage />} />
 						<Route
 							path='settings/debt-repayments-drafts/deleted/:id'
@@ -122,6 +123,13 @@ export default function App() {
 						<Route path='warehouse-report' element={<WarehouseAccountPage />} />
 						<Route path='warehouse-report/:id' element={<WarehouseAccountDetailPage />} />
 						<Route path='warehouse-report/:id/edit' element={<WarehouseAccountEditPage />} />
+					</Route>
+					<Route element={<ProductCategoriesRoute />}>
+						<Route path='system/product-categories' element={<ProductCategoriesPage />} />
+						<Route path='system/models' element={<Navigate to='/system/product-categories' replace />} />
+					</Route>
+					<Route element={<DebtRepaymentDraftRoute />}>
+						<Route path='settings/debt-repayments-drafts' element={<DebtRepaymentDraftPage />} />
 					</Route>
 					<Route element={<OrderCartRoute />}>
 						<Route path='order-cart' element={<OrderCartPage />} />
@@ -154,8 +162,6 @@ export default function App() {
 
 					{/* System management ("Tizim boshqaruvi") is Super Admin only. */}
 					<Route element={<SuperAdminRoute />}>
-						<Route path='system/product-categories' element={<ProductCategoriesPage />} />
-						<Route path='system/models' element={<Navigate to='/system/product-categories' replace />} />
 						<Route path='system/users' element={<UserPage />} />
 						<Route path='system/users/:id/payroll' element={<UserPayrollPage />} />
 						<Route path='system/companies' element={<CompanyPage />} />

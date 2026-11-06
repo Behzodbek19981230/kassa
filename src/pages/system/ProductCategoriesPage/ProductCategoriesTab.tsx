@@ -11,6 +11,7 @@ import {
 } from '@/components/ui';
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import { getApiErrorMessage } from '@/lib/errors';
 import CategoryFormModal from '@/pages/system/ProductCategoriesPage/components/CategoryFormModal';
 import DeleteCategoryModal from '@/pages/system/ProductCategoriesPage/components/DeleteCategoryModal';
@@ -25,6 +26,9 @@ const columnHelper = createColumnHelper<ProductCategory>();
 
 export default function ProductCategoriesTab() {
 	const { canWrite } = useCurrentCompany();
+	// Admin may only add; edit / delete (and so the actions column) are Super Admin only.
+	const { canEditProductCategories } = usePermissions();
+	const canEdit = canWrite && canEditProductCategories;
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -81,7 +85,7 @@ export default function ProductCategoriesTab() {
 						dialog={CategoryViewModal}
 						dialogProps={{ item: row.original }}
 					/> */}
-					{canWrite && (
+					{canEdit && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
@@ -92,7 +96,7 @@ export default function ProductCategoriesTab() {
 							dialogProps={{ mode: 'edit' as const, item: row.original }}
 						/>
 					)}
-					{canWrite && (
+					{canEdit && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
 							elementProps={{
@@ -127,7 +131,7 @@ export default function ProductCategoriesTab() {
 				}}
 			>
 				<DataTable
-					columns={columns}
+					columns={canEdit ? columns : columns.filter((column) => column.id !== 'actions')}
 					data={results}
 					manualPagination
 					manualSorting

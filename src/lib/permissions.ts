@@ -45,8 +45,8 @@ export function usePermissions() {
 
 	const isManager = roleKey === ROLE.MANAGER;
 
-	// import ('Import qilish'): Super Admin + Sklad Manager only
-	const canImport = isSuperAdmin || isSkladManager;
+	// import ('Import qilish'): Super Admin + Sklad Manager + Manager + Admin
+	const canImport = isSuperAdmin || isSkladManager || isManager || isAdmin;
 
 	// "Tasdiqlanmagan mijozlar" (new Telegram clients awaiting confirmation): Super Admin + Admin
 	const canConfirmClients = isSuperAdmin || isAdmin;
@@ -62,18 +62,28 @@ export function usePermissions() {
 	const canSendProductToTelegram = isSuperAdmin || isAdmin || isManager;
 	// "Karzinka" button on the order history (/order-cart) and "Buyurtma Karzinka" (/cart-drafts): Super Admin + Admin
 	const canManageOrderCart = isSuperAdmin || isAdmin;
+	// "Mahsulot toifalari" (/system/product-categories: Modellar + Mahsulot toifalari tabs): Super Admin under
+	// "Tizim boshqaruvi", Admin under "Sozlamalar". Admin may only add; edit / delete stay Super Admin only.
+	const canViewProductCategories = isSuperAdmin || isAdmin;
+	const canEditProductCategories = isSuperAdmin;
+	// "Qarz to'lov karzinka" (/settings/debt-repayments-drafts): Super Admin + Admin; restore / delete only own
+	// records (canEditOwned), the deleted-repayments history stays Super Admin only.
+	const canViewDebtRepaymentDrafts = isSuperAdmin || isAdmin;
 	// Delete in "Mijoz buyurtmalar tarixi" (Draftga olish) and "Vozvrat buyurtmalar tarixi": Super Admin + Admin
 	const canDeleteOrders = isSuperAdmin || isAdmin;
 
-	// "Qarzdorlar ro'yxati" (/settings/debtors, read-only): Super Admin under "Sozlamalar", Manager as its own menu item.
-	const canViewClientDebtors = isSuperAdmin || isManager;
+	// "Qarzdorlar ro'yxati" (/settings/debtors, read-only): Super Admin + Admin under "Sozlamalar", Manager as its own menu item.
+	const canViewClientDebtors = isSuperAdmin || isManager || isAdmin;
 
 	// "Mening qarzlarim" menu + pages: Super Admin + Sklad Manager; add / edit / delete stay Super Admin only.
 	const canViewMyDebts = isSuperAdmin || isSkladManager;
 	const canManageMyDebts = isSuperAdmin;
 
-	// "Yuk jo'natuvchilar": Super Admin + Sklad Manager may view and add; only Super Admin may edit / delete.
-	const canManageConsignor = isSuperAdmin || isSkladManager;
+	// "Yuk jo'natuvchilar": Super Admin + Sklad Manager + Manager + Admin may view and add; only Super Admin may edit / delete.
+	const canManageConsignor = isSuperAdmin || isSkladManager || isManager || isAdmin;
+	// Everyone but Super Admin gets it as a top-level menu item (Super Admin has it under "Tizim boshqaruvi")
+	// and may only add consignors inside Uzbekistan.
+	const hasTopLevelConsignorMenu = isSkladManager || isManager || isAdmin;
 	const canEditConsignor = isSuperAdmin;
 	// "Tovarlar va Narxlar" (warehouse pricing) menu: Super Admin + Admin + Manager
 	const canViewWarehousePrices = isSuperAdmin || isAdmin || isManager;
@@ -83,8 +93,8 @@ export function usePermissions() {
 	// "Mijozlar" menu + pages: Super Admin + Admin (under "Sozlamalar") + Manager (as its own menu item)
 	const canViewClients = isSuperAdmin || isAdmin || isManager;
 
-	// "Omborxona hisobi" menu + pages: Super Admin + Sklad Manager
-	const canViewWarehouseReport = isSuperAdmin || isSkladManager;
+	// "Omborxona hisobi" menu + pages: Super Admin + Sklad Manager + Manager + Admin
+	const canViewWarehouseReport = isSuperAdmin || isSkladManager || isManager || isAdmin;
 
 	// sklad ("Omborxona hisobi"): Super Admin + Sklad Manager unrestricted;
 	// Sklad Xodim only their own imports; everyone else (Manager, Sotuvchi) read-only.
@@ -94,11 +104,11 @@ export function usePermissions() {
 		return false;
 	}
 
-	// "Omborxona hisobi" edit (Tahrirlash): Super Admin any import; Sklad Manager and Manager only
-	// their own imports dated today; nobody else.
+	// "Omborxona hisobi" edit (Tahrirlash): Super Admin any import; Sklad Manager, Manager and Admin
+	// only their own imports dated today; nobody else.
 	function canEditSkladImport(item: { created_by?: number | null; cr_date?: string | null }) {
 		if (isSuperAdmin) return true;
-		if (!isSkladManager && !isManager) return false;
+		if (!isSkladManager && !isManager && !isAdmin) return false;
 		return currentUserId != null && item.created_by === currentUserId && toIsoDay(item.cr_date) === todayTashkent();
 	}
 
@@ -168,9 +178,14 @@ export function usePermissions() {
 		canViewWarehouseProductsTotal,
 		canSendProductToTelegram,
 		canManageOrderCart,
+		canViewDebtRepaymentDrafts,
+		canViewProductCategories,
+		canEditProductCategories,
+		isAdmin,
 		canDeleteOrders,
 		canManageConsignor,
 		canEditConsignor,
+		hasTopLevelConsignorMenu,
 		canViewMyDebts,
 		canViewClientDebtors,
 		canManageMyDebts,

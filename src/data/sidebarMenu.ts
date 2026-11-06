@@ -102,7 +102,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		icon: 'shipping-fast',
 		label: "Yuk jo'natuvchilar",
 		path: '/system/consignors',
-		requiredPermission: 'isSkladManager',
+		requiredPermission: 'hasTopLevelConsignorMenu',
 	},
 	{
 		id: 'system-management',
@@ -152,11 +152,20 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		children: [
 			{ id: 'clients', icon: 'users', label: 'Mijozlar', path: '/settings/clients', requiredPermission: 'canViewClients' },
 			{
+				// Super Admin has it under "Tizim boshqaruvi"
+				id: 'settings-product-categories',
+				icon: 'layer-group',
+				label: 'Mahsulot toifalari',
+				path: '/system/product-categories',
+				requiredPermission: 'isAdmin',
+			},
+			{
 				id: 'debtors',
 				icon: 'bookmark',
 				label: "Qarzdorlar ro'yxati",
 				path: '/settings/debtors',
-				requiredPermission: 'isSuperAdmin',
+				// Super Admin + Admin (Manager has it as a top-level item instead)
+				requiredPermission: 'canViewClientDebtors',
 			},
 			{
 				id: 'debt-repayments',
@@ -177,7 +186,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: 'receipt',
 				label: "Qarz to'lov karzinka",
 				path: '/settings/debt-repayments-drafts',
-				requiredPermission: 'isSuperAdmin',
+				requiredPermission: 'canViewDebtRepaymentDrafts',
 			},
 		],
 	},
