@@ -18,6 +18,7 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
+import { usePermissions } from '@/lib/permissions';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { generateId } from '@/lib/utils';
@@ -70,14 +71,17 @@ export default function WarehouseAccountEditPage() {
 	const { id } = useParams();
 	const skladId = id ? Number(id) : undefined;
 	const { notify } = useNotification();
-	const { canWrite, isSuperAdmin } = useCurrentCompany();
-
-	useEffect(() => {
-		// Editing an import is Super Admin only.
-		if (!canWrite || !isSuperAdmin) navigate('/warehouse-report', { replace: true });
-	}, [canWrite, isSuperAdmin, navigate]);
+	const { canWrite } = useCurrentCompany();
+	const { roleKey, canEditSkladImport } = usePermissions();
 
 	const { data, isLoading, isError } = useSkladDetailQuery(skladId);
+
+	// Super Admin any import; Sklad Manager / Manager only their own, dated today.
+	// The rule is checked once both the role and the import are loaded.
+	const editDenied = !canWrite || (roleKey != null && data != null && !canEditSkladImport(data));
+	useEffect(() => {
+		if (editDenied) navigate('/warehouse-report', { replace: true });
+	}, [editDenied, navigate]);
 	const { data: skladTypesData } = useSkladTypeListQuery({ limit: 100 });
 	const skladTypes = skladTypesData?.results ?? [];
 

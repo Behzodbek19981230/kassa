@@ -26,6 +26,13 @@ export function getHomePath(roleKey: string | null | undefined) {
 
 const UNRESTRICTED_ROLES: string[] = [ROLE.SUPER_ADMIN, ROLE.MANAGER];
 
+/** "06.11.2026" or "2026-11-06..." -> "2026-11-06" (the sklad list sends the first form). */
+function toIsoDay(value: string | null | undefined) {
+	if (!value) return '';
+	const match = /^(\d{2})\.(\d{2})\.(\d{4})/.exec(value);
+	return match ? `${match[3]}-${match[2]}-${match[1]}` : value.slice(0, 10);
+}
+
 export function usePermissions() {
 	const { data: userInfo } = useUserInfoQuery();
 	const roleKey = userInfo?.roles?.key ?? null;
@@ -85,6 +92,14 @@ export function usePermissions() {
 		if (isSuperAdmin || isSkladManager) return true;
 		if (isSkladXodim) return item.created_by === currentUserId;
 		return false;
+	}
+
+	// "Omborxona hisobi" edit (Tahrirlash): Super Admin any import; Sklad Manager and Manager only
+	// their own imports dated today; nobody else.
+	function canEditSkladImport(item: { created_by?: number | null; cr_date?: string | null }) {
+		if (isSuperAdmin) return true;
+		if (!isSkladManager && !isManager) return false;
+		return currentUserId != null && item.created_by === currentUserId && toIsoDay(item.cr_date) === todayTashkent();
 	}
 
 	// order-account-history / debt-repayment / vozvrat-order / product-account-history:
@@ -166,6 +181,7 @@ export function usePermissions() {
 		canViewWarehouseReport,
 		canViewClients,
 		canEditSklad,
+		canEditSkladImport,
 		canEditOwned,
 		canEditGivenCount,
 		canEditOrder,

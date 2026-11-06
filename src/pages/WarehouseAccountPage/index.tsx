@@ -35,7 +35,7 @@ export default function WarehouseAccountPage() {
    const navigate = useNavigate();
    const { notify } = useNotification();
    const { canWrite } = useCurrentCompany();
-   const { canEditSklad, isSuperAdmin } = usePermissions();
+   const { canEditSklad, canEditSkladImport, isSuperAdmin } = usePermissions();
 
    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
    const [sorting, setSorting] = useState<SortingState>([]);
@@ -206,8 +206,8 @@ export default function WarehouseAccountPage() {
                         <FaCheckSquare />
                      </Button>
                   )}
-                  {/* Edit and delete are Super Admin only. */}
-                  {canWrite && isSuperAdmin && (
+                  {/* Edit: Super Admin any; Sklad Manager / Manager their own, today's. Delete: Super Admin only. */}
+                  {canWrite && canEditSkladImport(row.original) && (
                      <Button
                         type='button'
                         variant='warning'
