@@ -12,18 +12,22 @@ import {
 import { API_BASE_URL, apiClient } from '@/services/api/client'
 
 /*
- * Logs the user out after 10 minutes without real activity (clicks, keys, scroll, touch).
+ * Logs the user out after 15 minutes without real activity (clicks, keys, scroll, touch), the same
+ * limit as the backend.
  * The backend enforces the same limit per session (`sid`); background requests don't extend it,
  * only `POST /auth/activity/`, which is sent at most once a minute while the user is active.
  */
 
-const IDLE_LIMIT_MS = 10 * 60 * 1000
+const IDLE_LIMIT_MS = 15 * 60 * 1000
 const ACTIVITY_PING_INTERVAL_MS = 60 * 1000
 const ACTIVITY_THROTTLE_MS = 5 * 1000
 const CHECK_INTERVAL_MS = 15 * 1000
 const REFRESH_BEFORE_EXPIRY_MS = 2 * 60 * 1000
 
 const ACTIVITY_EVENTS: Array<keyof WindowEventMap> = ['pointerdown', 'keydown', 'scroll', 'touchstart']
+// Capture phase: `scroll` inside modals/tables doesn't bubble to window, and components that call
+// stopPropagation() would otherwise hide clicks and key presses from the idle watcher.
+const ACTIVITY_LISTENER_OPTIONS: AddEventListenerOptions = { capture: true, passive: true }
 
 export type LogoutReason =
   | 'idle_timeout'
@@ -281,7 +285,7 @@ function startSessionWatcher() {
   verifyIdleImmediately()
 
   for (const eventName of ACTIVITY_EVENTS) {
-    window.addEventListener(eventName, onUserActivity, { passive: true })
+    window.addEventListener(eventName, onUserActivity, ACTIVITY_LISTENER_OPTIONS)
   }
   document.addEventListener('visibilitychange', onVisibilityChange)
   window.addEventListener('focus', verifyIdleImmediately)
@@ -308,7 +312,7 @@ function startSessionWatcher() {
   return () => {
     window.clearInterval(timer)
     for (const eventName of ACTIVITY_EVENTS) {
-      window.removeEventListener(eventName, onUserActivity)
+      window.removeEventListener(eventName, onUserActivity, ACTIVITY_LISTENER_OPTIONS)
     }
     document.removeEventListener('visibilitychange', onVisibilityChange)
     window.removeEventListener('focus', verifyIdleImmediately)
