@@ -222,6 +222,7 @@ export default function ImportPage() {
 
    function handleImportConfirmed() {
       setConsignorId('');
+      navigate('/warehouse-report');
    }
 
    return (

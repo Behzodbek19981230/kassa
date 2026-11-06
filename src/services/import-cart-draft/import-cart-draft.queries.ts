@@ -68,6 +68,8 @@ export function useConfirmImportMutation() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: importCartDraftKeys.all });
 			queryClient.invalidateQueries({ queryKey: ['consignors'] });
+			// the confirmed import shows up in "Omborxona hisobi"
+			queryClient.invalidateQueries({ queryKey: ['sklad'] });
 		},
 	});
 }
