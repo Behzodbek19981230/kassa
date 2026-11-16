@@ -61,6 +61,10 @@ import ClientKeshbekHistoryPage from '@/pages/settings/ClientKeshbekHistoryPage'
 import DebtRepaymentPage from '@/pages/settings/DebtRepaymentPage';
 import ClientDebtorPage from '@/pages/settings/ClientDebtorPage';
 import DebtRepaymentDraftPage from '@/pages/settings/DebtRepaymentDraftPage';
+import SoldHistoryPage from '@/pages/settings/SoldHistoryPage';
+import SoldHistoryDayPage from '@/pages/settings/SoldHistoryPage/DayPage';
+import SoldProductsPage from '@/pages/settings/SoldProductsPage';
+import SoldProductsDayPage from '@/pages/settings/SoldProductsPage/DayPage';
 import DebtRepaymentDeleteHistoryPage from '@/pages/DebtRepaymentDeleteHistoryPage';
 import DebtRepaymentDeleteHistoryDetailPage from '@/pages/DebtRepaymentDeleteHistoryDetailPage';
 import TelegramBroadcastPage from '@/pages/TelegramBroadcastPage';
@@ -136,6 +140,11 @@ export default function App() {
 						<Route path='cart-drafts' element={<CartDraftsPage />} />
 					</Route>
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
+					{/* "Sotilgan tovarlar tarixi" / "Sotilgan tovarlar soni": every role with order-account-history access. */}
+					<Route path='settings/sold-history' element={<SoldHistoryPage />} />
+					<Route path='settings/sold-history/:date' element={<SoldHistoryDayPage />} />
+					<Route path='settings/sold-products' element={<SoldProductsPage />} />
+					<Route path='settings/sold-products/:date' element={<SoldProductsDayPage />} />
 					<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
 					<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
 					<Route element={<OrderAndDebtRoute />}>
