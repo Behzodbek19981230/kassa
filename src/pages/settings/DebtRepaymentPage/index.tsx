@@ -174,6 +174,13 @@ export default function DebtRepaymentPage() {
 			size: 120,
 			cell: (info) => formatNumber(info.getValue(), 2),
 		}),
+		columnHelper.display({
+			id: 'zdacha',
+			header: 'Qaytim',
+			size: 150,
+			cell: ({ row }) =>
+				`${formatNumber(row.original.zdacha_sum)} so'm / ${formatNumber(row.original.zdacha_dollar, 2)} $`,
+		}),
 		columnHelper.accessor('total_debt_old', {
 			header: 'Eski qarz ($)',
 			size: 120,

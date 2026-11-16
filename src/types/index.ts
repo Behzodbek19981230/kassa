@@ -50,6 +50,7 @@ export interface SidebarMenuPermissions {
 	canViewOrderAndDebt: boolean;
 	canViewMyDebts: boolean;
 	canViewClientDebtors: boolean;
+	canViewSoldHistory: boolean;
 	/** True for the Manager role, which only gets a trimmed-down "Tizim boshqaruvi"/"Sozlamalar". */
 	isManager: boolean;
 	isNotManager: boolean;

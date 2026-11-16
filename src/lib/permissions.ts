@@ -75,6 +75,9 @@ export function usePermissions() {
 	// "Qarzdorlar ro'yxati" (/settings/debtors, read-only): Super Admin + Admin under "Sozlamalar", Manager as its own menu item.
 	const canViewClientDebtors = isSuperAdmin || isManager || isAdmin;
 
+	// "Sotilgan tovarlar tarixi": Super Admin + Admin under "Sozlamalar", Manager as its own menu item.
+	const canViewSoldHistory = isSuperAdmin || isManager || isAdmin;
+
 	// "Mening qarzlarim" menu + pages: Super Admin + Sklad Manager; add / edit / delete stay Super Admin only.
 	const canViewMyDebts = isSuperAdmin || isSkladManager;
 	const canManageMyDebts = isSuperAdmin;
@@ -188,6 +191,7 @@ export function usePermissions() {
 		hasTopLevelConsignorMenu,
 		canViewMyDebts,
 		canViewClientDebtors,
+		canViewSoldHistory,
 		canManageMyDebts,
 		isSkladManager,
 		canManageWarehouse,

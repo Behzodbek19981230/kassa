@@ -4,6 +4,7 @@ import { useKeyboardInsetCssVar } from '@/lib/useDropdownPlacement';
 import { useSessionWatcher } from '@/lib/session';
 import ImportRoute from '@/components/auth/ImportRoute';
 import DebtRepaymentDraftRoute from '@/components/auth/DebtRepaymentDraftRoute';
+import SoldHistoryRoute from '@/components/auth/SoldHistoryRoute';
 import ProductCategoriesRoute from '@/components/auth/ProductCategoriesRoute';
 import OrderCartRoute from '@/components/auth/OrderCartRoute';
 import WarehouseReportRoute from '@/components/auth/WarehouseReportRoute';
@@ -140,11 +141,16 @@ export default function App() {
 						<Route path='cart-drafts' element={<CartDraftsPage />} />
 					</Route>
 					<Route path='customer-order-history' element={<CustomerOrderHistoryPage />} />
-					{/* "Sotilgan tovarlar tarixi" / "Sotilgan tovarlar soni": every role with order-account-history access. */}
-					<Route path='settings/sold-history' element={<SoldHistoryPage />} />
-					<Route path='settings/sold-history/:date' element={<SoldHistoryDayPage />} />
-					<Route path='settings/sold-products' element={<SoldProductsPage />} />
-					<Route path='settings/sold-products/:date' element={<SoldProductsDayPage />} />
+					{/* "Sotilgan tovarlar tarixi": Super Admin, Admin, Manager. */}
+					<Route element={<SoldHistoryRoute />}>
+						<Route path='settings/sold-history' element={<SoldHistoryPage />} />
+						<Route path='settings/sold-history/:date' element={<SoldHistoryDayPage />} />
+					</Route>
+					{/* "Sotilgan tovarlar soni": Super Admin only. */}
+					<Route element={<SuperAdminRoute />}>
+						<Route path='settings/sold-products' element={<SoldProductsPage />} />
+						<Route path='settings/sold-products/:date' element={<SoldProductsDayPage />} />
+					</Route>
 					<Route path='customer-order-history/:id' element={<OrderAccountHistoryDetailPage />} />
 					<Route path='customer-order-history/:id/edit' element={<OrderAccountHistoryEditPage />} />
 					<Route element={<OrderAndDebtRoute />}>

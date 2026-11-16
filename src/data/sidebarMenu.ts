@@ -47,6 +47,13 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		path: '/settings/debtors',
 		requiredPermission: 'isManager',
 	},
+	{
+		id: 'sold-history-top',
+		icon: 'history',
+		label: 'Sotilgan tovarlar tarixi',
+		path: '/settings/sold-history',
+		requiredPermission: 'isManager',
+	},
 	{ id: 'import', icon: 'truck', label: 'Import qilish', path: '/import', requiredPermission: 'canImport' },
 	{
 		id: 'two-stage-import',
@@ -174,8 +181,21 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				path: '/settings/debt-repayments',
 				requiredPermission: 'isSuperAdmin',
 			},
-			{ id: 'sold-history', icon: 'history', label: 'Sotilgan tovarlar tarixi', path: '/settings/sold-history' },
-			{ id: 'sold-products', icon: 'chart-bar', label: 'Sotilgan tovarlar soni', path: '/settings/sold-products' },
+			{
+				// Super Admin + Admin (Manager has it as a top-level item instead)
+				id: 'sold-history',
+				icon: 'history',
+				label: 'Sotilgan tovarlar tarixi',
+				path: '/settings/sold-history',
+				requiredPermission: 'canViewSoldHistory',
+			},
+			{
+				id: 'sold-products',
+				icon: 'chart-bar',
+				label: 'Sotilgan tovarlar soni',
+				path: '/settings/sold-products',
+				requiredPermission: 'isSuperAdmin',
+			},
 			{
 				id: 'order-cart-drafts',
 				icon: 'cart',
