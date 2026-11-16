@@ -190,6 +190,10 @@ export default function OrderAccountHistoryEditPage() {
       (Number(watch('sum_som')) || 0) + (Number(watch('sum_cart')) || 0) + (Number(watch('sum_transfers')) || 0);
    const paidDollar = (Number(watch('sum_dollar')) || 0) + (rate > 0 ? somTotal / rate : 0);
    const coveredDollar = paidDollar + (Number(watch('discount_amount')) || 0);
+   // Change handed back to the client was not kept as payment, so it raises the remaining amount.
+   const changeDollar =
+      (Number(watch('zdacha_dollar')) || 0) + (rate > 0 ? (Number(watch('zdacha_sum')) || 0) / rate : 0);
+   const remaining = rowsTotal - coveredDollar + changeDollar;
 
    const updateSaleMutation = useUpdateSaleOrderAccountHistoryMutation();
    const isSaving = updateSaleMutation.isPending;
@@ -429,7 +433,7 @@ export default function OrderAccountHistoryEditPage() {
                   </FormField>
                </div>
 
-               <div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2'>
+               <div className='mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3'>
                   <FormField label='Qaytim ($)' horizontal={false} className='mb-0'>
                      <Controller
                         name='zdacha_dollar'
@@ -443,6 +447,18 @@ export default function OrderAccountHistoryEditPage() {
                         control={control}
                         render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} />}
                      />
+                  </FormField>
+                  <FormField label='Qoldiq ($)' horizontal={false} className='mb-0'>
+                     <div
+                        className={`flex h-10 items-center rounded-[3px] border border-ca-border bg-ca-silver px-3 text-sm font-bold lg:h-[34px] ${remaining > 0 ? 'text-ca-red' : 'text-ca-green'}`}
+                     >
+                        {formatNumber(remaining, 2)}$
+                        {rate > 0 && (
+                           <span className='ml-1 text-xs font-normal text-ca-text'>
+                              ({formatNumber(remaining * rate, 0)})
+                           </span>
+                        )}
+                     </div>
                   </FormField>
                </div>
 

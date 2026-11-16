@@ -96,12 +96,16 @@ export default function ConfirmSaleModal({
 	const sumSom = watch('sum_som');
 	const sumCart = watch('sum_cart');
 	const sumTransfers = watch('sum_transfers');
+	const zdachaDollar = watch('zdacha_dollar');
+	const zdachaSum = watch('zdacha_sum');
 
 	// Som, card and transfer amounts are in so'm, so they are converted to dollars by the rate.
 	const somTotal = (Number(sumSom) || 0) + (Number(sumCart) || 0) + (Number(sumTransfers) || 0);
 	const paidDollar = (Number(sumDollar) || 0) + (rate > 0 ? somTotal / rate : 0);
 	const coveredDollar = paidDollar + (Number(discountAmount) || 0);
-	const remaining = allSummDollar - coveredDollar;
+	// Change handed back to the client was not kept as payment, so it raises the remaining amount.
+	const changeDollar = (Number(zdachaDollar) || 0) + (rate > 0 ? (Number(zdachaSum) || 0) / rate : 0);
+	const remaining = allSummDollar - coveredDollar + changeDollar;
 
 	const confirmSaleMutation = useConfirmSaleMutation();
 
