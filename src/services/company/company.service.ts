@@ -11,6 +11,7 @@ function buildCompanyFormData(payload: CompanyPayload, logo?: File | null) {
   formData.append('district', String(payload.district))
   formData.append('address', payload.address)
   formData.append('is_active', String(payload.is_active))
+  formData.append('is_logistika', String(payload.is_logistika))
   formData.append('telegram_bot_username', payload.telegram_bot_username ?? '')
   formData.append('telegram_channel_url', payload.telegram_channel_url ?? '')
   formData.append('instagram_url', payload.instagram_url ?? '')

@@ -59,7 +59,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		id: 'two-stage-import',
 		icon: 'shipping-fast',
 		label: 'Logistika',
-		requiredPermission: 'isSuperAdmin',
+		requiredPermission: 'canViewLogistika',
 		children: [
 			{ id: 'two-stage-orders', icon: 'history', label: 'Logistika tarixi', path: '/two-stage-import/orders' },
 			{
@@ -138,7 +138,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: 'shipping-fast',
 				label: 'Logistika firmalari',
 				path: '/system/logistics-companies',
-				requiredPermission: 'isSuperAdmin',
+				requiredPermission: 'canViewLogistika',
 			},
 			{
 				id: 'users',

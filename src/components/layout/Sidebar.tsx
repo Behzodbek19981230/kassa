@@ -379,7 +379,7 @@ function MenuItem({ item, pathname, expanded, onToggle, onNavigate, minified }: 
 
 export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile, onReload }: SidebarProps) {
    const { pathname } = useLocation();
-   const { isAdminOrManager, isSuperAdmin } = useCurrentCompany();
+   const { isAdminOrManager, isSuperAdmin, isLogistika } = useCurrentCompany();
    const {
       canManageConsignor,
       isAdmin,
@@ -404,6 +404,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile,
          filterMenuByPermissions(sidebarMenu, {
             isAdminOrManager,
             isSuperAdmin,
+            canViewLogistika: isSuperAdmin && isLogistika,
             canManageConsignor,
             isAdmin,
             isSkladManager,
@@ -426,6 +427,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile,
       [
          isAdminOrManager,
          isSuperAdmin,
+         isLogistika,
          canManageConsignor,
          isAdmin,
          isSkladManager,

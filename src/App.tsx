@@ -11,6 +11,7 @@ import WarehouseReportRoute from '@/components/auth/WarehouseReportRoute';
 import ClientsRoute from '@/components/auth/ClientsRoute';
 import WarehousePricesRoute from '@/components/auth/WarehousePricesRoute';
 import SuperAdminRoute from '@/components/auth/SuperAdminRoute';
+import LogistikaRoute from '@/components/auth/LogistikaRoute';
 import WarehouseProductsRoute from '@/components/auth/WarehouseProductsRoute';
 import OrderAndDebtRoute from '@/components/auth/OrderAndDebtRoute';
 import ConsignorRoute from '@/components/auth/ConsignorRoute';
@@ -104,16 +105,18 @@ export default function App() {
 						<Route path='import' element={<ImportPage />} />
 					</Route>
 					<Route element={<SuperAdminRoute />}>
-						<Route path='two-stage-import/china-dispatch' element={<ChinaDispatchPage />} />
-						<Route path='two-stage-import/orders' element={<ImportOrdersPage />} />
-						<Route path='two-stage-import/orders/:id' element={<ImportOrderProductsPage />} />
-						<Route path='two-stage-import/orders/:id/edit' element={<ImportOrderEditPage />} />
-						<Route path='two-stage-import/transit-stock' element={<LogisticsPartnersPage />} />
-						<Route path='two-stage-import/transit-stock/:id' element={<LogisticsPartnerStockPage />} />
-						<Route path='two-stage-import/transit-dispatch' element={<UzbekistanDispatchPage />} />
-						<Route path='two-stage-import/uzbekistan-in-road' element={<UzbekistanInRoadPage />} />
-						<Route path='two-stage-import/debts' element={<LogisticsDebtPage />} />
-						<Route path='two-stage-import/china-debts' element={<ChinaDebtPage />} />
+						<Route element={<LogistikaRoute />}>
+							<Route path='two-stage-import/china-dispatch' element={<ChinaDispatchPage />} />
+							<Route path='two-stage-import/orders' element={<ImportOrdersPage />} />
+							<Route path='two-stage-import/orders/:id' element={<ImportOrderProductsPage />} />
+							<Route path='two-stage-import/orders/:id/edit' element={<ImportOrderEditPage />} />
+							<Route path='two-stage-import/transit-stock' element={<LogisticsPartnersPage />} />
+							<Route path='two-stage-import/transit-stock/:id' element={<LogisticsPartnerStockPage />} />
+							<Route path='two-stage-import/transit-dispatch' element={<UzbekistanDispatchPage />} />
+							<Route path='two-stage-import/uzbekistan-in-road' element={<UzbekistanInRoadPage />} />
+							<Route path='two-stage-import/debts' element={<LogisticsDebtPage />} />
+							<Route path='two-stage-import/china-debts' element={<ChinaDebtPage />} />
+						</Route>
 						<Route path='settings/debt-repayments' element={<DebtRepaymentPage />} />
 						<Route path='settings/debt-repayments-drafts/deleted' element={<DebtRepaymentDeleteHistoryPage />} />
 						<Route
@@ -183,8 +186,10 @@ export default function App() {
 						<Route path='system/locations' element={<LocationPage />} />
 						<Route path='system/sklad-types' element={<SkladTypePage />} />
 						<Route path='system/countries' element={<CountryPage />} />
-						<Route path='system/logistics-companies' element={<LogisticsCompanyPage />} />
-						<Route path='system/logistics-warehouses' element={<LogisticsWarehousePage />} />
+						<Route element={<LogistikaRoute />}>
+							<Route path='system/logistics-companies' element={<LogisticsCompanyPage />} />
+							<Route path='system/logistics-warehouses' element={<LogisticsWarehousePage />} />
+						</Route>
 					</Route>
 					<Route element={<WarehousePricesRoute />}>
 						<Route path='warehouse-prices' element={<WarehousePage />} />

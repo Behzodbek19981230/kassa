@@ -21,6 +21,8 @@ export interface UserCompanyDetail {
 	id: number;
 	name: string;
 	logo: string | null;
+	/** false → the company doesn't use Logistika: its menu and the yuan rate are hidden. */
+	is_logistika?: boolean;
 }
 
 export interface User {

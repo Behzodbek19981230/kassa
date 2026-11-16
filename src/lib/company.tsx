@@ -3,6 +3,7 @@ import { useExchangeRateQuery } from '@/services/exchange-rate/exchange-rate.que
 import type { ExchangeRateItem } from '@/services/exchange-rate/exchange-rate.types';
 import { useYuanExchangeRateQuery } from '@/services/yuan-exchange-rate/yuan-exchange-rate.queries';
 import type { YuanExchangeRateItem } from '@/services/yuan-exchange-rate/yuan-exchange-rate.types';
+import { useCompanyQuery } from '@/services/company/company.queries';
 import { useUpdateUserMutation, useUserInfoQuery } from '@/services/user/user.queries';
 import { getUserTypeSkladIds, type UserPayload } from '@/services/user/user.types';
 import { ROLE } from '@/lib/permissions';
@@ -38,6 +39,10 @@ interface CompanyContextValue {
 	yuanExchangeRate: YuanExchangeRateItem | null;
 	/** Whether today's yuan rate is set — only gates the Logistika pages, not the rest of the app. */
 	isYuanExchangeRateSet: boolean;
+	/** Whether the current company uses Logistika (company.is_logistika); when false the Logistika menu/pages and the yuan rate are hidden. */
+	isLogistika: boolean;
+	/** True while is_logistika is still being fetched (isLogistika is false meanwhile). */
+	isLogistikaLoading: boolean;
 }
 
 const CompanyContext = createContext<CompanyContextValue | null>(null);
@@ -112,9 +117,22 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 	// wait for a real answer.
 	const isExchangeRateSet = companyId == null || isExchangeRateLoading || exchangeRate?.status === true;
 
-	const { data: yuanExchangeRate, isLoading: isYuanExchangeRateLoading } = useYuanExchangeRateQuery(companyId);
+	// is_logistika of the current company: taken from userInfo's company details when the backend
+	// sends it there, otherwise from the company itself (Logistika is Super Admin only, who may read it).
+	const isLogistikaFromUser = [userInfo?.current_company_detail, userInfo?.trade_company_detail, ...(userInfo?.companies_detail ?? [])]
+		.find((c) => c != null && c.id === companyId)?.is_logistika;
+	const needsCompanyFetch = isSuperAdmin && companyId != null && isLogistikaFromUser === undefined;
+	const { data: companyDetail, isLoading: isCompanyDetailLoading } = useCompanyQuery(needsCompanyFetch ? companyId : null);
+	// Hidden until known (so the menu doesn't flash), and only an explicit false hides it.
+	const isLogistikaLoading = isLogistikaFromUser === undefined && needsCompanyFetch && isCompanyDetailLoading;
+	const isLogistika = isLogistikaFromUser ?? (isLogistikaLoading ? false : companyDetail?.is_logistika !== false);
+
+	// No yuan rate for a company without Logistika — the query stays disabled, so nothing is locked on it.
+	const { data: yuanExchangeRate, isLoading: isYuanExchangeRateLoading } = useYuanExchangeRateQuery(
+		isLogistika ? companyId : null,
+	);
 	const isYuanExchangeRateSet =
-		companyId == null || isYuanExchangeRateLoading || yuanExchangeRate?.status === true;
+		!isLogistika || companyId == null || isYuanExchangeRateLoading || yuanExchangeRate?.status === true;
 
 	const canWrite = (!isAdminOrManager || companyId === ownCompanyId) && isExchangeRateSet;
 
@@ -134,6 +152,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 			isExchangeRateSet,
 			yuanExchangeRate: yuanExchangeRate ?? null,
 			isYuanExchangeRateSet,
+			isLogistika,
+			isLogistikaLoading,
 		}),
 		[
 			companyId,
@@ -146,6 +166,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 			isExchangeRateSet,
 			yuanExchangeRate,
 			isYuanExchangeRateSet,
+			isLogistika,
+			isLogistikaLoading,
 			ownCompany,
 			showCompanySelect,
 			canWrite,

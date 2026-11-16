@@ -33,6 +33,8 @@ export type SidebarIcon =
 export interface SidebarMenuPermissions {
 	isAdminOrManager: boolean;
 	isSuperAdmin: boolean;
+	/** Super Admin on a company with is_logistika: the "Logistika" menu and "Logistika firmalari". */
+	canViewLogistika: boolean;
 	/** Admin gets "Mahsulot toifalari" under "Sozlamalar" (Super Admin has it under "Tizim boshqaruvi"). */
 	isAdmin: boolean;
 	canManageConsignor: boolean;

@@ -34,6 +34,7 @@ const companyFormSchema = z.object({
 	district: z.string().min(1, 'Tuman tanlanishi shart'),
 	address: z.string().min(1, 'Manzil kiritilishi shart'),
 	active: z.boolean(),
+	is_logistika: z.boolean(),
 	telegram_bot_username: z.string(),
 	telegram_channel_url: z.string(),
 	instagram_url: z.string(),
@@ -76,6 +77,7 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 						district: item.district ? String(item.district) : '',
 						address: item.address,
 						active: item.is_active,
+						is_logistika: item.is_logistika ?? true,
 						telegram_bot_username: item.telegram_bot_username ?? '',
 						telegram_channel_url: item.telegram_channel_url ?? '',
 						instagram_url: item.instagram_url ?? '',
@@ -89,6 +91,7 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 						district: '',
 						address: '',
 						active: true,
+						is_logistika: true,
 						telegram_bot_username: '',
 						telegram_channel_url: '',
 						instagram_url: '',
@@ -152,6 +155,7 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 			district: Number(values.district),
 			address: values.address.trim(),
 			is_active: values.active,
+			is_logistika: values.is_logistika,
 			telegram_bot_username: values.telegram_bot_username.trim(),
 			telegram_channel_url: values.telegram_channel_url.trim(),
 			instagram_url: values.instagram_url.trim(),
@@ -335,6 +339,18 @@ export default function CompanyFormModal({ open, setOpen, mode, item }: CompanyF
 								<Checkbox
 									inline
 									label='Faol'
+									checked={field.value}
+									onCheckedChange={(v) => field.onChange(!!v)}
+								/>
+							)}
+						/>
+						<Controller
+							name='is_logistika'
+							control={control}
+							render={({ field }) => (
+								<Checkbox
+									inline
+									label='Logistika'
 									checked={field.value}
 									onCheckedChange={(v) => field.onChange(!!v)}
 								/>

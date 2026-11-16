@@ -14,6 +14,8 @@ export interface Company {
   district_detail?: { id: number; name: string } | null
   address: string
   is_active: boolean
+  /** false → the company doesn't use Logistika: its menu and the yuan rate are hidden. */
+  is_logistika: boolean
   telegram_bot_username: string | null
   telegram_channel_url: string | null
   instagram_url: string | null
@@ -28,6 +30,7 @@ export interface CompanyPayload {
   district: number
   address: string
   is_active: boolean
+  is_logistika: boolean
   telegram_bot_username?: string
   telegram_channel_url?: string
   instagram_url?: string

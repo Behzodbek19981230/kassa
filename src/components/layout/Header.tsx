@@ -99,6 +99,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
       isExchangeRateSet,
       yuanExchangeRate,
       isYuanExchangeRateSet,
+      isLogistika,
    } = useCurrentCompany();
    const { canConfirmClients, canSendTelegramBroadcast } = usePermissions();
    const currentCompany = companies.find((c) => c.id === companyId);
@@ -256,8 +257,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                         </button>
                      </Tooltip>
 
-                     {/* The yuan rate is Super Admin only — hidden from every other role. */}
-                     {isSuperAdmin && (
+                     {/* The yuan rate is Super Admin only, and only for a company with Logistika (is_logistika). */}
+                     {isSuperAdmin && isLogistika && (
                         <Tooltip
                            side='bottom'
                            content={
