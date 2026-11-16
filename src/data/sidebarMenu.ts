@@ -174,6 +174,8 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				path: '/settings/debt-repayments',
 				requiredPermission: 'isSuperAdmin',
 			},
+			{ id: 'sold-history', icon: 'history', label: 'Sotilgan tovarlar tarixi', path: '/settings/sold-history' },
+			{ id: 'sold-products', icon: 'chart-bar', label: 'Sotilgan tovarlar soni', path: '/settings/sold-products' },
 			{
 				id: 'order-cart-drafts',
 				icon: 'cart',
@@ -188,8 +190,6 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				path: '/settings/debt-repayments-drafts',
 				requiredPermission: 'canViewDebtRepaymentDrafts',
 			},
-			{ id: 'sold-history', icon: 'history', label: 'Sotilgan tovarlar tarixi', path: '/settings/sold-history' },
-			{ id: 'sold-products', icon: 'chart-bar', label: 'Sotilgan tovarlar soni', path: '/settings/sold-products' },
 		],
 	},
 ];

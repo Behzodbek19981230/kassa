@@ -27,7 +27,7 @@ import {
 	useDebtRepaymentQuery,
 	useUpdateDebtRepaymentMutation,
 } from '@/services/debt-repayment/debt-repayment.queries';
-import type { DebtRepayment, DebtRepaymentPayload } from '@/services/debt-repayment/debt-repayment.types';
+import type { DebtRepayment, DebtRepaymentPayload } from '@/services/debt-repayment/debt-repayment.types';
 import { getApiErrorMessage } from '@/lib/errors';
 
 const debtRepaymentFormSchema = z.object({
@@ -144,13 +144,18 @@ export default function DebtRepaymentFormModal({
 	const sumTransfers = watch('sum_transfers');
 	const discountAmount = watch('discount_amount');
 	const exchangeRate = watch('exchange_rate');
+	const zdachaSum = watch('zdacha_sum');
+	const zdachaDollar = watch('zdacha_dollar');
 
 	useEffect(() => {
 		const rate = Number(exchangeRate) || 0;
 		const somTotal = (Number(sumSom) || 0) + (Number(summCart) || 0) + (Number(sumTransfers) || 0);
-		const total = (rate > 0 ? somTotal / rate : 0) + (Number(summDollar) || 0) + (Number(discountAmount) || 0);
+		// Change handed back to the client was not kept as payment, so it is taken off the total (same as the sale modal).
+		const changeDollar = (Number(zdachaDollar) || 0) + (rate > 0 ? (Number(zdachaSum) || 0) / rate : 0);
+		const total =
+			(rate > 0 ? somTotal / rate : 0) + (Number(summDollar) || 0) + (Number(discountAmount) || 0) - changeDollar;
 		setValue('all_summ_dollar', total.toFixed(2));
-	}, [sumSom, summDollar, summCart, sumTransfers, discountAmount, exchangeRate, setValue]);
+	}, [sumSom, summDollar, summCart, sumTransfers, discountAmount, zdachaSum, zdachaDollar, exchangeRate, setValue]);
 
 	const createMutation = useCreateDebtRepaymentMutation();
 	const updateMutation = useUpdateDebtRepaymentMutation();

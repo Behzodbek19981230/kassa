@@ -112,8 +112,8 @@ export default function SoldProductsPage() {
 				subtitle='Tovarni va periodni tanlang — har kuni nechta sotilgani skladlar kesimida chiqadi'
 			/>
 
-			<Card className='mb-3'>
-				<div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4'>
+			<Card className='mb-4 p-4'>
+				<div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
 					<label>
 						<FieldLabel>Model</FieldLabel>
 						<Combobox
@@ -161,7 +161,7 @@ export default function SoldProductsPage() {
 					</label>
 				</div>
 
-				<div className='mt-2 flex flex-wrap items-end gap-2'>
+				<div className='mt-3 flex flex-wrap items-end gap-3'>
 					<div>
 						<FieldLabel>Period</FieldLabel>
 						<div className='flex flex-wrap gap-1'>
@@ -171,7 +171,7 @@ export default function SoldProductsPage() {
 									type='button'
 									onClick={() => setDraft((f) => ({ ...f, ...presetRange(p.id) }))}
 									className={cn(
-										'h-[30px] rounded-full border px-2.5 text-[11px] font-medium transition-colors',
+										'h-[30px] rounded-full border px-3 text-xs font-medium transition-colors',
 										activePreset === p.id
 											? 'border-ca-theme bg-ca-theme/10 text-ca-theme'
 											: 'border-ca-border text-ca-heading hover:bg-ca-silver',
@@ -205,15 +205,15 @@ export default function SoldProductsPage() {
 			</Card>
 
 			{!searched ? (
-				<div className='flex items-center gap-3 rounded-lg border border-dashed border-ca-border px-3 py-3 text-xs text-ca-text'>
+				<div className='flex items-center gap-3 rounded-lg border border-dashed border-ca-border px-4 py-3.5 text-sm text-ca-text'>
 					<FaChartLine className='shrink-0 text-base text-ca-theme' />
 					Model va nomni tanlab "Qidirish" ni bosing. O'lcham va type bo'sh qolsa, shu tovarning barcha o'lcham va
 					turlari hisoblanadi.
 				</div>
 			) : query.isLoading ? (
-				<div className='grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6'>
+				<div className='grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'>
 					{Array.from({ length: 12 }, (_, i) => (
-						<Skeleton key={i} className='h-[72px] rounded-md' />
+						<Skeleton key={i} className='h-[92px] rounded-lg' />
 					))}
 				</div>
 			) : query.isError ? (
@@ -235,40 +235,40 @@ function Results({ data, onOpenDay }: { data: SoldProductsResponse; onOpenDay: (
 	const { filters, totals, results } = data;
 	return (
 		<>
-			<Card className='mb-3'>
-				<div className='flex flex-wrap items-end gap-x-5 gap-y-2'>
+			<Card className='mb-4 p-4'>
+				<div className='flex flex-wrap items-end gap-x-6 gap-y-3'>
 					<div>
-						<div className='text-xs font-semibold text-ca-heading'>{productTitle(filters)}</div>
-						<div className='text-[10px] text-ca-text'>
+						<div className='text-base font-semibold text-ca-heading'>{productTitle(filters)}</div>
+						<div className='text-xs text-ca-text'>
 							{formatDate(filters.start_date)} — {formatDate(filters.end_date)} · {results.length} kun
 						</div>
 					</div>
-					<div className='border-l border-ca-border pl-5'>
-						<div className='text-[10px] text-ca-text'>Jami sotilgan</div>
-						<div className='text-2xl leading-7 font-bold text-ca-theme tabular-nums'>{formatNumber(totals.count)}</div>
+					<div className='border-l border-ca-border pl-6'>
+						<div className='text-xs text-ca-text'>Jami sotilgan</div>
+						<div className='text-3xl leading-9 font-bold text-ca-theme tabular-nums'>{formatNumber(totals.count)}</div>
 					</div>
 					{totals.sklads.map((sklad, i) => (
-						<div key={`${sklad.name}-${i}`} className='border-l border-ca-border pl-5'>
-							<div className='flex items-center gap-1 text-[10px] text-ca-text'>
-								<span className='h-2 w-2 rounded-sm' style={{ background: skladColor(i) }} />
+						<div key={`${sklad.name}-${i}`} className='border-l border-ca-border pl-6'>
+							<div className='flex items-center gap-1.5 text-xs text-ca-text'>
+								<span className='h-2.5 w-2.5 rounded-sm' style={{ background: skladColor(i) }} />
 								{sklad.name}
 							</div>
-							<div className='text-base leading-6 font-bold text-ca-heading tabular-nums'>
+							<div className='text-xl leading-7 font-bold text-ca-heading tabular-nums'>
 								{formatNumber(sklad.count)}{' '}
-								<span className='text-[10px] font-medium text-ca-text'>
+								<span className='text-xs font-medium text-ca-text'>
 									{totals.count ? Math.round((sklad.count / totals.count) * 100) : 0}%
 								</span>
 							</div>
 						</div>
 					))}
 				</div>
-				<SkladBar sklads={totals.sklads} total={totals.count} className='mt-2 h-2' />
+				<SkladBar sklads={totals.sklads} total={totals.count} className='mt-3 h-2.5' />
 			</Card>
 
 			{results.length === 0 ? (
 				<EmptyState>Sotuv topilmadi — tanlangan periodda bu tovar sotilmagan.</EmptyState>
 			) : (
-				<div className='grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6'>
+				<div className='grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'>
 					{results.map((day) => (
 						<DayCard key={day.date} day={day} onClick={() => onOpenDay(day.date)} />
 					))}
@@ -283,20 +283,20 @@ function DayCard({ day, onClick }: { day: SoldProductsDayItem; onClick: () => vo
 		<button
 			type='button'
 			onClick={onClick}
-			className='rounded-md border border-ca-border bg-ca-silver-light px-2.5 py-2 text-left transition-colors hover:border-ca-theme hover:bg-ca-table-hover'
+			className='rounded-lg border border-ca-border bg-ca-silver-light px-3 py-2.5 text-left transition-colors hover:border-ca-theme hover:bg-ca-table-hover'
 		>
 			<div className='flex items-start justify-between gap-2'>
 				<div className='min-w-0'>
-					<div className='truncate text-xs font-semibold text-ca-heading'>{day.date_label}</div>
-					<div className='truncate text-[10px] text-ca-text'>{parseIsoDay(day.date).weekday}</div>
+					<div className='truncate text-sm font-semibold text-ca-heading'>{day.date_label}</div>
+					<div className='truncate text-xs text-ca-text'>{parseIsoDay(day.date).weekday}</div>
 				</div>
-				<div className='text-lg leading-5 font-bold text-ca-theme tabular-nums'>{formatNumber(day.count)}</div>
+				<div className='text-2xl leading-7 font-bold text-ca-theme tabular-nums'>{formatNumber(day.count)}</div>
 			</div>
-			<SkladBar sklads={day.sklads} total={day.count} className='my-1.5 h-1' />
-			<div className='flex flex-wrap gap-x-2 text-[10px] text-ca-text'>
+			<SkladBar sklads={day.sklads} total={day.count} className='my-2 h-1.5' />
+			<div className='flex flex-wrap gap-x-3 text-xs text-ca-text'>
 				{day.sklads.map((sklad, i) => (
 					<span key={`${sklad.name}-${i}`} className='flex items-center gap-1'>
-						<span className='h-1.5 w-1.5 rounded-sm' style={{ background: skladColor(i) }} />
+						<span className='h-2 w-2 rounded-sm' style={{ background: skladColor(i) }} />
 						{sklad.name}: <b className='text-ca-heading'>{sklad.count}</b>
 					</span>
 				))}

@@ -58,22 +58,22 @@ export function StatTiles({
 	tone?: 'theme' | 'red';
 }) {
 	return (
-		<div className='grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7'>
+		<div className='grid grid-cols-2 gap-2.5 sm:grid-cols-4 xl:grid-cols-7'>
 			{items.map((item) => (
-				<div key={item.label} className='rounded-md border border-ca-border bg-ca-silver px-2.5 py-1.5'>
-					<div className='truncate text-[10px] text-ca-text'>{item.label}</div>
-					<div className='truncate text-sm font-semibold text-ca-heading tabular-nums'>{item.value}</div>
+				<div key={item.label} className='rounded-lg border border-ca-border bg-ca-silver px-3 py-2.5'>
+					<div className='truncate text-[11px] text-ca-text'>{item.label}</div>
+					<div className='mt-0.5 truncate text-base font-semibold text-ca-heading tabular-nums'>{item.value}</div>
 				</div>
 			))}
 			{highlight && (
 				<div
 					className={cn(
-						'col-span-2 rounded-md px-2.5 py-1.5 text-white sm:col-span-4 xl:col-span-1',
+						'col-span-2 rounded-lg px-3 py-2.5 text-white sm:col-span-4 xl:col-span-1',
 						tone === 'red' ? 'bg-ca-red' : 'bg-ca-theme',
 					)}
 				>
-					<div className='truncate text-[10px] opacity-90'>{highlight.label}</div>
-					<div className='truncate text-sm font-bold tabular-nums'>{highlight.value}</div>
+					<div className='truncate text-[11px] opacity-90'>{highlight.label}</div>
+					<div className='mt-0.5 truncate text-lg leading-6 font-bold tabular-nums'>{highlight.value}</div>
 				</div>
 			)}
 		</div>
@@ -123,7 +123,7 @@ export function ErrorState({ children }: { children: ReactNode }) {
 /** Field label above a control, same scale as the filter rows across the app. */
 export function FieldLabel({ children, hint }: { children: ReactNode; hint?: string }) {
 	return (
-		<span className='mb-1 block text-[11px] font-medium text-ca-heading'>
+		<span className='mb-1 block text-xs font-medium text-ca-heading'>
 			{children}
 			{hint && <span className='ml-1 font-normal text-ca-text'>{hint}</span>}
 		</span>

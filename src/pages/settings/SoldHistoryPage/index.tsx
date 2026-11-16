@@ -103,9 +103,9 @@ export default function SoldHistoryPage() {
 
 			<Card>
 				{isLoading ? (
-					<div className='grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7'>
+					<div className='grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'>
 						{Array.from({ length: 14 }, (_, i) => (
-							<Skeleton key={i} className='h-12 rounded-md' />
+							<Skeleton key={i} className='h-[68px] rounded-lg' />
 						))}
 					</div>
 				) : isError ? (
@@ -116,10 +116,10 @@ export default function SoldHistoryPage() {
 					<div className='space-y-3'>
 						{groupByMonth(results).map((group) => (
 							<div key={group.label}>
-								<div className='mb-1.5 text-[10px] font-semibold tracking-wider text-ca-text uppercase'>
+								<div className='mb-2 text-[11px] font-semibold tracking-wider text-ca-text uppercase'>
 									{group.label}
 								</div>
-								<div className='grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7'>
+								<div className='grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'>
 									{group.items.map((item) => (
 										<DateCard key={item.date} item={item} onClick={() => openDay(item.date)} />
 									))}
@@ -141,21 +141,22 @@ function DateCard({ item, onClick }: { item: SoldDateItem; onClick: () => void }
 		<button
 			type='button'
 			onClick={onClick}
-			className='group flex items-center gap-2 rounded-md border border-ca-border bg-ca-silver-light px-2 py-1.5 text-left transition-colors hover:border-ca-theme hover:bg-ca-table-hover'
+			className='group flex min-w-0 items-center gap-3 rounded-lg border border-ca-border bg-ca-silver-light px-3 py-2.5 text-left transition-colors hover:border-ca-theme hover:bg-ca-table-hover'
 		>
-			<span className='flex w-9 shrink-0 flex-col items-center rounded bg-ca-theme/10 py-0.5 leading-none text-ca-theme'>
-				<span className='text-sm font-bold'>{day}</span>
-				<span className='text-[8px] font-semibold'>{monthShort}</span>
+			<span className='flex w-11 shrink-0 flex-col items-center gap-0.5 rounded-md bg-ca-theme/10 py-1.5 leading-none text-ca-theme'>
+				<span className='text-lg font-bold'>{day}</span>
+				<span className='text-[9px] font-semibold'>{monthShort}</span>
 			</span>
 			<span className='min-w-0 flex-1'>
-				<span className='block truncate text-xs font-semibold text-ca-heading'>{item.date_label}</span>
-				<span className='block truncate text-[10px] text-ca-text'>
-					{weekday}
-					{item.order_count > 0 && <span className='text-ca-theme'> · {item.order_count} buyurtma</span>}
-					{item.debt_count > 0 && <span className='text-ca-red'> · {item.debt_count} qarz</span>}
+				<span className='block truncate text-sm font-semibold text-ca-heading'>{item.date_label}</span>
+				<span className='block truncate text-[11px] text-ca-text'>{weekday}</span>
+				<span className='block truncate text-[11px] font-medium'>
+					{item.order_count > 0 && <span className='text-ca-theme'>{item.order_count} buyurtma</span>}
+					{item.order_count > 0 && item.debt_count > 0 && <span className='text-ca-text'> · </span>}
+					{item.debt_count > 0 && <span className='text-ca-red'>{item.debt_count} qarz</span>}
 				</span>
 			</span>
-			<FaChevronRight className='shrink-0 text-[9px] text-ca-text opacity-50 group-hover:opacity-100' />
+			<FaChevronRight className='shrink-0 text-[11px] text-ca-text opacity-50 group-hover:opacity-100' />
 		</button>
 	);
 }

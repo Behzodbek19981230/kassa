@@ -189,11 +189,11 @@ export default function OrderAccountHistoryEditPage() {
    const somTotal =
       (Number(watch('sum_som')) || 0) + (Number(watch('sum_cart')) || 0) + (Number(watch('sum_transfers')) || 0);
    const paidDollar = (Number(watch('sum_dollar')) || 0) + (rate > 0 ? somTotal / rate : 0);
-   const coveredDollar = paidDollar + (Number(watch('discount_amount')) || 0);
-   // Change handed back to the client was not kept as payment, so it raises the remaining amount.
+   // Change handed back to the client was not kept as payment, so it is taken off the covered total.
    const changeDollar =
       (Number(watch('zdacha_dollar')) || 0) + (rate > 0 ? (Number(watch('zdacha_sum')) || 0) / rate : 0);
-   const remaining = rowsTotal - coveredDollar + changeDollar;
+   const coveredDollar = paidDollar + (Number(watch('discount_amount')) || 0) - changeDollar;
+   const remaining = rowsTotal - coveredDollar;
 
    const updateSaleMutation = useUpdateSaleOrderAccountHistoryMutation();
    const isSaving = updateSaleMutation.isPending;

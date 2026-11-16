@@ -20,7 +20,7 @@ import {
 import { money, parseIsoDay } from '@/pages/settings/soldUtils';
 
 const PAGE_SIZE = 30;
-const LIST_GRID = 'grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4';
+const LIST_GRID = 'grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
 const UNKNOWN_CLIENT = "Noma'lum mijoz";
 
 function mergeClients(...lists: (SoldClientRef[] | undefined)[]) {
@@ -108,7 +108,7 @@ export default function SoldHistoryDayPage() {
 				}
 			/>
 
-			<Card className='mb-3'>
+			<Card className='mb-4 p-4'>
 				<SectionTitle title='Buyurtmalar' count={ot?.count} />
 				{ot && (
 					<StatTiles
@@ -181,12 +181,12 @@ export default function SoldHistoryDayPage() {
 
 function SectionTitle({ title, count, tone = 'theme' }: { title: string; count?: number; tone?: 'theme' | 'red' }) {
 	return (
-		<div className='mb-2 flex items-center gap-2'>
-			<h2 className='text-sm font-semibold text-ca-heading'>{title}</h2>
+		<div className='mb-3 flex items-center gap-2'>
+			<h2 className='text-base font-semibold text-ca-heading'>{title}</h2>
 			{count !== undefined && (
 				<span
 					className={cn(
-						'rounded-full px-1.5 py-px text-[10px] font-semibold',
+						'rounded-full px-2 py-0.5 text-[11px] font-semibold',
 						tone === 'red' ? 'bg-ca-red/10 text-ca-red' : 'bg-ca-theme/10 text-ca-theme',
 					)}
 				>
@@ -215,7 +215,7 @@ function ListBody({
 		body = (
 			<div className={LIST_GRID}>
 				{Array.from({ length: 8 }, (_, i) => (
-					<Skeleton key={i} className='h-10 rounded-md' />
+					<Skeleton key={i} className='h-[58px] rounded-lg' />
 				))}
 			</div>
 		);
@@ -226,12 +226,12 @@ function ListBody({
 	} else {
 		body = <div className={LIST_GRID}>{children}</div>;
 	}
-	return <div className='mt-2'>{body}</div>;
+	return <div className='mt-3'>{body}</div>;
 }
 
 function NumberBadge({ value }: { value: number }) {
 	return (
-		<span className='flex h-6 min-w-6 shrink-0 items-center justify-center rounded bg-ca-muted px-1 text-[10px] font-semibold text-ca-heading'>
+		<span className='flex h-8 min-w-8 shrink-0 items-center justify-center rounded-md bg-ca-muted px-1.5 text-xs font-semibold text-ca-heading'>
 			{value}
 		</span>
 	);
@@ -245,10 +245,10 @@ function PrintButton({ printing, onClick }: { printing: boolean; onClick: () => 
 			disabled={printing}
 			title='Chop qilish'
 			aria-label='Chop qilish'
-			className='flex h-6 w-6 shrink-0 items-center justify-center rounded border border-ca-orange/40 bg-ca-orange/10 text-[10px] text-ca-orange hover:bg-ca-orange/20 disabled:opacity-50'
+			className='flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-ca-orange/40 bg-ca-orange/10 text-xs text-ca-orange hover:bg-ca-orange/20 disabled:opacity-50'
 		>
 			{printing ? (
-				<span className='h-2.5 w-2.5 animate-spin rounded-full border-2 border-current border-t-transparent' />
+				<span className='h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent' />
 			) : (
 				<FaPrint />
 			)}
@@ -270,18 +270,18 @@ function OrderRow({
 	const isVozvrat = row.is_vozvrat === 1;
 	const isUnconfirmed = row.order_account_status === false;
 	return (
-		<div className='flex items-center gap-2 rounded-md border border-ca-border px-2 py-1'>
+		<div className='flex items-center gap-3 rounded-lg border border-ca-border px-3 py-2.5'>
 			<NumberBadge value={row.number} />
 			<div className='min-w-0 flex-1'>
 				<button
 					type='button'
 					onClick={onOpen}
-					className='block max-w-full truncate text-left text-xs font-semibold text-ca-theme hover:underline'
+					className='block max-w-full truncate text-left text-sm font-semibold text-ca-theme hover:underline'
 					title={row.client?.fio ?? UNKNOWN_CLIENT}
 				>
 					{row.client?.fio ?? UNKNOWN_CLIENT}
 				</button>
-				<div className='flex items-center gap-1 text-[10px] text-ca-text'>
+				<div className='mt-0.5 flex items-center gap-1 text-[11px] text-ca-text'>
 					<span>{row.time}</span>
 					{isVozvrat && <span className='rounded bg-ca-red/10 px-1 text-ca-red'>Vozvrat</span>}
 					{isUnconfirmed && <span className='rounded bg-ca-orange/10 px-1 text-ca-orange'>Tasdiqlanmagan</span>}
@@ -289,7 +289,7 @@ function OrderRow({
 				</div>
 			</div>
 			<span
-				className='shrink-0 text-right text-[11px] font-semibold text-ca-heading tabular-nums'
+				className='shrink-0 text-right text-sm font-semibold text-ca-heading tabular-nums'
 				title={`To'lanadigan: ${money(row.all_product_sum)} $`}
 			>
 				{money(row.all_summ_dollar)} $
@@ -301,15 +301,15 @@ function OrderRow({
 
 function DebtRow({ row, printing, onPrint }: { row: SoldDayDebtRow; printing: boolean; onPrint: () => void }) {
 	return (
-		<div className='flex items-center gap-2 rounded-md border border-ca-border px-2 py-1'>
+		<div className='flex items-center gap-3 rounded-lg border border-ca-border px-3 py-2.5'>
 			<NumberBadge value={row.number} />
 			<div className='min-w-0 flex-1'>
-				<div className='truncate text-xs font-semibold text-ca-heading' title={row.client?.fio ?? UNKNOWN_CLIENT}>
+				<div className='truncate text-sm font-semibold text-ca-heading' title={row.client?.fio ?? UNKNOWN_CLIENT}>
 					{row.client?.fio ?? UNKNOWN_CLIENT}
 				</div>
-				<div className='text-[10px] text-ca-text'>{row.time}</div>
+				<div className='mt-0.5 text-[11px] text-ca-text'>{row.time}</div>
 			</div>
-			<span className='shrink-0 text-[11px] font-semibold text-ca-red tabular-nums'>{money(row.paid_debt_dollar)} $</span>
+			<span className='shrink-0 text-sm font-semibold text-ca-red tabular-nums'>{money(row.paid_debt_dollar)} $</span>
 			<PrintButton printing={printing} onClick={onPrint} />
 		</div>
 	);

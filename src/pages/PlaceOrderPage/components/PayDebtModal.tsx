@@ -78,9 +78,16 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 	const summCart = watch('summ_cart');
 	const sumTransfers = watch('sum_transfers');
 	const discountAmount = watch('discount_amount');
+	const zdachaDollar = watch('zdacha_dollar');
+	const zdachaSum = watch('zdacha_sum');
 
 	const somTotal = (Number(sumSom) || 0) + (Number(summCart) || 0) + (Number(sumTransfers) || 0);
-	const allSummDollar = (rate > 0 ? somTotal / rate : 0) + (Number(summDollar) || 0) + (Number(discountAmount) || 0);
+	// Change handed back to the client was not kept as payment, so it is taken off the total (same as the sale modal).
+	const changeDollar = (Number(zdachaDollar) || 0) + (rate > 0 ? (Number(zdachaSum) || 0) / rate : 0);
+	const allSummDollar =
+		(rate > 0 ? somTotal / rate : 0) + (Number(summDollar) || 0) + (Number(discountAmount) || 0) - changeDollar;
+	const currentDebt = Number(client?.total_debt ?? 0);
+	const remainingDebt = currentDebt - allSummDollar;
 
 	const payDebtMutation = usePayDebtMutation();
 
@@ -135,9 +142,20 @@ export default function PayDebtModal({ open, setOpen, companyId, clientId, onPai
 							</div>
 						)}
 
-						<div className='mb-4 rounded-[3px] bg-ca-silver p-3 text-center text-xs'>
-							<div className='text-ca-text'>Joriy qarzi ($)</div>
-							<div className='font-bold text-ca-red'>{formatNumber(client?.total_debt ?? 0, 2)}</div>
+						<div className='mb-4 grid grid-cols-2 gap-2 rounded-[3px] bg-ca-silver p-3 text-center text-xs'>
+							<div>
+								<div className='text-ca-text'>Joriy qarzi ($)</div>
+								<div className='font-bold text-ca-red'>{formatNumber(currentDebt, 2)}</div>
+							</div>
+							<div>
+								<div className='text-ca-text'>Qolgan qarz ($)</div>
+								<div className={remainingDebt > 0 ? 'font-bold text-ca-red' : 'font-bold text-ca-green'}>
+									{formatNumber(remainingDebt, 2)}$
+									{rate > 0 && (
+										<span className='ml-1 font-normal text-ca-text'>({formatNumber(remainingDebt * rate, 0)})</span>
+									)}
+								</div>
+							</div>
 						</div>
 
 						<div className='mb-3 grid grid-cols-3 gap-3'>

@@ -62,10 +62,10 @@ export default function SoldProductsDayPage() {
 			<PageHeader
 				title={`${data?.date_label ?? date} sanadagi sotuvlar`}
 				subtitle={
-					<span className='flex flex-wrap items-center gap-1'>
+					<span className='flex flex-wrap items-center gap-1.5 text-sm'>
 						{parseIsoDay(date).weekday} · Qidirilgan tovar:
 						{data && (
-							<span className='rounded bg-ca-orange/15 px-1.5 font-semibold text-ca-orange'>
+							<span className='rounded bg-ca-orange/15 px-2 py-0.5 font-semibold text-ca-orange'>
 								{productTitle(data.filters)}
 							</span>
 						)}
@@ -75,17 +75,17 @@ export default function SoldProductsDayPage() {
 				actions={
 					data && (
 						<div className='flex flex-wrap gap-1.5'>
-							<div className='rounded-md bg-ca-theme px-2.5 py-1 text-white'>
-								<div className='text-[10px] opacity-90'>Jami sotilgan</div>
-								<div className='text-base leading-5 font-bold tabular-nums'>{formatNumber(data.totals.count)}</div>
+							<div className='rounded-lg bg-ca-theme px-3.5 py-1.5 text-white'>
+								<div className='text-xs opacity-90'>Jami sotilgan</div>
+								<div className='text-xl leading-7 font-bold tabular-nums'>{formatNumber(data.totals.count)}</div>
 							</div>
 							{data.totals.sklads.map((sklad, i) => (
-								<div key={`${sklad.name}-${i}`} className='rounded-md border border-ca-border bg-ca-silver-light px-2.5 py-1'>
-									<div className='flex items-center gap-1 text-[10px] text-ca-text'>
+								<div key={`${sklad.name}-${i}`} className='rounded-lg border border-ca-border bg-ca-silver-light px-3.5 py-1.5'>
+									<div className='flex items-center gap-1.5 text-xs text-ca-text'>
 										<span className='h-1.5 w-1.5 rounded-sm' style={{ background: skladColor(i) }} />
 										{sklad.name}
 									</div>
-									<div className='text-base leading-5 font-bold text-ca-heading tabular-nums'>
+									<div className='text-xl leading-7 font-bold text-ca-heading tabular-nums'>
 										{formatNumber(sklad.count)}
 									</div>
 								</div>
@@ -108,10 +108,10 @@ export default function SoldProductsDayPage() {
 			) : data ? (
 				<>
 					{pt && (
-						<Card className='mb-3'>
-							<div className='mb-2 text-xs font-semibold text-ca-heading'>
+						<Card className='mb-4 p-4'>
+							<div className='mb-3 text-base font-semibold text-ca-heading'>
 								Shu kundagi buyurtmalar to'lovi
-								<span className='ml-1.5 font-normal text-ca-text'>({data.pagination.total} ta buyurtma)</span>
+								<span className='ml-1.5 text-sm font-normal text-ca-text'>({data.pagination.total} ta buyurtma)</span>
 							</div>
 							<StatTiles
 								items={[
@@ -130,7 +130,7 @@ export default function SoldProductsDayPage() {
 					{data.results.length === 0 ? (
 						<EmptyState>Bu kunda qidirilgan tovar sotilmagan.</EmptyState>
 					) : (
-						<div className='space-y-2'>
+						<div className='space-y-3'>
 							{data.results.map((order) => (
 								<OrderCard
 									key={order.id}
@@ -179,19 +179,19 @@ function OrderCard({
 
 	return (
 		<section className='overflow-hidden rounded-lg border border-ca-border bg-ca-silver-light'>
-			<div className='flex items-center gap-2 bg-ca-silver px-2.5 py-1.5'>
-				<span className='flex h-6 min-w-6 items-center justify-center rounded bg-ca-theme px-1 text-[11px] font-bold text-white'>
+			<div className='flex items-center gap-2.5 bg-ca-silver px-3.5 py-2.5'>
+				<span className='flex h-8 min-w-8 items-center justify-center rounded-md bg-ca-theme px-1.5 text-sm font-bold text-white'>
 					{order.number}
 				</span>
 				<button
 					type='button'
 					onClick={onOpenOrder}
-					className='truncate text-xs font-semibold text-ca-theme underline-offset-2 hover:underline'
+					className='truncate text-sm font-semibold text-ca-theme underline-offset-2 hover:underline'
 				>
 					{order.client?.fio ?? UNKNOWN_CLIENT}
 				</button>
-				<span className='text-[10px] text-ca-text'>{order.time}</span>
-				<span className='ml-auto rounded-full bg-ca-orange/15 px-2 py-px text-[10px] font-semibold whitespace-nowrap text-ca-orange'>
+				<span className='text-xs text-ca-text'>{order.time}</span>
+				<span className='ml-auto rounded-full bg-ca-orange/15 px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-ca-orange'>
 					Qidirilgan: {order.searched_count} dona
 				</span>
 				<button
@@ -199,30 +199,30 @@ function OrderCard({
 					onClick={onToggle}
 					aria-label={open ? "Yig'ish" : 'Ochish'}
 					aria-expanded={open}
-					className='flex h-6 w-6 items-center justify-center rounded border border-ca-border text-ca-text hover:bg-ca-border'
+					className='flex h-8 w-8 items-center justify-center rounded-md border border-ca-border text-ca-text hover:bg-ca-border'
 				>
-					<FaChevronDown className={cn('text-[10px] transition-transform', open && 'rotate-180')} />
+					<FaChevronDown className={cn('text-xs transition-transform', open && 'rotate-180')} />
 				</button>
 			</div>
 
 			{open && (
-				<div className='space-y-2 p-2.5'>
-					<div className='grid grid-cols-1 gap-2 lg:grid-cols-2'>
+				<div className='space-y-3 p-3.5'>
+					<div className='grid grid-cols-1 gap-3 lg:grid-cols-2'>
 						<KeyValueGrid items={left} className='border-ca-orange/30 bg-ca-orange/5' />
 						<KeyValueGrid items={right} className='border-ca-theme/25 bg-ca-theme/5' />
 					</div>
 
 					<div className='overflow-x-auto rounded-md border border-ca-border'>
-						<table className='w-full text-[11px]'>
-							<thead className='bg-ca-silver text-[10px] text-ca-text'>
+						<table className='w-full text-sm'>
+							<thead className='bg-ca-silver text-xs text-ca-text'>
 								<tr>
-									<th className='px-2 py-1 text-left font-medium'>#</th>
-									<th className='px-2 py-1 text-left font-medium'>Joyi</th>
-									<th className='px-2 py-1 text-left font-medium'>Model</th>
-									<th className='px-2 py-1 text-left font-medium'>Nomi</th>
-									<th className='px-2 py-1 text-left font-medium'>O'lchami</th>
-									<th className='px-2 py-1 text-left font-medium'>Type</th>
-									<th className='px-2 py-1 text-right font-medium'>Soni</th>
+									<th className='px-3 py-1.5 text-left font-medium'>#</th>
+									<th className='px-3 py-1.5 text-left font-medium'>Joyi</th>
+									<th className='px-3 py-1.5 text-left font-medium'>Model</th>
+									<th className='px-3 py-1.5 text-left font-medium'>Nomi</th>
+									<th className='px-3 py-1.5 text-left font-medium'>O'lchami</th>
+									<th className='px-3 py-1.5 text-left font-medium'>Type</th>
+									<th className='px-3 py-1.5 text-right font-medium'>Soni</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -236,20 +236,20 @@ function OrderCard({
 												: 'text-ca-heading',
 										)}
 									>
-										<td className='px-2 py-1'>{p.number}</td>
-										<td className='px-2 py-1'>{p.type_sklad?.name ?? 'Skladsiz'}</td>
-										<td className='px-2 py-1'>{p.brand_name}</td>
-										<td className='px-2 py-1'>
+										<td className='px-3 py-1.5'>{p.number}</td>
+										<td className='px-3 py-1.5'>{p.type_sklad?.name ?? 'Skladsiz'}</td>
+										<td className='px-3 py-1.5'>{p.brand_name}</td>
+										<td className='px-3 py-1.5'>
 											{p.product_category_name}
 											{p.is_searched && (
-												<span className='ml-1.5 rounded-full bg-ca-orange px-1.5 py-px text-[9px] font-semibold text-white'>
+												<span className='ml-2 rounded-full bg-ca-orange px-2 py-0.5 text-[10px] font-semibold text-white'>
 													Qidirilgan
 												</span>
 											)}
 										</td>
-										<td className='px-2 py-1'>{p.size}</td>
-										<td className='px-2 py-1'>{p.type_name}</td>
-										<td className='px-2 py-1 text-right tabular-nums'>{formatNumber(p.count)}</td>
+										<td className='px-3 py-1.5'>{p.size}</td>
+										<td className='px-3 py-1.5'>{p.type_name}</td>
+										<td className='px-3 py-1.5 text-right tabular-nums'>{formatNumber(p.count)}</td>
 									</tr>
 								))}
 							</tbody>
@@ -269,11 +269,11 @@ function KeyValueGrid({
 	className?: string;
 }) {
 	return (
-		<dl className={cn('grid grid-cols-2 gap-x-3 gap-y-0.5 rounded-md border px-2.5 py-1.5 sm:grid-cols-3', className)}>
+		<dl className={cn('grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border px-3.5 py-2.5 sm:grid-cols-3', className)}>
 			{items.map((item) => (
 				<div key={item.label} className='flex min-w-0 flex-col'>
-					<dt className='truncate text-[10px] text-ca-text'>{item.label}</dt>
-					<dd className={cn('truncate text-xs font-semibold text-ca-heading tabular-nums', item.className)}>
+					<dt className='truncate text-xs text-ca-text'>{item.label}</dt>
+					<dd className={cn('mt-0.5 truncate text-sm font-semibold text-ca-heading tabular-nums', item.className)}>
 						{item.value}
 					</dd>
 				</div>
