@@ -49,7 +49,7 @@ export default function CancelClosingModal({
 						Bekor qilingandan keyin joriy kassa oldingi topshirishdan qayta hisoblanadi. Bu amalni qaytarib bo'lmaydi.
 					</InfoStrip>
 					<label className='block'>
-						<span className='mb-1 block text-xs text-ca-heading'>Sabab (majburiy)</span>
+						<span className='mb-1 block text-sm text-ca-heading'>Sabab (majburiy)</span>
 						<Textarea
 							rows={3}
 							maxLength={2000}
@@ -60,9 +60,9 @@ export default function CancelClosingModal({
 								if (error) setError(null);
 							}}
 							placeholder='Masalan: xato sanaldi'
-							className={cn(error && 'border-red-500')}
+							className={cn('lg:text-sm', error && 'border-red-500')}
 						/>
-						{error && <span className='mt-1 block text-[11px] text-red-500'>{error}</span>}
+						{error && <span className='mt-1 block text-xs text-red-500'>{error}</span>}
 					</label>
 				</ModalBody>
 				<ModalFooter>

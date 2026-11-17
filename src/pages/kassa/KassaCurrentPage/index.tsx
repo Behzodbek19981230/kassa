@@ -39,7 +39,7 @@ export default function KassaCurrentPage() {
 						<Button
 							type='button'
 							variant='inverse'
-							size='xs'
+							size='sm'
 							loading={excel.busy}
 							onClick={() => excel.download(() => cashRegisterService.dailyExcel(date))}
 						>
@@ -49,7 +49,7 @@ export default function KassaCurrentPage() {
 					<Button
 						type='button'
 						variant='inverse'
-						size='xs'
+						size='sm'
 						loading={pdf.busy}
 						onClick={() =>
 							pdf.open(() =>
@@ -62,7 +62,7 @@ export default function KassaCurrentPage() {
 					<Button
 						type='button'
 						variant='success'
-						size='xs'
+						size='sm'
 						disabled={!canWrite}
 						title={canWrite ? undefined : "Bu kompaniyada faqat ko'rishga ruxsat bor"}
 						onClick={() => navigate('/kassa/close')}
@@ -84,7 +84,7 @@ export default function KassaCurrentPage() {
 						type='button'
 						onClick={() => setTab(key)}
 						className={cn(
-							'h-8 rounded-[3px] border px-3.5 text-xs transition-colors',
+							'h-8 rounded-[3px] border px-3.5 text-sm transition-colors',
 							tab === key
 								? 'border-ca-theme bg-ca-theme text-white'
 								: 'border-ca-border bg-ca-silver text-ca-heading hover:bg-ca-border',

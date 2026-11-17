@@ -31,7 +31,7 @@ export function ClosingStatusPill({ closing }: { closing: Pick<CashClosing, 'sta
 }
 
 const filterClass =
-	'h-7 w-full rounded-[3px] border border-ca-field-border bg-ca-silver-light px-2 text-xs font-normal text-ca-heading focus:border-ca-field-border-strong focus:outline-none';
+	'h-8 w-full rounded-[3px] border border-ca-field-border bg-ca-silver-light px-2 text-sm font-normal text-ca-heading focus:border-ca-field-border-strong focus:outline-none';
 
 function FilterCell({ children }: { children?: ReactNode }) {
 	return <th className='border-b border-ca-border bg-ca-silver px-2 py-1.5 font-normal [&:not(:last-child)]:border-r'>{children}</th>;
@@ -136,7 +136,7 @@ export default function KassaClosingsPage() {
 										className='flex items-center gap-1'
 										onClick={() => update({ ordering: ordering === '-number' ? 'number' : '-number' }, false)}
 									>
-										№ <SortIcon className='text-[10px] opacity-70' />
+										№ <SortIcon className='text-[11px] opacity-70' />
 									</button>
 								</KTh>
 								<KTh>Davr</KTh>
@@ -159,7 +159,7 @@ export default function KassaClosingsPage() {
 										key={numberFilter}
 										onKeyDown={(e) => e.key === 'Enter' && update({ number: e.currentTarget.value })}
 										onBlur={(e) => e.currentTarget.value !== numberFilter && update({ number: e.currentTarget.value })}
-										className='h-7! min-w-16 text-xs! lg:h-7!'
+										className='h-7! min-w-16 text-sm! lg:h-7!'
 									/>
 								</FilterCell>
 								<FilterCell>
@@ -261,7 +261,7 @@ export default function KassaClosingsPage() {
 														aria-label='Chop etish'
 														disabled={pdf.busy}
 														onClick={() => pdf.open(() => cashRegisterService.closingPdf(c.id))}
-														className='inline-flex h-6 w-7 items-center justify-center rounded-[3px] bg-ca-green text-[11px] text-white hover:bg-emerald-600 disabled:opacity-50'
+														className='inline-flex h-6 w-7 items-center justify-center rounded-[3px] bg-ca-green text-xs text-white hover:bg-emerald-600 disabled:opacity-50'
 													>
 														<FaPrint />
 													</button>

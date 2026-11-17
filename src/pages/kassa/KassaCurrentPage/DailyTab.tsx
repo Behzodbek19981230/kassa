@@ -33,7 +33,7 @@ function channelStat(ch: CashRegisterDailyChannel | undefined) {
 }
 
 const pillButton =
-	'inline-flex h-7 items-center rounded-full border px-3 text-xs transition-colors disabled:pointer-events-none disabled:opacity-40';
+	'inline-flex h-7 items-center rounded-full border px-3 text-sm transition-colors disabled:pointer-events-none disabled:opacity-40';
 
 /** Day picker: ‹ [17.11.2026, seshanba] › Bugun Kecha. Days after today can't be picked. */
 function DayNavigator({ date, onChange }: { date: string; onChange: (date: string) => void }) {
@@ -57,7 +57,7 @@ function DayNavigator({ date, onChange }: { date: string; onChange: (date: strin
 				type='button'
 				aria-label='Oldingi kun'
 				onClick={() => onChange(shiftDay(date, -1))}
-				className='flex h-7 w-7 items-center justify-center rounded-[3px] border border-ca-border bg-ca-silver text-[10px] text-ca-heading hover:bg-ca-border'
+				className='flex h-7 w-7 items-center justify-center rounded-[3px] border border-ca-border bg-ca-silver text-[11px] text-ca-heading hover:bg-ca-border'
 			>
 				<FaChevronLeft />
 			</button>
@@ -65,7 +65,7 @@ function DayNavigator({ date, onChange }: { date: string; onChange: (date: strin
 				<button
 					type='button'
 					onClick={openPicker}
-					className='flex h-8 items-center gap-2 rounded-[3px] border border-ca-theme bg-ca-silver px-3 text-xs font-semibold text-ca-heading'
+					className='flex h-8 items-center gap-2 rounded-[3px] border border-ca-theme bg-ca-silver px-3 text-sm font-semibold text-ca-heading'
 				>
 					<FaRegClock className='text-ca-text' />
 					{formatDate(date)}, {weekdayOf(date)}
@@ -89,7 +89,7 @@ function DayNavigator({ date, onChange }: { date: string; onChange: (date: strin
 				aria-label='Keyingi kun'
 				disabled={date >= today}
 				onClick={() => onChange(shiftDay(date, 1))}
-				className='flex h-7 w-7 items-center justify-center rounded-[3px] border border-ca-border bg-ca-silver text-[10px] text-ca-heading hover:bg-ca-border disabled:pointer-events-none disabled:opacity-40'
+				className='flex h-7 w-7 items-center justify-center rounded-[3px] border border-ca-border bg-ca-silver text-[11px] text-ca-heading hover:bg-ca-border disabled:pointer-events-none disabled:opacity-40'
 			>
 				<FaChevronRight />
 			</button>
@@ -128,7 +128,7 @@ export default function DailyTab({ date, onDateChange }: { date: string; onDateC
 	const header = (
 		<div className='flex flex-wrap items-center justify-between gap-2'>
 			<DayNavigator date={date} onChange={onDateChange} />
-			<span className='text-[11px] text-ca-text'>
+			<span className='text-xs text-ca-text'>
 				Faqat <b className='text-ca-heading'>{formatDate(date)}</b> kuni (00:00 → 23:59) kiritilgan buyurtma, qarz
 				to'lovi va xarajatlar
 			</span>
@@ -244,7 +244,7 @@ export default function DailyTab({ date, onDateChange }: { date: string; onDateC
 					</tbody>
 				</KTable>
 
-				<div className='flex flex-wrap items-center justify-between gap-2 text-[11px] text-ca-text'>
+				<div className='flex flex-wrap items-center justify-between gap-2 text-xs text-ca-text'>
 					<span>
 						Kun:{' '}
 						<span className='text-ca-theme'>

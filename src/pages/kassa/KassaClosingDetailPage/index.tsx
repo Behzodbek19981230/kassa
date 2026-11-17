@@ -51,8 +51,8 @@ function diffLabel(line: CashClosingLine) {
 function InfoRow({ label, children }: { label: string; children: ReactNode }) {
 	return (
 		<div className='flex items-baseline justify-between gap-3 py-1.5'>
-			<span className='text-xs text-ca-text'>{label}</span>
-			<span className='text-right text-sm font-bold text-ca-heading'>{children}</span>
+			<span className='text-sm text-ca-text'>{label}</span>
+			<span className='text-right text-base font-bold text-ca-heading'>{children}</span>
 		</div>
 	);
 }
@@ -91,7 +91,7 @@ export default function KassaClosingDetailPage() {
 			<Panel
 				title={<PanelTitle title='Topshirish akti' />}
 				actions={
-					<Button type='button' variant='info' size='xs' onClick={goBack}>
+					<Button type='button' variant='info' size='sm' onClick={goBack}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga
 					</Button>
 				}
@@ -128,14 +128,14 @@ export default function KassaClosingDetailPage() {
 			title={<PanelTitle title={`Topshirish akti #${closing.number}`} sub={closing.status_display} />}
 			actions={
 				<>
-					<Button type='button' variant='info' size='xs' onClick={goBack}>
+					<Button type='button' variant='info' size='sm' onClick={goBack}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga
 					</Button>
 					{!closing.is_initial && (
 						<Button
 							type='button'
 							variant='inverse'
-							size='xs'
+							size='sm'
 							onClick={() => navigate(`/kassa/movements?closing=${closing.id}`)}
 						>
 							<FaListUl className='mr-1.5' /> Harakatlar
@@ -144,7 +144,7 @@ export default function KassaClosingDetailPage() {
 					<Button
 						type='button'
 						variant='inverse'
-						size='xs'
+						size='sm'
 						loading={excel.busy}
 						onClick={() => excel.download(() => cashRegisterService.closingExcel(closing.id, closing.number))}
 					>
@@ -153,14 +153,14 @@ export default function KassaClosingDetailPage() {
 					<Button
 						type='button'
 						variant='success'
-						size='xs'
+						size='sm'
 						loading={pdf.busy}
 						onClick={() => pdf.open(() => cashRegisterService.closingPdf(closing.id))}
 					>
 						<FaPrint className='mr-1.5' /> Chop etish
 					</Button>
 					{canCancel && (
-						<Button type='button' variant='danger' size='xs' onClick={() => setCancelOpen(true)}>
+						<Button type='button' variant='danger' size='sm' onClick={() => setCancelOpen(true)}>
 							<FaUndoAlt className='mr-1.5' /> Bekor qilish
 						</Button>
 					)}
@@ -271,7 +271,7 @@ export default function KassaClosingDetailPage() {
 					<div>
 						{closing.sources.length > 0 && (
 							<>
-								<div className='mb-1.5 text-[11px] text-ca-text'>Aylanma manbalar bo'yicha</div>
+								<div className='mb-1.5 text-xs text-ca-text'>Aylanma manbalar bo'yicha</div>
 								<KTable>
 									<thead>
 										<tr>
@@ -319,10 +319,10 @@ export default function KassaClosingDetailPage() {
 						<InfoRow label='Tashkilot'>{companyName || '—'}</InfoRow>
 						{closing.exchange_rate && <InfoRow label='Kurs'>1$ = {fmtChannel(closing.exchange_rate, 'cash_som')} so'm</InfoRow>}
 						<div className='mt-2 border-t border-ca-border pt-2'>
-							<div className='text-[11px] text-ca-text'>Izoh</div>
-							<div className='mt-1 text-xs whitespace-pre-wrap text-ca-heading'>{closing.comment || '—'}</div>
+							<div className='text-xs text-ca-text'>Izoh</div>
+							<div className='mt-1 text-sm whitespace-pre-wrap text-ca-heading'>{closing.comment || '—'}</div>
 						</div>
-						<div className='mt-6 flex justify-between gap-4 text-[11px] text-ca-text'>
+						<div className='mt-6 flex justify-between gap-4 text-xs text-ca-text'>
 							<span>Topshirdi: ____________</span>
 							<span>Qabul qildi: ____________</span>
 						</div>

@@ -169,7 +169,7 @@ export default function CurrentTab({ canWrite }: { canWrite: boolean }) {
 				</tbody>
 			</KTable>
 
-			<div className='flex flex-wrap items-center justify-between gap-2 text-[11px] text-ca-text'>
+			<div className='flex flex-wrap items-center justify-between gap-2 text-xs text-ca-text'>
 				<span>
 					Oxirgi topshirish:{' '}
 					{previous ? (

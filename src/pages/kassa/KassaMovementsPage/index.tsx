@@ -155,7 +155,7 @@ export default function KassaMovementsPage() {
 			actions={
 				<>
 					{closing && (
-						<Button type='button' variant='info' size='xs' onClick={() => navigate(`/kassa/closings/${closing}`)}>
+						<Button type='button' variant='info' size='sm' onClick={() => navigate(`/kassa/closings/${closing}`)}>
 							<FaArrowLeft className='mr-1.5' /> Aktga qaytish
 						</Button>
 					)}
@@ -163,7 +163,7 @@ export default function KassaMovementsPage() {
 						<Button
 							type='button'
 							variant='info'
-							size='xs'
+							size='sm'
 							onClick={() => navigate(date === todayIso() ? '/kassa/current?tab=daily' : `/kassa/current?tab=daily&date=${date}`)}
 						>
 							<FaArrowLeft className='mr-1.5' /> Hisobotga qaytish
@@ -172,7 +172,7 @@ export default function KassaMovementsPage() {
 					<Button
 						type='button'
 						variant='inverse'
-						size='xs'
+						size='sm'
 						loading={excel.busy}
 						onClick={() =>
 							excel.download(() =>
@@ -194,7 +194,7 @@ export default function KassaMovementsPage() {
 						type='button'
 						onClick={() => update({ kind: t.key, page: 1 })}
 						className={cn(
-							'h-8 rounded-[3px] border px-3 text-xs transition-colors',
+							'h-8 rounded-[3px] border px-3 text-sm transition-colors',
 							kind === t.key
 								? 'border-ca-theme bg-ca-theme text-white'
 								: 'border-ca-border bg-ca-silver text-ca-heading hover:bg-ca-border',

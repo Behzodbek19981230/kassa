@@ -29,7 +29,7 @@ export function Pill({ tone, children, className }: { tone: Tone; children: Reac
 	return (
 		<span
 			className={cn(
-				'inline-flex items-center rounded-[3px] px-1.5 py-0.5 text-[10px] leading-4 font-semibold whitespace-nowrap',
+				'inline-flex items-center rounded-[3px] px-1.5 py-0.5 text-[11px] leading-4 font-semibold whitespace-nowrap',
 				TONE_SOLID[tone],
 				className,
 			)}
@@ -59,7 +59,7 @@ export function ChannelIcon({ channel, className }: { channel: CashChannelKind; 
 	return (
 		<span
 			className={cn(
-				'inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px]',
+				'inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs',
 				TONE_SOFT[tone],
 				className,
 			)}
@@ -87,16 +87,16 @@ export function StatCard({
 	return (
 		<div className='flex min-w-0 items-center gap-3 rounded-md border border-ca-border bg-ca-silver px-3 py-3'>
 			<span
-				className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-base', TONE_SOFT[tone])}
+				className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-lg', TONE_SOFT[tone])}
 			>
 				{icon}
 			</span>
 			<div className='min-w-0'>
-				<div className='truncate text-[11px] text-ca-heading'>{label}</div>
-				<div className={cn('truncate text-lg leading-6 font-bold text-ca-heading tabular-nums', valueClassName)}>
+				<div className='truncate text-xs text-ca-heading'>{label}</div>
+				<div className={cn('truncate text-xl leading-7 font-bold text-ca-heading tabular-nums', valueClassName)}>
 					{value}
 				</div>
-				{sub && <div className='truncate text-[10px] text-ca-text'>{sub}</div>}
+				{sub && <div className='truncate text-[11px] text-ca-text'>{sub}</div>}
 			</div>
 		</div>
 	);
@@ -108,7 +108,7 @@ export const STAT_GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 x
 export function KTable({ children, className }: { children: ReactNode; className?: string }) {
 	return (
 		<div className={cn('overflow-x-auto rounded-md border border-ca-border', className)}>
-			<table className='w-full border-collapse text-xs'>{children}</table>
+			<table className='w-full border-collapse text-sm'>{children}</table>
 		</div>
 	);
 }
@@ -149,7 +149,7 @@ export function EyeButton({ onClick, disabled, title = "Ko'rish" }: { onClick: (
 			disabled={disabled}
 			title={title}
 			aria-label={title}
-			className='inline-flex h-6 w-7 items-center justify-center rounded-[3px] bg-ca-aqua text-[11px] text-white transition-colors hover:bg-[#0891b2] disabled:pointer-events-none disabled:opacity-40'
+			className='inline-flex h-6 w-7 items-center justify-center rounded-[3px] bg-ca-aqua text-xs text-white transition-colors hover:bg-[#0891b2] disabled:pointer-events-none disabled:opacity-40'
 		>
 			<FaEye />
 		</button>
@@ -161,7 +161,7 @@ export function InfoStrip({ children, tone = 'blue' }: { children: ReactNode; to
 	return (
 		<div
 			className={cn(
-				'rounded-[3px] border-l-[3px] bg-ca-silver px-3 py-2.5 text-xs leading-5 text-ca-heading',
+				'rounded-[3px] border-l-[3px] bg-ca-silver px-3 py-2.5 text-sm leading-5 text-ca-heading',
 				tone === 'blue' && 'border-ca-theme',
 				tone === 'orange' && 'border-amber-500 bg-amber-500/10',
 				tone === 'red' && 'border-red-500 bg-red-500/10',
@@ -174,7 +174,7 @@ export function InfoStrip({ children, tone = 'blue' }: { children: ReactNode; to
 
 export function ErrorBox({ children }: { children: ReactNode }) {
 	return (
-		<div className='flex items-center gap-2 rounded-md border border-ca-danger-border bg-ca-danger-bg px-3 py-3 text-xs text-ca-red'>
+		<div className='flex items-center gap-2 rounded-md border border-ca-danger-border bg-ca-danger-bg px-3 py-3 text-sm text-ca-red'>
 			<FaExclamationTriangle className='shrink-0' /> <span>{children}</span>
 		</div>
 	);
@@ -197,8 +197,8 @@ export function LoadingBlock({ className }: { className?: string }) {
 export function PanelTitle({ title, sub }: { title: ReactNode; sub?: ReactNode }) {
 	return (
 		<span className='flex flex-wrap items-baseline gap-x-1'>
-			<span className='font-semibold'>{title}</span>
-			{sub && <span className='text-[11px] opacity-80'>/ {sub}</span>}
+			<span className='text-base font-semibold'>{title}</span>
+			{sub && <span className='text-xs opacity-80'>/ {sub}</span>}
 		</span>
 	);
 }
@@ -220,11 +220,11 @@ export function PageSizeInfo({
 	const from = total === 0 ? 0 : (page - 1) * perPage + 1;
 	const to = Math.min(page * perPage, total);
 	return (
-		<div className='flex items-center gap-2 text-[11px] text-ca-text'>
+		<div className='flex items-center gap-2 text-xs text-ca-text'>
 			<select
 				value={perPage}
 				onChange={(e) => onPerPageChange(Number(e.target.value))}
-				className='h-7 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-1.5 text-xs text-ca-heading focus:outline-none'
+				className='h-8 rounded-[3px] border border-ca-field-border bg-ca-silver-light px-1.5 text-sm text-ca-heading focus:outline-none'
 			>
 				{options.map((o) => (
 					<option key={o} value={o}>

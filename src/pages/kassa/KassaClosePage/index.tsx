@@ -35,7 +35,7 @@ import { useUserListQuery } from '@/services/user/user.queries';
 
 function FieldError({ children }: { children?: ReactNode }) {
 	if (!children) return null;
-	return <div className='mt-1 text-[10px] leading-3 whitespace-normal text-red-500'>{children}</div>;
+	return <div className='mt-1 text-[11px] leading-3 whitespace-normal text-red-500'>{children}</div>;
 }
 
 /** "−50 000 so'm · −$ 10" — so'm channels and naqd dollar are summed separately. */
@@ -56,10 +56,10 @@ function diffSummary(rows: PreviewRow[], sign: 1 | -1) {
 function SummaryLine({ label, value, tone }: { label: string; value: ReactNode; tone?: 'red' | 'green' }) {
 	return (
 		<div className='flex items-baseline justify-between gap-3 py-1'>
-			<span className='text-xs text-ca-text'>{label}</span>
+			<span className='text-sm text-ca-text'>{label}</span>
 			<span
 				className={cn(
-					'text-base font-bold text-ca-heading tabular-nums',
+					'text-lg font-bold text-ca-heading tabular-nums',
 					tone === 'red' && 'text-red-500',
 					tone === 'green' && 'text-emerald-500',
 				)}
@@ -272,7 +272,7 @@ export default function KassaClosePage() {
 											placeholder='0'
 											aria-label={`${channelLabel(ch)}: sanalgan summa`}
 											className={cn(
-												'h-8! text-right font-semibold lg:h-8!',
+												'h-9! text-right text-sm font-semibold lg:h-9! lg:text-sm',
 												lineErrors?.actual && 'border-red-500',
 											)}
 										/>
@@ -305,7 +305,7 @@ export default function KassaClosePage() {
 											placeholder='0'
 											aria-label={`${channelLabel(ch)}: topshirilgan summa`}
 											className={cn(
-												'h-8! text-right font-semibold lg:h-8!',
+												'h-9! text-right text-sm font-semibold lg:h-9! lg:text-sm',
 												lineErrors?.handed_over && 'border-red-500',
 											)}
 										/>
@@ -357,7 +357,7 @@ export default function KassaClosePage() {
 				<div className='grid grid-cols-1 gap-4 lg:grid-cols-[1fr_minmax(300px,420px)]'>
 					<div className='space-y-3'>
 						<label className='block'>
-							<span className='mb-1 block text-xs text-ca-heading'>
+							<span className='mb-1 block text-sm text-ca-heading'>
 								Izoh {isInitial ? '(ixtiyoriy)' : '(farq bo\'lsa majburiy)'}
 							</span>
 							<Textarea
@@ -369,12 +369,12 @@ export default function KassaClosePage() {
 									if (errors.comment) setErrors((prev) => ({ ...prev, comment: undefined }));
 								}}
 								placeholder={diffRows.length ? 'Farq sababini yozing…' : ''}
-								className={cn(errors.comment && 'border-red-500')}
+								className={cn('lg:text-sm', errors.comment && 'border-red-500')}
 							/>
 							<FieldError>{errors.comment}</FieldError>
 						</label>
 						<div className='max-w-sm'>
-							<span className='mb-1 block text-xs text-ca-heading'>Qabul qiluvchi</span>
+							<span className='mb-1 block text-sm text-ca-heading'>Qabul qiluvchi</span>
 							<Combobox
 								value={receivedBy}
 								onChange={(v) => {
