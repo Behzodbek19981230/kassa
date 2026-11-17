@@ -15,9 +15,10 @@ import {
 	FieldLabel,
 	ListFooter,
 	PageHeader,
+	SectionDivider,
 	StatTiles,
 } from '@/pages/settings/soldShared';
-import { money, parseIsoDay } from '@/pages/settings/soldUtils';
+import { money, moneyStat, parseIsoDay } from '@/pages/settings/soldUtils';
 
 const PAGE_SIZE = 30;
 const LIST_GRID = 'grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
@@ -113,17 +114,18 @@ export default function SoldHistoryDayPage() {
 				{ot && (
 					<StatTiles
 						items={[
-							{ label: 'Summa dollar', value: `${money(ot.sum_dollar)} $` },
-							{ label: "Summa so'm", value: money(ot.sum_som) },
-							{ label: 'Summa karta', value: money(ot.sum_cart) },
-							{ label: 'Summa transfer', value: money(ot.sum_transfers) },
-							{ label: "Qaytim so'm", value: money(ot.zdacha_sum) },
-							{ label: 'Qaytim dollar', value: `${money(ot.zdacha_dollar)} $` },
+							moneyStat('Summa dollar', ot.sum_dollar, '$'),
+							moneyStat("Summa so'm", ot.sum_som),
+							moneyStat('Summa karta', ot.sum_cart),
+							moneyStat('Summa transfer', ot.sum_transfers),
+							moneyStat("Qaytim so'm", ot.zdacha_sum),
+							moneyStat('Qaytim dollar', ot.zdacha_dollar, '$'),
 						]}
 						highlight={{ label: "Jami to'langan ($)", value: `${money(ot.all_summ_dollar)} $` }}
 					/>
 				)}
 				<ListBody
+					title="Buyurtmalar ro'yxati"
 					isLoading={orders.isLoading}
 					error={orders.isError ? getApiErrorMessage(orders.error, "Buyurtmalarni yuklab bo'lmadi") : null}
 					isEmpty={!orders.data?.results.length}
@@ -148,17 +150,18 @@ export default function SoldHistoryDayPage() {
 					<StatTiles
 						tone='red'
 						items={[
-							{ label: "To'langan qarz dollar", value: `${money(dt.sum_dollar)} $` },
-							{ label: "To'langan qarz so'm", value: money(dt.sum_som) },
-							{ label: "To'langan qarz karta", value: money(dt.sum_cart) },
-							{ label: "To'langan qarz transfer", value: money(dt.sum_transfers) },
-							{ label: "Qaytim so'm", value: money(dt.zdacha_sum) },
-							{ label: 'Qaytim dollar', value: `${money(dt.zdacha_dollar)} $` },
+							moneyStat("To'langan qarz dollar", dt.sum_dollar, '$'),
+							moneyStat("To'langan qarz so'm", dt.sum_som),
+							moneyStat("To'langan qarz karta", dt.sum_cart),
+							moneyStat("To'langan qarz transfer", dt.sum_transfers),
+							moneyStat("Qaytim so'm", dt.zdacha_sum),
+							moneyStat('Qaytim dollar', dt.zdacha_dollar, '$'),
 						]}
 						highlight={{ label: "Jami to'langan qarz ($)", value: `${money(dt.paid_debt_dollar)} $` }}
 					/>
 				)}
 				<ListBody
+					title="To'lovlar ro'yxati"
 					isLoading={debts.isLoading}
 					error={debts.isError ? getApiErrorMessage(debts.error, "Qarz to'lovlarini yuklab bo'lmadi") : null}
 					isEmpty={!debts.data?.results.length}
@@ -198,12 +201,14 @@ function SectionTitle({ title, count, tone = 'theme' }: { title: string; count?:
 }
 
 function ListBody({
+	title,
 	isLoading,
 	error,
 	isEmpty,
 	emptyText,
 	children,
 }: {
+	title: string;
 	isLoading: boolean;
 	error: string | null;
 	isEmpty: boolean;
@@ -215,7 +220,7 @@ function ListBody({
 		body = (
 			<div className={LIST_GRID}>
 				{Array.from({ length: 8 }, (_, i) => (
-					<Skeleton key={i} className='h-[58px] rounded-lg' />
+					<Skeleton key={i} className='h-[62px] rounded-lg' />
 				))}
 			</div>
 		);
@@ -226,16 +231,28 @@ function ListBody({
 	} else {
 		body = <div className={LIST_GRID}>{children}</div>;
 	}
-	return <div className='mt-3'>{body}</div>;
+	return (
+		<>
+			<SectionDivider className='mt-5 mb-3'>{title}</SectionDivider>
+			{body}
+		</>
+	);
 }
 
-function NumberBadge({ value }: { value: number }) {
+function NumberBadge({ value, tone = 'theme' }: { value: number; tone?: 'theme' | 'red' }) {
 	return (
-		<span className='flex h-8 min-w-8 shrink-0 items-center justify-center rounded-md bg-ca-muted px-1.5 text-xs font-semibold text-ca-heading'>
+		<span
+			className={cn(
+				'flex h-10 min-w-10 shrink-0 items-center justify-center rounded-lg px-2 text-base font-bold text-white tabular-nums shadow-sm',
+				tone === 'red' ? 'bg-ca-red' : 'bg-ca-theme',
+			)}
+		>
 			{value}
 		</span>
 	);
 }
+
+const ROW = 'flex items-center gap-3 rounded-lg border border-ca-border bg-ca-silver px-3 py-2.5';
 
 function PrintButton({ printing, onClick }: { printing: boolean; onClick: () => void }) {
 	return (
@@ -270,7 +287,7 @@ function OrderRow({
 	const isVozvrat = row.is_vozvrat === 1;
 	const isUnconfirmed = row.order_account_status === false;
 	return (
-		<div className='flex items-center gap-3 rounded-lg border border-ca-border px-3 py-2.5'>
+		<div className={ROW}>
 			<NumberBadge value={row.number} />
 			<div className='min-w-0 flex-1'>
 				<button
@@ -281,7 +298,7 @@ function OrderRow({
 				>
 					{row.client?.fio ?? UNKNOWN_CLIENT}
 				</button>
-				<div className='mt-0.5 flex items-center gap-1 text-[11px] text-ca-text'>
+				<div className='mt-0.5 flex items-center gap-1 text-xs text-ca-text'>
 					<span>{row.time}</span>
 					{isVozvrat && <span className='rounded bg-ca-red/10 px-1 text-ca-red'>Vozvrat</span>}
 					{isUnconfirmed && <span className='rounded bg-ca-orange/10 px-1 text-ca-orange'>Tasdiqlanmagan</span>}
@@ -289,7 +306,7 @@ function OrderRow({
 				</div>
 			</div>
 			<span
-				className='shrink-0 text-right text-sm font-semibold text-ca-heading tabular-nums'
+				className='shrink-0 text-right text-base font-bold text-ca-heading tabular-nums'
 				title={`To'lanadigan: ${money(row.all_product_sum)} $`}
 			>
 				{money(row.all_summ_dollar)} $
@@ -301,15 +318,15 @@ function OrderRow({
 
 function DebtRow({ row, printing, onPrint }: { row: SoldDayDebtRow; printing: boolean; onPrint: () => void }) {
 	return (
-		<div className='flex items-center gap-3 rounded-lg border border-ca-border px-3 py-2.5'>
-			<NumberBadge value={row.number} />
+		<div className={ROW}>
+			<NumberBadge value={row.number} tone='red' />
 			<div className='min-w-0 flex-1'>
 				<div className='truncate text-sm font-semibold text-ca-heading' title={row.client?.fio ?? UNKNOWN_CLIENT}>
 					{row.client?.fio ?? UNKNOWN_CLIENT}
 				</div>
-				<div className='mt-0.5 text-[11px] text-ca-text'>{row.time}</div>
+				<div className='mt-0.5 text-xs text-ca-text'>{row.time}</div>
 			</div>
-			<span className='shrink-0 text-sm font-semibold text-ca-red tabular-nums'>{money(row.paid_debt_dollar)} $</span>
+			<span className='shrink-0 text-base font-bold text-ca-red tabular-nums'>{money(row.paid_debt_dollar)} $</span>
 			<PrintButton printing={printing} onClick={onPrint} />
 		</div>
 	);

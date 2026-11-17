@@ -13,9 +13,10 @@ import {
 	ErrorState,
 	ListFooter,
 	PageHeader,
+	SectionDivider,
 	StatTiles,
 } from '@/pages/settings/soldShared';
-import { money, parseIsoDay, skladColor } from '@/pages/settings/soldUtils';
+import { money, moneyStat, parseIsoDay, skladColor } from '@/pages/settings/soldUtils';
 import { readForm, toProductFilter, writeForm } from '@/pages/settings/SoldProductsPage/filters';
 
 const PAGE_SIZE = 30;
@@ -115,18 +116,19 @@ export default function SoldProductsDayPage() {
 							</div>
 							<StatTiles
 								items={[
-									{ label: 'Summa dollar', value: `${money(pt.sum_dollar)} $` },
-									{ label: "Summa so'm", value: money(pt.sum_som) },
-									{ label: 'Summa karta', value: money(pt.sum_cart) },
-									{ label: 'Summa transfer', value: money(pt.sum_transfers) },
-									{ label: "Qaytim so'm", value: money(pt.zdacha_sum) },
-									{ label: 'Qaytim dollar', value: `${money(pt.zdacha_dollar)} $` },
+									moneyStat('Summa dollar', pt.sum_dollar, '$'),
+									moneyStat("Summa so'm", pt.sum_som),
+									moneyStat('Summa karta', pt.sum_cart),
+									moneyStat('Summa transfer', pt.sum_transfers),
+									moneyStat("Qaytim so'm", pt.zdacha_sum),
+									moneyStat('Qaytim dollar', pt.zdacha_dollar, '$'),
 								]}
 								highlight={{ label: "Jami to'langan ($)", value: `${money(pt.all_summ_dollar)} $` }}
 							/>
 						</Card>
 					)}
 
+					<SectionDivider className='mb-3'>Buyurtmalar ro'yxati</SectionDivider>
 					{data.results.length === 0 ? (
 						<EmptyState>Bu kunda qidirilgan tovar sotilmagan.</EmptyState>
 					) : (
@@ -180,7 +182,7 @@ function OrderCard({
 	return (
 		<section className='overflow-hidden rounded-lg border border-ca-border bg-ca-silver-light'>
 			<div className='flex items-center gap-2.5 bg-ca-silver px-3.5 py-2.5'>
-				<span className='flex h-8 min-w-8 items-center justify-center rounded-md bg-ca-theme px-1.5 text-sm font-bold text-white'>
+				<span className='flex h-10 min-w-10 items-center justify-center rounded-lg bg-ca-theme px-2 text-base font-bold text-white tabular-nums shadow-sm'>
 					{order.number}
 				</span>
 				<button

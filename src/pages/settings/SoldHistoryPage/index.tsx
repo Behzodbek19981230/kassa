@@ -7,6 +7,7 @@ import { useSoldDatesQuery } from '@/services/sold-history/sold-history.queries'
 import type { SoldDateItem } from '@/services/sold-history/sold-history.types';
 import {
 	Card,
+	DayBadge,
 	EmptyState,
 	ErrorState,
 	FieldLabel,
@@ -16,6 +17,7 @@ import {
 import { parseIsoDay } from '@/pages/settings/soldUtils';
 
 const PAGE_SIZE = 30;
+const DATE_GRID = 'grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6';
 
 function groupByMonth(items: SoldDateItem[]) {
 	const groups: { label: string; items: SoldDateItem[] }[] = [];
@@ -103,9 +105,9 @@ export default function SoldHistoryPage() {
 
 			<Card>
 				{isLoading ? (
-					<div className='grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'>
+					<div className={DATE_GRID}>
 						{Array.from({ length: 14 }, (_, i) => (
-							<Skeleton key={i} className='h-[68px] rounded-lg' />
+							<Skeleton key={i} className='h-[82px] rounded-lg' />
 						))}
 					</div>
 				) : isError ? (
@@ -113,13 +115,17 @@ export default function SoldHistoryPage() {
 				) : results.length === 0 ? (
 					<EmptyState>Tanlangan oraliqda sotuv yoki qarz to'lovi topilmadi.</EmptyState>
 				) : (
-					<div className='space-y-3'>
+					<div className='space-y-5'>
 						{groupByMonth(results).map((group) => (
 							<div key={group.label}>
-								<div className='mb-2 text-[11px] font-semibold tracking-wider text-ca-text uppercase'>
-									{group.label}
+								<div className='mb-2.5 flex items-center gap-2'>
+									<span className='text-sm font-bold text-ca-heading'>{group.label}</span>
+									<span className='rounded-full bg-ca-muted px-2 py-0.5 text-[11px] font-semibold text-ca-text'>
+										{group.items.length} kun
+									</span>
+									<span className='h-px flex-1 bg-ca-border' />
 								</div>
-								<div className='grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'>
+								<div className={DATE_GRID}>
 									{group.items.map((item) => (
 										<DateCard key={item.date} item={item} onClick={() => openDay(item.date)} />
 									))}
@@ -136,27 +142,30 @@ export default function SoldHistoryPage() {
 }
 
 function DateCard({ item, onClick }: { item: SoldDateItem; onClick: () => void }) {
-	const { day, monthShort, weekday } = parseIsoDay(item.date);
 	return (
 		<button
 			type='button'
 			onClick={onClick}
-			className='group flex min-w-0 items-center gap-3 rounded-lg border border-ca-border bg-ca-silver-light px-3 py-2.5 text-left transition-colors hover:border-ca-theme hover:bg-ca-table-hover'
+			className='group flex min-w-0 items-center gap-3 rounded-lg border border-ca-border bg-ca-silver p-3 text-left transition-colors hover:border-ca-theme hover:bg-ca-table-hover'
 		>
-			<span className='flex w-11 shrink-0 flex-col items-center gap-0.5 rounded-md bg-ca-theme/10 py-1.5 leading-none text-ca-theme'>
-				<span className='text-lg font-bold'>{day}</span>
-				<span className='text-[9px] font-semibold'>{monthShort}</span>
-			</span>
+			<DayBadge date={item.date} />
 			<span className='min-w-0 flex-1'>
-				<span className='block truncate text-sm font-semibold text-ca-heading'>{item.date_label}</span>
-				<span className='block truncate text-[11px] text-ca-text'>{weekday}</span>
-				<span className='block truncate text-[11px] font-medium'>
-					{item.order_count > 0 && <span className='text-ca-theme'>{item.order_count} buyurtma</span>}
-					{item.order_count > 0 && item.debt_count > 0 && <span className='text-ca-text'> · </span>}
-					{item.debt_count > 0 && <span className='text-ca-red'>{item.debt_count} qarz</span>}
+				<span className='block truncate text-base leading-5 font-bold text-ca-heading'>{item.date_label}</span>
+				<span className='block truncate text-xs text-ca-text'>{parseIsoDay(item.date).weekday}</span>
+				<span className='mt-1.5 flex flex-wrap gap-1'>
+					{item.order_count > 0 && (
+						<span className='rounded bg-ca-theme/15 px-1.5 py-0.5 text-[11px] font-semibold text-ca-theme'>
+							{item.order_count} buyurtma
+						</span>
+					)}
+					{item.debt_count > 0 && (
+						<span className='rounded bg-ca-red/15 px-1.5 py-0.5 text-[11px] font-semibold text-ca-red'>
+							{item.debt_count} qarz
+						</span>
+					)}
 				</span>
 			</span>
-			<FaChevronRight className='shrink-0 text-[11px] text-ca-text opacity-50 group-hover:opacity-100' />
+			<FaChevronRight className='shrink-0 text-xs text-ca-text opacity-40 transition-opacity group-hover:opacity-100' />
 		</button>
 	);
 }

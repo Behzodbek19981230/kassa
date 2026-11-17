@@ -31,6 +31,11 @@ export function parseIsoDay(iso: string) {
 
 export const money = (value: string | number | null | undefined) => formatNumber(value ?? 0, 2);
 
+/** A money stat tile: formatted with an optional unit, dimmed when the amount is zero. */
+export function moneyStat(label: string, value: string | number | null | undefined, unit = '') {
+	return { label, value: unit ? `${money(value)} ${unit}` : money(value), dim: !Number(value) };
+}
+
 /** Sklad colors, picked by the sklad's array index (its `id` may be null). */
 const SKLAD_PALETTE = ['#0F766E', '#DC6803', '#6941C6', '#0086C9', '#667085'];
 export const skladColor = (index: number) => SKLAD_PALETTE[index % SKLAD_PALETTE.length];

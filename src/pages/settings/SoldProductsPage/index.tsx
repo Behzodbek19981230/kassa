@@ -14,10 +14,12 @@ import { useSoldProductsQuery } from '@/services/sold-history/sold-history.queri
 import type { SoldProductsDayItem, SoldProductsResponse } from '@/services/sold-history/sold-history.types';
 import {
 	Card,
+	DayBadge,
 	EmptyState,
 	ErrorState,
 	FieldLabel,
 	PageHeader,
+	SectionDivider,
 } from '@/pages/settings/soldShared';
 import { parseIsoDay, skladColor } from '@/pages/settings/soldUtils';
 import {
@@ -33,6 +35,7 @@ import { formatDate } from '@/lib/date';
 import SkladBar from '@/pages/settings/SoldProductsPage/SkladBar';
 
 const ALL = 1000;
+const DAY_GRID = 'grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6';
 
 /** "Sotilgan tovarlar soni": how many of one product sold per day, split by sklad. */
 export default function SoldProductsPage() {
@@ -211,9 +214,9 @@ export default function SoldProductsPage() {
 					turlari hisoblanadi.
 				</div>
 			) : query.isLoading ? (
-				<div className='grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'>
+				<div className={DAY_GRID}>
 					{Array.from({ length: 12 }, (_, i) => (
-						<Skeleton key={i} className='h-[92px] rounded-lg' />
+						<Skeleton key={i} className='h-[112px] rounded-lg' />
 					))}
 				</div>
 			) : query.isError ? (
@@ -235,7 +238,7 @@ function Results({ data, onOpenDay }: { data: SoldProductsResponse; onOpenDay: (
 	const { filters, totals, results } = data;
 	return (
 		<>
-			<Card className='mb-4 p-4'>
+			<Card className='mb-5 border-l-4 border-l-ca-theme bg-ca-theme/5 p-4'>
 				<div className='flex flex-wrap items-end gap-x-6 gap-y-3'>
 					<div>
 						<div className='text-base font-semibold text-ca-heading'>{productTitle(filters)}</div>
@@ -243,9 +246,9 @@ function Results({ data, onOpenDay }: { data: SoldProductsResponse; onOpenDay: (
 							{formatDate(filters.start_date)} — {formatDate(filters.end_date)} · {results.length} kun
 						</div>
 					</div>
-					<div className='border-l border-ca-border pl-6'>
-						<div className='text-xs text-ca-text'>Jami sotilgan</div>
-						<div className='text-3xl leading-9 font-bold text-ca-theme tabular-nums'>{formatNumber(totals.count)}</div>
+					<div className='rounded-lg bg-ca-theme px-4 py-2 text-white shadow-sm'>
+						<div className='text-xs font-medium opacity-90'>Jami sotilgan</div>
+						<div className='text-3xl leading-9 font-bold tabular-nums'>{formatNumber(totals.count)}</div>
 					</div>
 					{totals.sklads.map((sklad, i) => (
 						<div key={`${sklad.name}-${i}`} className='border-l border-ca-border pl-6'>
@@ -265,10 +268,11 @@ function Results({ data, onOpenDay }: { data: SoldProductsResponse; onOpenDay: (
 				<SkladBar sklads={totals.sklads} total={totals.count} className='mt-3 h-2.5' />
 			</Card>
 
+			<SectionDivider className='mb-3'>Kunlar bo'yicha</SectionDivider>
 			{results.length === 0 ? (
 				<EmptyState>Sotuv topilmadi — tanlangan periodda bu tovar sotilmagan.</EmptyState>
 			) : (
-				<div className='grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'>
+				<div className={DAY_GRID}>
 					{results.map((day) => (
 						<DayCard key={day.date} day={day} onClick={() => onOpenDay(day.date)} />
 					))}
@@ -283,16 +287,20 @@ function DayCard({ day, onClick }: { day: SoldProductsDayItem; onClick: () => vo
 		<button
 			type='button'
 			onClick={onClick}
-			className='rounded-lg border border-ca-border bg-ca-silver-light px-3 py-2.5 text-left transition-colors hover:border-ca-theme hover:bg-ca-table-hover'
+			className='rounded-lg border border-ca-border bg-ca-silver-light p-3 text-left transition-colors hover:border-ca-theme hover:bg-ca-table-hover'
 		>
-			<div className='flex items-start justify-between gap-2'>
-				<div className='min-w-0'>
-					<div className='truncate text-sm font-semibold text-ca-heading'>{day.date_label}</div>
+			<div className='flex items-center gap-3'>
+				<DayBadge date={day.date} />
+				<div className='min-w-0 flex-1'>
+					<div className='truncate text-base leading-5 font-bold text-ca-heading'>{day.date_label}</div>
 					<div className='truncate text-xs text-ca-text'>{parseIsoDay(day.date).weekday}</div>
 				</div>
-				<div className='text-2xl leading-7 font-bold text-ca-theme tabular-nums'>{formatNumber(day.count)}</div>
+				<div className='text-right'>
+					<div className='text-2xl leading-7 font-bold text-ca-theme tabular-nums'>{formatNumber(day.count)}</div>
+					<div className='text-[10px] text-ca-text'>dona</div>
+				</div>
 			</div>
-			<SkladBar sklads={day.sklads} total={day.count} className='my-2 h-1.5' />
+			<SkladBar sklads={day.sklads} total={day.count} className='my-2.5 h-1.5' />
 			<div className='flex flex-wrap gap-x-3 text-xs text-ca-text'>
 				{day.sklads.map((sklad, i) => (
 					<span key={`${sklad.name}-${i}`} className='flex items-center gap-1'>

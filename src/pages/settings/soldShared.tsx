@@ -3,6 +3,7 @@ import { FaChevronLeft } from 'react-icons/fa';
 import { Pagination } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import type { PaginationMeta } from '@/services/api/types';
+import { parseIsoDay } from '@/pages/settings/soldUtils';
 
 export function PageHeader({
 	title,
@@ -45,9 +46,19 @@ export function Card({ className, children }: { className?: string; children: Re
 export interface StatItem {
 	label: string;
 	value: string;
+	/** Zero amounts are dimmed so the non-zero ones stand out. */
+	dim?: boolean;
 }
 
-/** A row of small stat tiles; `highlight` is the grand total, shown as the last (accented) tile. */
+const TONE = {
+	theme: { solid: 'bg-ca-theme', panel: 'border-ca-theme/25 bg-ca-theme/5' },
+	red: { solid: 'bg-ca-red', panel: 'border-ca-red/25 bg-ca-red/5' },
+} as const;
+
+/**
+ * Totals block: the grand total (`highlight`) as a large solid tile, the breakdown in a tinted panel beside it,
+ * so the totals never blend in with the list cards below.
+ */
 export function StatTiles({
 	items,
 	highlight,
@@ -58,25 +69,60 @@ export function StatTiles({
 	tone?: 'theme' | 'red';
 }) {
 	return (
-		<div className='grid grid-cols-2 gap-2.5 sm:grid-cols-4 xl:grid-cols-7'>
-			{items.map((item) => (
-				<div key={item.label} className='rounded-lg border border-ca-border bg-ca-silver px-3 py-2.5'>
-					<div className='truncate text-[11px] text-ca-text'>{item.label}</div>
-					<div className='mt-0.5 truncate text-base font-semibold text-ca-heading tabular-nums'>{item.value}</div>
-				</div>
-			))}
+		<div className='flex flex-col gap-3 lg:flex-row lg:items-stretch'>
 			{highlight && (
 				<div
 					className={cn(
-						'col-span-2 rounded-lg px-3 py-2.5 text-white sm:col-span-4 xl:col-span-1',
-						tone === 'red' ? 'bg-ca-red' : 'bg-ca-theme',
+						'flex shrink-0 flex-col justify-center rounded-lg px-4 py-3 text-white shadow-sm lg:w-60',
+						TONE[tone].solid,
 					)}
 				>
-					<div className='truncate text-[11px] opacity-90'>{highlight.label}</div>
-					<div className='mt-0.5 truncate text-lg leading-6 font-bold tabular-nums'>{highlight.value}</div>
+					<div className='truncate text-xs font-medium opacity-90'>{highlight.label}</div>
+					<div className='mt-1 truncate text-2xl leading-8 font-bold tabular-nums'>{highlight.value}</div>
 				</div>
 			)}
+			<dl
+				className={cn(
+					'grid flex-1 grid-cols-2 gap-x-4 gap-y-3 rounded-lg border px-4 py-3 sm:grid-cols-3 xl:grid-cols-6',
+					TONE[tone].panel,
+				)}
+			>
+				{items.map((item) => (
+					<div key={item.label} className='min-w-0'>
+						<dt className='truncate text-[11px] text-ca-text'>{item.label}</dt>
+						<dd
+							className={cn(
+								'mt-0.5 truncate text-base tabular-nums',
+								item.dim ? 'font-medium text-ca-text/70' : 'font-bold text-ca-heading',
+							)}
+						>
+							{item.value}
+						</dd>
+					</div>
+				))}
+			</dl>
 		</div>
+	);
+}
+
+/** Labelled rule that separates a totals block from the list under it. */
+export function SectionDivider({ children, className }: { children: ReactNode; className?: string }) {
+	return (
+		<div className={cn('flex items-center gap-3', className)}>
+			<span className='shrink-0 text-[11px] font-semibold tracking-wider text-ca-text uppercase'>{children}</span>
+			<span className='h-px flex-1 bg-ca-border' />
+		</div>
+	);
+}
+
+/** Calendar-style day tile: big day number over the short month, on a solid accent. */
+export function DayBadge({ date }: { date: string }) {
+	const { day, monthShort } = parseIsoDay(date);
+	return (
+		<span className='flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-ca-theme leading-none text-white shadow-sm'>
+			<span className='text-2xl font-bold tabular-nums'>{day}</span>
+			<span className='mt-1 text-[10px] font-semibold tracking-wider opacity-90'>{monthShort}</span>
+		</span>
 	);
 }
 
