@@ -105,6 +105,18 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		requiredPermission: 'canViewMyDebts',
 	},
 	{
+		id: 'kassa',
+		icon: 'cash-register',
+		label: 'Kassa',
+		requiredPermission: 'canViewKassa',
+		children: [
+			{ id: 'kassa-current', icon: 'wallet', label: 'Joriy kassa', path: '/kassa/current' },
+			{ id: 'kassa-movements', icon: 'receipt', label: 'Davr harakatlari', path: '/kassa/movements' },
+			{ id: 'kassa-close', icon: 'check-circle', label: 'Kassani topshirish', path: '/kassa/close' },
+			{ id: 'kassa-closings', icon: 'history', label: 'Topshirishlar tarixi', path: '/kassa/closings' },
+		],
+	},
+	{
 		id: 'shippers-top',
 		icon: 'shipping-fast',
 		label: "Yuk jo'natuvchilar",

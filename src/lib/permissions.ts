@@ -162,6 +162,10 @@ export function usePermissions() {
 	const canDownloadOrderDebtPdf2 = isSuperAdmin || isAdmin;
 	const canDownloadOrderDebtPdf3 = roleKey != null && roleKey !== ROLE.SOTUVCHI && !isSkladXodim;
 
+	// "Kassa" (joriy kassa, harakatlar, topshirish, tarix): Super Admin + Admin. Cancelling a closing: Super Admin only.
+	const canViewKassa = isSuperAdmin || isAdmin;
+	const canCancelCashClosing = isSuperAdmin;
+
 	// order-account-history/{id}/change-logs: closed for every role except Super Admin
 	const canViewChangeLogs = isSuperAdmin;
 
@@ -192,6 +196,8 @@ export function usePermissions() {
 		canViewMyDebts,
 		canViewClientDebtors,
 		canViewSoldHistory,
+		canViewKassa,
+		canCancelCashClosing,
 		canManageMyDebts,
 		isSkladManager,
 		canManageWarehouse,

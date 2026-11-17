@@ -28,7 +28,9 @@ export type SidebarIcon =
 	| 'settings'
 	| 'paper-plane'
 	| 'globe'
-	| 'credit-card';
+	| 'credit-card'
+	| 'cash-register'
+	| 'wallet';
 
 /** Permission flags a menu item's visibility can be gated on; see src/utils/sidebarUtils.ts. */
 export interface SidebarMenuPermissions {
@@ -54,6 +56,8 @@ export interface SidebarMenuPermissions {
 	canViewMyDebts: boolean;
 	canViewClientDebtors: boolean;
 	canViewSoldHistory: boolean;
+	/** "Kassa" menu: Super Admin + Admin. */
+	canViewKassa: boolean;
 	/** True for the Manager role, which only gets a trimmed-down "Tizim boshqaruvi"/"Sozlamalar". */
 	isManager: boolean;
 	isNotManager: boolean;

@@ -7,6 +7,7 @@ import {
    FaBoxes,
    FaBuilding,
    FaCaretRight,
+   FaCashRegister,
    FaChartBar,
    FaChartPie,
    FaCheckCircle,
@@ -31,6 +32,7 @@ import {
    FaUndo,
    FaUsers,
    FaUsersCog,
+   FaWallet,
    FaWarehouse,
 } from 'react-icons/fa';
 import { sidebarMenu } from '@/data/sidebarMenu';
@@ -82,6 +84,8 @@ const iconMap: Record<SidebarIcon, ReactNode> = {
    'paper-plane': <FaPaperPlane />,
    globe: <FaGlobe />,
    'credit-card': <FaCreditCard />,
+   'cash-register': <FaCashRegister />,
+   wallet: <FaWallet />,
 };
 
 function SubMenuBullet({ active }: { active: boolean }) {
@@ -399,6 +403,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile,
       canViewMyDebts,
       canViewClientDebtors,
       canViewSoldHistory,
+      canViewKassa,
       isManager,
    } = usePermissions();
    const menu = useMemo(
@@ -423,6 +428,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile,
             canViewMyDebts,
             canViewClientDebtors,
             canViewSoldHistory,
+            canViewKassa,
             isManager,
             isNotManager: !isManager,
          }),
@@ -446,6 +452,7 @@ export default function Sidebar({ minified, mobileOpen, onMinify, onCloseMobile,
          canViewMyDebts,
          canViewClientDebtors,
          canViewSoldHistory,
+         canViewKassa,
          isManager,
       ],
    );

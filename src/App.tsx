@@ -17,6 +17,7 @@ import OrderAndDebtRoute from '@/components/auth/OrderAndDebtRoute';
 import ConsignorRoute from '@/components/auth/ConsignorRoute';
 import MyDebtRoute from '@/components/auth/MyDebtRoute';
 import ClientDebtorRoute from '@/components/auth/ClientDebtorRoute';
+import KassaRoute from '@/components/auth/KassaRoute';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
 import LoginPage from '@/pages/LoginPage';
@@ -85,6 +86,11 @@ import LogisticsPartnersPage from '@/pages/TwoStageImport/LogisticsPartnersPage'
 import LogisticsPartnerStockPage from '@/pages/TwoStageImport/LogisticsPartnerStockPage';
 import UzbekistanDispatchPage from '@/pages/TwoStageImport/UzbekistanDispatchPage';
 import UzbekistanInRoadPage from '@/pages/TwoStageImport/UzbekistanInRoadPage';
+import KassaCurrentPage from '@/pages/kassa/KassaCurrentPage';
+import KassaMovementsPage from '@/pages/kassa/KassaMovementsPage';
+import KassaClosePage from '@/pages/kassa/KassaClosePage';
+import KassaClosingsPage from '@/pages/kassa/KassaClosingsPage';
+import KassaClosingDetailPage from '@/pages/kassa/KassaClosingDetailPage';
 
 export default function App() {
 	useKeyboardInsetCssVar();
@@ -171,6 +177,15 @@ export default function App() {
 
 					<Route element={<ClientDebtorRoute />}>
 						<Route path='settings/debtors' element={<ClientDebtorPage />} />
+					</Route>
+					{/* "Kassa": Super Admin + Admin (cancelling a closing is Super Admin only, checked on the page). */}
+					<Route element={<KassaRoute />}>
+						<Route path='kassa' element={<Navigate to='/kassa/current' replace />} />
+						<Route path='kassa/current' element={<KassaCurrentPage />} />
+						<Route path='kassa/movements' element={<KassaMovementsPage />} />
+						<Route path='kassa/close' element={<KassaClosePage />} />
+						<Route path='kassa/closings' element={<KassaClosingsPage />} />
+						<Route path='kassa/closings/:id' element={<KassaClosingDetailPage />} />
 					</Route>
 					<Route element={<MyDebtRoute />}>
 						<Route path='my-debts' element={<MyDebtPage />} />
