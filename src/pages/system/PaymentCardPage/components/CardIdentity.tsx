@@ -18,11 +18,11 @@ const FALLBACK_GRADIENT = 'from-slate-800 via-slate-700 to-slate-500';
 /** The network's name in the card's top-right corner. */
 function BrandMark({ card, small = false }: { card: CardLike; small?: boolean }) {
 	if (card.card_type === 'mastercard') {
-		const circle = small ? 'h-3 w-3' : 'h-7 w-7';
+		const circle = small ? 'h-2.5 w-2.5' : 'h-7 w-7';
 		return (
 			<span className='flex items-center' aria-label='Mastercard'>
 				<span className={cn(circle, 'rounded-full bg-[#eb001b]')} />
-				<span className={cn(circle, small ? '-ml-1.5' : '-ml-3', 'rounded-full bg-[#f79e1b]/90')} />
+				<span className={cn(circle, small ? '-ml-1' : '-ml-3', 'rounded-full bg-[#f79e1b]/90')} />
 			</span>
 		);
 	}
@@ -36,7 +36,7 @@ function BrandMark({ card, small = false }: { card: CardLike; small?: boolean })
 			className={cn(
 				'leading-none uppercase drop-shadow-sm',
 				styles[card.card_type] ?? 'font-bold',
-				small ? 'text-[8px]' : card.card_type === 'visa' ? 'text-2xl' : 'text-lg',
+				small ? 'text-[7px]' : card.card_type === 'visa' ? 'text-2xl' : 'text-lg',
 			)}
 		>
 			{paymentCardTypeLabel(card)}
@@ -124,13 +124,13 @@ export function PaymentCardVisual({ card, className }: { card: CardLike; classNa
 /** A thumbnail of the card for table rows. */
 export function MiniCard({ card, className }: { card: CardLike; className?: string }) {
 	return (
-		<CardSurface card={card} className={cn('h-14 w-[88px] shrink-0 rounded-lg p-1.5 shadow-md', className)}>
+		<CardSurface card={card} className={cn('h-10 w-16 shrink-0 rounded-md p-1 shadow-md', className)}>
 			<div className='flex h-full flex-col justify-between'>
 				<div className='flex justify-end'>
 					<BrandMark card={card} small />
 				</div>
-				<Chip className='h-2.5 w-3.5 rounded-[2px]' />
-				<div className='font-mono text-[9px] leading-none tracking-wider'>•• {card.last4}</div>
+				<Chip className='h-2 w-2.5 rounded-[2px]' />
+				<div className='font-mono text-[8px] leading-none tracking-wide'>•• {card.last4}</div>
 			</div>
 		</CardSurface>
 	);
