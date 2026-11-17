@@ -9,12 +9,52 @@ import { formatNumber } from '@/lib/number';
 import { cn } from '@/lib/utils';
 import { personName } from '@/pages/system/UserPayrollPage/utils';
 import { useCardPaymentListQuery, useCardPaymentTotalsQuery } from '@/services/card-payment/card-payment.queries';
-import type { CardPayment } from '@/services/card-payment/card-payment.types';
+import {
+	CARD_PAYMENT_DIRECTION_LABELS,
+	type CardPayment,
+	type CardPaymentClientSource,
+	type CardPaymentDirection,
+	type CardPaymentExpenseSource,
+} from '@/services/card-payment/card-payment.types';
 import { usePaymentCardQuery } from '@/services/payment-card/payment-card.queries';
 import { paymentCardTypeLabel } from '@/services/payment-card/payment-card.types';
 import { CardStatusPill, PaymentCardVisual } from '@/pages/system/PaymentCardPage/components/CardIdentity';
 
 const columnHelper = createColumnHelper<CardPayment>();
+
+/** A relation sent either as an id (detail beside it) or as the nested object itself. */
+function related<T extends { id: number }>(ref: number | T | null | undefined, detail: T | null | undefined) {
+	const nested = typeof ref === 'object' && ref !== null ? ref : null;
+	return { id: nested?.id ?? (typeof ref === 'number' ? ref : detail?.id), detail: detail ?? nested };
+}
+
+const clientNameOf = (source: CardPaymentClientSource | null) => source?.client_detail?.fio || source?.client_name || '';
+const expenseNameOf = (source: CardPaymentExpenseSource | null) => source?.nomi || '';
+
+/** Name of the client or expense, with the record's number beside it. */
+function SourceCell({ id, name }: { id?: number; name: string }) {
+	if (!id && !name) return <>—</>;
+	return (
+		<span className='whitespace-nowrap'>
+			{name || '—'}
+			{id ? <span className='ml-1.5 text-xs text-ca-text'>#{id}</span> : null}
+		</span>
+	);
+}
+
+function DirectionPill({ direction }: { direction?: CardPaymentDirection | null }) {
+	if (!direction) return <>—</>;
+	return (
+		<span
+			className={cn(
+				'inline-flex rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap',
+				direction === 'in' ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-ca-red',
+			)}
+		>
+			{CARD_PAYMENT_DIRECTION_LABELS[direction] ?? direction}
+		</span>
+	);
+}
 
 const columns = [
 	columnHelper.accessor('created_time', {
@@ -22,16 +62,62 @@ const columns = [
 		meta: { align: 'left' },
 		cell: (info) => <span className='whitespace-nowrap'>{formatDateTime(info.getValue(), '—')}</span>,
 	}),
+	columnHelper.accessor('direction', {
+		header: "Yo'nalish",
+		meta: { align: 'center' },
+		enableSorting: false,
+		cell: (info) => <DirectionPill direction={info.getValue()} />,
+	}),
 	columnHelper.accessor('amount', {
 		header: 'Summa',
 		meta: { align: 'right' },
-		cell: (info) => <span className='font-semibold'>{formatNumber(info.getValue()) || '—'}</span>,
+		cell: (info) => {
+			const direction = info.row.original.direction;
+			return (
+				<span
+					className={cn(
+						'font-semibold whitespace-nowrap',
+						direction === 'in' && 'text-emerald-600',
+						direction === 'out' && 'text-ca-red',
+					)}
+				>
+					{formatNumber(info.getValue()) || '—'}
+				</span>
+			);
+		},
 	}),
 	columnHelper.accessor('client_detail', {
 		header: 'Mijoz',
 		meta: { align: 'left' },
 		enableSorting: false,
 		cell: (info) => info.getValue()?.fio || '—',
+	}),
+	columnHelper.display({
+		id: 'order',
+		header: 'Savdo',
+		meta: { align: 'left' },
+		cell: ({ row }) => {
+			const { id, detail } = related(row.original.order, row.original.order_detail);
+			return <SourceCell id={id} name={row.original.order_client_name || clientNameOf(detail)} />;
+		},
+	}),
+	columnHelper.display({
+		id: 'debt_repayment',
+		header: "Qarz to'lovi",
+		meta: { align: 'left' },
+		cell: ({ row }) => {
+			const { id, detail } = related(row.original.debt_repayment, row.original.debt_repayment_detail);
+			return <SourceCell id={id} name={row.original.debt_repayment_client_name || clientNameOf(detail)} />;
+		},
+	}),
+	columnHelper.display({
+		id: 'expense',
+		header: 'Xarajat',
+		meta: { align: 'left' },
+		cell: ({ row }) => {
+			const { id, detail } = related(row.original.expense, row.original.expense_detail);
+			return <SourceCell id={id} name={row.original.expense_name || expenseNameOf(detail)} />;
+		},
 	}),
 	columnHelper.accessor('note', {
 		header: 'Izoh',

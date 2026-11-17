@@ -24,8 +24,13 @@ import { useExpenseListQuery } from '@/services/expense/expense.queries';
 import type { Expense } from '@/services/expense/expense.types';
 import { useExpenseTypeListQuery } from '@/services/expense-type/expense-type.queries';
 import { expenseTypeService } from '@/services/expense-type/expense-type.service';
+import { usePaymentCardListQuery } from '@/services/payment-card/payment-card.queries';
+import { paymentCardLabel } from '@/services/payment-card/payment-card.types';
 
 const columnHelper = createColumnHelper<Expense>();
+
+/** Zero or missing amounts show as a dash. */
+const formatAmount = (value: string | number | null | undefined) => (Number(value) ? formatNumber(value, 2) : '—');
 
 export default function ExpensesTab() {
 	const { canWrite } = useCurrentCompany();
@@ -50,6 +55,9 @@ export default function ExpensesTab() {
 
 	const { data: typeData } = useExpenseTypeListQuery({ limit: 100 });
 	const typeNameById = new Map((typeData?.results ?? []).map((t) => [t.id, t.name]));
+
+	const { data: cardData } = usePaymentCardListQuery({ limit: 100 });
+	const cardById = new Map((cardData?.results ?? []).map((card) => [card.id, card]));
 
 	const loadTypeOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
 		const result = await expenseTypeService.list({ search: search || undefined, page, limit: 20 });
@@ -76,6 +84,43 @@ export default function ExpensesTab() {
 			size: 120,
 			enableColumnFilter: false,
 			cell: (info) => formatNumber(info.getValue(), 2),
+		}),
+		columnHelper.accessor('sum_som', {
+			header: "Naqd (so'm)",
+			size: 120,
+			enableSorting: false,
+			enableColumnFilter: false,
+			cell: (info) => formatAmount(info.getValue()),
+		}),
+		columnHelper.accessor('summ_dollar', {
+			header: 'Dollar ($)',
+			size: 110,
+			enableSorting: false,
+			enableColumnFilter: false,
+			cell: (info) => formatAmount(info.getValue()),
+		}),
+		columnHelper.accessor('summ_cart', {
+			header: "Karta (so'm)",
+			size: 150,
+			enableSorting: false,
+			enableColumnFilter: false,
+			cell: ({ getValue, row }) => {
+				if (!Number(getValue())) return '—';
+				const card = row.original.payment_card_detail ?? cardById.get(row.original.payment_card ?? 0);
+				return (
+					<div>
+						<div>{formatAmount(getValue())}</div>
+						{card && <div className='text-xs text-ca-text'>{paymentCardLabel(card)}</div>}
+					</div>
+				);
+			},
+		}),
+		columnHelper.accessor('all_summ_dollar', {
+			header: 'Umumiy ($)',
+			size: 120,
+			enableSorting: false,
+			enableColumnFilter: false,
+			cell: (info) => <span className='font-semibold'>{formatAmount(info.getValue())}</span>,
 		}),
 		columnHelper.accessor('date_cr', { header: 'Sana', size: 110, enableColumnFilter: false }),
 		columnHelper.display({

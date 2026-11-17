@@ -49,6 +49,11 @@ export interface PaymentCardListParams extends ListParams {
 	is_active?: boolean;
 }
 
+/** "Humo kartasi •• 1251": how a card is named in selects and tables. */
+export function paymentCardLabel(card: Pick<PaymentCard, 'name' | 'last4'>): string {
+	return card.last4 ? `${card.name} •• ${card.last4}` : card.name;
+}
+
 /** "Humo": the backend's display label, else the option label for the type. */
 export function paymentCardTypeLabel(card: Pick<PaymentCard, 'card_type' | 'card_type_display'>): string {
 	return (
