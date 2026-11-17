@@ -30,6 +30,8 @@ import SkladTypePage from '@/pages/system/SkladTypePage';
 import CountryPage from '@/pages/system/CountryPage';
 import LogisticsCompanyPage from '@/pages/system/LogisticsCompanyPage';
 import LogisticsWarehousePage from '@/pages/system/LogisticsWarehousePage';
+import PaymentCardPage from '@/pages/system/PaymentCardPage';
+import PaymentCardPaymentsPage from '@/pages/system/PaymentCardPaymentsPage';
 import WarehousePage from '@/pages/WarehousePage';
 import WarehouseFormPage from '@/pages/WarehousePage/WarehouseFormPage';
 import WarehouseProductsPage from '@/pages/WarehouseProductsPage';
@@ -180,6 +182,8 @@ export default function App() {
 
 					{/* System management ("Tizim boshqaruvi") is Super Admin only. */}
 					<Route element={<SuperAdminRoute />}>
+						<Route path='system/payment-cards' element={<PaymentCardPage />} />
+						<Route path='system/payment-cards/:id/payments' element={<PaymentCardPaymentsPage />} />
 						<Route path='system/users' element={<UserPage />} />
 						<Route path='system/users/:id/payroll' element={<UserPayrollPage />} />
 						<Route path='system/companies' element={<CompanyPage />} />

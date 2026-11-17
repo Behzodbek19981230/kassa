@@ -141,6 +141,13 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				requiredPermission: 'canViewLogistika',
 			},
 			{
+				id: 'payment-cards',
+				icon: 'credit-card',
+				label: "Do'kon kartalari",
+				path: '/system/payment-cards',
+				requiredPermission: 'isSuperAdmin',
+			},
+			{
 				id: 'users',
 				icon: 'users-cog',
 				label: 'Foydalanuvchilar',

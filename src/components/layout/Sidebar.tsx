@@ -11,6 +11,7 @@ import {
    FaChartPie,
    FaCheckCircle,
    FaCircle,
+   FaCreditCard,
    FaCogs,
    FaExclamationTriangle,
    FaFileInvoice,
@@ -80,6 +81,7 @@ const iconMap: Record<SidebarIcon, ReactNode> = {
    settings: <FaCogs />,
    'paper-plane': <FaPaperPlane />,
    globe: <FaGlobe />,
+   'credit-card': <FaCreditCard />,
 };
 
 function SubMenuBullet({ active }: { active: boolean }) {
