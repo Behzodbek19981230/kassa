@@ -14,8 +14,11 @@ import { API_BASE_URL, apiClient } from '@/services/api/client'
 /*
  * Logs the user out after 15 minutes without real activity (clicks, keys, scroll, touch), the same
  * limit as the backend.
- * The backend enforces the same limit per session (`sid`); background requests don't extend it,
- * only `POST /auth/activity/`, which is sent at most once a minute while the user is active.
+ * The backend enforces the same limit per session (`sid`), counted from the last API request
+ * (a token refresh doesn't count). `POST /auth/activity/` is sent at most once a minute while the
+ * user is active, so real activity on a page that makes no requests keeps the session alive too.
+ * When the account is taken over from another device, every request of the old session gets
+ * 401 `session_invalid`, and the client interceptor logs out without trying a refresh.
  */
 
 const IDLE_LIMIT_MS = 15 * 60 * 1000
@@ -49,7 +52,8 @@ export const LOGOUT_MESSAGE_KEY = 'ca_logout_message'
 
 type ChannelMessage =
   | { type: 'activity'; at: number }
-  | { type: 'logout'; reason: LogoutReason; detail?: string }
+  // `sid`: the session the sender ended, so a tab holding another session can ignore it.
+  | { type: 'logout'; reason: LogoutReason; detail?: string; sid?: string }
 
 const state = {
   lastActivityAt: Date.now(),
@@ -89,20 +93,31 @@ function idleFor() {
   return Date.now() - state.lastActivityAt
 }
 
-function tokenExpiresAt(token: string): number {
+function tokenPayload(token: string | null): Record<string, unknown> {
+  if (!token) return {}
   try {
     const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-    const payload = JSON.parse(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')))
-    return Number(payload.exp) * 1000
+    return JSON.parse(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '='))) ?? {}
   } catch {
-    return 0
+    return {}
   }
+}
+
+function tokenExpiresAt(token: string): number {
+  return Number(tokenPayload(token).exp) * 1000 || 0
+}
+
+/** The backend session (`sid` claim) the token belongs to; undefined for old tokens without one. */
+function sessionIdOf(token: string | null): string | undefined {
+  const sid = tokenPayload(token).sid
+  return sid == null || sid === '' ? undefined : String(sid)
 }
 
 /** Clears the tokens and goes to the login page. `notifyTabs` is false for a logout another tab announced. */
 function endSession(reason: LogoutReason, notifyTabs: boolean, detail?: string) {
   debug(`tokenlar o'chirildi, login sahifasiga o'tilmoqda (sabab: ${reason}${notifyTabs ? '' : ', boshqa tabdan'})`)
   state.logoutStarted = true
+  const sid = sessionIdOf(getToken())
   clearSession()
   try {
     if (detail) sessionStorage.setItem(LOGOUT_MESSAGE_KEY, detail)
@@ -110,7 +125,7 @@ function endSession(reason: LogoutReason, notifyTabs: boolean, detail?: string) 
   } catch {
     // storage unavailable: the login page falls back to its own message
   }
-  if (notifyTabs) broadcast({ type: 'logout', reason, detail })
+  if (notifyTabs) broadcast({ type: 'logout', reason, detail, sid })
   if (window.location.pathname !== '/login') {
     window.location.replace(reason === 'logout' ? '/login' : `/login?reason=${reason}`)
   }
@@ -267,6 +282,15 @@ function onChannelMessage(event: MessageEvent<ChannelMessage>) {
   const message = event.data
   if (message.type === 'activity') recordActivity(Number(message.at))
   if (message.type === 'logout' && !state.logoutStarted) {
+    // Tokens kept in sessionStorage ("Meni eslab qol" off) are per tab, so this tab may hold another
+    // session: e.g. it took the account over with `force`, and the old tab it kicked out (401
+    // session_invalid) must not log it out too. Tabs sharing localStorage tokens have the same sid
+    // (or none left at all, as the sender already cleared them) and log out together.
+    const mine = sessionIdOf(getToken())
+    if (message.sid && mine && message.sid !== mine) {
+      debug("boshqa tab o'z sessiyasidan chiqdi, bu tabning sessiyasi boshqa, saqlanadi")
+      return
+    }
     debug('boshqa tab logout qildi')
     endSession(message.reason, false, message.detail)
   }

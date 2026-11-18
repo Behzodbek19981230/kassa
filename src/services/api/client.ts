@@ -50,17 +50,24 @@ apiClient.interceptors.response.use(
 
 		const { code, detail } = await readErrorBody(error.response.data);
 
-		// An expired access token (15 min): refresh it and repeat the request once, silently.
-		// A body without a code (non-JSON) is treated the same way.
+		// The token changed while this request was in flight (refreshed, or a new login in another
+		// tab): it is repeated once with the current one, whatever the code, before anything else.
+		const current = getToken();
+		const sentWith = String(config?.headers.get('Authorization') ?? '');
+		if (config && !config._retried && current && sentWith !== `Bearer ${current}`) {
+			config._retried = true;
+			config.headers.set('Authorization', `Bearer ${current}`);
+			return apiClient(config);
+		}
+
+		// An expired access token (180 min): refresh it and repeat the request once, silently.
+		// A body without a code (non-JSON) is treated the same way. The session codes below
+		// (session_expired / session_invalid / user_inactive) never try a refresh.
 		const tokenExpired = code === 'token_not_valid' || code === undefined;
 		if (tokenExpired && config && !config._retried && getRefreshToken()) {
 			config._retried = true;
 			try {
-				// The token may already have been refreshed while this request was in flight:
-				// then it is just repeated with the new one, without another refresh.
-				const current = getToken();
-				const sentWith = String(config.headers.get('Authorization') ?? '');
-				const access = current && sentWith !== `Bearer ${current}` ? current : await refreshAccessToken(true);
+				const access = await refreshAccessToken(true);
 				if (access) {
 					config.headers.set('Authorization', `Bearer ${access}`);
 					return apiClient(config);

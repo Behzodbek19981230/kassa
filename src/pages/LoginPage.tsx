@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash, FaExclamationCircle, FaLock, FaUser } from 'react-icons/fa';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -40,6 +40,19 @@ const LOGOUT_REASON_MESSAGES: Record<string, string> = {
 const SESSION_ACTIVE_CODE = 'session_active';
 const SESSION_ACTIVE_MESSAGE = 'Bu hisob boshqa qurilmada ochiq.';
 
+/** Text for a failed login: the backend's `detail` as is, else a default for the status. */
+function loginErrorMessage(err: unknown): string {
+	if (!isAxiosError(err)) return "Tizimga kirib bo'lmadi. Qayta urinib ko'ring.";
+	if (!err.response) return "Server bilan aloqa yo'q. Internetni tekshirib, qayta urinib ko'ring.";
+	const detail = (err.response.data as { detail?: unknown } | undefined)?.detail;
+	if (typeof detail === 'string' && detail) return detail;
+	const { status } = err.response;
+	if (status === 429) return "Juda ko'p urinish. Birozdan keyin qayta urinib ko'ring.";
+	if (status === 503) return "Sessiya xizmati vaqtincha ishlamayapti. Birozdan keyin qayta urinib ko'ring.";
+	if (status >= 500) return "Serverda xatolik. Birozdan keyin qayta urinib ko'ring.";
+	return 'Login yoki parol xato.';
+}
+
 /** The backend's `detail` saved on logout, else the default text for the `?reason=`. */
 function initialLogoutMessage(reason: string | null): string {
 	let detail: string | null = null;
@@ -60,6 +73,11 @@ export default function LoginPage() {
 	const [showPassword, setShowPassword] = useState(false);
 	// Set when the account is open on another device: the backend's text, shown in the takeover dialog.
 	const [activeSessionMessage, setActiveSessionMessage] = useState<string | null>(null);
+	// The credentials that got the 409, held in memory only until the takeover dialog is answered.
+	const pendingCredentials = useRef<LoginForm | null>(null);
+	// Covers the whole login, including the user-info fetch after the tokens arrive: a second
+	// submit then would hit the session just opened and get a 409 of its own.
+	const [pending, setPending] = useState(false);
 	const loginMutation = useLoginMutation();
 
 	// Shown once: a later visit to the login page must not repeat an old logout message.
@@ -74,18 +92,24 @@ export default function LoginPage() {
 	const {
 		register,
 		handleSubmit,
-		getValues,
-		formState: { errors, isSubmitting },
+		formState: { errors },
 	} = useForm<LoginForm>({
 		resolver: zodResolver(loginSchema),
 		defaultValues: { username: '', password: '' },
 	});
 
-	const login = async ({ username, password }: LoginForm, force: boolean) => {
+	const closeTakeoverDialog = () => {
+		pendingCredentials.current = null;
+		setActiveSessionMessage(null);
+	};
+
+	/** `force` only after the user confirmed the takeover dialog, and only once. */
+	const login = async (credentials: LoginForm, force: boolean) => {
+		setPending(true);
 		setFormError('');
 		try {
-			const tokens = await loginMutation.mutateAsync({ username, password, ...(force && { force: true }) });
-			setActiveSessionMessage(null);
+			const tokens = await loginMutation.mutateAsync({ ...credentials, ...(force && { force: true }) });
+			closeTakeoverDialog();
 			setSession(tokens, remember);
 			// The landing page depends on the role, so the user info is loaded (and cached) before navigating.
 			// If it fails, the default page is used and the route guards redirect once the role is known.
@@ -97,16 +121,20 @@ export default function LoginPage() {
 			const body = isAxiosError(err)
 				? (err.response?.data as { code?: string; detail?: string } | undefined)
 				: undefined;
+			// A 409 after `force` is not retried: it falls through and is shown as an error.
 			if (!force && body?.code === SESSION_ACTIVE_CODE) {
+				pendingCredentials.current = credentials;
 				setActiveSessionMessage(body.detail || SESSION_ACTIVE_MESSAGE);
 				return;
 			}
-			setActiveSessionMessage(null);
-			setFormError(isAxiosError(err) ? (body?.detail ?? 'Invalid username or password') : 'Login failed');
+			closeTakeoverDialog();
+			setFormError(loginErrorMessage(err));
+		} finally {
+			setPending(false);
 		}
 	};
 
-	const onSubmit = handleSubmit((values) => login(values, false));
+	const onSubmit = handleSubmit((values) => (pending ? undefined : login(values, false)));
 
 	return (
 		<div className='relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-[#245a94] via-ca-theme to-[#5fb3e8] dark:from-[#0b1324] dark:via-[#13253f] dark:to-[#1e3a5f] px-4 py-16'>
@@ -184,9 +212,9 @@ export default function LoginPage() {
 							variant='theme'
 							size='lg'
 							className='w-full shadow-[0_8px_20px_rgba(52,143,226,0.35)]'
-							disabled={isSubmitting}
+							disabled={pending}
 						>
-							{isSubmitting ? 'Kirilmoqda…' : 'Kirish'}
+							{pending ? 'Kirilmoqda…' : 'Kirish'}
 						</Button>
 					</form>
 				</div>
@@ -195,7 +223,7 @@ export default function LoginPage() {
 			<Modal
 				open={activeSessionMessage != null}
 				onOpenChange={(open) => {
-					if (!open && !loginMutation.isPending) setActiveSessionMessage(null);
+					if (!open && !pending) closeTakeoverDialog();
 				}}
 			>
 				<ModalContent>
@@ -211,15 +239,15 @@ export default function LoginPage() {
 					<ModalFooter>
 						<Button
 							variant='white'
-							onClick={() => setActiveSessionMessage(null)}
-							disabled={loginMutation.isPending}
+							onClick={closeTakeoverDialog}
+							disabled={pending}
 						>
 							Bekor qilish
 						</Button>
 						<Button
 							variant='warning'
-							onClick={() => login(getValues(), true)}
-							loading={loginMutation.isPending}
+							onClick={() => pendingCredentials.current && login(pendingCredentials.current, true)}
+							loading={pending}
 						>
 							Ha, shu yerda kirish
 						</Button>
