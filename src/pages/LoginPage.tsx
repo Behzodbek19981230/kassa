@@ -38,7 +38,6 @@ const LOGOUT_REASON_MESSAGES: Record<string, string> = {
 
 /** Login is refused with this code while the account is open on another device; `force: true` takes it over. */
 const SESSION_ACTIVE_CODE = 'session_active';
-const SESSION_ACTIVE_MESSAGE = 'Bu hisob boshqa qurilmada ochiq.';
 
 /** Text for a failed login: the backend's `detail` as is, else a default for the status. */
 function loginErrorMessage(err: unknown): string {
@@ -72,7 +71,7 @@ export default function LoginPage() {
 	const [formError, setFormError] = useState(() => initialLogoutMessage(searchParams.get('reason')));
 	const [showPassword, setShowPassword] = useState(false);
 	// Set when the account is open on another device: the backend's text, shown in the takeover dialog.
-	const [activeSessionMessage, setActiveSessionMessage] = useState<string | null>(null);
+	const [takeoverOpen, setTakeoverOpen] = useState(false);
 	// The credentials that got the 409, held in memory only until the takeover dialog is answered.
 	const pendingCredentials = useRef<LoginForm | null>(null);
 	// Covers the whole login, including the user-info fetch after the tokens arrive: a second
@@ -100,7 +99,7 @@ export default function LoginPage() {
 
 	const closeTakeoverDialog = () => {
 		pendingCredentials.current = null;
-		setActiveSessionMessage(null);
+		setTakeoverOpen(false);
 	};
 
 	/** `force` only after the user confirmed the takeover dialog, and only once. */
@@ -124,7 +123,7 @@ export default function LoginPage() {
 			// A 409 after `force` is not retried: it falls through and is shown as an error.
 			if (!force && body?.code === SESSION_ACTIVE_CODE) {
 				pendingCredentials.current = credentials;
-				setActiveSessionMessage(body.detail || SESSION_ACTIVE_MESSAGE);
+				setTakeoverOpen(true);
 				return;
 			}
 			closeTakeoverDialog();
@@ -221,7 +220,7 @@ export default function LoginPage() {
 			</div>
 
 			<Modal
-				open={activeSessionMessage != null}
+				open={takeoverOpen}
 				onOpenChange={(open) => {
 					if (!open && !pending) closeTakeoverDialog();
 				}}
@@ -231,10 +230,7 @@ export default function LoginPage() {
 						<ModalTitle>Hisob boshqa qurilmada ochiq</ModalTitle>
 					</ModalHeader>
 					<ModalBody>
-						<p>{activeSessionMessage}</p>
-						<p className='mt-2'>
-							Davom etsangiz, u qurilmadan chiqarib yuboriladi va shu yerda tizimga kirasiz.
-						</p>
+						<p>Shu yerda kirsangiz, u qurilmadan chiqib ketadi.</p>
 					</ModalBody>
 					<ModalFooter>
 						<Button
@@ -249,7 +245,7 @@ export default function LoginPage() {
 							onClick={() => pendingCredentials.current && login(pendingCredentials.current, true)}
 							loading={pending}
 						>
-							Ha, shu yerda kirish
+							Kirish
 						</Button>
 					</ModalFooter>
 				</ModalContent>
