@@ -64,6 +64,8 @@ const GENDER_OPTIONS = [
 	{ value: 'male', label: 'Erkak' },
 	{ value: 'female', label: 'Ayol' },
 ];
+/** Pre-selected gender for new users, and the fallback for users saved without one. */
+const DEFAULT_GENDER = 'male';
 
 const MULTI_COMPANY_ROLE_KEYS: string[] = [ROLE.SUPER_ADMIN, ROLE.MANAGER];
 
@@ -114,7 +116,7 @@ function userToFormValues(user: User): UserFormValues {
 		first_name: user.first_name,
 		last_name: user.last_name,
 		second_name: user.second_name ?? '',
-		gender: user.gender ?? '',
+		gender: user.gender || DEFAULT_GENDER,
 		date_of_birthday: user.date_of_birthday ?? '',
 		phone_number: formatUzPhone(user.phone_number ?? ''),
 		email: user.email,
@@ -183,7 +185,7 @@ export default function UserFormModal({ open, setOpen, mode, item, employeeType 
 						first_name: '',
 						last_name: '',
 						second_name: '',
-						gender: '',
+						gender: DEFAULT_GENDER,
 						date_of_birthday: '',
 						phone_number: '+998',
 						email: '',

@@ -5,7 +5,15 @@ import { useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash, FaExclamationCircle, FaLock, FaUser } from 'react-icons/fa';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
-import { Button } from '@/components/ui';
+import {
+	Button,
+	Modal,
+	ModalBody,
+	ModalContent,
+	ModalFooter,
+	ModalHeader,
+	ModalTitle,
+} from '@/components/ui';
 import { setSession } from '@/lib/auth';
 import { LOGOUT_MESSAGE_KEY } from '@/lib/session';
 import { getHomePath } from '@/lib/permissions';
@@ -28,6 +36,10 @@ const LOGOUT_REASON_MESSAGES: Record<string, string> = {
 	unauthorized: 'Tizimga qaytadan kiring.',
 };
 
+/** Login is refused with this code while the account is open on another device; `force: true` takes it over. */
+const SESSION_ACTIVE_CODE = 'session_active';
+const SESSION_ACTIVE_MESSAGE = 'Bu hisob boshqa qurilmada ochiq.';
+
 /** The backend's `detail` saved on logout, else the default text for the `?reason=`. */
 function initialLogoutMessage(reason: string | null): string {
 	let detail: string | null = null;
@@ -46,6 +58,8 @@ export default function LoginPage() {
 	const [searchParams] = useSearchParams();
 	const [formError, setFormError] = useState(() => initialLogoutMessage(searchParams.get('reason')));
 	const [showPassword, setShowPassword] = useState(false);
+	// Set when the account is open on another device: the backend's text, shown in the takeover dialog.
+	const [activeSessionMessage, setActiveSessionMessage] = useState<string | null>(null);
 	const loginMutation = useLoginMutation();
 
 	// Shown once: a later visit to the login page must not repeat an old logout message.
@@ -60,16 +74,18 @@ export default function LoginPage() {
 	const {
 		register,
 		handleSubmit,
+		getValues,
 		formState: { errors, isSubmitting },
 	} = useForm<LoginForm>({
 		resolver: zodResolver(loginSchema),
 		defaultValues: { username: '', password: '' },
 	});
 
-	const onSubmit = handleSubmit(async ({ username, password }) => {
+	const login = async ({ username, password }: LoginForm, force: boolean) => {
 		setFormError('');
 		try {
-			const tokens = await loginMutation.mutateAsync({ username, password });
+			const tokens = await loginMutation.mutateAsync({ username, password, ...(force && { force: true }) });
+			setActiveSessionMessage(null);
 			setSession(tokens, remember);
 			// The landing page depends on the role, so the user info is loaded (and cached) before navigating.
 			// If it fails, the default page is used and the route guards redirect once the role is known.
@@ -78,12 +94,19 @@ export default function LoginPage() {
 				.catch(() => null);
 			navigate(getHomePath(userInfo?.roles?.key), { replace: true });
 		} catch (err) {
-			const message = isAxiosError(err)
-				? ((err.response?.data as { detail?: string } | undefined)?.detail ?? 'Invalid username or password')
-				: 'Login failed';
-			setFormError(message);
+			const body = isAxiosError(err)
+				? (err.response?.data as { code?: string; detail?: string } | undefined)
+				: undefined;
+			if (!force && body?.code === SESSION_ACTIVE_CODE) {
+				setActiveSessionMessage(body.detail || SESSION_ACTIVE_MESSAGE);
+				return;
+			}
+			setActiveSessionMessage(null);
+			setFormError(isAxiosError(err) ? (body?.detail ?? 'Invalid username or password') : 'Login failed');
 		}
-	});
+	};
+
+	const onSubmit = handleSubmit((values) => login(values, false));
 
 	return (
 		<div className='relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-[#245a94] via-ca-theme to-[#5fb3e8] dark:from-[#0b1324] dark:via-[#13253f] dark:to-[#1e3a5f] px-4 py-16'>
@@ -168,6 +191,41 @@ export default function LoginPage() {
 					</form>
 				</div>
 			</div>
+
+			<Modal
+				open={activeSessionMessage != null}
+				onOpenChange={(open) => {
+					if (!open && !loginMutation.isPending) setActiveSessionMessage(null);
+				}}
+			>
+				<ModalContent>
+					<ModalHeader>
+						<ModalTitle>Hisob boshqa qurilmada ochiq</ModalTitle>
+					</ModalHeader>
+					<ModalBody>
+						<p>{activeSessionMessage}</p>
+						<p className='mt-2'>
+							Davom etsangiz, u qurilmadan chiqarib yuboriladi va shu yerda tizimga kirasiz.
+						</p>
+					</ModalBody>
+					<ModalFooter>
+						<Button
+							variant='white'
+							onClick={() => setActiveSessionMessage(null)}
+							disabled={loginMutation.isPending}
+						>
+							Bekor qilish
+						</Button>
+						<Button
+							variant='warning'
+							onClick={() => login(getValues(), true)}
+							loading={loginMutation.isPending}
+						>
+							Ha, shu yerda kirish
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
 		</div>
 	);
 }
