@@ -58,6 +58,7 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { ROLE } from '@/lib/permissions';
 import { useCurrentCompany } from '@/lib/company';
 import { formatNumber } from '@/lib/number';
+import { cn } from '@/lib/utils';
 
 const GENDER_OPTIONS = [
 	{ value: 'male', label: 'Erkak' },
@@ -510,7 +511,8 @@ export default function UserFormModal({ open, setOpen, mode, item, employeeType 
 								<Input {...register('second_name')} />
 							</FormField>
 						</div>
-						<div className='mb-3 grid grid-cols-2 gap-3'>
+						{/* An employee has no email: gender, birthday and phone fit one row. */}
+						<div className={cn('mb-3 grid gap-3', isEmployee ? 'grid-cols-3' : 'grid-cols-2')}>
 							<FormField
 								label='Jinsi'
 								error={errors.gender?.message}
@@ -550,8 +552,6 @@ export default function UserFormModal({ open, setOpen, mode, item, employeeType 
 									render={({ field }) => <DatePicker value={field.value} onChange={field.onChange} />}
 								/>
 							</FormField>
-						</div>
-						<div className='mb-3 grid grid-cols-2 gap-3'>
 							<FormField
 								label='Telefon'
 								error={errors.phone_number?.message}

@@ -127,7 +127,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		// Admin ("Oddiy Do'kon Hodim" tab) and Sklad Manager ("Oddiy Sklad Hodim" tab).
 		id: 'users-top',
 		icon: 'users-cog',
-		label: 'Hodimlar',
+		label: 'Xodimlar',
 		path: '/system/users',
 		requiredPermission: 'hasTopLevelUsersMenu',
 	},
@@ -170,7 +170,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 			{
 				id: 'users',
 				icon: 'users-cog',
-				label: 'Foydalanuvchilar',
+				label: 'Xodimlar',
 				path: '/system/users',
 				requiredPermission: 'isSuperAdmin',
 			},
