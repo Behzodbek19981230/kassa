@@ -58,8 +58,10 @@ export interface SidebarMenuPermissions {
 	canViewSoldHistory: boolean;
 	/** Admin and Sklad Manager get "Hodimlar" as a top-level menu item (Super Admin has it under "Tizim boshqaruvi"). */
 	hasTopLevelUsersMenu: boolean;
-	/** "Kassa" menu: Super Admin + Admin. */
+	/** "Kassa" menu: Super Admin + Admin (TEMP: is_staff only). */
 	canViewKassa: boolean;
+	/** "Do'kon kartalari": Super Admin (TEMP: is_staff only). */
+	canViewPaymentCards: boolean;
 	/** True for the Manager role, which only gets a trimmed-down "Tizim boshqaruvi"/"Sozlamalar". */
 	isManager: boolean;
 	isNotManager: boolean;

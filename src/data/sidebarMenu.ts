@@ -104,18 +104,19 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		path: '/my-debts',
 		requiredPermission: 'canViewMyDebts',
 	},
-	// {
-	// 	id: 'kassa',
-	// 	icon: 'cash-register',
-	// 	label: 'Kassa',
-	// 	requiredPermission: 'canViewKassa',
-	// 	children: [
-	// 		{ id: 'kassa-current', icon: 'wallet', label: 'Joriy kassa', path: '/kassa/current' },
-	// 		{ id: 'kassa-movements', icon: 'receipt', label: 'Davr harakatlari', path: '/kassa/movements' },
-	// 		{ id: 'kassa-close', icon: 'check-circle', label: 'Kassani topshirish', path: '/kassa/close' },
-	// 		{ id: 'kassa-closings', icon: 'history', label: 'Topshirishlar tarixi', path: '/kassa/closings' },
-	// 	],
-	// },
+	{
+		// TEMP (test): is_staff users only (see canViewKassa).
+		id: 'kassa',
+		icon: 'cash-register',
+		label: 'Kassa',
+		requiredPermission: 'canViewKassa',
+		children: [
+			{ id: 'kassa-current', icon: 'wallet', label: 'Joriy kassa', path: '/kassa/current' },
+			{ id: 'kassa-movements', icon: 'receipt', label: 'Davr harakatlari', path: '/kassa/movements' },
+			{ id: 'kassa-close', icon: 'check-circle', label: 'Kassani topshirish', path: '/kassa/close' },
+			{ id: 'kassa-closings', icon: 'history', label: 'Topshirishlar tarixi', path: '/kassa/closings' },
+		],
+	},
 	{
 		id: 'shippers-top',
 		icon: 'shipping-fast',
@@ -160,13 +161,14 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				path: '/system/logistics-companies',
 				requiredPermission: 'canViewLogistika',
 			},
-			// {
-			// 	id: 'payment-cards',
-			// 	icon: 'credit-card',
-			// 	label: "Do'kon kartalari",
-			// 	path: '/system/payment-cards',
-			// 	requiredPermission: 'isSuperAdmin',
-			// },
+			{
+				// TEMP (test): is_staff users only (see canViewPaymentCards).
+				id: 'payment-cards',
+				icon: 'credit-card',
+				label: "Do'kon kartalari",
+				path: '/system/payment-cards',
+				requiredPermission: 'canViewPaymentCards',
+			},
 			{
 				id: 'users',
 				icon: 'users-cog',

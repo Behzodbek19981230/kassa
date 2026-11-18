@@ -18,6 +18,7 @@ import ConsignorRoute from '@/components/auth/ConsignorRoute';
 import MyDebtRoute from '@/components/auth/MyDebtRoute';
 import ClientDebtorRoute from '@/components/auth/ClientDebtorRoute';
 import KassaRoute from '@/components/auth/KassaRoute';
+import PaymentCardsRoute from '@/components/auth/PaymentCardsRoute';
 import UsersRoute from '@/components/auth/UsersRoute';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
@@ -179,7 +180,7 @@ export default function App() {
 					<Route element={<ClientDebtorRoute />}>
 						<Route path='settings/debtors' element={<ClientDebtorPage />} />
 					</Route>
-					{/* "Kassa": Super Admin + Admin (cancelling a closing is Super Admin only, checked on the page). */}
+					{/* "Kassa": Super Admin + Admin, for now only is_staff users (cancelling a closing is Super Admin only, checked on the page). */}
 					<Route element={<KassaRoute />}>
 						<Route path='kassa' element={<Navigate to='/kassa/current' replace />} />
 						<Route path='kassa/current' element={<KassaCurrentPage />} />
@@ -204,8 +205,11 @@ export default function App() {
 
 					{/* System management ("Tizim boshqaruvi") is Super Admin only. */}
 					<Route element={<SuperAdminRoute />}>
-						<Route path='system/payment-cards' element={<PaymentCardPage />} />
-						<Route path='system/payment-cards/:id/payments' element={<PaymentCardPaymentsPage />} />
+						{/* "Do'kon kartalari": for now only is_staff users (test). */}
+						<Route element={<PaymentCardsRoute />}>
+							<Route path='system/payment-cards' element={<PaymentCardPage />} />
+							<Route path='system/payment-cards/:id/payments' element={<PaymentCardPaymentsPage />} />
+						</Route>
 						<Route path='system/companies' element={<CompanyPage />} />
 						<Route path='system/locations' element={<LocationPage />} />
 						<Route path='system/sklad-types' element={<SkladTypePage />} />

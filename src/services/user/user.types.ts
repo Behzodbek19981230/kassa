@@ -40,6 +40,8 @@ export interface User {
 	is_active: boolean;
 	/** false for account-only employees (type 4 / 5), who have no login. */
 	is_system_user?: boolean;
+	/** Django `is_staff`: features still under test (Kassa, kartalar, Hodimlar tabs 2–4) are shown only to these users. */
+	is_staff?: boolean;
 	date_joined: string;
 	role: number | null;
 	roles?: UserRoleDetail | null;

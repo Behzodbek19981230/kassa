@@ -2,7 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { usePermissions } from '@/lib/permissions'
 import { useUserInfoQuery } from '@/services/user/user.queries'
 
-/** "Kassa" pages (/kassa/*): Super Admin and Admin; everyone else goes home. */
+/** "Kassa" pages (/kassa/*): Super Admin and Admin, for now only is_staff users; everyone else goes home. */
 export default function KassaRoute() {
   const { isLoading } = useUserInfoQuery()
   const { canViewKassa, homePath } = usePermissions()

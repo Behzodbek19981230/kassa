@@ -7,6 +7,7 @@ import { isUserTab, USER_TAB_CONFIG, USER_TABS, type UserTab } from '@/pages/sys
 /**
  * "Hodimlar": system users, the two kinds of account-only employees and the archive, one tab each.
  * Each role sees only its tabs: Super Admin all four, Admin "Oddiy Do'kon Hodim", Sklad Manager "Oddiy Sklad Hodim".
+ * For now (test) every tab but "Tizim foydalanuvchilari" is shown only to is_staff users.
  */
 export default function UserPage() {
 	const { canManageSystemUsers, canManageStoreEmployees, canManageSkladEmployees, canViewUserArchive } = usePermissions();

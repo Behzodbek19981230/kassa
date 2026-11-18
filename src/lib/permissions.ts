@@ -45,6 +45,9 @@ export function usePermissions() {
 
 	const isManager = roleKey === ROLE.MANAGER;
 
+	// TEMP (test): features still being tested are shown only to `is_staff` users, on top of their role rules.
+	const isStaff = userInfo?.is_staff === true;
+
 	// import ('Import qilish'): Super Admin + Sklad Manager + Manager + Admin
 	const canImport = isSuperAdmin || isSkladManager || isManager || isAdmin;
 
@@ -163,7 +166,10 @@ export function usePermissions() {
 	const canDownloadOrderDebtPdf3 = roleKey != null && roleKey !== ROLE.SOTUVCHI && !isSkladXodim;
 
 	// "Kassa" (joriy kassa, harakatlar, topshirish, tarix): Super Admin + Admin. Cancelling a closing: Super Admin only.
-	const canViewKassa = isSuperAdmin || isAdmin;
+	// TEMP (test): is_staff only.
+	const canViewKassa = isStaff && (isSuperAdmin || isAdmin);
+	// "Do'kon kartalari" (/system/payment-cards): Super Admin. TEMP (test): is_staff only.
+	const canViewPaymentCards = isStaff && isSuperAdmin;
 	const canCancelCashClosing = isSuperAdmin;
 
 	// "Hodimlar" page (/system/users), one tab per kind of user:
@@ -172,10 +178,11 @@ export function usePermissions() {
 	//  3 "Oddiy Sklad Hodim" (type 4): Super Admin + Sklad Manager.
 	// Whoever sees a tab may add, edit and archive its users and run their payroll; restoring and
 	// deleting from the archive, and deleting a payroll transaction, stay Super Admin only.
+	// TEMP (test): tabs 2–4 are shown only to is_staff users; tab 1 is unaffected.
 	const canManageSystemUsers = isSuperAdmin;
-	const canManageStoreEmployees = isSuperAdmin || isAdmin;
-	const canManageSkladEmployees = isSuperAdmin || isSkladManager;
-	const canViewUserArchive = isSuperAdmin;
+	const canManageStoreEmployees = isStaff && (isSuperAdmin || isAdmin);
+	const canManageSkladEmployees = isStaff && (isSuperAdmin || isSkladManager);
+	const canViewUserArchive = isStaff && isSuperAdmin;
 	const canViewUsersPage = canManageSystemUsers || canManageStoreEmployees || canManageSkladEmployees;
 	// Admin and Sklad Manager open it from a top-level "Hodimlar" item (Super Admin has it under "Tizim boshqaruvi").
 	const hasTopLevelUsersMenu = !isSuperAdmin && canViewUsersPage;
@@ -211,7 +218,9 @@ export function usePermissions() {
 		canViewMyDebts,
 		canViewClientDebtors,
 		canViewSoldHistory,
+		isStaff,
 		canViewKassa,
+		canViewPaymentCards,
 		canCancelCashClosing,
 		canManageMyDebts,
 		isSkladManager,
