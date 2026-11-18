@@ -227,7 +227,7 @@ export default function LoginPage() {
 			>
 				<ModalContent>
 					<ModalHeader>
-						<ModalTitle>Hisob boshqa qurilmada ochiq</ModalTitle>
+						<ModalTitle>Hozir bu profilda boshqa xodim ishlamoqda</ModalTitle>
 					</ModalHeader>
 					<ModalBody>
 						<p className='text-base font-semibold text-ca-orange'>
