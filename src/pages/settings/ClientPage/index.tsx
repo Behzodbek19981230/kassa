@@ -33,6 +33,7 @@ import { districtService } from '@/services/district/district.service';
 import { useRegionListQuery } from '@/services/region/region.queries';
 import { regionService } from '@/services/region/region.service';
 import { userService } from '@/services/user/user.service';
+import { SYSTEM_USER_PARAMS } from '@/services/user/user.types';
 
 const columnHelper = createColumnHelper<Client>();
 const clientTypeLabelByValue = new Map(CLIENT_TYPE_OPTIONS.map((o) => [o.value, o.label]));
@@ -104,7 +105,7 @@ export default function ClientPage() {
 	};
 
 	const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await userService.list({ search: search || undefined, page, limit: 20 });
+		const result = await userService.list({ ...SYSTEM_USER_PARAMS, search: search || undefined, page, limit: 20 });
 		return {
 			options: result.results.map((u) => ({ value: String(u.id), label: userLabel(u) })),
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,

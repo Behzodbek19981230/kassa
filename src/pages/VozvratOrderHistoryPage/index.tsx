@@ -20,6 +20,7 @@ import { clientService } from '@/services/client/client.service';
 import { useVozvratOrderListQuery } from '@/services/vozvrat/vozvrat.queries';
 import type { VozvratOrderListItem } from '@/services/vozvrat/vozvrat.types';
 import { userService } from '@/services/user/user.service';
+import { SYSTEM_USER_PARAMS } from '@/services/user/user.types';
 import ConfirmVozvratUpdateModal from '@/pages/VozvratOrderHistoryPage/components/ConfirmVozvratUpdateModal';
 import DeleteVozvratOrderModal from '@/pages/VozvratOrderHistoryPage/components/DeleteVozvratOrderModal';
 
@@ -58,7 +59,7 @@ export default function VozvratOrderHistoryPage() {
    };
 
    const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-      const result = await userService.list({ search: search || undefined, page, limit: 20 });
+      const result = await userService.list({ ...SYSTEM_USER_PARAMS, search: search || undefined, page, limit: 20 });
       return {
          options: result.results.map((u) => ({ value: String(u.id), label: userLabel(u) })),
          hasMore: result.pagination.currentPage < result.pagination.lastPage,

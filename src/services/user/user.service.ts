@@ -1,6 +1,15 @@
 import { apiClient } from '@/services/api/client'
 import type { PaginatedResponse } from '@/services/api/types'
-import type { User, UserListParams, UserPayload, UserPayrollSummary, UserTelegramBotRegisterPayload } from '@/services/user/user.types'
+import type {
+  EmployeePayload,
+  User,
+  UserListParams,
+  UserPayload,
+  UserPayrollSummary,
+  UserTelegramBotRegisterPayload,
+} from '@/services/user/user.types'
+
+const MULTIPART = { headers: { 'Content-Type': 'multipart/form-data' } }
 
 function buildUserFormData(payload: UserPayload, avatar?: File | null) {
   const formData = new FormData()
@@ -12,11 +21,11 @@ function buildUserFormData(payload: UserPayload, avatar?: File | null) {
   formData.append('date_of_birthday', payload.date_of_birthday)
   formData.append('phone_number', payload.phone_number)
   formData.append('email', payload.email)
-  formData.append('is_active', String(payload.is_active))
   formData.append('region', String(payload.region))
   formData.append('district', String(payload.district))
   formData.append('role', String(payload.role))
-  if (payload.type != null) formData.append('type', String(payload.type))
+  // Multipart has no null: an empty value clears the type.
+  if (payload.type !== undefined) formData.append('type', payload.type === null ? '' : String(payload.type))
   if (payload.trade_company != null) formData.append('trade_company', String(payload.trade_company))
   if (payload.current_company != null) formData.append('current_company', String(payload.current_company))
   payload.companies.forEach((companyId) => formData.append('companies', String(companyId)))
@@ -25,6 +34,17 @@ function buildUserFormData(payload: UserPayload, avatar?: File | null) {
   if (payload.password) formData.append('password', payload.password)
   if (payload.oylik_dollar != null) formData.append('oylik_dollar', payload.oylik_dollar)
   if (payload.oylik_som != null) formData.append('oylik_som', payload.oylik_som)
+  if (avatar) formData.append('avatar', avatar)
+  return formData
+}
+
+function buildEmployeeFormData(payload: Partial<EmployeePayload>, avatar?: File | null) {
+  const formData = new FormData()
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined) return
+    // Multipart has no null: an empty value clears an optional field (region, district, birthday...).
+    formData.append(key, value === null ? '' : String(value))
+  })
   if (avatar) formData.append('avatar', avatar)
   return formData
 }
@@ -45,17 +65,33 @@ export const userService = {
     return data
   },
   create: async (payload: UserPayload, avatar?: File | null) => {
-    const { data } = await apiClient.post<User>('/user/', buildUserFormData(payload, avatar), {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const { data } = await apiClient.post<User>('/user/', buildUserFormData(payload, avatar), MULTIPART)
     return data
   },
+  /** Full update (PUT) of a system user: a missing `type_sklads` list clears it, so it is always sent. */
   update: async (id: number, payload: UserPayload, avatar?: File | null) => {
-    const { data } = await apiClient.put<User>(`/user/${id}/`, buildUserFormData(payload, avatar), {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const { data } = await apiClient.put<User>(`/user/${id}/`, buildUserFormData(payload, avatar), MULTIPART)
     return data
   },
+  createEmployee: async (payload: EmployeePayload, avatar?: File | null) => {
+    const { data } = await apiClient.post<User>('/user/', buildEmployeeFormData(payload, avatar), MULTIPART)
+    return data
+  },
+  updateEmployee: async (id: number, payload: Partial<EmployeePayload>, avatar?: File | null) => {
+    const { data } = await apiClient.patch<User>(`/user/${id}/`, buildEmployeeFormData(payload, avatar), MULTIPART)
+    return data
+  },
+  /** Moves the user to the archive (Tab 4); a system user's session is closed and they can no longer log in. */
+  archive: async (id: number) => {
+    const { data } = await apiClient.post<User>(`/user/${id}/archive/`)
+    return data
+  },
+  /** Super Admin: brings an archived user back to their tab. */
+  restore: async (id: number) => {
+    const { data } = await apiClient.post<User>(`/user/${id}/restore/`)
+    return data
+  },
+  /** Super Admin, archived users only. 409 when the user has payroll payments (they stay in the archive). */
   remove: async (id: number) => {
     await apiClient.delete(`/user/${id}/`)
   },

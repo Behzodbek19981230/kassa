@@ -18,6 +18,7 @@ import { consignorService } from '@/services/consignor/consignor.service';
 import { useSkladListQuery } from '@/services/sklad/sklad.queries';
 import type { SkladItem } from '@/services/sklad/sklad.types';
 import { userService } from '@/services/user/user.service';
+import { SYSTEM_USER_PARAMS } from '@/services/user/user.types';
 import DeleteSkladModal from '@/pages/WarehouseAccountPage/DeleteSkladModal';
 
 const columnHelper = createColumnHelper<SkladItem>();
@@ -68,7 +69,7 @@ export default function WarehouseAccountPage() {
    };
 
    const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-      const result = await userService.list({ search: search || undefined, page, limit: 20 });
+      const result = await userService.list({ ...SYSTEM_USER_PARAMS, search: search || undefined, page, limit: 20 });
       return {
          options: result.results.map((u) => ({ value: String(u.id), label: userLabel(u) })),
          hasMore: result.pagination.currentPage < result.pagination.lastPage,

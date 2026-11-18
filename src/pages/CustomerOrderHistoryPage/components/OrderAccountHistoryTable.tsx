@@ -18,6 +18,7 @@ import { clientService } from '@/services/client/client.service';
 import { useOrderAccountHistoryGroupedListQuery } from '@/services/order-account-history/order-account-history.queries';
 import type { OrderAccountHistoryItem } from '@/services/order-account-history/order-account-history.types';
 import { useUserListQuery } from '@/services/user/user.queries';
+import { SYSTEM_USER_PARAMS } from '@/services/user/user.types';
 import { userService } from '@/services/user/user.service';
 import ConfirmOrderUpdateModal from '@/pages/CustomerOrderHistoryPage/components/ConfirmOrderUpdateModal';
 import OrderDraftDeleteModal from '@/pages/CustomerOrderHistoryPage/components/OrderDraftDeleteModal';
@@ -92,7 +93,7 @@ export default function OrderAccountHistoryTable({
       [data],
    );
 
-   const { data: userData } = useUserListQuery({ limit: 100 });
+   const { data: userData } = useUserListQuery({ ...SYSTEM_USER_PARAMS, limit: 100 });
    const userLabelById = new Map((userData?.results ?? []).map((u) => [u.id, userLabel(u)]));
 
    const loadClientOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
@@ -104,7 +105,7 @@ export default function OrderAccountHistoryTable({
    };
 
    const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-      const result = await userService.list({ search: search || undefined, page, limit: 20 });
+      const result = await userService.list({ ...SYSTEM_USER_PARAMS, search: search || undefined, page, limit: 20 });
       return {
          options: result.results.map((u) => ({ value: String(u.id), label: userLabel(u) })),
          hasMore: result.pagination.currentPage < result.pagination.lastPage,

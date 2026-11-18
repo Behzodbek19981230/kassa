@@ -18,6 +18,7 @@ import ConsignorRoute from '@/components/auth/ConsignorRoute';
 import MyDebtRoute from '@/components/auth/MyDebtRoute';
 import ClientDebtorRoute from '@/components/auth/ClientDebtorRoute';
 import KassaRoute from '@/components/auth/KassaRoute';
+import UsersRoute from '@/components/auth/UsersRoute';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
 import LoginPage from '@/pages/LoginPage';
@@ -195,12 +196,16 @@ export default function App() {
 						<Route path='system/consignors' element={<ConsignorPage />} />
 					</Route>
 
+					{/* "Hodimlar": Super Admin, Admin and Sklad Manager; the page shows each role only its own tabs. */}
+					<Route element={<UsersRoute />}>
+						<Route path='system/users' element={<UserPage />} />
+						<Route path='system/users/:id/payroll' element={<UserPayrollPage />} />
+					</Route>
+
 					{/* System management ("Tizim boshqaruvi") is Super Admin only. */}
 					<Route element={<SuperAdminRoute />}>
 						<Route path='system/payment-cards' element={<PaymentCardPage />} />
 						<Route path='system/payment-cards/:id/payments' element={<PaymentCardPaymentsPage />} />
-						<Route path='system/users' element={<UserPage />} />
-						<Route path='system/users/:id/payroll' element={<UserPayrollPage />} />
 						<Route path='system/companies' element={<CompanyPage />} />
 						<Route path='system/locations' element={<LocationPage />} />
 						<Route path='system/sklad-types' element={<SkladTypePage />} />

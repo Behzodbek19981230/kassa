@@ -32,6 +32,7 @@ import {
 } from '@/services/cash-register/cash-register.queries';
 import type { CashRegisterCurrent } from '@/services/cash-register/cash-register.types';
 import { useUserListQuery } from '@/services/user/user.queries';
+import { ACTIVE_SYSTEM_USER_PARAMS } from '@/services/user/user.types';
 
 function FieldError({ children }: { children?: ReactNode }) {
 	if (!children) return null;
@@ -92,7 +93,7 @@ export default function KassaClosePage() {
 
 	const lastQuery = useCashClosingListQuery({ ordering: '-number', limit: 1 });
 	const countsQuery = useCashMovementsQuery({ page: 1, limit: 1 }, Boolean(current && !current.is_initial));
-	const usersQuery = useUserListQuery({ limit: 200 });
+	const usersQuery = useUserListQuery({ ...ACTIVE_SYSTEM_USER_PARAMS, limit: 200 });
 	const createMutation = useCreateCashClosingMutation();
 
 	const userOptions = useMemo(

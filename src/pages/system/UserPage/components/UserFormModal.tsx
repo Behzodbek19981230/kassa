@@ -5,7 +5,6 @@ import { FaCamera, FaUser } from 'react-icons/fa';
 import { z } from 'zod';
 import {
 	Button,
-	Checkbox,
 	Combobox,
 	type ComboboxLoadParams,
 	type ComboboxLoadResult,
@@ -37,8 +36,23 @@ import { regionService } from '@/services/region/region.service';
 import { useRegionQuery } from '@/services/region/region.queries';
 import { roleService } from '@/services/role/role.service';
 import { useSkladTypeListQuery } from '@/services/sklad-type/sklad-type.queries';
-import { useCreateUserMutation, useUpdateUserMutation, useUserQuery } from '@/services/user/user.queries';
-import { getUserTypeSkladIds, USER_TYPE_OPTIONS, type User, type UserPayload } from '@/services/user/user.types';
+import {
+	useCreateEmployeeMutation,
+	useCreateUserMutation,
+	useUpdateEmployeeMutation,
+	useUpdateUserMutation,
+	useUserQuery,
+} from '@/services/user/user.queries';
+import {
+	getUserTypeSkladIds,
+	isSystemUser,
+	USER_TYPE_LABELS,
+	USER_TYPE_OPTIONS,
+	type EmployeePayload,
+	type EmployeeType,
+	type User,
+	type UserPayload,
+} from '@/services/user/user.types';
 
 import { getApiErrorMessage } from '@/lib/errors';
 import { ROLE } from '@/lib/permissions';
@@ -52,34 +66,40 @@ const GENDER_OPTIONS = [
 
 const MULTI_COMPANY_ROLE_KEYS: string[] = [ROLE.SUPER_ADMIN, ROLE.MANAGER];
 
-function buildUserFormSchema(mode: 'create' | 'edit') {
+/**
+ * A system user (Tab 1) needs login, role and company; an account-only employee (Tab 2 / 3) only
+ * a name and phone number, and its login, role and company fields are neither shown nor sent.
+ */
+function buildUserFormSchema(mode: 'create' | 'edit', isEmployee: boolean) {
+	// Required for a system user, optional for an employee.
+	const systemRequired = (message: string) => (isEmployee ? z.string() : z.string().min(1, message));
+	const password = z.string().min(6, "Parol kamida 6 ta belgidan iborat bo'lishi kerak");
 	return z
 		.object({
-			username: z.string().min(1, 'Login kiritilishi shart'),
-			first_name: z.string().min(1, 'Ism kiritilishi shart'),
-			last_name: z.string().min(1, 'Familiya kiritilishi shart'),
+			username: systemRequired('Login kiritilishi shart'),
+			first_name: z.string().trim().min(1, 'Ism kiritilishi shart'),
+			last_name: z.string().trim().min(1, 'Familiya kiritilishi shart'),
 			second_name: z.string().optional(),
-			gender: z.string().min(1, 'Jinsi tanlanishi shart'),
-			date_of_birthday: z.string().min(1, "Tug'ilgan sana kiritilishi shart"),
+			gender: systemRequired('Jinsi tanlanishi shart'),
+			date_of_birthday: systemRequired("Tug'ilgan sana kiritilishi shart"),
 			phone_number: z.string().regex(UZ_PHONE_REGEX, "Telefon raqami to'liq kiritilishi shart"),
-			email: z.union([z.string().email("Email noto'g'ri kiritilgan"), z.literal('')]),
-			region: z.string().min(1, 'Viloyat tanlanishi shart'),
-			district: z.string().min(1, 'Tuman tanlanishi shart'),
-			role: z.string().min(1, 'Rol tanlanishi shart'),
-			type: z.string().min(1, 'Turi tanlanishi shart'),
-			companies: z.array(z.string()).min(1, 'Kamida bitta tashkilot tanlanishi shart'),
-			trade_company: z.string().min(1, 'Asosiy tashkilot tanlanishi shart'),
+			email: isEmployee ? z.string() : z.union([z.string().email("Email noto'g'ri kiritilgan"), z.literal('')]),
+			region: systemRequired('Viloyat tanlanishi shart'),
+			district: systemRequired('Tuman tanlanishi shart'),
+			role: systemRequired('Rol tanlanishi shart'),
+			// Empty → no type (null); 4 and 5 are never offered here.
+			type: z.string(),
+			companies: isEmployee
+				? z.array(z.string())
+				: z.array(z.string()).min(1, 'Kamida bitta tashkilot tanlanishi shart'),
+			trade_company: systemRequired('Asosiy tashkilot tanlanishi shart'),
 			type_sklads: z.array(z.string()),
-			address: z.string().min(1, 'Manzil kiritilishi shart'),
-			active: z.boolean(),
+			address: systemRequired('Manzil kiritilishi shart'),
 			oylik_dollar: z.string(),
 			oylik_som: z.string(),
-			password:
-				mode === 'create'
-					? z.string().min(6, "Parol kamida 6 ta belgidan iborat bo'lishi kerak")
-					: z.union([z.string().min(6, "Parol kamida 6 ta belgidan iborat bo'lishi kerak"), z.literal('')]),
+			password: isEmployee ? z.string() : mode === 'create' ? password : z.union([password, z.literal('')]),
 		})
-		.refine((data) => data.companies.includes(data.trade_company), {
+		.refine((data) => isEmployee || data.companies.includes(data.trade_company), {
 			message: "Asosiy tashkilot tanlangan tashkilotlar ichidan bo'lishi kerak",
 			path: ['trade_company'],
 		});
@@ -105,7 +125,6 @@ function userToFormValues(user: User): UserFormValues {
 		trade_company: user.trade_company ? String(user.trade_company) : '',
 		type_sklads: getUserTypeSkladIds(user).map(String),
 		address: user.address ?? '',
-		active: user.is_active,
 		oylik_dollar: user.oylik_dollar != null ? String(Number(user.oylik_dollar) || 0) : '',
 		oylik_som: user.oylik_som != null ? String(Number(user.oylik_som) || 0) : '',
 		password: '',
@@ -117,10 +136,16 @@ interface UserFormModalProps {
 	setOpen: (open: boolean) => void;
 	mode: 'create' | 'edit';
 	item?: User;
+	/** Create only: adds an account-only employee of this type (Tab 2 / Tab 3) instead of a system user. */
+	employeeType?: EmployeeType;
 }
 
-export default function UserFormModal({ open, setOpen, mode, item }: UserFormModalProps) {
+export default function UserFormModal({ open, setOpen, mode, item, employeeType }: UserFormModalProps) {
 	const { notify } = useNotification();
+	// Editing keeps the user's kind; Tab 1 ↔ Tab 2/3 can't be switched.
+	const employeeKind: EmployeeType | null =
+		mode === 'edit' && item ? (isSystemUser(item) ? null : (item.type as EmployeeType)) : (employeeType ?? null);
+	const isEmployee = employeeKind != null;
 	const { exchangeRate } = useCurrentCompany();
 	// Today's $ → so'm rate; 0 when not set, and then the two salary fields are filled independently.
 	const dollarRate = Number(exchangeRate?.dollar) || 0;
@@ -148,7 +173,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 		reset,
 		formState: { errors },
 	} = useForm<UserFormValues>({
-		resolver: zodResolver(buildUserFormSchema(mode)),
+		resolver: zodResolver(buildUserFormSchema(mode, isEmployee)),
 		defaultValues:
 			mode === 'edit' && item
 				? userToFormValues(item)
@@ -169,7 +194,6 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 						trade_company: '',
 						type_sklads: [],
 						address: '',
-						active: true,
 						oylik_dollar: '',
 						oylik_som: '',
 						password: '',
@@ -200,7 +224,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 
 	const createMutation = useCreateUserMutation();
 	const updateMutation = useUpdateUserMutation();
-	const isSaving = createMutation.isPending || updateMutation.isPending;
+	const createEmployeeMutation = useCreateEmployeeMutation();
+	const updateEmployeeMutation = useUpdateEmployeeMutation();
+	const isSaving =
+		createMutation.isPending ||
+		updateMutation.isPending ||
+		createEmployeeMutation.isPending ||
+		updateEmployeeMutation.isPending;
 
 	useEffect(() => {
 		return () => {
@@ -305,8 +335,41 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 		}
 	};
 
+	const saveEmployee = async (values: UserFormValues) => {
+		const payload: EmployeePayload = {
+			first_name: values.first_name.trim(),
+			last_name: values.last_name.trim(),
+			second_name: values.second_name?.trim() ?? '',
+			phone_number: values.phone_number.trim(),
+			gender: values.gender,
+			date_of_birthday: values.date_of_birthday,
+			region: values.region ? Number(values.region) : null,
+			district: values.district ? Number(values.district) : null,
+			address: values.address.trim(),
+		};
+		if (mode === 'edit' && item) {
+			await updateEmployeeMutation.mutateAsync({ id: item.id, payload, avatar: avatarFile });
+			notify({ title: 'Hodim yangilandi' });
+			return;
+		}
+		payload.type = employeeKind ?? undefined;
+		payload.oylik_dollar = (Number(values.oylik_dollar) || 0).toFixed(2);
+		payload.oylik_som = (Number(values.oylik_som) || 0).toFixed(2);
+		await createEmployeeMutation.mutateAsync({ payload, avatar: avatarFile });
+		notify({ title: "Hodim qo'shildi" });
+	};
+
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
+		if (isEmployee) {
+			try {
+				await saveEmployee(values);
+				setOpen(false);
+			} catch (err) {
+				setFormError(getApiErrorMessage(err, 'Saqlashda xatolik yuz berdi'));
+			}
+			return;
+		}
 		const payload: UserPayload = {
 			username: values.username.trim(),
 			first_name: values.first_name.trim(),
@@ -316,11 +379,10 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 			date_of_birthday: values.date_of_birthday,
 			phone_number: values.phone_number.trim(),
 			email: values.email.trim(),
-			is_active: values.active,
 			region: Number(values.region),
 			district: Number(values.district),
 			role: Number(values.role),
-			type: Number(values.type),
+			type: values.type ? Number(values.type) : null,
 			companies: values.companies.map(Number),
 			trade_company: Number(values.trade_company),
 			type_sklads: values.type_sklads.map(Number),
@@ -352,7 +414,13 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 		<Modal open={open} onOpenChange={setOpen}>
 			<ModalContent className='max-w-4xl'>
 				<ModalHeader>
-					<ModalTitle>{mode === 'edit' ? 'Foydalanuvchini tahrirlash' : "Foydalanuvchi qo'shish"}</ModalTitle>
+					<ModalTitle>
+						{isEmployee
+							? `${USER_TYPE_LABELS[employeeKind]}: ${mode === 'edit' ? 'tahrirlash' : "qo'shish"}`
+							: mode === 'edit'
+								? 'Foydalanuvchini tahrirlash'
+								: "Foydalanuvchi qo'shish"}
+					</ModalTitle>
 				</ModalHeader>
 				<form onSubmit={onSubmit} noValidate>
 					<ModalBody>
@@ -388,30 +456,32 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								className='hidden'
 							/>
 						</FormField>
-						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField
-								label='Login'
-								error={errors.username?.message}
-								required
-								horizontal={false}
-								className='mb-0'
-							>
-								<Input {...register('username')} />
-							</FormField>
-							<FormField
-								label='Parol'
-								error={errors.password?.message}
-								required={mode === 'create'}
-								horizontal={false}
-								className='mb-0'
-							>
-								<Input
-									type='password'
-									placeholder={mode === 'edit' ? "O'zgartirish uchun kiriting" : undefined}
-									{...register('password')}
-								/>
-							</FormField>
-						</div>
+						{!isEmployee && (
+							<div className='mb-3 grid grid-cols-2 gap-3'>
+								<FormField
+									label='Login'
+									error={errors.username?.message}
+									required
+									horizontal={false}
+									className='mb-0'
+								>
+									<Input {...register('username')} />
+								</FormField>
+								<FormField
+									label='Parol'
+									error={errors.password?.message}
+									required={mode === 'create'}
+									horizontal={false}
+									className='mb-0'
+								>
+									<Input
+										type='password'
+										placeholder={mode === 'edit' ? "O'zgartirish uchun kiriting" : undefined}
+										{...register('password')}
+									/>
+								</FormField>
+							</div>
+						)}
 						<div className='mb-3 grid grid-cols-3 gap-3'>
 							<FormField
 								label='Ism'
@@ -444,7 +514,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 							<FormField
 								label='Jinsi'
 								error={errors.gender?.message}
-								required
+								required={!isEmployee}
 								horizontal={false}
 								className='mb-0'
 							>
@@ -470,7 +540,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 							<FormField
 								label="Tug'ilgan sana"
 								error={errors.date_of_birthday?.message}
-								required
+								required={!isEmployee}
 								horizontal={false}
 								className='mb-0'
 							>
@@ -503,20 +573,22 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 									)}
 								/>
 							</FormField>
-							<FormField
-								label='Email'
-								error={errors.email?.message}
-								horizontal={false}
-								className='mb-0'
-							>
-								<Input type='email' {...register('email')} />
-							</FormField>
+							{!isEmployee && (
+								<FormField
+									label='Email'
+									error={errors.email?.message}
+									horizontal={false}
+									className='mb-0'
+								>
+									<Input type='email' {...register('email')} />
+								</FormField>
+							)}
 						</div>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
 							<FormField
 								label='Viloyat'
 								error={errors.region?.message}
-								required
+								required={!isEmployee}
 								horizontal={false}
 								className='mb-0'
 							>
@@ -543,7 +615,7 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 							<FormField
 								label='Tuman'
 								error={errors.district?.message}
-								required
+								required={!isEmployee}
 								horizontal={false}
 								className='mb-0'
 							>
@@ -569,135 +641,138 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 								/>
 							</FormField>
 						</div>
-						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField
-								label='Rol'
-								error={errors.role?.message}
-								required
-								horizontal={false}
-								className='mb-0'
-							>
-								<Controller
-									name='role'
-									control={control}
-									render={({ field }) => (
-										<Combobox
-											value={field.value}
-											onChange={handleRoleChange}
-											loadOptions={loadRoleOptions}
-											selectedLabel={roleLabel || undefined}
-											placeholder='Tanlang...'
-											searchPlaceholder='Rol qidirish...'
-											clearable
+						{!isEmployee && (
+							<>
+								<div className='mb-3 grid grid-cols-2 gap-3'>
+									<FormField
+										label='Rol'
+										error={errors.role?.message}
+										required
+										horizontal={false}
+										className='mb-0'
+									>
+										<Controller
+											name='role'
+											control={control}
+											render={({ field }) => (
+												<Combobox
+													value={field.value}
+													onChange={handleRoleChange}
+													loadOptions={loadRoleOptions}
+													selectedLabel={roleLabel || undefined}
+													placeholder='Tanlang...'
+													searchPlaceholder='Rol qidirish...'
+													clearable
+												/>
+											)}
 										/>
-									)}
-								/>
-							</FormField>
-							<FormField
-								label='Turi'
-								error={errors.type?.message}
-								required
-								horizontal={false}
-								className='mb-0'
-							>
-								<Controller
-									name='type'
-									control={control}
-									render={({ field }) => (
-										<Combobox
-											value={field.value}
-											onChange={(value) => field.onChange(value)}
-											options={USER_TYPE_OPTIONS}
-											placeholder='Tanlang...'
-											searchPlaceholder='Turi qidirish...'
-											clearable
+									</FormField>
+									<FormField
+										label='Turi'
+										error={errors.type?.message}
+										horizontal={false}
+										className='mb-0'
+									>
+										<Controller
+											name='type'
+											control={control}
+											render={({ field }) => (
+												<Combobox
+													value={field.value}
+													onChange={(value) => field.onChange(value)}
+													options={USER_TYPE_OPTIONS}
+													placeholder='Tanlanmagan'
+													searchPlaceholder='Turi qidirish...'
+													clearable
+												/>
+											)}
 										/>
-									)}
-								/>
-							</FormField>
-						</div>
-						{isMultiCompanyRole && (
-							<FormField
-								label='Tashkilotlar'
-								error={errors.companies?.message}
-								required
-								horizontal={false}
-								className='mb-3'
-							>
-								<MultiCombobox
-									value={companiesValue}
-									onChange={(values) => setValue('companies', values, { shouldValidate: true })}
-									loadOptions={loadCompanyOptions}
-									selectedLabels={companyLabels}
-									placeholder='Tanlang...'
-									searchPlaceholder='Tashkilot qidirish...'
-								/>
-							</FormField>
-						)}
-						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField
-								label='Asosiy tashkilot'
-								error={errors.trade_company?.message}
-								required
-								horizontal={false}
-								className='mb-0'
-							>
-								<Controller
-									name='trade_company'
-									control={control}
-									render={({ field }) =>
-										isMultiCompanyRole ? (
-											<Combobox
-												value={field.value}
-												onChange={handleTradeCompanyChange}
-												options={tradeCompanyOptions}
-												placeholder={
-													companiesValue.length ? 'Tanlang...' : 'Avval tashkilot tanlang'
-												}
-												searchPlaceholder='Tashkilot qidirish...'
-												disabled={companiesValue.length === 0}
-												clearable
-											/>
-										) : (
-											<Combobox
-												value={field.value}
-												onChange={handleTradeCompanyChange}
-												loadOptions={loadCompanyOptions}
-												selectedLabel={
-													(field.value === String(currentUser?.trade_company ?? '')
-														? currentUser?.trade_company_detail?.name
-														: undefined) ?? companyLabelCache[field.value]
-												}
-												placeholder='Tanlang...'
-												searchPlaceholder='Tashkilot qidirish...'
-												clearable
-											/>
-										)
-									}
-								/>
-							</FormField>
-							<FormField
-								label='Sklad turi'
-								error={errors.type_sklads?.message}
-								horizontal={false}
-								className='mb-0'
-							>
-								<Controller
-									name='type_sklads'
-									control={control}
-									render={({ field }) => (
+									</FormField>
+								</div>
+								{isMultiCompanyRole && (
+									<FormField
+										label='Tashkilotlar'
+										error={errors.companies?.message}
+										required
+										horizontal={false}
+										className='mb-3'
+									>
 										<MultiCombobox
-											value={field.value}
-											onChange={field.onChange}
-											options={skladTypeOptions}
-											selectedLabels={skladTypeLabels}
+											value={companiesValue}
+											onChange={(values) => setValue('companies', values, { shouldValidate: true })}
+											loadOptions={loadCompanyOptions}
+											selectedLabels={companyLabels}
 											placeholder='Tanlang...'
-											searchPlaceholder='Sklad turi qidirish...'
+											searchPlaceholder='Tashkilot qidirish...'
 										/>
-									)}
-								/>
-							</FormField>
-						</div>
+									</FormField>
+								)}
+								<div className='mb-3 grid grid-cols-2 gap-3'>
+									<FormField
+										label='Asosiy tashkilot'
+										error={errors.trade_company?.message}
+										required
+										horizontal={false}
+										className='mb-0'
+									>
+										<Controller
+											name='trade_company'
+											control={control}
+											render={({ field }) =>
+												isMultiCompanyRole ? (
+													<Combobox
+														value={field.value}
+														onChange={handleTradeCompanyChange}
+														options={tradeCompanyOptions}
+														placeholder={
+															companiesValue.length ? 'Tanlang...' : 'Avval tashkilot tanlang'
+														}
+														searchPlaceholder='Tashkilot qidirish...'
+														disabled={companiesValue.length === 0}
+														clearable
+													/>
+												) : (
+													<Combobox
+														value={field.value}
+														onChange={handleTradeCompanyChange}
+														loadOptions={loadCompanyOptions}
+														selectedLabel={
+															(field.value === String(currentUser?.trade_company ?? '')
+																? currentUser?.trade_company_detail?.name
+																: undefined) ?? companyLabelCache[field.value]
+														}
+														placeholder='Tanlang...'
+														searchPlaceholder='Tashkilot qidirish...'
+														clearable
+													/>
+												)
+											}
+										/>
+									</FormField>
+									<FormField
+										label='Sklad turi'
+										error={errors.type_sklads?.message}
+										horizontal={false}
+										className='mb-0'
+									>
+										<Controller
+											name='type_sklads'
+											control={control}
+											render={({ field }) => (
+												<MultiCombobox
+													value={field.value}
+													onChange={field.onChange}
+													options={skladTypeOptions}
+													selectedLabels={skladTypeLabels}
+													placeholder='Tanlang...'
+													searchPlaceholder='Sklad turi qidirish...'
+												/>
+											)}
+										/>
+									</FormField>
+								</div>
+							</>
+						)}
 						{mode === 'create' && (
 							<div className='mb-3 grid grid-cols-2 gap-3'>
 								<FormField label='Oylik dollar' horizontal={false} className='mb-0'>
@@ -747,24 +822,12 @@ export default function UserFormModal({ open, setOpen, mode, item }: UserFormMod
 						<FormField
 							label='Manzil'
 							error={errors.address?.message}
-							required
+							required={!isEmployee}
 							horizontal={false}
 							className='mb-3'
 						>
 							<Textarea rows={2} {...register('address')} />
 						</FormField>
-						<Controller
-							name='active'
-							control={control}
-							render={({ field }) => (
-								<Checkbox
-									inline
-									label='Faol'
-									checked={field.value}
-									onCheckedChange={(v) => field.onChange(!!v)}
-								/>
-							)}
-						/>
 					</ModalBody>
 					<ModalFooter>
 						<Button type='button' variant='white' onClick={() => setOpen(false)}>

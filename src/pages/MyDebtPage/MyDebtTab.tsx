@@ -19,6 +19,7 @@ import { consignorService } from '@/services/consignor/consignor.service';
 import { useMyDebtListQuery } from '@/services/my-debt/my-debt.queries';
 import type { MyDebtItem } from '@/services/my-debt/my-debt.types';
 import { userService } from '@/services/user/user.service';
+import { SYSTEM_USER_PARAMS } from '@/services/user/user.types';
 import MyDebtDeleteModal from '@/pages/MyDebtPage/components/MyDebtDeleteModal';
 import MyDebtFormModal from '@/pages/MyDebtPage/components/MyDebtFormModal';
 import MyDebtPayModal from '@/pages/MyDebtPage/components/MyDebtPayModal';
@@ -72,7 +73,7 @@ export default function MyDebtTab() {
 	};
 
 	const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await userService.list({ search: search || undefined, page, limit: 20 });
+		const result = await userService.list({ ...SYSTEM_USER_PARAMS, search: search || undefined, page, limit: 20 });
 		return {
 			options: result.results.map((u) => ({ value: String(u.id), label: userLabel(u) })),
 			hasMore: result.pagination.currentPage < result.pagination.lastPage,

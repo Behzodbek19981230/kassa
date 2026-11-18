@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useIsAuthenticated } from '@/lib/auth'
 import { userService } from '@/services/user/user.service'
-import type { UserListParams, UserPayload, UserTelegramBotRegisterPayload } from '@/services/user/user.types'
+import type {
+  EmployeePayload,
+  UserListParams,
+  UserPayload,
+  UserTelegramBotRegisterPayload,
+} from '@/services/user/user.types'
 
 export function useUserInfoQuery() {
   const authenticated = useIsAuthenticated()
@@ -51,6 +56,48 @@ export function useUpdateUserMutation() {
   return useMutation({
     mutationFn: ({ id, payload, avatar }: { id: number; payload: UserPayload; avatar?: File | null }) =>
       userService.update(id, payload, avatar),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
+  })
+}
+
+export function useCreateEmployeeMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ payload, avatar }: { payload: EmployeePayload; avatar?: File | null }) =>
+      userService.createEmployee(payload, avatar),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
+  })
+}
+
+export function useUpdateEmployeeMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload, avatar }: { id: number; payload: Partial<EmployeePayload>; avatar?: File | null }) =>
+      userService.updateEmployee(id, payload, avatar),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
+  })
+}
+
+export function useArchiveUserMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => userService.archive(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
+  })
+}
+
+export function useRestoreUserMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => userService.restore(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userKeys.all })
     },

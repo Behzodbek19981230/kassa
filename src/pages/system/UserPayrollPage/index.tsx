@@ -5,7 +5,9 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import OpenDialogButton from '@/components/OpenDialogButton';
 import { Button, buttonProps, DataTable, Panel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
 import { getApiErrorMessage } from '@/lib/errors';
+import { usePermissions } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
+import { getUserTab } from '@/pages/system/UserPage/userTabs';
 import DeletePayrollTransactionModal from '@/pages/system/UserPayrollPage/DeletePayrollTransactionModal';
 import PayrollActionModal from '@/pages/system/UserPayrollPage/PayrollActionModal';
 import SalaryRateModal from '@/pages/system/UserPayrollPage/SalaryRateModal';
@@ -113,6 +115,7 @@ export default function UserPayrollPage() {
 	const location = useLocation();
 	const userId = Number(id) || 0;
 	const { year, month, set } = useYearMonth();
+	const { canDeletePayrollTransaction } = usePermissions();
 	const [typeFilter, setTypeFilter] = useState<PayrollTransactionType | typeof ALL_TYPES>(ALL_TYPES);
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'transaction_time', desc: true }]);
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -201,22 +204,27 @@ export default function UserPayrollPage() {
 			meta: { align: 'left' },
 			cell: ({ row }) => personName(row.original.created_by_detail) || '—',
 		}),
-		columnHelper.display({
-			id: 'actions',
-			header: 'Harakatlar',
-			size: 90,
-			meta: { align: 'right' },
-			cell: ({ row }) => (
-				<div className='flex justify-end'>
-					<OpenDialogButton
-						element={(props) => <Button {...props} />}
-						elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
-						dialog={DeletePayrollTransactionModal}
-						dialogProps={{ item: row.original }}
-					/>
-				</div>
-			),
-		}),
+		// Deleting a payroll transaction is Super Admin only.
+		...(canDeletePayrollTransaction
+			? [
+					columnHelper.display({
+						id: 'actions',
+						header: 'Harakatlar',
+						size: 90,
+						meta: { align: 'right' },
+						cell: ({ row }) => (
+							<div className='flex justify-end'>
+								<OpenDialogButton
+									element={(props) => <Button {...props} />}
+									elementProps={{ ...buttonProps(<FaTrash />, 'danger', 'icon'), 'aria-label': "O'chirish" }}
+									dialog={DeletePayrollTransactionModal}
+									dialogProps={{ item: row.original }}
+								/>
+							</div>
+						),
+					}),
+				]
+			: []),
 	];
 
 	const summaryError = summaryQuery.isError ? getApiErrorMessage(summaryQuery.error, 'Xatolik yuz berdi') : null;
@@ -231,8 +239,13 @@ export default function UserPayrollPage() {
 						type='button'
 						variant='info'
 						size='xs'
-						// Going back keeps the users list's page; a directly opened link has no history to return to.
-						onClick={() => (location.key === 'default' ? navigate('/system/users') : navigate(-1))}
+						// Going back keeps the users list's tab and page; a directly opened link has no history,
+						// so it opens the tab the user is listed in.
+						onClick={() =>
+							location.key === 'default'
+								? navigate(userDetail ? `/system/users?tab=${getUserTab(userDetail)}` : '/system/users')
+								: navigate(-1)
+						}
 					>
 						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 					</Button>

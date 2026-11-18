@@ -11,6 +11,7 @@ import { useCashClosingListQuery } from '@/services/cash-register/cash-register.
 import { cashRegisterService } from '@/services/cash-register/cash-register.service';
 import type { CashClosing, CashClosingListParams } from '@/services/cash-register/cash-register.types';
 import { useUserListQuery } from '@/services/user/user.queries';
+import { SYSTEM_USER_PARAMS } from '@/services/user/user.types';
 
 const PAGE_SIZES = [10, 25, 50, 100];
 const DEFAULT_LIMIT = 25;
@@ -68,7 +69,7 @@ export default function KassaClosingsPage() {
 		received_by: Number(receivedBy) || undefined,
 	};
 	const { data, isLoading, isError, error, isFetching } = useCashClosingListQuery(params);
-	const usersQuery = useUserListQuery({ limit: 200 });
+	const usersQuery = useUserListQuery({ ...SYSTEM_USER_PARAMS, limit: 200 });
 	const users = useMemo(
 		() =>
 			(usersQuery.data?.results ?? []).map((u) => ({

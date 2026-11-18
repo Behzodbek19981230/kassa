@@ -9,6 +9,7 @@ import type { LogisticsWarehouse } from '@/services/logistics-warehouse/logistic
 import { productCategoryService } from '@/services/product-category/product-category.service';
 import type { PaginatedResponse } from '@/services/api/types';
 import { userService } from '@/services/user/user.service';
+import { ACTIVE_SYSTEM_USER_PARAMS } from '@/services/user/user.types';
 import { formatUserName } from '@/pages/TwoStageImport/utils';
 
 // Combobox loaders for the reference lists used by the two-stage import forms.
@@ -82,7 +83,7 @@ export function createLogisticsWarehouseLoader(countryId?: number, logisticsComp
 }
 
 export const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> =>
-	toLoadResult(await userService.list({ search: search || undefined, page, limit: 20 }), (u) => ({
+	toLoadResult(await userService.list({ ...ACTIVE_SYSTEM_USER_PARAMS, search: search || undefined, page, limit: 20 }), (u) => ({
 		value: String(u.id),
 		label: formatUserName(u),
 	}));

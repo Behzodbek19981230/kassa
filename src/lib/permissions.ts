@@ -166,6 +166,21 @@ export function usePermissions() {
 	const canViewKassa = isSuperAdmin || isAdmin;
 	const canCancelCashClosing = isSuperAdmin;
 
+	// "Hodimlar" page (/system/users), one tab per kind of user:
+	//  1 "Tizim foydalanuvchilari" (users who log in) and 4 "Arxiv hodimlar": Super Admin only;
+	//  2 "Oddiy Do'kon Hodim" (type 5): Super Admin + Admin;
+	//  3 "Oddiy Sklad Hodim" (type 4): Super Admin + Sklad Manager.
+	// Whoever sees a tab may add, edit and archive its users and run their payroll; restoring and
+	// deleting from the archive, and deleting a payroll transaction, stay Super Admin only.
+	const canManageSystemUsers = isSuperAdmin;
+	const canManageStoreEmployees = isSuperAdmin || isAdmin;
+	const canManageSkladEmployees = isSuperAdmin || isSkladManager;
+	const canViewUserArchive = isSuperAdmin;
+	const canViewUsersPage = canManageSystemUsers || canManageStoreEmployees || canManageSkladEmployees;
+	// Admin and Sklad Manager open it from a top-level "Hodimlar" item (Super Admin has it under "Tizim boshqaruvi").
+	const hasTopLevelUsersMenu = !isSuperAdmin && canViewUsersPage;
+	const canDeletePayrollTransaction = isSuperAdmin;
+
 	// order-account-history/{id}/change-logs: closed for every role except Super Admin
 	const canViewChangeLogs = isSuperAdmin;
 
@@ -214,6 +229,13 @@ export function usePermissions() {
 		canEditDebtRepayment,
 		canEditVozvratOrder,
 		canViewChangeLogs,
+		canManageSystemUsers,
+		canManageStoreEmployees,
+		canManageSkladEmployees,
+		canViewUserArchive,
+		canViewUsersPage,
+		hasTopLevelUsersMenu,
+		canDeletePayrollTransaction,
 		canMarkTypeSkladReady,
 		homePath: getHomePath(roleKey),
 		canViewOrderAndDebt,

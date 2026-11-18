@@ -15,6 +15,7 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { useCompanyEventLogListQuery } from '@/services/company-event-log/company-event-log.queries';
 import type { CompanyEventLogItem } from '@/services/company-event-log/company-event-log.types';
 import { userService } from '@/services/user/user.service';
+import { SYSTEM_USER_PARAMS } from '@/services/user/user.types';
 import CompanyEventLogDetailModal from '@/pages/system/CompanyEventLogPage/components/CompanyEventLogDetailModal';
 
 const columnHelper = createColumnHelper<CompanyEventLogItem>();
@@ -64,7 +65,7 @@ export default function CompanyEventLogPage() {
 	const paginationMeta = data?.pagination;
 
 	const loadUserOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
-		const result = await userService.list({ search: search || undefined, page, limit: 20 });
+		const result = await userService.list({ ...SYSTEM_USER_PARAMS, search: search || undefined, page, limit: 20 });
 		return {
 			options: result.results.map((u) => ({
 				value: String(u.id),

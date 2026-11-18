@@ -89,7 +89,6 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 				date_of_birthday: userInfo.date_of_birthday ?? '',
 				phone_number: userInfo.phone_number,
 				email: userInfo.email,
-				is_active: userInfo.is_active,
 				region: region || 0,
 				district: district || 0,
 				role: role,

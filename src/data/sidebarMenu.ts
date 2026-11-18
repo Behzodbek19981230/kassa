@@ -124,6 +124,14 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		requiredPermission: 'hasTopLevelConsignorMenu',
 	},
 	{
+		// Admin ("Oddiy Do'kon Hodim" tab) and Sklad Manager ("Oddiy Sklad Hodim" tab).
+		id: 'users-top',
+		icon: 'users-cog',
+		label: 'Hodimlar',
+		path: '/system/users',
+		requiredPermission: 'hasTopLevelUsersMenu',
+	},
+	{
 		id: 'system-management',
 		icon: 'cogs',
 		label: 'Tizim boshqaruvi',
