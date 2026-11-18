@@ -230,7 +230,10 @@ export default function LoginPage() {
 						<ModalTitle>Hisob boshqa qurilmada ochiq</ModalTitle>
 					</ModalHeader>
 					<ModalBody>
-						<p>Shu yerda kirsangiz, u qurilmadan chiqib ketadi.</p>
+						<p className='text-base font-semibold text-ca-orange'>
+							Bu profilda hozir boshqa xodim ishlayapti. Siz kirsangiz, u chiqarib yuboriladi. Kirishni davom
+							ettirasizmi?
+						</p>
 					</ModalBody>
 					<ModalFooter>
 						<Button
