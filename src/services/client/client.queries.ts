@@ -41,7 +41,7 @@ export function useCreateClientMutation() {
 export function useUpdateClientMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: ClientPayload }) => clientService.update(id, payload),
+    mutationFn: ({ id, payload }: { id: number; payload: Partial<ClientPayload> }) => clientService.update(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: clientKeys.all })
     },

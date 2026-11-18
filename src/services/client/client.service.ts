@@ -15,8 +15,9 @@ export const clientService = {
     const { data } = await apiClient.post<Client>('/client/', payload)
     return data
   },
-  update: async (id: number, payload: ClientPayload) => {
-    const { data } = await apiClient.put<Client>(`/client/${id}/`, payload)
+  /** PATCH, so only the fields in the payload are changed. */
+  update: async (id: number, payload: Partial<ClientPayload>) => {
+    const { data } = await apiClient.patch<Client>(`/client/${id}/`, payload)
     return data
   },
   updateStatus: async (id: number, status: string) => {

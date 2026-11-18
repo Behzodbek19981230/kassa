@@ -79,23 +79,26 @@ export interface Client {
   updated_time?: string
 }
 
+/**
+ * Body for creating/updating a client. Only the fields the current role can edit are sent;
+ * anything left out keeps its existing (or the server's default) value.
+ */
 export interface ClientPayload {
   fio: string
   phone: string
   address: string
-  total_debt: number
-  /** Optional; null means no limit. */
-  debt_limit: number | null
-  keshbek: number
-  is_worker: 0 | 1
-  is_partner: 0 | 1
-  is_profit_loss: 0 | 1
-  is_blocked: boolean
   type: ClientType
-  company: number
   region: number
   district: number
-  worker_user: number | null
+  total_debt?: number
+  /** null means no limit. Super Admin only. */
+  debt_limit?: number | null
+  /** Super Admin only. */
+  keshbek?: number
+  is_profit_loss?: 0 | 1
+  is_blocked?: boolean
+  /** Sent on create only. */
+  company?: number
 }
 
 export interface ClientListParams extends ListParams {

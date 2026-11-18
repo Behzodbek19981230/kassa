@@ -66,7 +66,7 @@ interface ClientFormModalProps {
 	mode: 'create' | 'edit';
 	item?: Client;
 	hideStatusFlags?: boolean;
-	/** Hides Qarz miqdori, Qarz limit and Keshbek; a new client is then saved with 0 debt, no limit and 0 keshbek. */
+	/** Hides Qarz miqdori, Qarz limit and Keshbek; they are then not sent, so the server's defaults apply. */
 	hideDebtFields?: boolean;
 }
 
@@ -83,20 +83,6 @@ function clientToFormValues(client: Client): ClientFormValues {
 		region: client.region ? String(client.region) : '',
 		district: client.district ? String(client.district) : '',
 		is_profit_loss: Boolean(client.is_profit_loss),
-		is_blocked: Boolean(client.is_blocked),
-	};
-}
-
-type LockedClientField = 'total_debt' | 'debt_limit' | 'keshbek' | 'worker_user' | 'is_profit_loss' | 'is_blocked';
-
-/** Fields only Super Admin may change on an existing client; everyone else saves them unchanged. */
-function lockedClientFields(client: Client): Pick<ClientPayload, LockedClientField> {
-	return {
-		total_debt: Number(client.total_debt) || 0,
-		debt_limit: client.debt_limit != null && client.debt_limit !== '' ? Number(client.debt_limit) : null,
-		keshbek: Number(client.keshbek) || 0,
-		worker_user: client.worker_user ?? null,
-		is_profit_loss: client.is_profit_loss ? 1 : 0,
 		is_blocked: Boolean(client.is_blocked),
 	};
 }
@@ -118,6 +104,9 @@ export default function ClientFormModal({
 	// When editing, everyone but Super Admin may only change F.I.Sh, telefon, turi, viloyat, tuman and manzil.
 	const isRestrictedEdit = mode === 'edit' && !isSuperAdmin;
 	const showDebtField = !isRestrictedEdit && !hideDebtFields;
+	// Qarz limit and Keshbek are Super Admin only, on create as well.
+	const showLimitFields = showDebtField && isSuperAdmin;
+	const showStatusFlags = !hideStatusFlags && !isRestrictedEdit;
 
 	const {
 		control,
@@ -191,32 +180,33 @@ export default function ClientFormModal({
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFormError('');
-		const company = item?.company ?? companyId ?? undefined;
-		if (!company) {
-			setFormError('Tashkilot topilmadi');
-			return;
-		}
-
+		// Only the fields this role sees in the form are sent; the rest keep their current value.
 		const payload: ClientPayload = {
 			fio: values.fio.trim(),
 			phone: values.phone.trim(),
 			address: values.address.trim(),
-			total_debt: Number(values.total_debt) || 0,
-			debt_limit: values.debt_limit.trim() ? Number(values.debt_limit) : null,
-			keshbek: Number(values.keshbek) || 0,
 			type: values.type as ClientType,
 			region: Number(values.region),
 			district: Number(values.district),
-			// Ishchi/Hamkor flags are no longer edited in this form; keep the client's existing values.
-			is_worker: currentClient?.is_worker ? 1 : 0,
-			// Ma'sul xodim is no longer edited in this form; keep the client's existing value.
-			worker_user: currentClient?.worker_user ?? null,
-			is_partner: currentClient?.is_partner ? 1 : 0,
-			is_profit_loss: values.is_profit_loss ? 1 : 0,
-			is_blocked: values.is_blocked,
-			company,
-			...(isRestrictedEdit && currentClient ? lockedClientFields(currentClient) : {}),
 		};
+		if (showDebtField) {
+			payload.total_debt = Number(values.total_debt) || 0;
+		}
+		if (showLimitFields) {
+			payload.debt_limit = values.debt_limit.trim() ? Number(values.debt_limit) : null;
+			payload.keshbek = Number(values.keshbek) || 0;
+		}
+		if (showStatusFlags) {
+			payload.is_profit_loss = values.is_profit_loss ? 1 : 0;
+			payload.is_blocked = values.is_blocked;
+		}
+		if (mode === 'create') {
+			if (!companyId) {
+				setFormError('Tashkilot topilmadi');
+				return;
+			}
+			payload.company = companyId;
+		}
 
 		try {
 			if (mode === 'edit' && item) {
@@ -320,8 +310,7 @@ export default function ClientFormModal({
 								</FormField>
 							)}
 						</div>
-						{showDebtField && isSuperAdmin && (
-							// Qarz limit and Keshbek are Super Admin only, on create as well.
+						{showLimitFields && (
 							<div className='mb-3 grid grid-cols-2 gap-3'>
 								<FormField
 									label='Qarz limit ($)'
@@ -414,7 +403,7 @@ export default function ClientFormModal({
 							<Textarea rows={2} {...register('address')} />
 						</FormField>
 
-						{!hideStatusFlags && !isRestrictedEdit && (
+						{showStatusFlags && (
 							<div className='mb-3 flex flex-wrap gap-4'>
 								<Controller
 									name='is_profit_loss'
