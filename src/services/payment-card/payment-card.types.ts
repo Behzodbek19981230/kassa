@@ -49,9 +49,10 @@ export interface PaymentCardListParams extends ListParams {
 	is_active?: boolean;
 }
 
-/** "Humo kartasi •• 1251": how a card is named in selects and tables. */
-export function paymentCardLabel(card: Pick<PaymentCard, 'name' | 'last4'>): string {
-	return card.last4 ? `${card.name} •• ${card.last4}` : card.name;
+/** "Humo kartasi •• 1251 (Ali Valiyev)": how a card is named in selects and tables. */
+export function paymentCardLabel(card: Pick<PaymentCard, 'name' | 'last4'> & Partial<Pick<PaymentCard, 'owner_name'>>): string {
+	const base = card.last4 ? `${card.name} •• ${card.last4}` : card.name;
+	return card.owner_name ? `${base} (${card.owner_name})` : base;
 }
 
 /** "Humo": the backend's display label, else the option label for the type. */

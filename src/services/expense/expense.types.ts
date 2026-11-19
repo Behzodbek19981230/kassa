@@ -15,7 +15,7 @@ export interface Expense {
 	summ_cart?: Money | null;
 	/** The store card the card part was paid from. */
 	payment_card?: number | null;
-	payment_card_detail?: Pick<PaymentCard, 'id' | 'name' | 'last4'> | null;
+	payment_card_detail?: Pick<PaymentCard, 'id' | 'name' | 'last4'> & Partial<Pick<PaymentCard, 'owner_name'>> | null;
 	date_cr: string;
 	company: number;
 	type: number;
