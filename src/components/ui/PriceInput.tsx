@@ -11,6 +11,11 @@ export interface PriceInputProps
   decimals?: number
   /** Allows a leading minus sign (e.g. `"-1000"`). */
   allowNegative?: boolean
+  /**
+   * Max digits before the decimal point; keystrokes past it are ignored. Defaults to 15 — beyond that a JS number
+   * loses precision and is printed as "2.08e+24".
+   */
+  maxIntegerDigits?: number
 }
 
 function formatPrice(raw: string, decimals: number): string {
@@ -32,7 +37,7 @@ function unformatPrice(display: string, decimals: number, allowNegative = false)
 
 /** Number input with a live thousand-separator mask, for money fields (narxi/summa/price/...). */
 export const PriceInput = forwardRef<HTMLInputElement, PriceInputProps>(
-  ({ value, onChange, className, decimals = 2, allowNegative = false, ...props }, ref) => {
+  ({ value, onChange, className, decimals = 2, allowNegative = false, maxIntegerDigits = 15, ...props }, ref) => {
     const rawValue = value === undefined || value === null ? '' : String(value)
     const [display, setDisplay] = useState(() => formatPrice(rawValue, decimals))
 
@@ -43,6 +48,9 @@ export const PriceInput = forwardRef<HTMLInputElement, PriceInputProps>(
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
       const raw = unformatPrice(e.target.value, decimals, allowNegative)
+      const intDigits = raw.replace('-', '').split('.')[0].replace(/^0+/, '').length
+      // Returning without a state change makes React put the previous value back into the input.
+      if (intDigits > maxIntegerDigits) return
       setDisplay(formatPrice(raw, decimals))
       onChange?.(raw)
     }

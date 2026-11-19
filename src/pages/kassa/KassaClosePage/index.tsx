@@ -227,33 +227,56 @@ export default function KassaClosePage() {
 					</ErrorBox>
 				)}
 
-				<KTable>
+				{/* Fixed layout: typing into the inputs changes Farq/Qoldiq, which must not resize the columns;
+				    an amount too long for its column is cut with "…" instead of spilling into the next one. */}
+				<KTable
+					tableClassName={cn(
+						'table-fixed [&_td]:overflow-hidden [&_td]:text-ellipsis',
+						isInitial ? 'min-w-[870px]' : 'min-w-[1210px]',
+					)}
+				>
 					<thead>
 						<tr>
 							<KTh>Kanal</KTh>
-							<KTh align='right'>Davr boshi</KTh>
-							<KTh align='right'>Aylanma</KTh>
-							{!isInitial && <KTh align='right'>Dasturda</KTh>}
-							<KTh align='right' className='w-[170px]'>
+							<KTh align='right' className='w-[130px]'>
+								Davr boshi
+							</KTh>
+							<KTh align='right' className='w-[130px]'>
+								Aylanma
+							</KTh>
+							{!isInitial && (
+								<KTh align='right' className='w-[130px]'>
+									Dasturda
+								</KTh>
+							)}
+							<KTh align='right' className='w-[160px]'>
 								Qo'limda (sanaldi)
 							</KTh>
-							{!isInitial && <KTh align='right'>Farq</KTh>}
-							<KTh align='right' className='w-[170px]'>
+							{!isInitial && (
+								<KTh align='right' className='w-[210px]'>
+									Farq
+								</KTh>
+							)}
+							<KTh align='right' className='w-[160px]'>
 								Topshirildi
 							</KTh>
-							<KTh align='right'>Qoldiq</KTh>
+							<KTh align='right' className='w-[130px]'>
+								Qoldiq
+							</KTh>
 						</tr>
 					</thead>
 					<tbody>
 						{rows.map((r) => {
 							const ch = r.channel;
 							const lineErrors = errors.lines[ch.code];
+							// 12 digits = up to 999 mlrd so'm; naqd dollar up to $ 999 mln.
+							const maxDigits = ch.channel === 'cash_usd' ? 9 : 12;
 							return (
 								<tr key={ch.code}>
 									<KTd>
-										<span className='flex items-center gap-2'>
+										<span className='flex min-w-0 items-center gap-2' title={channelLabel(ch)}>
 											<ChannelIcon channel={ch.channel} />
-											{channelLabel(ch)}
+											<span className='truncate'>{channelLabel(ch)}</span>
 										</span>
 										<FieldError>{lineErrors?.card}</FieldError>
 									</KTd>
@@ -271,6 +294,7 @@ export default function KassaClosePage() {
 											value={r.input.actual}
 											onChange={(v) => setLine(ch.code, { actual: v })}
 											placeholder='0'
+											maxIntegerDigits={maxDigits}
 											aria-label={`${channelLabel(ch)}: sanalgan summa`}
 											className={cn(
 												'h-9! text-right text-sm font-semibold lg:h-9! lg:text-sm',
@@ -304,6 +328,7 @@ export default function KassaClosePage() {
 											value={r.input.handed_over}
 											onChange={(v) => setLine(ch.code, { handed_over: v })}
 											placeholder='0'
+											maxIntegerDigits={maxDigits}
 											aria-label={`${channelLabel(ch)}: topshirilgan summa`}
 											className={cn(
 												'h-9! text-right text-sm font-semibold lg:h-9! lg:text-sm',
@@ -319,7 +344,7 @@ export default function KassaClosePage() {
 							);
 						})}
 						<tr className='bg-ca-silver'>
-							<KTd className='font-bold'>
+							<KTd className='font-bold whitespace-normal'>
 								Jami ($ ekv.
 								{current.exchange_rate ? `, 1$ = ${fmtAmount(current.exchange_rate)}` : ''})
 							</KTd>

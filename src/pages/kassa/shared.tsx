@@ -105,10 +105,18 @@ export function StatCard({
 export const STAT_GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5';
 
 /** Bordered, horizontally scrollable table shell used by every kassa table. */
-export function KTable({ children, className }: { children: ReactNode; className?: string }) {
+export function KTable({
+	children,
+	className,
+	tableClassName,
+}: {
+	children: ReactNode;
+	className?: string;
+	tableClassName?: string;
+}) {
 	return (
 		<div className={cn('overflow-x-auto rounded-md border border-ca-border', className)}>
-			<table className='w-full border-collapse text-sm'>{children}</table>
+			<table className={cn('w-full border-collapse text-sm', tableClassName)}>{children}</table>
 		</div>
 	);
 }

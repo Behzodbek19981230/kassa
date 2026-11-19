@@ -46,6 +46,9 @@ const expenseFormSchema = z
 		if (num(values.summ_cart) > 0 && !values.payment_card) {
 			ctx.addIssue({ code: 'custom', path: ['payment_card'], message: 'Karta tanlanishi shart' });
 		}
+		if (values.payment_card && num(values.summ_cart) <= 0) {
+			ctx.addIssue({ code: 'custom', path: ['summ_cart'], message: 'Karta orqali summa kiritilishi shart' });
+		}
 	});
 
 type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
@@ -101,7 +104,7 @@ export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseF
 
 	const [sumSom, summDollar, summCart, paymentCard] = watch(['sum_som', 'summ_dollar', 'summ_cart', 'payment_card']);
 	const paidByCard = num(summCart) > 0;
-	const { data: selectedCard } = usePaymentCardQuery(paidByCard && paymentCard ? Number(paymentCard) : undefined);
+	const { data: selectedCard } = usePaymentCardQuery(paymentCard ? Number(paymentCard) : undefined);
 
 	// An edit that leaves the amounts alone keeps the saved total rather than re-converting it at today's rate
 	// (older expenses only have `summa`).
@@ -239,37 +242,40 @@ export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseF
 							</FormField>
 						</div>
 						<div className='mb-3 grid grid-cols-2 gap-3'>
-							<FormField label="Karta orqali (so'mda)" horizontal={false} className='mb-0'>
+							<FormField
+								label="Karta orqali (so'mda)"
+								error={errors.summ_cart?.message}
+								horizontal={false}
+								className='mb-0'
+							>
 								<Controller
 									name='summ_cart'
 									control={control}
 									render={({ field }) => <PriceInput value={field.value} onChange={field.onChange} placeholder='0' />}
 								/>
 							</FormField>
-							{paidByCard && (
-								<FormField
-									label='Qaysi kartadan'
-									error={errors.payment_card?.message}
-									required
-									horizontal={false}
-									className='mb-0'
-								>
-									<Controller
-										name='payment_card'
-										control={control}
-										render={({ field }) => (
-											<Combobox
-												value={field.value}
-												onChange={field.onChange}
-												loadOptions={loadCardOptions}
-												selectedLabel={selectedCard ? paymentCardLabel(selectedCard) : undefined}
-												placeholder='Kartani tanlang...'
-												searchPlaceholder='Karta qidirish...'
-											/>
-										)}
-									/>
-								</FormField>
-							)}
+							<FormField
+								label='Qaysi kartadan'
+								error={errors.payment_card?.message}
+								required={paidByCard}
+								horizontal={false}
+								className='mb-0'
+							>
+								<Controller
+									name='payment_card'
+									control={control}
+									render={({ field }) => (
+										<Combobox
+											value={field.value}
+											onChange={field.onChange}
+											loadOptions={loadCardOptions}
+											selectedLabel={selectedCard ? paymentCardLabel(selectedCard) : undefined}
+											placeholder='Kartani tanlang...'
+											searchPlaceholder='Karta qidirish...'
+										/>
+									)}
+								/>
+							</FormField>
 						</div>
 						<FormField label='Umumiy summa ($)' horizontal={false} className='mb-0'>
 							<PriceInput value={allSummDollar ? allSummDollar.toFixed(2) : ''} placeholder='0' disabled />
