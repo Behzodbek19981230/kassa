@@ -91,7 +91,7 @@ export default function KassaClosingDetailPage() {
 			<Panel
 				title={<PanelTitle title='Topshirish akti' />}
 				actions={
-					<Button type='button' variant='info' size='sm' onClick={goBack}>
+					<Button type='button' variant='slate' size='sm' onClick={goBack}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga
 					</Button>
 				}
@@ -128,13 +128,13 @@ export default function KassaClosingDetailPage() {
 			title={<PanelTitle title={`Topshirish akti #${closing.number}`} sub={closing.status_display} />}
 			actions={
 				<>
-					<Button type='button' variant='info' size='sm' onClick={goBack}>
+					<Button type='button' variant='slate' size='sm' onClick={goBack}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga
 					</Button>
 					{!closing.is_initial && (
 						<Button
 							type='button'
-							variant='inverse'
+							variant='warning'
 							size='sm'
 							onClick={() => navigate(`/kassa/movements?closing=${closing.id}`)}
 						>
@@ -143,7 +143,7 @@ export default function KassaClosingDetailPage() {
 					)}
 					<Button
 						type='button'
-						variant='inverse'
+						variant='excel'
 						size='sm'
 						loading={excel.busy}
 						onClick={() => excel.download(() => cashRegisterService.closingExcel(closing.id, closing.number))}
@@ -152,7 +152,7 @@ export default function KassaClosingDetailPage() {
 					</Button>
 					<Button
 						type='button'
-						variant='success'
+						variant='purple'
 						size='sm'
 						loading={pdf.busy}
 						onClick={() => pdf.open(() => cashRegisterService.closingPdf(closing.id))}

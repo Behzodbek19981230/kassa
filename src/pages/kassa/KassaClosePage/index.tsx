@@ -140,7 +140,7 @@ export default function KassaClosePage() {
 	}
 
 	function openConfirm() {
-		const next = validate(rows, comment, isInitial);
+		const next = validate(rows, comment, receivedBy, isInitial);
 		setErrors(next);
 		if (hasErrors(next)) return;
 		setConflict(null);
@@ -184,6 +184,29 @@ export default function KassaClosePage() {
 			notify({ title: 'Xatolik', text: getApiErrorMessage(err, "Kassani topshirib bo'lmadi") });
 		}
 	}
+
+	// Column shares (sum to 100%): "Kanal" stays narrow, the amount columns get the rest.
+	const col = isInitial
+		? {
+				channel: 'w-[20%]',
+				opening: 'w-[15%]',
+				turnover: 'w-[15%]',
+				expected: '',
+				actual: 'w-[18%]',
+				diff: '',
+				handed: 'w-[18%]',
+				rest: 'w-[14%]',
+			}
+		: {
+				channel: 'w-[15%]',
+				opening: 'w-[11%]',
+				turnover: 'w-[11%]',
+				expected: 'w-[11%]',
+				actual: 'w-[13%]',
+				diff: 'w-[16%]',
+				handed: 'w-[13%]',
+				rest: 'w-[10%]',
+			};
 
 	const periodText = isInitial
 		? `Boshlang'ich qoldiq → ${formatDateTime(openedAt)}`
@@ -237,30 +260,30 @@ export default function KassaClosePage() {
 				>
 					<thead>
 						<tr>
-							<KTh>Kanal</KTh>
-							<KTh align='right' className='w-[130px]'>
+							<KTh className={col.channel}>Kanal</KTh>
+							<KTh align='right' className={col.opening}>
 								Davr boshi
 							</KTh>
-							<KTh align='right' className='w-[130px]'>
+							<KTh align='right' className={col.turnover}>
 								Aylanma
 							</KTh>
 							{!isInitial && (
-								<KTh align='right' className='w-[130px]'>
+								<KTh align='right' className={col.expected}>
 									Dasturda
 								</KTh>
 							)}
-							<KTh align='right' className='w-[160px]'>
+							<KTh align='right' className={col.actual}>
 								Qo'limda (sanaldi)
 							</KTh>
 							{!isInitial && (
-								<KTh align='right' className='w-[210px]'>
+								<KTh align='right' className={col.diff}>
 									Farq
 								</KTh>
 							)}
-							<KTh align='right' className='w-[160px]'>
+							<KTh align='right' className={col.handed}>
 								Topshirildi
 							</KTh>
-							<KTh align='right' className='w-[130px]'>
+							<KTh align='right' className={col.rest}>
 								Qoldiq
 							</KTh>
 						</tr>
@@ -384,7 +407,7 @@ export default function KassaClosePage() {
 					<div className='space-y-3'>
 						<label className='block'>
 							<span className='mb-1 block text-sm text-ca-heading'>
-								Izoh {isInitial ? '(ixtiyoriy)' : '(farq bo\'lsa majburiy)'}
+								Izoh <span className='text-red-500'>*</span>
 							</span>
 							<Textarea
 								rows={3}
@@ -394,23 +417,27 @@ export default function KassaClosePage() {
 									setComment(e.target.value);
 									if (errors.comment) setErrors((prev) => ({ ...prev, comment: undefined }));
 								}}
-								placeholder={diffRows.length ? 'Farq sababini yozing…' : ''}
+								placeholder={diffRows.length ? 'Farq sababini yozing…' : 'Izoh yozing…'}
 								className={cn('lg:text-sm', errors.comment && 'border-red-500')}
 							/>
 							<FieldError>{errors.comment}</FieldError>
 						</label>
 						<div className='max-w-sm'>
-							<span className='mb-1 block text-sm text-ca-heading'>Qabul qiluvchi</span>
-							<Combobox
-								value={receivedBy}
-								onChange={(v) => {
-									setReceivedBy(v);
-									if (errors.received_by) setErrors((prev) => ({ ...prev, received_by: undefined }));
-								}}
-								options={userOptions}
-								placeholder={usersQuery.isLoading ? 'Yuklanmoqda…' : 'Tanlang (ixtiyoriy)'}
-								clearable
-							/>
+							<span className='mb-1 block text-sm text-ca-heading'>
+								Qabul qiluvchi <span className='text-red-500'>*</span>
+							</span>
+							<div className={cn('rounded-[3px]', errors.received_by && 'ring-1 ring-red-500')}>
+								<Combobox
+									value={receivedBy}
+									onChange={(v) => {
+										setReceivedBy(v);
+										if (errors.received_by) setErrors((prev) => ({ ...prev, received_by: undefined }));
+									}}
+									options={userOptions}
+									placeholder={usersQuery.isLoading ? 'Yuklanmoqda…' : 'Tanlang'}
+									clearable
+								/>
+							</div>
 							<FieldError>{errors.received_by}</FieldError>
 						</div>
 					</div>

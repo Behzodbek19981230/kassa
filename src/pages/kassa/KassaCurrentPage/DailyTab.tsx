@@ -19,6 +19,7 @@ import {
 	signTone,
 	sourceBadge,
 	todayIso,
+	toneButton,
 	weekdayOf,
 } from '@/pages/kassa/utils';
 import { useCashRegisterDailyQuery } from '@/services/cash-register/cash-register.queries';
@@ -96,20 +97,14 @@ function DayNavigator({ date, onChange }: { date: string; onChange: (date: strin
 			<button
 				type='button'
 				onClick={() => onChange(today)}
-				className={cn(
-					pillButton,
-					date === today ? 'border-ca-theme text-ca-theme' : 'border-ca-border text-ca-heading hover:bg-ca-silver',
-				)}
+				className={cn(pillButton, toneButton('green', date === today))}
 			>
 				Bugun
 			</button>
 			<button
 				type='button'
 				onClick={() => onChange(yesterday)}
-				className={cn(
-					pillButton,
-					date === yesterday ? 'border-ca-theme text-ca-theme' : 'border-ca-border text-ca-heading hover:bg-ca-silver',
-				)}
+				className={cn(pillButton, toneButton('orange', date === yesterday))}
 			>
 				Kecha
 			</button>

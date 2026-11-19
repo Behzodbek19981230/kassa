@@ -88,7 +88,7 @@ export function hasErrors(e: FormErrors) {
 }
 
 /** Client-side checks; the server repeats them. */
-export function validate(rows: PreviewRow[], comment: string, isInitial: boolean): FormErrors {
+export function validate(rows: PreviewRow[], comment: string, receivedBy: string, isInitial: boolean): FormErrors {
 	const errors: FormErrors = { general: [], lines: {} };
 	for (const r of rows) {
 		const line: FormErrors['lines'][string] = {};
@@ -99,8 +99,9 @@ export function validate(rows: PreviewRow[], comment: string, isInitial: boolean
 		if (Object.keys(line).length) errors.lines[r.channel.code] = line;
 	}
 	const hasDiff = !isInitial && rows.some((r) => r.diff !== null && r.diff !== 0);
-	if (hasDiff && !comment.trim()) errors.comment = "Farq bor: izoh yozish majburiy.";
-	if (comment.length > 2000) errors.comment = 'Izoh 2000 belgidan oshmasin.';
+	if (!comment.trim()) errors.comment = hasDiff ? 'Farq bor: izoh yozish majburiy.' : 'Izoh yozish majburiy.';
+	else if (comment.length > 2000) errors.comment = 'Izoh 2000 belgidan oshmasin.';
+	if (!receivedBy) errors.received_by = 'Qabul qiluvchini tanlang.';
 	return errors;
 }
 

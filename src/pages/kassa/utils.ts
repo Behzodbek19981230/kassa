@@ -99,6 +99,15 @@ export const SOURCE_LABELS: Record<CashSourceKind, string> = {
 	correction: 'Tuzatishlar',
 };
 
+/** Each source gets its own colour on filter tabs. */
+export const SOURCE_TONE: Record<CashSourceKind, Tone> = {
+	order: 'green',
+	debt: 'teal',
+	expense: 'red',
+	vozvrat: 'purple',
+	correction: 'orange',
+};
+
 export const SOURCE_SHORT: Record<CashSourceKind, string> = {
 	order: 'buyurtma',
 	debt: 'qarz',
@@ -108,6 +117,31 @@ export const SOURCE_SHORT: Record<CashSourceKind, string> = {
 };
 
 export type Tone = 'green' | 'red' | 'orange' | 'blue' | 'gray' | 'purple' | 'teal';
+
+const TONE_BUTTON_ACTIVE: Record<Tone, string> = {
+	green: 'border-emerald-500 bg-emerald-500 text-white',
+	red: 'border-red-500 bg-red-500 text-white',
+	orange: 'border-amber-500 bg-amber-500 text-white',
+	blue: 'border-ca-theme bg-ca-theme text-white',
+	gray: 'border-slate-500 bg-slate-500 text-white',
+	purple: 'border-violet-500 bg-violet-500 text-white',
+	teal: 'border-teal-500 bg-teal-500 text-white',
+};
+
+const TONE_BUTTON_IDLE: Record<Tone, string> = {
+	green: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400',
+	red: 'border-red-500/40 bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400',
+	orange: 'border-amber-500/40 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400',
+	blue: 'border-ca-theme/40 bg-ca-theme/10 text-ca-theme hover:bg-ca-theme/20',
+	gray: 'border-slate-500/40 bg-slate-500/10 text-slate-600 hover:bg-slate-500/20 dark:text-slate-300',
+	purple: 'border-violet-500/40 bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 dark:text-violet-400',
+	teal: 'border-teal-500/40 bg-teal-500/10 text-teal-600 hover:bg-teal-500/20 dark:text-teal-400',
+};
+
+/** Colour classes for a tab / quick-pick button: solid when active, tinted otherwise. */
+export function toneButton(tone: Tone, active: boolean) {
+	return active ? TONE_BUTTON_ACTIVE[tone] : TONE_BUTTON_IDLE[tone];
+}
 
 /** Kirim (order, debt) / Chiqim (expense, vozvrat) / Tuzatish (correction). */
 export function sourceBadge(source: CashSourceKind): { label: string; tone: Tone } {

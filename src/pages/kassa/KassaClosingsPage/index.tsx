@@ -262,7 +262,7 @@ export default function KassaClosingsPage() {
 														aria-label='Chop etish'
 														disabled={pdf.busy}
 														onClick={() => pdf.open(() => cashRegisterService.closingPdf(c.id))}
-														className='inline-flex h-6 w-7 items-center justify-center rounded-[3px] bg-ca-green text-xs text-white hover:bg-emerald-600 disabled:opacity-50'
+														className='inline-flex h-6 w-7 items-center justify-center rounded-[3px] bg-ca-purple text-xs text-white hover:bg-violet-600 disabled:opacity-50'
 													>
 														<FaPrint />
 													</button>

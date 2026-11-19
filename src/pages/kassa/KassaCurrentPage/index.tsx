@@ -7,7 +7,7 @@ import CurrentTab from '@/pages/kassa/KassaCurrentPage/CurrentTab';
 import DailyTab from '@/pages/kassa/KassaCurrentPage/DailyTab';
 import { PanelTitle } from '@/pages/kassa/shared';
 import { useCompanyName, useFileDownloader, usePdfOpener } from '@/pages/kassa/hooks';
-import { todayIso } from '@/pages/kassa/utils';
+import { todayIso, toneButton } from '@/pages/kassa/utils';
 import { cashRegisterService } from '@/services/cash-register/cash-register.service';
 
 type TabKey = 'current' | 'daily';
@@ -38,7 +38,7 @@ export default function KassaCurrentPage() {
 					{tab === 'daily' && (
 						<Button
 							type='button'
-							variant='inverse'
+							variant='excel'
 							size='sm'
 							loading={excel.busy}
 							onClick={() => excel.download(() => cashRegisterService.dailyExcel(date))}
@@ -48,7 +48,7 @@ export default function KassaCurrentPage() {
 					)}
 					<Button
 						type='button'
-						variant='inverse'
+						variant='purple'
 						size='sm'
 						loading={pdf.busy}
 						onClick={() =>
@@ -61,7 +61,7 @@ export default function KassaCurrentPage() {
 					</Button>
 					<Button
 						type='button'
-						variant='success'
+						variant='warning'
 						size='sm'
 						disabled={!canWrite}
 						title={canWrite ? undefined : "Bu kompaniyada faqat ko'rishga ruxsat bor"}
@@ -75,19 +75,17 @@ export default function KassaCurrentPage() {
 			<div className='mb-3 flex gap-1.5'>
 				{(
 					[
-						['current', 'Joriy davr'],
-						['daily', "Sana bo'yicha hisobot"],
+						['current', 'Joriy davr', 'blue'],
+						['daily', "Sana bo'yicha hisobot", 'teal'],
 					] as const
-				).map(([key, label]) => (
+				).map(([key, label, tone]) => (
 					<button
 						key={key}
 						type='button'
 						onClick={() => setTab(key)}
 						className={cn(
 							'h-8 rounded-[3px] border px-3.5 text-sm transition-colors',
-							tab === key
-								? 'border-ca-theme bg-ca-theme text-white'
-								: 'border-ca-border bg-ca-silver text-ca-heading hover:bg-ca-border',
+							toneButton(tone, tab === key),
 						)}
 					>
 						{label}

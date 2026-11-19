@@ -16,8 +16,11 @@ import {
 	num,
 	signTone,
 	SOURCE_LABELS,
+	SOURCE_TONE,
 	sumSources,
 	todayIso,
+	toneButton,
+	type Tone,
 } from '@/pages/kassa/utils';
 import {
 	useCashClosingQuery,
@@ -144,9 +147,14 @@ export default function KassaMovementsPage() {
 		card: sumSources(sources, cardCodes, selectedKinds),
 	};
 
-	const tabs: { key: string; label: string; count?: number }[] = [
-		{ key: '', label: 'Hammasi', count: counts ? allowedKinds.reduce((s, k) => s + (counts[k] ?? 0), 0) : undefined },
-		...allowedKinds.map((k) => ({ key: k, label: SOURCE_LABELS[k], count: counts?.[k] })),
+	const tabs: { key: string; label: string; tone: Tone; count?: number }[] = [
+		{
+			key: '',
+			label: 'Hammasi',
+			tone: 'blue',
+			count: counts ? allowedKinds.reduce((s, k) => s + (counts[k] ?? 0), 0) : undefined,
+		},
+		...allowedKinds.map((k) => ({ key: k, label: SOURCE_LABELS[k], tone: SOURCE_TONE[k], count: counts?.[k] })),
 	];
 
 	return (
@@ -155,14 +163,14 @@ export default function KassaMovementsPage() {
 			actions={
 				<>
 					{closing && (
-						<Button type='button' variant='info' size='sm' onClick={() => navigate(`/kassa/closings/${closing}`)}>
+						<Button type='button' variant='slate' size='sm' onClick={() => navigate(`/kassa/closings/${closing}`)}>
 							<FaArrowLeft className='mr-1.5' /> Aktga qaytish
 						</Button>
 					)}
 					{date && (
 						<Button
 							type='button'
-							variant='info'
+							variant='slate'
 							size='sm'
 							onClick={() => navigate(date === todayIso() ? '/kassa/current?tab=daily' : `/kassa/current?tab=daily&date=${date}`)}
 						>
@@ -171,7 +179,7 @@ export default function KassaMovementsPage() {
 					)}
 					<Button
 						type='button'
-						variant='inverse'
+						variant='excel'
 						size='sm'
 						loading={excel.busy}
 						onClick={() =>
@@ -195,9 +203,7 @@ export default function KassaMovementsPage() {
 						onClick={() => update({ kind: t.key, page: 1 })}
 						className={cn(
 							'h-8 rounded-[3px] border px-3 text-sm transition-colors',
-							kind === t.key
-								? 'border-ca-theme bg-ca-theme text-white'
-								: 'border-ca-border bg-ca-silver text-ca-heading hover:bg-ca-border',
+							toneButton(t.tone, kind === t.key),
 						)}
 					>
 						{t.label}
