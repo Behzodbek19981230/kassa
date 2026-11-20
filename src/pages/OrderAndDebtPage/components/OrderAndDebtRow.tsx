@@ -21,6 +21,15 @@ export default function OrderAndDebtRow({ item, cols, onPrint }: OrderAndDebtRow
 	const canOpen = Boolean(item.actions.products_url);
 	const canPrintClient = Boolean(item.actions.print_client_url);
 	const canPrintWorker = Boolean(item.actions.print_worker_url);
+	const zdachaSum = Number(item.zdacha_sum) || 0;
+	const zdachaDollar = Number(item.zdacha_dollar) || 0;
+	const hasZdacha = zdachaSum !== 0 || zdachaDollar !== 0;
+	const isDebtRow = item.row_type === 'debt_repayment';
+	const zdachaLine = hasZdacha ? (
+		<div className='text-[11px] font-normal text-ca-heading'>
+			Qaytim: {formatNumber(zdachaSum)} so'm / {formatNumber(zdachaDollar, 2)} $
+		</div>
+	) : null;
 
 	return (
 		<TableRow className='group'>
@@ -37,11 +46,13 @@ export default function OrderAndDebtRow({ item, cols, onPrint }: OrderAndDebtRow
 					{item.sum_dollar || item.sum_cart || item.sum_som
 						? formatNumber(item.sum_dollar + item.sum_cart + item.sum_som, 2)
 						: ''}
+					{!isDebtRow && zdachaLine}
 				</TableCell>
 			)}
 			{cols.isVisible('paid_debt') && (
 				<TableCell className='font-semibold text-ca-green'>
 					{item.paid_debt ? formatNumber(item.paid_debt, 2) : ''}
+					{isDebtRow && zdachaLine}
 				</TableCell>
 			)}
 			{cols.isVisible('profit') && (

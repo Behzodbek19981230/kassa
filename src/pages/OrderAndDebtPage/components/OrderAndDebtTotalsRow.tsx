@@ -32,7 +32,7 @@ export default function OrderAndDebtTotalsRow({ label, totals, totalDebtSum, col
 					<div>Naqt: {formatNumber(totals.sum_som)}</div>
 					<div className='text-ca-theme'>Karta: {formatNumber(totals.sum_cart)}</div>
 					<div>
-						Qaytim: {formatNumber(totals.paid_zdacha_sum)} ({formatNumber(totals.paid_zdacha_dollar, 2)} $)
+						Qaytim: {formatNumber(totals.paid_zdacha_sum)} so'm / {formatNumber(totals.paid_zdacha_dollar, 2)} $
 					</div>
 				</TableCell>
 			)}
@@ -43,7 +43,7 @@ export default function OrderAndDebtTotalsRow({ label, totals, totalDebtSum, col
 					<div>Naqt: {formatNumber(totals.debt_sum_som)}</div>
 					<div className='text-ca-theme'>Karta: {formatNumber(totals.debt_summ_cart)}</div>
 					<div>
-						Qaytim: {formatNumber(totals.debt_zdacha_sum)} ({formatNumber(totals.debt_zdacha_dollar, 2)} $)
+						Qaytim: {formatNumber(totals.debt_zdacha_sum)} so'm / {formatNumber(totals.debt_zdacha_dollar, 2)} $
 					</div>
 				</TableCell>
 			)}
