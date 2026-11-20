@@ -19,9 +19,7 @@ import { cn } from '@/lib/utils';
 import { nowTashkentLocal, toApiDateTime } from '@/pages/TwoStageImport/utils';
 import {
 	apiFieldErrors,
-	fmtDollar,
 	fmtMixed,
-	fmtSom,
 	toMoneyString,
 	toNumber,
 	useTransactionKey,
@@ -198,11 +196,6 @@ export default function PayrollActionModal({ open, setOpen, userId, year, month,
 		if (som < 0) next.summa_som = "Summa manfiy bo'lmasin";
 		if (card < 0) next.summa_karta = "Summa manfiy bo'lmasin";
 		if (dollar <= 0 && som <= 0 && card <= 0) next.summa_dollar = "Kamida bitta summa 0 dan katta bo'lishi kerak";
-		if (!isBonus && summary) {
-			const what = isPenalty ? 'Jarima' : "To'lov";
-			if (dollar > remainingDollar) next.summa_dollar = `${what} oylik qoldig'idan oshmasin: ${fmtDollar(remainingDollar)}`;
-			if (som + card > remainingSom) next.summa_som = `${what} oylik qoldig'idan oshmasin: ${fmtSom(remainingSom)}`;
-		}
 		if (!form.note.trim()) next.note = 'Izoh kiritilishi shart';
 		return next;
 	}
