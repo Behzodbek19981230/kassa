@@ -173,7 +173,7 @@ export default function PayrollPdfExportModal({ open, setOpen, exportUrl, listPa
 					<Button variant='white' onClick={() => setOpen(false)}>
 						Bekor qilish
 					</Button>
-					<Button variant='danger' onClick={handleExport} loading={loading} disabled={!canSubmit}>
+					<Button variant='warning' onClick={handleExport} loading={loading} disabled={!canSubmit}>
 						<FaFilePdf className='mr-1.5' /> PDF yuklash
 					</Button>
 				</ModalFooter>

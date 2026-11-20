@@ -269,30 +269,6 @@ export default function UserPayrollPage() {
 				bodyClassName='p-0'
 				actions={
 					<div className='flex items-center gap-2'>
-						{exportUrl && (
-							<>
-								<Button
-									type='button'
-									variant='danger'
-									size='xs'
-									onClick={() => handleExportPdf('month')}
-									loading={exportingPdf === 'month'}
-									disabled={!!exportingPdf}
-								>
-									<FaFilePdf className='mr-1.5' /> Oylik PDF
-								</Button>
-								<Button
-									type='button'
-									variant='danger'
-									size='xs'
-									onClick={() => handleExportPdf('year')}
-									loading={exportingPdf === 'year'}
-									disabled={!!exportingPdf}
-								>
-									<FaFilePdf className='mr-1.5' /> Yillik PDF ({year})
-								</Button>
-							</>
-						)}
 						<Button
 							type='button'
 							variant='info'
@@ -466,6 +442,30 @@ export default function UserPayrollPage() {
 								</SelectContent>
 							</Select>
 						</div>
+						{exportUrl && (
+							<>
+								<Button
+									type='button'
+									variant='warning'
+									size='sm'
+									onClick={() => handleExportPdf('month')}
+									loading={exportingPdf === 'month'}
+									disabled={!!exportingPdf}
+								>
+									<FaFilePdf className='mr-1.5' /> Oylik PDF
+								</Button>
+								<Button
+									type='button'
+									variant='warning'
+									size='sm'
+									onClick={() => handleExportPdf('year')}
+									loading={exportingPdf === 'year'}
+									disabled={!!exportingPdf}
+								>
+									<FaFilePdf className='mr-1.5' /> Yillik PDF ({year})
+								</Button>
+							</>
+						)}
 					</div>
 
 					<DataTable
