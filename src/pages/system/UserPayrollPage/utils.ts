@@ -102,13 +102,18 @@ const FIELD_LABELS: Record<string, string> = {
 	summa_dollar: 'Summa dollar',
 	summa_som: "Summa so'm",
 	summa_karta: 'Summa karta',
-	all_summa_dollar: 'All summa dollar',
+	all_summa_dollar: 'Jami summa ($)',
 	note: 'Izoh',
 	transaction_key: 'UUID',
 	oylik_dollar: 'Oylik dollar',
 	oylik_som: "Oylik so'm",
 	effective_year: 'Qaysi yildan',
 	effective_month: 'Qaysi oydan',
+};
+
+// Backend spellings that differ from the form's field names.
+const KEY_ALIASES: Record<string, string> = {
+	all_summ_dollar: 'all_summa_dollar',
 };
 
 // Keys that wrap the real field errors (`{ errors: { note: [...] } }`) or carry form-wide messages.
@@ -138,7 +143,8 @@ export function apiFieldErrors<F extends string>(err: unknown, fields: readonly 
 	};
 
 	const walk = (body: Record<string, unknown>) => {
-		for (const [key, value] of Object.entries(body)) {
+		for (const [rawKey, value] of Object.entries(body)) {
+			const key = KEY_ALIASES[rawKey] ?? rawKey;
 			if (value && typeof value === 'object' && !Array.isArray(value)) {
 				walk(value as Record<string, unknown>);
 				continue;

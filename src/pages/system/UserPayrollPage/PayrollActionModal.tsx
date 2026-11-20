@@ -318,7 +318,7 @@ export default function PayrollActionModal({ open, setOpen, userId, year, month,
 						</div>
 
 						<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-							<Field label='All summa dollar' error={errors.all_summa_dollar}>
+							<Field label='Jami summa ($)' error={errors.all_summa_dollar}>
 								<PriceInput value={allDollar ? String(allDollar) : ''} placeholder='0' disabled readOnly />
 								<p className='mt-1 text-[11px] text-ca-text'>
 									{dollarRate > 0
