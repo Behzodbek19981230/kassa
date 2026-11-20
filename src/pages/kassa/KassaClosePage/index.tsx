@@ -1,11 +1,12 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { FaLock } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { FaArrowLeft, FaLock } from 'react-icons/fa';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { Button, Combobox, Panel, PriceInput, Textarea, useNotification } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
 import { formatDateTime } from '@/lib/date';
+import { ROLE } from '@/lib/permissions';
 import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import ConfirmCloseModal from '@/pages/kassa/KassaClosePage/ConfirmCloseModal';
@@ -33,6 +34,9 @@ import {
 import type { CashRegisterCurrent } from '@/services/cash-register/cash-register.types';
 import { useUserListQuery } from '@/services/user/user.queries';
 import { ACTIVE_SYSTEM_USER_PARAMS } from '@/services/user/user.types';
+
+/** Only Super Admin and Admin can receive the handed-over cash. */
+const RECEIVER_ROLE_KEYS: string[] = [ROLE.SUPER_ADMIN, ROLE.ADMIN];
 
 function FieldError({ children }: { children?: ReactNode }) {
 	if (!children) return null;
@@ -74,6 +78,7 @@ function SummaryLine({ label, value, tone }: { label: string; value: ReactNode; 
 /** 03 "Kassani topshirish": count the money per channel, hand part of it over, the rest opens the next period. */
 export default function KassaClosePage() {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const queryClient = useQueryClient();
 	const { notify } = useNotification();
 	const { canWrite } = useCurrentCompany();
@@ -99,7 +104,7 @@ export default function KassaClosePage() {
 	const userOptions = useMemo(
 		() =>
 			(usersQuery.data?.results ?? [])
-				.filter((u) => u.is_active)
+				.filter((u) => u.is_active && RECEIVER_ROLE_KEYS.includes(u.roles?.key ?? ''))
 				.map((u) => {
 					const name = `${u.last_name ?? ''} ${u.first_name ?? ''}`.trim() || u.username;
 					return { value: String(u.id), label: u.roles?.name ? `${name} (${u.roles.name})` : name };
@@ -109,16 +114,28 @@ export default function KassaClosePage() {
 
 	const preview = useMemo(() => (current ? buildPreview(current, inputs) : null), [current, inputs]);
 
+	// A directly opened link has no history to return to, so fall back to the current kassa page.
+	const backButton = (
+		<Button
+			type='button'
+			variant='info'
+			size='xs'
+			onClick={() => (location.key === 'default' ? navigate('/kassa/current') : navigate(-1))}
+		>
+			<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
+		</Button>
+	);
+
 	if (currentQuery.isLoading && !current) {
 		return (
-			<Panel title={<PanelTitle title='Kassani topshirish' />}>
+			<Panel title={<PanelTitle title='Kassani topshirish' />} actions={backButton}>
 				<LoadingBlock />
 			</Panel>
 		);
 	}
 	if (!current || !preview) {
 		return (
-			<Panel title={<PanelTitle title='Kassani topshirish' />}>
+			<Panel title={<PanelTitle title='Kassani topshirish' />} actions={backButton}>
 				<ErrorBox>{getApiErrorMessage(currentQuery.error, "Kassani yuklab bo'lmadi")}</ErrorBox>
 			</Panel>
 		);
@@ -220,6 +237,7 @@ export default function KassaClosePage() {
 					sub={`#${nextNumber} (qoralama)`}
 				/>
 			}
+			actions={backButton}
 		>
 			<div className='space-y-3'>
 				{!canWrite && (

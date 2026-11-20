@@ -20,7 +20,10 @@ import {
 	useNotification,
 } from '@/components/ui';
 import { useCurrentCompany } from '@/lib/company';
-import { roundMoney } from '@/lib/number';
+import { formatNumber, roundMoney } from '@/lib/number';
+import { usePermissions } from '@/lib/permissions';
+import { useCashRegisterCurrentQuery } from '@/services/cash-register/cash-register.queries';
+import type { CashRegisterCurrent } from '@/services/cash-register/cash-register.types';
 import { useCreateExpenseMutation, useUpdateExpenseMutation } from '@/services/expense/expense.queries';
 import type { Expense, ExpensePayload } from '@/services/expense/expense.types';
 import { useExpenseTypeListQuery } from '@/services/expense-type/expense-type.queries';
@@ -31,6 +34,13 @@ import { paymentCardLabel } from '@/services/payment-card/payment-card.types';
 import { getApiErrorMessage } from '@/lib/errors';
 
 const num = (value: string | number | null | undefined) => Number(value) || 0;
+
+/** What the kassa says is on the card right now (period opening + turnover); a card with no kassa channel holds nothing. */
+function cardBalance(current: CashRegisterCurrent, cardId: number): number {
+	const channel = current.channels.find((ch) => ch.channel === 'card' && ch.card === cardId);
+	if (!channel) return 0;
+	return channel.expected != null ? num(channel.expected) : num(channel.opening) + num(channel.turnover);
+}
 
 const expenseFormSchema = z
 	.object({
@@ -74,6 +84,7 @@ export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseF
 		register,
 		handleSubmit,
 		watch,
+		setError,
 		formState: { errors, dirtyFields },
 	} = useForm<ExpenseFormValues>({
 		resolver: zodResolver(expenseFormSchema),
@@ -102,6 +113,16 @@ export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseF
 	const [sumSom, summDollar, summCart, paymentCard] = watch(['sum_som', 'summ_dollar', 'summ_cart', 'payment_card']);
 	const paidByCard = num(summCart) > 1;
 	const { data: selectedCard } = usePaymentCardQuery(paymentCard ? Number(paymentCard) : undefined);
+
+	// Card balances come from the kassa, which only Super Admin / Admin may read; for other roles the check is skipped.
+	const { canViewKassa } = usePermissions();
+	const checkCardBalance = canViewKassa && paidByCard && Boolean(paymentCard);
+	const kassaQuery = useCashRegisterCurrentQuery(open && checkCardBalance);
+	/** The card's balance, plus what this expense already took from the same card when editing it. */
+	const availableOnCard = (current: CashRegisterCurrent, cardId: number) =>
+		cardBalance(current, cardId) + (mode === 'edit' && item?.payment_card === cardId ? num(item.summ_cart) : 0);
+	const shownAvailable =
+		checkCardBalance && kassaQuery.data ? availableOnCard(kassaQuery.data, Number(paymentCard)) : null;
 
 	// An edit that leaves the amounts alone keeps the saved total rather than re-converting it at today's rate
 	// (older expenses only have `summa`).
@@ -145,6 +166,23 @@ export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseF
 			}
 			if (rate <= 0 && (num(values.sum_som) || num(values.summ_cart))) {
 				setFormError("Dollar kursi o'rnatilmagan, so'mdagi summani dollarga o'girib bo'lmaydi");
+				return;
+			}
+		}
+
+		if (checkCardBalance && (!keepSavedTotal || dirtyFields.payment_card)) {
+			const cardId = Number(values.payment_card);
+			const { data: current, error } = await kassaQuery.refetch();
+			if (!current) {
+				setFormError(getApiErrorMessage(error, "Karta qoldig'ini tekshirib bo'lmadi"));
+				return;
+			}
+			const available = availableOnCard(current, cardId);
+			if (num(values.summ_cart) > available) {
+				setError('summ_cart', {
+					type: 'manual',
+					message: `Kartada buncha summa mavjud emas (mavjud: ${formatNumber(Math.max(available, 0))} so'm)`,
+				});
 				return;
 			}
 		}
@@ -273,6 +311,11 @@ export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseF
 											/>
 										)}
 									/>
+									{shownAvailable != null && (
+										<div className={`mt-1 text-[11px] ${num(summCart) > shownAvailable ? 'text-ca-red' : 'text-ca-text'}`}>
+											Kartada mavjud: {formatNumber(Math.max(shownAvailable, 0))} so'm
+										</div>
+									)}
 								</FormField>
 							)}
 						</div>
