@@ -38,7 +38,13 @@ interface PayrollPdfExportModalProps {
 	search?: string;
 }
 
-/** "Xodimlar oyligi hisoboti" PDF for one month: every employee of the tab, or only the picked ones. */
+/** Month value of the "Butun yil" option: the yearly report is asked for with `month: null`. */
+const WHOLE_YEAR = 0;
+
+/**
+ * "Xodimlar oyligi hisoboti" PDF for one month or a whole year: every employee of the tab, or only the picked ones.
+ * A yearly report of the current year covers January up to this month; a future year has none (400).
+ */
 export default function PayrollPdfExportModal({ open, setOpen, exportUrl, listParams, search }: PayrollPdfExportModalProps) {
 	const { notify } = useNotification();
 	const current = currentYearMonth();
@@ -49,6 +55,7 @@ export default function PayrollPdfExportModal({ open, setOpen, exportUrl, listPa
 	const [loading, setLoading] = useState(false);
 
 	const years = Array.from({ length: 6 }, (_, i) => current.year - i);
+	const isYearly = month === WHOLE_YEAR;
 	const canSubmit = target === 'all' || userIds.length > 0;
 
 	const loadUserOptions = async ({ search: term, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
@@ -72,7 +79,7 @@ export default function PayrollPdfExportModal({ open, setOpen, exportUrl, listPa
 		try {
 			const blob = await payrollService.exportEmployeesPdf(exportUrl, {
 				year,
-				month,
+				month: isYearly ? null : month,
 				// Picked employees are exported as they are: the tab's search would reject those it doesn't match.
 				...(target === 'selected' ? { users: userIds.map(Number), search: null } : { users: [] }),
 			});
@@ -114,6 +121,7 @@ export default function PayrollPdfExportModal({ open, setOpen, exportUrl, listPa
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
+									<SelectItem value={String(WHOLE_YEAR)}>Butun yil</SelectItem>
 									{MONTH_NAMES.map((name, i) => (
 										<SelectItem key={name} value={String(i + 1)}>
 											{name}
@@ -123,6 +131,14 @@ export default function PayrollPdfExportModal({ open, setOpen, exportUrl, listPa
 							</Select>
 						</FormField>
 					</div>
+
+					{isYearly && (
+						<p className='mb-4 -mt-2 text-xs text-ca-text'>
+							{year === current.year
+								? `Yillik hisobot: Yanvar – ${MONTH_NAMES[current.month - 1]} ${year}`
+								: `Yillik hisobot: ${year} yil, 12 oy`}
+						</p>
+					)}
 
 					<FormField horizontal={false} label='Xodimlar'>
 						<RadioGroup

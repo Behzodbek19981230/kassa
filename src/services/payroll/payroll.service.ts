@@ -34,14 +34,18 @@ async function fetchPdf(exportUrl: string, params: PdfExportParams = {}) {
 
 export const payrollService = {
 	/**
-	 * `GET /payroll/export/pdf/` through the `export_url` of `GET /user/`: needs `year` and `month`;
-	 * `users` (empty → every employee of the tab) and `search: null` (drops the tab's search) are optional.
+	 * `GET /payroll/export/pdf/` through the `export_url` of `GET /user/`. `month: null` → the whole year
+	 * (a future year answers 400). `users` (empty → every employee of the tab) and `search: null`
+	 * (drops the tab's search) are optional.
 	 */
 	exportEmployeesPdf: (
 		exportUrl: string,
-		params: { year: number; month: number; users?: number[]; search?: string | null },
+		params: { year: number; month: number | null; users?: number[]; search?: string | null },
 	) => fetchPdf(exportUrl, params),
-	/** `GET /payroll-transaction/export/pdf/` through the `export_url` of `GET /payroll-transaction/`. */
+	/**
+	 * `GET /payroll-transaction/export/pdf/` through the `export_url` of `GET /payroll-transaction/`:
+	 * no params → the list as on screen; `{ month: null }` → the whole year, grouped by month.
+	 */
 	exportTransactionsPdf: (exportUrl: string, params?: PdfExportParams) => fetchPdf(exportUrl, params),
 
 	summary: async (params: PayrollSummaryParams) => {

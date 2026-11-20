@@ -136,7 +136,7 @@ export default function UserPayrollPage() {
 	const toFirstPage = () => setPagination((p) => ({ ...p, pageIndex: 0 }));
 	const [actionOpen, setActionOpen] = useState(false);
 	const [rateOpen, setRateOpen] = useState(false);
-	const [exportingPdf, setExportingPdf] = useState(false);
+	const [exportingPdf, setExportingPdf] = useState<'month' | 'year' | null>(null);
 	const { notify } = useNotification();
 
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : '-transaction_time';
@@ -166,17 +166,19 @@ export default function UserPayrollPage() {
 	// The screen's month, type filter and ordering, without paging.
 	const exportUrl = transactionsQuery.data?.export_url;
 
-	async function handleExportPdf() {
+	/** `month` → the month on screen; `year` → the screen's year, grouped by month with a per-month table. */
+	async function handleExportPdf(period: 'month' | 'year') {
 		if (!exportUrl || exportingPdf) return;
 		const tab = openPendingTab();
-		setExportingPdf(true);
+		setExportingPdf(period);
 		try {
-			loadBlobIntoTab(await payrollService.exportTransactionsPdf(exportUrl), tab);
+			const blob = await payrollService.exportTransactionsPdf(exportUrl, period === 'year' ? { month: null } : {});
+			loadBlobIntoTab(blob, tab);
 		} catch (err) {
 			tab?.close();
 			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
 		} finally {
-			setExportingPdf(false);
+			setExportingPdf(null);
 		}
 	}
 	const years = Array.from({ length: 6 }, (_, i) => currentYearMonth().year + 1 - i);
@@ -268,9 +270,28 @@ export default function UserPayrollPage() {
 				actions={
 					<div className='flex items-center gap-2'>
 						{exportUrl && (
-							<Button type='button' variant='danger' size='xs' onClick={handleExportPdf} loading={exportingPdf}>
-								<FaFilePdf className='mr-1.5' /> PDF
-							</Button>
+							<>
+								<Button
+									type='button'
+									variant='danger'
+									size='xs'
+									onClick={() => handleExportPdf('month')}
+									loading={exportingPdf === 'month'}
+									disabled={!!exportingPdf}
+								>
+									<FaFilePdf className='mr-1.5' /> Oylik PDF
+								</Button>
+								<Button
+									type='button'
+									variant='danger'
+									size='xs'
+									onClick={() => handleExportPdf('year')}
+									loading={exportingPdf === 'year'}
+									disabled={!!exportingPdf}
+								>
+									<FaFilePdf className='mr-1.5' /> Yillik PDF ({year})
+								</Button>
+							</>
 						)}
 						<Button
 							type='button'
