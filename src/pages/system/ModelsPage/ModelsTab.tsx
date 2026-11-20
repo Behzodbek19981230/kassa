@@ -89,7 +89,7 @@ export default function ModelsTab() {
 					canWrite && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
-							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 							dialog={BrandFormModal}
 							dialogProps={{ mode: 'create' as const }}
 						/>

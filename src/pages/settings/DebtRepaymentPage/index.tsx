@@ -270,7 +270,7 @@ export default function DebtRepaymentPage() {
 					canManage && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
-							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 							dialog={DebtRepaymentFormModal}
 							dialogProps={{ mode: 'create' as const }}
 						/>

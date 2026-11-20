@@ -130,7 +130,7 @@ export default function OrderChangeLogsModal({ open, setOpen, orderId }: OrderCh
 					{selectedLog ? (
 						<>
 							<div className='flex flex-wrap items-center gap-3'>
-								<Button type='button' variant='info' size='xs' onClick={() => setSelectedLog(null)}>
+								<Button type='button' variant='info' size='sm' onClick={() => setSelectedLog(null)}>
 									<FaArrowLeft className='mr-1.5' /> Orqaga
 								</Button>
 								{selectedLog.direction && (

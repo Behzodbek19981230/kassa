@@ -67,7 +67,7 @@ export default function MyDebtDetailPage() {
 				<h4 className='text-sm font-normal'>
 					<span className='font-semibold'>{debt?.consignor_detail?.name ?? ''}</span> qarzi tarixi
 				</h4>
-				<Button type='button' variant='info' size='xs' onClick={() => navigate(-1)}>
+				<Button type='button' variant='info' size='sm' onClick={() => navigate(-1)}>
 					<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 				</Button>
 			</div>

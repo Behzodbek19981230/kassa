@@ -83,7 +83,7 @@ export default function SkladTypePage() {
 					canWrite && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
-							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 							dialog={SkladTypeFormModal}
 							dialogProps={{ mode: 'create' as const }}
 						/>

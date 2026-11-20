@@ -143,7 +143,7 @@ export default function LogisticsPartnerStockPage() {
                   <Button
                      type='button'
                      variant='danger'
-                     size='xs'
+                     size='sm'
                      loading={exporting === 'pdf'}
                      disabled={!!exporting}
                      onClick={() => handleExport('pdf')}
@@ -153,7 +153,7 @@ export default function LogisticsPartnerStockPage() {
                   <Button
                      type='button'
                      variant='success'
-                     size='xs'
+                     size='sm'
                      loading={exporting === 'xlsx'}
                      disabled={!!exporting}
                      onClick={() => handleExport('xlsx')}
@@ -163,7 +163,7 @@ export default function LogisticsPartnerStockPage() {
                   <Button
                      type='button'
                      variant='warning'
-                     size='xs'
+                     size='sm'
                      onClick={() => navigate('/two-stage-import/transit-stock')}
                   >
                      <FaArrowLeft className='mr-1.5' /> Orqaga

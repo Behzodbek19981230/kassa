@@ -69,7 +69,7 @@ export default function DashboardMonthlyChart({ monthly, isLoading, isFetching }
 					<Button
 						type='button'
 						variant={showTable ? 'white' : 'theme'}
-						size='xs'
+						size='sm'
 						className='rounded-none border-0'
 						onClick={() => setShowTable(false)}
 					>
@@ -78,7 +78,7 @@ export default function DashboardMonthlyChart({ monthly, isLoading, isFetching }
 					<Button
 						type='button'
 						variant={showTable ? 'theme' : 'white'}
-						size='xs'
+						size='sm'
 						className='rounded-none border-0 border-l border-ca-border'
 						onClick={() => setShowTable(true)}
 					>

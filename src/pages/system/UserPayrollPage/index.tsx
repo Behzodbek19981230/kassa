@@ -272,7 +272,7 @@ export default function UserPayrollPage() {
 						<Button
 							type='button'
 							variant='info'
-							size='xs'
+							size='sm'
 							// Going back keeps the users list's tab and page; a directly opened link has no history,
 							// so it opens the tab the user is listed in.
 							onClick={() =>
@@ -329,6 +329,19 @@ export default function UserPayrollPage() {
 									</SelectContent>
 								</Select>
 							</div>
+							{exportUrl && (
+								<Button
+									type='button'
+									variant='warning'
+									size='lg'
+									onClick={() => handleExportPdf('year')}
+									loading={exportingPdf === 'year'}
+									disabled={!!exportingPdf}
+									className='rounded-lg font-semibold'
+								>
+									<FaFilePdf className='mr-1.5' /> Yillik PDF ({year})
+								</Button>
+							)}
 							<button
 								type='button'
 								onClick={() => setActionOpen(true)}
@@ -443,7 +456,6 @@ export default function UserPayrollPage() {
 							</Select>
 						</div>
 						{exportUrl && (
-							<>
 								<Button
 									type='button'
 									variant='warning'
@@ -454,17 +466,6 @@ export default function UserPayrollPage() {
 								>
 									<FaFilePdf className='mr-1.5' /> Oylik PDF
 								</Button>
-								<Button
-									type='button'
-									variant='warning'
-									size='sm'
-									onClick={() => handleExportPdf('year')}
-									loading={exportingPdf === 'year'}
-									disabled={!!exportingPdf}
-								>
-									<FaFilePdf className='mr-1.5' /> Yillik PDF ({year})
-								</Button>
-							</>
 						)}
 					</div>
 

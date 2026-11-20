@@ -123,7 +123,7 @@ export default function ClientDebtorPage() {
 			title="Qarzdorlar ro'yxati"
 			actions={
 				isSuperAdmin && (
-					<Button type='button' variant='warning' size='xs' disabled={isExporting} onClick={handleExportPdf}>
+					<Button type='button' variant='warning' size='sm' disabled={isExporting} onClick={handleExportPdf}>
 						<FaFilePdf className='mr-1.5' /> {isExporting ? 'Yuklanmoqda...' : 'PDF Export qilish'}
 					</Button>
 				)

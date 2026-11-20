@@ -14,7 +14,7 @@ export default function OrderCartPage() {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					<Button type='button' variant='info' size='xs' onClick={() => navigate(-1)}>
+					<Button type='button' variant='info' size='sm' onClick={() => navigate(-1)}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 					</Button>
 				}

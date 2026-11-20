@@ -134,7 +134,7 @@ export default function LogisticsCompanyPage() {
 					canWrite && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
-							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 							dialog={LogisticsCompanyFormModal}
 							dialogProps={{ mode: 'create' as const }}
 						/>

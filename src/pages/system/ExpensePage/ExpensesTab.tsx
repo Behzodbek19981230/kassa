@@ -166,7 +166,7 @@ export default function ExpensesTab() {
 				canWrite && (
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+						elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 						dialog={ExpenseFormModal}
 						dialogProps={{ mode: 'create' as const }}
 					/>

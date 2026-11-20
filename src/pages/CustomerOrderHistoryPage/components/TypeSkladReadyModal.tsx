@@ -65,7 +65,7 @@ export default function TypeSkladReadyModal({ open, setOpen, orderId, parts }: T
 										<Button
 											type='button'
 											variant='success'
-											size='xs'
+											size='sm'
 											disabled={isPending}
 											onClick={() => handleReady(part)}
 										>

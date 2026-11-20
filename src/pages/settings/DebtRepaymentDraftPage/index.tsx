@@ -182,7 +182,7 @@ export default function DebtRepaymentDraftPage() {
 						O'chirilgan to'lovlar
 						{/* Deleted repayments history is Super Admin only, like the deleted orders history. */}
 						{isSuperAdmin && (
-							<Button type='button' variant='danger' size='xs' onClick={() => navigate(DEBT_DELETE_HISTORY_PATH)}>
+							<Button type='button' variant='danger' size='sm' onClick={() => navigate(DEBT_DELETE_HISTORY_PATH)}>
 								<FaHistory className='mr-1.5' /> O'chirilgan qarz to'lovlar tarixi
 							</Button>
 						)}

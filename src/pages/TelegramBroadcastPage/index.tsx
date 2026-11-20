@@ -100,7 +100,7 @@ export default function TelegramBroadcastPage() {
 					<Button
 						type='button'
 						variant='info'
-						size='xs'
+						size='sm'
 						onClick={() => navigate('/telegram-broadcast/create')}
 					>
 						<FaPaperPlane className='mr-1.5' /> Yangi xabarnoma

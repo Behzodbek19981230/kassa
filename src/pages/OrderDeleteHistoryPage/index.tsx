@@ -104,7 +104,7 @@ export default function OrderDeleteHistoryPage() {
 		<Panel
 			title="O'chirilgan buyurtmalar tarixi"
 			actions={
-				<Button type='button' variant='info' size='xs' onClick={() => navigate('/cart-drafts')}>
+				<Button type='button' variant='info' size='sm' onClick={() => navigate('/cart-drafts')}>
 					<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 				</Button>
 			}

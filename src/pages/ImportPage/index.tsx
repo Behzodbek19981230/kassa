@@ -380,7 +380,7 @@ export default function ImportPage() {
                      isSuperAdmin && (
                         <OpenDialogButton
                            element={(props) => <Button {...props} />}
-                           elementProps={buttonProps("+ Yuk jo'natuvchi qo'shish", 'warning', 'xs')}
+                           elementProps={buttonProps("+ Yuk jo'natuvchi qo'shish", 'warning', 'sm')}
                            dialog={ConsignorFormModal}
                            dialogProps={{ mode: 'create' as const }}
                         />
@@ -408,7 +408,7 @@ export default function ImportPage() {
                            {canWrite && isSuperAdmin && companyId && (
                               <OpenDialogButton
                                  element={(props) => <Button {...props} />}
-                                 elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
+                                 elementProps={buttonProps("Qarz to'lash", 'success', 'sm')}
                                  dialog={MyDebtPayModal}
                                  dialogProps={{
                                     companyId,

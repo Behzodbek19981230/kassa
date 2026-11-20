@@ -314,7 +314,7 @@ export default function ClientPage() {
 					canManageClients && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
-							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 							dialog={ClientFormModal}
 							dialogProps={{ mode: 'create' as const }}
 						/>

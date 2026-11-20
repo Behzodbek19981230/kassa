@@ -74,10 +74,10 @@ export default function VozvratOrderHistoryDetailPage() {
 			<div className='mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[3px] bg-ca-theme px-4 py-3 text-white'>
 				<h4 className='text-sm font-normal'>{order.title}</h4>
 				<div className='flex flex-wrap items-center gap-2'>
-					<Button type='button' variant='info' size='xs' onClick={() => navigate(-1)}>
+					<Button type='button' variant='info' size='sm' onClick={() => navigate(-1)}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 					</Button>
-					<Button type='button' variant='warning' size='xs' disabled={isPrinting} onClick={printForClient}>
+					<Button type='button' variant='warning' size='sm' disabled={isPrinting} onClick={printForClient}>
 						<FaDownload className='mr-1.5' /> {isPrinting ? 'Yuklanmoqda...' : 'Chop qilish Mijoz uchun'}
 					</Button>
 				</div>

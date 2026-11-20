@@ -529,7 +529,7 @@ function OrderEditForm({ stage, data, onReload, onDone }: OrderEditFormProps) {
                   <FaExclamationTriangle /> Buyurtma siz ochganingizdan keyin o'zgartirilgan. Qayta yuklab, tahrirni
                   takrorlang.
                </span>
-               <Button type='button' variant='danger' size='xs' onClick={onReload}>
+               <Button type='button' variant='danger' size='sm' onClick={onReload}>
                   <FaSyncAlt className='mr-1.5' /> Qayta yuklash
                </Button>
             </div>

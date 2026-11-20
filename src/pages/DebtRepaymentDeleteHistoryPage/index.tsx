@@ -131,7 +131,7 @@ export default function DebtRepaymentDeleteHistoryPage() {
 		<Panel
 			title="O'chirilgan qarz to'lovlar tarixi"
 			actions={
-				<Button type='button' variant='info' size='xs' onClick={() => navigate('/settings/debt-repayments-drafts')}>
+				<Button type='button' variant='info' size='sm' onClick={() => navigate('/settings/debt-repayments-drafts')}>
 					<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 				</Button>
 			}

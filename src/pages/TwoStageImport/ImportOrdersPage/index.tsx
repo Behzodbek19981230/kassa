@@ -155,7 +155,7 @@ export default function ImportOrdersPage() {
             onReload={() => ordersQuery.refetch()}
             actions={
                canWrite && (
-                  <Button type='button' variant='danger' size='xs' onClick={() => navigate('/two-stage-import/china-dispatch')}>
+                  <Button type='button' variant='danger' size='sm' onClick={() => navigate('/two-stage-import/china-dispatch')}>
                      <FaPlus className='mr-1.5' /> Xitoydan yuk chiqarish
                   </Button>
                )

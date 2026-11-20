@@ -158,7 +158,7 @@ export default function PaymentCardPage() {
 				canWrite && (
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+						elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 						dialog={PaymentCardFormModal}
 						dialogProps={{ mode: 'create' as const, nextSortOrder }}
 					/>

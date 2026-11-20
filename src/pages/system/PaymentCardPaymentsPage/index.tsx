@@ -202,7 +202,7 @@ export default function PaymentCardPaymentsPage() {
 				<Button
 					type='button'
 					variant='info'
-					size='xs'
+					size='sm'
 					// Going back keeps the card list's page; a directly opened link has no history to return to.
 					onClick={() => (location.key === 'default' ? navigate('/system/payment-cards') : navigate(-1))}
 				>

@@ -86,10 +86,10 @@ export default function WarehouseTransferDetailPage() {
 					</span>
 				</h4>
 				<div className='flex flex-wrap items-center gap-2'>
-					<Button type='button' variant='info' size='xs' onClick={() => navigate(-1)}>
+					<Button type='button' variant='info' size='sm' onClick={() => navigate(-1)}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 					</Button>
-					<Button type='button' variant='warning' size='xs' disabled={isPrinting} onClick={handlePrint}>
+					<Button type='button' variant='warning' size='sm' disabled={isPrinting} onClick={handlePrint}>
 						<FaDownload className='mr-1.5' /> {isPrinting ? 'Yuklanmoqda...' : 'Chop qilish'}
 					</Button>
 				</div>

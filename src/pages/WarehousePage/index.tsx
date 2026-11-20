@@ -309,7 +309,7 @@ export default function WarehousePage() {
                   {/* <Button
                      type='button'
                      variant={onlyConfirmed ? 'success' : 'warning'}
-                     size='xs'
+                     size='sm'
                      onClick={() => {
                         setOnlyConfirmed((v) => !v);
                         setPagination((p) => ({ ...p, pageIndex: 0 }));
@@ -320,7 +320,7 @@ export default function WarehousePage() {
                   {canWrite && canManageWarehouse && (
                      <Link
                         to='/warehouse-prices/create'
-                        className={buttonVariants({ variant: 'info', size: 'xs' })}
+                        className={buttonVariants({ variant: 'info', size: 'sm' })}
                      >
                         Qo'shish +
                      </Link>

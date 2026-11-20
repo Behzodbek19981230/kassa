@@ -200,7 +200,7 @@ export default function WarehouseFormPage({ mode }: WarehouseFormPageProps) {
 			<Panel
 				title={title}
 				actions={
-					<Button type='button' variant='warning' size='xs' onClick={goBack}>
+					<Button type='button' variant='warning' size='sm' onClick={goBack}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 					</Button>
 				}

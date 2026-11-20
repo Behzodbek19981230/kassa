@@ -189,13 +189,13 @@ export default function OrderAccountHistoryDetailPage() {
          <div className='mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[3px] bg-ca-theme px-4 py-3 text-white'>
             <h4 className='text-sm font-normal'>{order.title}</h4>
             <div className='flex flex-wrap items-center gap-2'>
-               <Button type='button' variant='info' size='xs' onClick={() => navigate(-1)}>
+               <Button type='button' variant='info' size='sm' onClick={() => navigate(-1)}>
                   <FaArrowLeft className='mr-1.5' /> Orqaga qaytish
                </Button>
                <Button
                   type='button'
                   variant='primary'
-                  size='xs'
+                  size='sm'
                   disabled={printingRole === 'sklad'}
                   onClick={() => printFor('sklad')}
                >
@@ -205,7 +205,7 @@ export default function OrderAccountHistoryDetailPage() {
                <Button
                   type='button'
                   variant='warning'
-                  size='xs'
+                  size='sm'
                   disabled={printingRole === 'mijoz'}
                   onClick={() => printFor('mijoz')}
                >
@@ -217,7 +217,7 @@ export default function OrderAccountHistoryDetailPage() {
                   <Button
                      type='button'
                      variant='danger'
-                     size='xs'
+                     size='sm'
                      disabled={printingRole === 'admin'}
                      onClick={() => printFor('admin')}
                   >
@@ -225,13 +225,13 @@ export default function OrderAccountHistoryDetailPage() {
                      {printingRole === 'admin' ? 'Yuklanmoqda...' : 'Chop qilish Admin uchun'}
                   </Button>
                )}
-               <Button type='button' variant='success' size='xs' disabled={exportingExcel} onClick={handleExportExcel}>
+               <Button type='button' variant='success' size='sm' disabled={exportingExcel} onClick={handleExportExcel}>
                   <FaFileExcel className='mr-1.5' /> {exportingExcel ? 'Yuklanmoqda...' : 'Excel yuklash'}
                </Button>
                {/* <Button
 						type='button'
 						variant='danger'
-						size='xs'
+						size='sm'
 						disabled={!canWrite || calculateMutation.isPending}
 						onClick={handleOpenVozvrat}
 					>
@@ -239,7 +239,7 @@ export default function OrderAccountHistoryDetailPage() {
 						{calculateMutation.isPending ? 'Hisoblanmoqda...' : 'Vozvrat qilish'}
 					</Button> */}
                {canViewChangeLogs && (
-                  <Button type='button' variant='default' size='xs' onClick={() => setChangeLogsOpen(true)}>
+                  <Button type='button' variant='default' size='sm' onClick={() => setChangeLogsOpen(true)}>
                      <FaHistory className='mr-1.5' /> O'zgarishlar tarixi
                   </Button>
                )}

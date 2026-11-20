@@ -81,7 +81,7 @@ export default function LogisticsDebtHistoryTab() {
          onReload={() => refetch()}
          actions={
             debtId && (
-               <Button type='button' variant='white' size='xs' onClick={() => setSearchParams({ tab: 'history' })}>
+               <Button type='button' variant='white' size='sm' onClick={() => setSearchParams({ tab: 'history' })}>
                   Barcha qarzlar tarixi
                </Button>
             )

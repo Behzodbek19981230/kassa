@@ -392,7 +392,7 @@ export default function PlaceOrderPage() {
                      canWrite && (
                         <OpenDialogButton
                            element={(props) => <Button {...props} />}
-                           elementProps={buttonProps("+ Mijoz qo'shish", 'warning', 'xs')}
+                           elementProps={buttonProps("+ Mijoz qo'shish", 'warning', 'sm')}
                            dialog={ClientFormModal}
                            dialogProps={{ mode: 'create' as const, hideStatusFlags: true }}
                         />
@@ -419,7 +419,7 @@ export default function PlaceOrderPage() {
                            {canWrite && companyId && (
                               <OpenDialogButton
                                  element={(props) => <Button {...props} />}
-                                 elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
+                                 elementProps={buttonProps("Qarz to'lash", 'success', 'sm')}
                                  dialog={PayDebtModal}
                                  dialogProps={{
                                     companyId,

@@ -78,7 +78,7 @@ export default function ClientKeshbekHistoryPage() {
 			title={`${client?.fio ?? 'Mijoz'} — keshbek tarixi${client ? ` (joriy: ${formatMoney(client.keshbek)})` : ''}`}
 			onReload={() => refetch()}
 			actions={
-				<Button type='button' variant='white' size='xs' onClick={() => navigate('/settings/clients')}>
+				<Button type='button' variant='white' size='sm' onClick={() => navigate('/settings/clients')}>
 					<FaArrowLeft className='mr-1.5' /> Orqaga
 				</Button>
 			}

@@ -144,7 +144,7 @@ export default function ImportOrderProductsPage() {
             title={`${title} — buyurtma mahsulotlari`}
             onReload={() => query.refetch()}
             actions={
-               <Button type='button' variant='warning' size='xs' onClick={() => navigate('/two-stage-import/orders')}>
+               <Button type='button' variant='warning' size='sm' onClick={() => navigate('/two-stage-import/orders')}>
                   <FaArrowLeft className='mr-1.5' /> Orqaga
                </Button>
             }

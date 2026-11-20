@@ -123,7 +123,7 @@ export default function DistrictsTab() {
 				canWrite && (
 					<OpenDialogButton
 						element={(props) => <Button {...props} />}
-						elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+						elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 						dialog={DistrictFormModal}
 						dialogProps={{ mode: 'create' as const }}
 					/>

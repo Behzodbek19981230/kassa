@@ -238,7 +238,7 @@ export default function VozvratOrderHistoryEditPage() {
 					<span className='font-semibold'>{item.client_detail?.fio}</span> ning {formatDate(item.date)} sanadagi vozvrat
 					buyurtmasini o'zgartirish
 				</h4>
-				<Button type='button' variant='warning' size='xs' onClick={() => navigate(-1)}>
+				<Button type='button' variant='warning' size='sm' onClick={() => navigate(-1)}>
 					<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 				</Button>
 			</div>

@@ -81,7 +81,7 @@ export default function OrderDeleteHistoryDetailPage() {
 				<Button
 					type='button'
 					variant='info'
-					size='xs'
+					size='sm'
 					// Going back keeps the list's page; a directly opened link has no history to return to.
 					onClick={() => (location.key === 'default' ? navigate(LIST_PATH) : navigate(-1))}
 				>

@@ -126,7 +126,7 @@ export default function TelegramBroadcastDetailPage() {
       <Panel
         title={`Xabarnoma #${job.id}`}
         actions={
-          <Button type='button' variant='warning' size='xs' onClick={goBack}>
+          <Button type='button' variant='warning' size='sm' onClick={goBack}>
             <FaArrowLeft className='mr-1.5' /> Orqaga qaytish
           </Button>
         }
@@ -311,7 +311,7 @@ export default function TelegramBroadcastDetailPage() {
                            <Button
                              type='button'
                              variant='warning'
-                             size='xs'
+                             size='sm'
                              disabled={retryingDeliveryId === delivery.id}
                              onClick={() => handleRetryDeleteDelivery(delivery.id)}
                            >

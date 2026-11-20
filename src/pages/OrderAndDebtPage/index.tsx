@@ -141,7 +141,7 @@ export default function OrderAndDebtPage() {
 							<Button
 								type='button'
 								variant='warning'
-								size='xs'
+								size='sm'
 								disabled={downloadingPdf === 'pdf1'}
 								onClick={() => handleDownloadPdf('pdf1')}
 							>
@@ -152,7 +152,7 @@ export default function OrderAndDebtPage() {
 							<Button
 								type='button'
 								variant='danger'
-								size='xs'
+								size='sm'
 								disabled={downloadingPdf === 'pdf2'}
 								onClick={() => handleDownloadPdf('pdf2')}
 							>
@@ -163,7 +163,7 @@ export default function OrderAndDebtPage() {
 							<Button
 								type='button'
 								variant='info'
-								size='xs'
+								size='sm'
 								disabled={downloadingPdf === 'pdf3'}
 								onClick={() => handleDownloadPdf('pdf3')}
 							>

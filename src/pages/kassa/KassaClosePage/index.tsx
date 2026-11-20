@@ -119,7 +119,7 @@ export default function KassaClosePage() {
 		<Button
 			type='button'
 			variant='info'
-			size='xs'
+			size='sm'
 			onClick={() => (location.key === 'default' ? navigate('/kassa/current') : navigate(-1))}
 		>
 			<FaArrowLeft className='mr-1.5' /> Orqaga qaytish

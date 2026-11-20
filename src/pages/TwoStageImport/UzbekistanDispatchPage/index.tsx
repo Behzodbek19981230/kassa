@@ -328,7 +328,7 @@ export default function UzbekistanDispatchPage() {
                            {canWrite && (
                               <OpenDialogButton
                                  element={(props) => <Button {...props} />}
-                                 elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
+                                 elementProps={buttonProps("Qarz to'lash", 'success', 'sm')}
                                  dialog={YuanDebtPayModal}
                                  dialogProps={{
                                     target: { kind: 'logistics' as const, logisticsCompanyId },

@@ -22,7 +22,7 @@ export default function CartDraftsPage() {
 							<Button
 								type='button'
 								variant='danger'
-								size='xs'
+								size='sm'
 								onClick={() => navigate('/cart-drafts/deleted-orders')}
 							>
 								<FaHistory className='mr-1.5' /> O'chirilgan buyurtmalar tarixi
@@ -31,7 +31,7 @@ export default function CartDraftsPage() {
 					</span>
 				}
 				actions={
-					<Button type='button' variant='info' size='xs' onClick={() => navigate(-1)}>
+					<Button type='button' variant='info' size='sm' onClick={() => navigate(-1)}>
 						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 					</Button>
 				}

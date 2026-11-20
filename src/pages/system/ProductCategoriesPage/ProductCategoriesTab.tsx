@@ -120,7 +120,7 @@ export default function ProductCategoriesTab() {
 					canWrite && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
-							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 							dialog={CategoryFormModal}
 							dialogProps={{ mode: 'create' as const, defaultBrand: brandFilter || undefined }}
 						/>

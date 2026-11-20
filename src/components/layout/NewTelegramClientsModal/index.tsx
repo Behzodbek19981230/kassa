@@ -62,7 +62,7 @@ export default function NewTelegramClientsModal({ open, setOpen }: NewTelegramCl
 									<FaCheck className='mr-1.5' /> Tasdiqlash
 								</>,
 								'success',
-								'xs',
+								'sm',
 							),
 						}}
 						dialog={ConfirmClientModal}

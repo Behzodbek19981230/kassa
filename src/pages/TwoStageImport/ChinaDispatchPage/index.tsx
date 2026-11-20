@@ -296,7 +296,7 @@ export default function ChinaDispatchPage() {
                               {canWrite && (
                                  <OpenDialogButton
                                     element={(props) => <Button {...props} />}
-                                    elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
+                                    elementProps={buttonProps("Qarz to'lash", 'success', 'sm')}
                                     dialog={YuanDebtPayModal}
                                     dialogProps={{
                                        target: { kind: 'consignor' as const, consignorId: Number(consignorValue) },

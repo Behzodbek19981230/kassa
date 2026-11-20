@@ -63,7 +63,7 @@ export default function LogisticsCompanyWarehousesModal({ open, setOpen, company
 						<div className='mb-3 flex justify-end'>
 							<OpenDialogButton
 								element={(props) => <Button {...props} />}
-								elementProps={buttonProps("Sklad qo'shish +", 'info', 'xs')}
+								elementProps={buttonProps("Sklad qo'shish +", 'info', 'sm')}
 								dialog={LogisticsWarehouseFormModal}
 								dialogProps={{ mode: 'create' as const, presetLogisticsCompany: preset }}
 							/>

@@ -82,7 +82,7 @@ export default function SizeTypesTab() {
 					canWrite && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
-							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 							dialog={TypeFormModal}
 							dialogProps={{ mode: 'create' as const }}
 						/>

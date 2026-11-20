@@ -169,7 +169,7 @@ export default function ProductSizesTab() {
 					canWrite && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
-							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 							dialog={SizeFormModal}
 							dialogProps={{ mode: 'create' as const }}
 						/>

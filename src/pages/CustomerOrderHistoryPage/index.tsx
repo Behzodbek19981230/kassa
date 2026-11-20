@@ -31,7 +31,7 @@ export default function CustomerOrderHistoryPage() {
 				// The "Mijozdan qarzdorlik" tab has no cart button.
 				!isDebtorOnly &&
 				canManageOrderCart && (
-					<Button type='button' variant='danger' size='xs' onClick={() => navigate('/order-cart')}>
+					<Button type='button' variant='danger' size='sm' onClick={() => navigate('/order-cart')}>
 						Karzinka {cartDraftCount > 0 && `(${cartDraftCount})`}
 					</Button>
 				)

@@ -93,7 +93,7 @@ export default function ChinaDebtPage() {
                {canWrite && (
                   <OpenDialogButton
                      element={(props) => <Button {...props} />}
-                     elementProps={buttonProps("Qarz to'lash", 'success', 'xs')}
+                     elementProps={buttonProps("Qarz to'lash", 'success', 'sm')}
                      dialog={YuanDebtPayModal}
                      dialogProps={{
                         target: { kind: 'consignor' as const, consignorId: row.original.consignor },
@@ -128,7 +128,7 @@ export default function ChinaDebtPage() {
             onReload={() => refetch()}
             actions={
                canWrite && (
-                  <Button type='button' variant='info' size='xs' onClick={() => setAddModalOpen(true)}>
+                  <Button type='button' variant='info' size='sm' onClick={() => setAddModalOpen(true)}>
                      <FaPlus className='mr-1.5' /> Qarz qo'shish
                   </Button>
                )

@@ -101,7 +101,7 @@ export default function ConsignorPage() {
 					canWrite && canManageConsignor && (
 						<OpenDialogButton
 							element={(props) => <Button {...props} />}
-							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+							elementProps={buttonProps("Qo'shish +", 'info', 'sm')}
 							dialog={ConsignorFormModal}
 							dialogProps={{ mode: 'create' as const }}
 						/>

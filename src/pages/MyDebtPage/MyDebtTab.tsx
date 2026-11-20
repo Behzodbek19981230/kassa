@@ -178,7 +178,7 @@ export default function MyDebtTab() {
 				onReload={() => refetch()}
 				actions={
 					canManage && (
-						<Button type='button' variant='info' size='xs' onClick={() => setAddModalOpen(true)}>
+						<Button type='button' variant='info' size='sm' onClick={() => setAddModalOpen(true)}>
 							<FaPlus className='mr-1.5' /> Qarz qo'shish
 						</Button>
 					)

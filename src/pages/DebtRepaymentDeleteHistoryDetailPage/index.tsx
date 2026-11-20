@@ -58,7 +58,7 @@ export default function DebtRepaymentDeleteHistoryDetailPage() {
 				<Button
 					type='button'
 					variant='info'
-					size='xs'
+					size='sm'
 					// Going back keeps the list's page; a directly opened link has no history to return to.
 					onClick={() => (location.key === 'default' ? navigate(DEBT_DELETE_HISTORY_PATH) : navigate(-1))}
 				>
