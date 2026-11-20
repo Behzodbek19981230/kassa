@@ -13,6 +13,7 @@ import {
 	FaEdit,
 	FaExclamationTriangle,
 	FaFileInvoiceDollar,
+	FaFilePdf,
 	FaLock,
 	FaTelegramPlane,
 	FaTrash,
@@ -28,6 +29,7 @@ import { formatDate } from '@/lib/date';
 import { getApiErrorMessage } from '@/lib/errors';
 import { usePermissions } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
+import PayrollPdfExportModal from '@/pages/system/UserPage/components/PayrollPdfExportModal';
 import SalaryHistoryModal from '@/pages/system/UserPage/components/SalaryHistoryModal';
 import TelegramBotRegisterModal from '@/pages/system/UserPage/components/TelegramBotRegisterModal';
 import UnblockUserModal from '@/pages/system/UserPage/components/UnblockUserModal';
@@ -102,6 +104,7 @@ export default function UserListTab({ tab }: { tab: UserTab }) {
 	const [telegramTarget, setTelegramTarget] = useState<User | null>(null);
 	const [salaryTarget, setSalaryTarget] = useState<User | null>(null);
 	const [statusTarget, setStatusTarget] = useState<{ item: User; action: UserStatusAction } | null>(null);
+	const [pdfOpen, setPdfOpen] = useState(false);
 
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : undefined;
 	const search = columnFilters.find((f) => SEARCH_COLUMN_IDS.includes(f.id))?.value as string | undefined;
@@ -117,6 +120,8 @@ export default function UserListTab({ tab }: { tab: UserTab }) {
 	const results = data?.results ?? [];
 	const paginationMeta = data?.pagination;
 	const payrollSummary = data?.payroll_summary;
+	// Sent only to roles allowed to see this tab's payroll; it carries the tab's filters and search.
+	const exportUrl = data?.export_url;
 
 	const { data: skladTypeData } = useSkladTypeListQuery({ limit: 100 });
 	const skladTypeNameById = new Map((skladTypeData?.results ?? []).map((t) => [t.id, t.name]));
@@ -350,15 +355,21 @@ export default function UserListTab({ tab }: { tab: UserTab }) {
 			<Panel
 				title="Ro'yxat"
 				actions={
-					canManage &&
-					!isArchiveTab && (
-						<OpenDialogButton
-							element={(props) => <Button {...props} />}
-							elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
-							dialog={UserFormModal}
-							dialogProps={{ mode: 'create' as const, employeeType: config.employeeType }}
-						/>
-					)
+					<div className='flex items-center gap-2'>
+						{exportUrl && (
+							<Button type='button' variant='danger' size='xs' onClick={() => setPdfOpen(true)}>
+								<FaFilePdf className='mr-1.5' /> Oylik PDF
+							</Button>
+						)}
+						{canManage && !isArchiveTab && (
+							<OpenDialogButton
+								element={(props) => <Button {...props} />}
+								elementProps={buttonProps("Qo'shish +", 'info', 'xs')}
+								dialog={UserFormModal}
+								dialogProps={{ mode: 'create' as const, employeeType: config.employeeType }}
+							/>
+						)}
+					</div>
 				}
 				onReload={() => {
 					refetch();
@@ -442,6 +453,16 @@ export default function UserListTab({ tab }: { tab: UserTab }) {
 						if (!open) setTelegramTarget(null);
 					}}
 					item={telegramTarget}
+				/>
+			)}
+
+			{pdfOpen && exportUrl && (
+				<PayrollPdfExportModal
+					open
+					setOpen={setPdfOpen}
+					exportUrl={exportUrl}
+					listParams={config.params}
+					search={search || undefined}
 				/>
 			)}
 

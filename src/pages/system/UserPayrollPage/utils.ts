@@ -5,6 +5,7 @@ import { todayTashkent } from '@/pages/TwoStageImport/utils';
 import type { PayrollTransactionType } from '@/services/payroll/payroll.types';
 
 export const MONTH_TABS = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+export const MONTH_NAMES = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'];
 
 export function currentYearMonth() {
 	const [year, month] = todayTashkent().split('-').map(Number);

@@ -55,7 +55,7 @@ export const userService = {
     return data
   },
   list: async (params?: UserListParams) => {
-    const { data } = await apiClient.get<PaginatedResponse<User> & { payroll_summary?: UserPayrollSummary }>('/user/', {
+    const { data } = await apiClient.get<PaginatedResponse<User> & { payroll_summary?: UserPayrollSummary; export_url?: string }>('/user/', {
       params,
     })
     return data

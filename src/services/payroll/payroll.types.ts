@@ -15,6 +15,8 @@ export interface PayrollPersonDetail {
 export interface PayrollListResponse<T> {
 	results: T[];
 	pagination?: PaginationMeta;
+	/** `payroll-transaction/` only: its PDF export with the list's filters and ordering (no page / limit). */
+	export_url?: string;
 }
 
 /* ---------- GET /payroll/summary/ ---------- */
@@ -82,6 +84,10 @@ export interface PayrollTransactionListParams extends ListParams {
 	year: number;
 	month: number;
 	transaction_type?: PayrollTransactionType;
+	/** Day the payment was made (Tashkent time, `YYYY-MM-DD`); `year` / `month` is the salary month it counts for. */
+	date?: string;
+	date_from?: string;
+	date_to?: string;
 }
 
 export interface PayrollTransactionPayload {

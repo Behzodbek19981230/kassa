@@ -1,10 +1,22 @@
 import { createColumnHelper, type PaginationState, type SortingState } from '@tanstack/react-table';
 import { useState, type ReactNode } from 'react';
-import { FaArrowLeft, FaArrowRight, FaCalculator, FaDatabase, FaExclamationTriangle, FaGift, FaMinusCircle, FaPen, FaPlus, FaTrash, FaUser } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaCalculator, FaDatabase, FaExclamationTriangle, FaFilePdf, FaGift, FaMinusCircle, FaPen, FaPlus, FaTrash, FaUser } from 'react-icons/fa';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import OpenDialogButton from '@/components/OpenDialogButton';
-import { Button, buttonProps, DataTable, Panel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
-import { getApiErrorMessage } from '@/lib/errors';
+import {
+	Button,
+	buttonProps,
+	DataTable,
+	Panel,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+	useNotification,
+} from '@/components/ui';
+import { loadBlobIntoTab, openPendingTab } from '@/lib/blob';
+import { getApiErrorMessage, getApiErrorMessageAsync } from '@/lib/errors';
 import { usePermissions } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import { getUserTab } from '@/pages/system/UserPage/userTabs';
@@ -23,6 +35,7 @@ import {
 	TYPE_META,
 } from '@/pages/system/UserPayrollPage/utils';
 import { usePayrollSummaryQuery, usePayrollTransactionListQuery } from '@/services/payroll/payroll.queries';
+import { payrollService } from '@/services/payroll/payroll.service';
 import type { PayrollTransaction, PayrollTransactionType } from '@/services/payroll/payroll.types';
 import { useUserQuery } from '@/services/user/user.queries';
 
@@ -123,6 +136,8 @@ export default function UserPayrollPage() {
 	const toFirstPage = () => setPagination((p) => ({ ...p, pageIndex: 0 }));
 	const [actionOpen, setActionOpen] = useState(false);
 	const [rateOpen, setRateOpen] = useState(false);
+	const [exportingPdf, setExportingPdf] = useState(false);
+	const { notify } = useNotification();
 
 	const ordering = sorting.length ? `${sorting[0].desc ? '-' : ''}${sorting[0].id}` : '-transaction_time';
 
@@ -148,6 +163,22 @@ export default function UserPayrollPage() {
 	const activeMonths = new Set(data && data.year === year ? data.active_months : []);
 	const transactions = transactionsQuery.data?.results ?? [];
 	const transactionsMeta = transactionsQuery.data?.pagination;
+	// The screen's month, type filter and ordering, without paging.
+	const exportUrl = transactionsQuery.data?.export_url;
+
+	async function handleExportPdf() {
+		if (!exportUrl || exportingPdf) return;
+		const tab = openPendingTab();
+		setExportingPdf(true);
+		try {
+			loadBlobIntoTab(await payrollService.exportTransactionsPdf(exportUrl), tab);
+		} catch (err) {
+			tab?.close();
+			notify({ title: 'Xatolik', text: await getApiErrorMessageAsync(err, "PDF yuklab bo'lmadi") });
+		} finally {
+			setExportingPdf(false);
+		}
+	}
 	const years = Array.from({ length: 6 }, (_, i) => currentYearMonth().year + 1 - i);
 	if (!years.includes(year)) years.push(year);
 
@@ -235,20 +266,27 @@ export default function UserPayrollPage() {
 				title="Oylik to'lovlar tarixi"
 				bodyClassName='p-0'
 				actions={
-					<Button
-						type='button'
-						variant='info'
-						size='xs'
-						// Going back keeps the users list's tab and page; a directly opened link has no history,
-						// so it opens the tab the user is listed in.
-						onClick={() =>
-							location.key === 'default'
-								? navigate(userDetail ? `/system/users?tab=${getUserTab(userDetail)}` : '/system/users')
-								: navigate(-1)
-						}
-					>
-						<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
-					</Button>
+					<div className='flex items-center gap-2'>
+						{exportUrl && (
+							<Button type='button' variant='danger' size='xs' onClick={handleExportPdf} loading={exportingPdf}>
+								<FaFilePdf className='mr-1.5' /> PDF
+							</Button>
+						)}
+						<Button
+							type='button'
+							variant='info'
+							size='xs'
+							// Going back keeps the users list's tab and page; a directly opened link has no history,
+							// so it opens the tab the user is listed in.
+							onClick={() =>
+								location.key === 'default'
+									? navigate(userDetail ? `/system/users?tab=${getUserTab(userDetail)}` : '/system/users')
+									: navigate(-1)
+							}
+						>
+							<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
+						</Button>
+					</div>
 				}
 			>
 				<div className='space-y-4 p-4'>
