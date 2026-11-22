@@ -116,10 +116,15 @@ export function SectionDivider({ children, className }: { children: ReactNode; c
 }
 
 /** Calendar-style day tile: big day number over the short month, on a solid accent. */
-export function DayBadge({ date }: { date: string }) {
+export function DayBadge({ date, className }: { date: string; className?: string }) {
 	const { day, monthShort } = parseIsoDay(date);
 	return (
-		<span className='flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-ca-theme leading-none text-white shadow-sm'>
+		<span
+			className={cn(
+				'flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-ca-theme leading-none text-white shadow-sm',
+				className,
+			)}
+		>
 			<span className='text-2xl font-bold tabular-nums'>{day}</span>
 			<span className='mt-1 text-[10px] font-semibold tracking-wider opacity-90'>{monthShort}</span>
 		</span>

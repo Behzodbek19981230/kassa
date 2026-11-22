@@ -51,6 +51,15 @@ export function useKeyboardInsetCssVar() {
 	}, [inset]);
 }
 
+/**
+ * Runs `useKeyboardInsetCssVar` in a component of its own, beside <App/>. As a hook in App it re-rendered every page
+ * whenever a tablet keyboard opened or closed, resetting state held in table cells (row edit modals closed at once).
+ */
+export function KeyboardInsetSync() {
+	useKeyboardInsetCssVar();
+	return null;
+}
+
 export function useIsTablet() {
 	return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }

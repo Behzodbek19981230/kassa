@@ -1,6 +1,5 @@
 import { Navigate, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { useKeyboardInsetCssVar } from '@/lib/useDropdownPlacement';
 import { useSessionWatcher } from '@/lib/session';
 import ImportRoute from '@/components/auth/ImportRoute';
 import DebtRepaymentDraftRoute from '@/components/auth/DebtRepaymentDraftRoute';
@@ -95,7 +94,6 @@ import KassaClosingsPage from '@/pages/kassa/KassaClosingsPage';
 import KassaClosingDetailPage from '@/pages/kassa/KassaClosingDetailPage';
 
 export default function App() {
-	useKeyboardInsetCssVar();
 	useSessionWatcher();
 	return (
 		<Routes>

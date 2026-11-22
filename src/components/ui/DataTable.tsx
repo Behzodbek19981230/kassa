@@ -6,6 +6,7 @@ import {
 	getPaginationRowModel,
 	getSortedRowModel,
 	useReactTable,
+	type Cell,
 	type ColumnDef,
 	type ColumnFiltersState,
 	type ExpandedState,
@@ -91,6 +92,20 @@ import { useSaveUserColumnMutation, useUserColumnQuery } from '@/services/user-c
 
 function resolveUpdater<T>(updater: Updater<T>, current: T): T {
 	return typeof updater === 'function' ? (updater as (old: T) => T)(current) : updater;
+}
+
+/**
+ * Renders a body cell through a component of stable type. `flexRender` mounts an inline `cell: () => …` as its own
+ * component, and pages rebuild their columns on every render, so each page re-render (e.g. the tablet keyboard
+ * opening) remounted every cell and dropped its state — closing a row's edit modal right after it opened.
+ */
+function BodyCell<TData>({ cell }: { cell: Cell<TData, unknown> }) {
+	const render = cell.column.columnDef.cell;
+	const context = cell.getContext();
+	if (typeof render === 'function' && !render.prototype?.isReactComponent) {
+		return <>{render(context)}</>;
+	}
+	return <>{flexRender(render, context)}</>;
 }
 
 /**
@@ -762,7 +777,7 @@ export function DataTable<TData>({
 																: undefined
 														}
 													>
-														{flexRender(cell.column.columnDef.cell, cell.getContext())}
+														<BodyCell cell={cell} />
 													</TableCell>
 												);
 											})}

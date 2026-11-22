@@ -254,6 +254,21 @@ function NumberBadge({ value, tone = 'theme' }: { value: number; tone?: 'theme' 
 
 const ROW = 'flex items-center gap-3 rounded-lg border border-ca-border bg-ca-silver px-3 py-2.5';
 
+/** Row amount as a solid pill next to the time, so it reads at a glance and isn't mistaken for the print button. */
+function AmountPill({ tone = 'green', title, children }: { tone?: 'green' | 'red'; title?: string; children: ReactNode }) {
+	return (
+		<span
+			title={title}
+			className={cn(
+				'rounded px-1.5 py-0.5 text-[13px] leading-4 font-bold whitespace-nowrap text-white tabular-nums shadow-sm',
+				tone === 'red' ? 'bg-ca-red' : 'bg-emerald-600',
+			)}
+		>
+			{children}
+		</span>
+	);
+}
+
 function PrintButton({ printing, onClick }: { printing: boolean; onClick: () => void }) {
 	return (
 		<button
@@ -298,19 +313,16 @@ function OrderRow({
 				>
 					{row.client?.fio ?? UNKNOWN_CLIENT}
 				</button>
-				<div className='mt-0.5 flex items-center gap-1 text-xs text-ca-text'>
+				<div className='mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ca-text'>
 					<span>{row.time}</span>
+					<AmountPill title={`To'lanadigan: ${money(row.all_product_sum)} $`}>
+						{money(row.all_summ_dollar)} $
+					</AmountPill>
 					{isVozvrat && <span className='rounded bg-ca-red/10 px-1 text-ca-red'>Vozvrat</span>}
 					{isUnconfirmed && <span className='rounded bg-ca-orange/10 px-1 text-ca-orange'>Tasdiqlanmagan</span>}
 					{row.is_sent === 1 && <span className='rounded bg-ca-aqua/10 px-1 text-ca-aqua'>Dastavka</span>}
 				</div>
 			</div>
-			<span
-				className='shrink-0 text-right text-base font-bold text-ca-heading tabular-nums'
-				title={`To'lanadigan: ${money(row.all_product_sum)} $`}
-			>
-				{money(row.all_summ_dollar)} $
-			</span>
 			<PrintButton printing={printing} onClick={onPrint} />
 		</div>
 	);
@@ -324,9 +336,11 @@ function DebtRow({ row, printing, onPrint }: { row: SoldDayDebtRow; printing: bo
 				<div className='truncate text-sm font-semibold text-ca-heading' title={row.client?.fio ?? UNKNOWN_CLIENT}>
 					{row.client?.fio ?? UNKNOWN_CLIENT}
 				</div>
-				<div className='mt-0.5 text-xs text-ca-text'>{row.time}</div>
+				<div className='mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ca-text'>
+					<span>{row.time}</span>
+					<AmountPill tone='red'>{money(row.paid_debt_dollar)} $</AmountPill>
+				</div>
 			</div>
-			<span className='shrink-0 text-base font-bold text-ca-red tabular-nums'>{money(row.paid_debt_dollar)} $</span>
 			<PrintButton printing={printing} onClick={onPrint} />
 		</div>
 	);

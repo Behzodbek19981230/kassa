@@ -20,15 +20,17 @@ export interface OrderLineValue {
    skladLabel: string;
    count: number | null;
    price: string;
-   /** Lowest price a non-super-admin may sell at; null when unknown. */
+   /** Lowest price the line may be sold at (the stock's worker price), for every role; null when unknown. */
    workerPrice: string | null;
 }
 
 /** The worker-price error for a line, if its price is below it. */
 export function workerPriceError(line: Pick<OrderLineValue, 'price' | 'workerPrice'>): string | undefined {
    const min = Number(line.workerPrice) || 0;
-   const price = Number(line.price) || 0;
-   if (min > 0 && price > 0 && price < min) return `Narx ${formatNumber(min, 2)} $ dan kam bo'lmasligi kerak`;
+   // An empty price is reported as a missing field; "0" must not slip under the minimum.
+   if (min > 0 && line.price !== '' && (Number(line.price) || 0) < min) {
+      return `Narx ishchi narxdan (${formatNumber(min, 2)} $) kam bo'lmasligi kerak`;
+   }
 }
 
 export const emptyOrderLine = (): OrderLineValue => ({
@@ -63,8 +65,6 @@ interface OrderProductLineRowProps {
    value: OrderLineValue;
    onChange: (value: OrderLineValue) => void;
    error?: string;
-   /** Only the super admin may sell below the worker price. */
-   enforceWorkerPrice?: boolean;
    showAdd?: boolean;
    onAdd?: () => void;
    onRemove?: () => void;
@@ -74,7 +74,6 @@ export default function OrderProductLineRow({
    value,
    onChange,
    error,
-   enforceWorkerPrice,
    showAdd,
    onAdd,
    onRemove,
@@ -83,7 +82,8 @@ export default function OrderProductLineRow({
    const loadedStocks = useRef(new Map<string, SkladProduct>());
    const loadedCards = useRef(new Map<string, Warehouse>());
    const lineTotal = (Number(value.count) || 0) * (Number(value.price) || 0);
-   const priceError = enforceWorkerPrice ? workerPriceError(value) : undefined;
+   const priceError = workerPriceError(value);
+   const minPrice = Number(value.workerPrice) || 0;
 
    const loadSkladOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
       const result = await skladTypeService.list({ search: search || undefined, page, limit: 20 });
@@ -141,13 +141,15 @@ export default function OrderProductLineRow({
       const stock = loadedStocks.current.get(warehouseId);
       const card = loadedCards.current.get(warehouseId);
       const workerPrice = stock?.worker_price ?? (card ? String(card.worker_price) : null);
+      const productChanged = warehouseId !== (value.warehouse ? String(value.warehouse) : '');
       onChange({
          ...value,
          warehouse: warehouseId ? Number(warehouseId) : null,
          stockId: value.type_sklad && stock ? String(stock.id) : '',
          productLabel: stock ? stockLabel(stock) : card ? cardLabel(card) : (option?.label ?? ''),
-         // A new pick starts at the worker price unless the line already has a price.
-         price: !value.price && workerPrice && Number(workerPrice) > 0 ? String(Number(workerPrice)) : value.price,
+         // A different product starts at its own worker price; the old price belonged to the old product.
+         price:
+            productChanged && workerPrice && Number(workerPrice) > 0 ? String(Number(workerPrice)) : value.price,
          workerPrice,
       });
    }
@@ -195,10 +197,20 @@ export default function OrderProductLineRow({
                <label className='mb-1 block text-xs font-semibold text-ca-heading'>
                   Narxi <span className='text-ca-red'>*</span>
                </label>
-               <PriceInput value={value.price} onChange={(price) => onChange({ ...value, price })} />
+               <PriceInput
+                  value={value.price}
+                  onChange={(price) => onChange({ ...value, price })}
+                  aria-invalid={priceError ? true : undefined}
+                  className={priceError ? 'border-ca-red' : undefined}
+               />
                <p className='mt-1 text-[11px] text-ca-text'>
                   Summa: <span className='font-semibold text-ca-heading'>{formatNumber(lineTotal, 2)} $</span>
                </p>
+               {minPrice > 0 && (
+                  <p className='text-[11px] text-ca-text'>
+                     Ishchi narx: <span className='font-semibold text-ca-heading'>{formatNumber(minPrice, 2)} $</span>
+                  </p>
+               )}
                {(error || priceError) && <p className='mt-1 text-[11px] text-ca-red'>{error || priceError}</p>}
             </div>
             <div className='w-16 shrink-0'>

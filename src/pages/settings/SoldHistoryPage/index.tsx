@@ -17,7 +17,8 @@ import {
 import { parseIsoDay } from '@/pages/settings/soldUtils';
 
 const PAGE_SIZE = 30;
-const DATE_GRID = 'grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6';
+// Phones: 1–2 columns, tablets and notebooks: 4, wide monitors: 5.
+const DATE_GRID = 'grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-4 min-[1800px]:grid-cols-5';
 
 function groupByMonth(items: SoldDateItem[]) {
 	const groups: { label: string; items: SoldDateItem[] }[] = [];
@@ -141,31 +142,36 @@ export default function SoldHistoryPage() {
 	);
 }
 
+/** Below 210px (4 columns on a tablet) the card shrinks its badge and text so the full date still fits. */
 function DateCard({ item, onClick }: { item: SoldDateItem; onClick: () => void }) {
 	return (
 		<button
 			type='button'
 			onClick={onClick}
-			className='group flex min-w-0 items-center gap-3 rounded-lg border border-ca-border bg-ca-silver p-3 text-left transition-colors hover:border-ca-theme hover:bg-ca-table-hover'
+			className='group @container min-w-0 rounded-lg border border-ca-border bg-ca-silver p-3 text-left transition-colors hover:border-ca-theme hover:bg-ca-table-hover'
 		>
-			<DayBadge date={item.date} />
-			<span className='min-w-0 flex-1'>
-				<span className='block truncate text-base leading-5 font-bold text-ca-heading'>{item.date_label}</span>
-				<span className='block truncate text-xs text-ca-text'>{parseIsoDay(item.date).weekday}</span>
-				<span className='mt-1.5 flex flex-wrap gap-1'>
-					{item.order_count > 0 && (
-						<span className='rounded bg-ca-theme/15 px-1.5 py-0.5 text-[11px] font-semibold text-ca-theme'>
-							{item.order_count} buyurtma
-						</span>
-					)}
-					{item.debt_count > 0 && (
-						<span className='rounded bg-ca-red/15 px-1.5 py-0.5 text-[11px] font-semibold text-ca-red'>
-							{item.debt_count} qarz
-						</span>
-					)}
+			<span className='flex items-center gap-2 @min-[210px]:gap-3'>
+				<DayBadge date={item.date} className='h-12 w-12 @min-[210px]:h-14 @min-[210px]:w-14' />
+				<span className='min-w-0 flex-1'>
+					<span className='block truncate text-sm leading-5 font-bold text-ca-heading @min-[210px]:text-base'>
+						{item.date_label}
+					</span>
+					<span className='block truncate text-xs text-ca-text'>{parseIsoDay(item.date).weekday}</span>
+					<span className='mt-1.5 flex flex-wrap gap-1'>
+						{item.order_count > 0 && (
+							<span className='rounded bg-ca-theme/15 px-1.5 py-0.5 text-[11px] font-semibold text-ca-theme'>
+								{item.order_count} buyurtma
+							</span>
+						)}
+						{item.debt_count > 0 && (
+							<span className='rounded bg-ca-red/15 px-1.5 py-0.5 text-[11px] font-semibold text-ca-red'>
+								{item.debt_count} qarz
+							</span>
+						)}
+					</span>
 				</span>
+				<FaChevronRight className='hidden shrink-0 text-xs text-ca-text opacity-40 transition-opacity group-hover:opacity-100 @min-[210px]:block' />
 			</span>
-			<FaChevronRight className='shrink-0 text-xs text-ca-text opacity-40 transition-opacity group-hover:opacity-100' />
 		</button>
 	);
 }

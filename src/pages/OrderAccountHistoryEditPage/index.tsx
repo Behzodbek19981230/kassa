@@ -149,6 +149,13 @@ export default function OrderAccountHistoryEditPage() {
 
    const updateRow = (index: number, next: EditableProductRow) => {
       setRows((prev) => prev.map((row, i) => (i === index ? next : row)));
+      // An error from the last save no longer applies once its row is edited (the live price check still does).
+      setRowErrors((prev) => {
+         if (!(index in prev)) return prev;
+         const rest = { ...prev };
+         delete rest[index];
+         return rest;
+      });
    };
    const addRow = () => setRows((prev) => [...prev, emptyOrderLine()]);
    const removeRow = (index: number) => {
@@ -210,7 +217,8 @@ export default function OrderAccountHistoryEditPage() {
             rowErrs[i] = 'Skladni tanlang';
          } else if (!row.stockId) {
             rowErrs[i] = 'Bu tovar tanlangan skladda topilmadi';
-         } else if (!isSuperAdmin) {
+         } else {
+            // No role, Super Admin included, may sell below the worker price.
             const priceErr = workerPriceError(row);
             if (priceErr) rowErrs[i] = priceErr;
          }
@@ -344,7 +352,6 @@ export default function OrderAccountHistoryEditPage() {
                      value={row}
                      onChange={(next) => updateRow(index, next)}
                      error={rowErrors[index]}
-                     enforceWorkerPrice={!isSuperAdmin}
                      showAdd={index === rows.length - 1}
                      onAdd={addRow}
                      onRemove={() => removeRow(index)}

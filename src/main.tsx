@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import '@/index.css'
 import App from '@/App'
 import { CompanyProvider } from '@/lib/company'
+import { KeyboardInsetSync } from '@/lib/useDropdownPlacement'
 import { ThemeProvider } from '@/lib/theme'
 import { queryClient } from '@/services/api/queryClient'
 
@@ -14,6 +15,7 @@ createRoot(document.getElementById('root')!).render(
       <QueryClientProvider client={queryClient}>
         <CompanyProvider>
           <BrowserRouter>
+            <KeyboardInsetSync />
             <App />
           </BrowserRouter>
         </CompanyProvider>
