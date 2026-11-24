@@ -83,7 +83,6 @@ export default function OrderProductLineRow({
    const loadedCards = useRef(new Map<string, Warehouse>());
    const lineTotal = (Number(value.count) || 0) * (Number(value.price) || 0);
    const priceError = workerPriceError(value);
-   const minPrice = Number(value.workerPrice) || 0;
 
    const loadSkladOptions = async ({ search, page }: ComboboxLoadParams): Promise<ComboboxLoadResult> => {
       const result = await skladTypeService.list({ search: search || undefined, page, limit: 20 });
@@ -206,11 +205,6 @@ export default function OrderProductLineRow({
                <p className='mt-1 text-[11px] text-ca-text'>
                   Summa: <span className='font-semibold text-ca-heading'>{formatNumber(lineTotal, 2)} $</span>
                </p>
-               {minPrice > 0 && (
-                  <p className='text-[11px] text-ca-text'>
-                     Ishchi narx: <span className='font-semibold text-ca-heading'>{formatNumber(minPrice, 2)} $</span>
-                  </p>
-               )}
                {(error || priceError) && <p className='mt-1 text-[11px] text-ca-red'>{error || priceError}</p>}
             </div>
             <div className='w-16 shrink-0'>
