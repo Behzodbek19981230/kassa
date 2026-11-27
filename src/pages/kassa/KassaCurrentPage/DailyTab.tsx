@@ -6,7 +6,18 @@ import { formatDate } from '@/lib/date';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { cn } from '@/lib/utils';
-import { ErrorBox, EyeButton, KTable, KTd, KTh, LoadingBlock, Pill, STAT_GRID, StatCard } from '@/pages/kassa/shared';
+import {
+	CardUnassignedWarning,
+	ErrorBox,
+	EyeButton,
+	KTable,
+	KTd,
+	KTh,
+	LoadingBlock,
+	Pill,
+	STAT_GRID,
+	StatCard,
+} from '@/pages/kassa/shared';
 import {
 	channelLabel,
 	fmtAmount,
@@ -168,6 +179,7 @@ export default function DailyTab({
 		<div className='space-y-3'>
 			{header}
 			<div className={cn('space-y-3 transition-opacity', isFetching && 'opacity-70')}>
+				<CardUnassignedWarning total={data.card_unassigned?.total} sources={data.card_unassigned?.sources} />
 				<div className={STAT_GRID}>
 					<StatCard icon={<FaMoneyBillWave />} tone='green' label="Naqd so'm" value={som.value} sub={som.sub} />
 					<StatCard icon={<FaDollarSign />} tone='blue' label='Naqd dollar' value={usd.value} sub={usd.sub} />

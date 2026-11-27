@@ -17,7 +17,19 @@ import { usePermissions } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import CancelClosingModal from '@/pages/kassa/KassaClosingDetailPage/CancelClosingModal';
 import { ClosingStatusPill } from '@/pages/kassa/KassaClosingsPage';
-import { ChannelIcon, DiffPill, ErrorBox, InfoStrip, KTable, KTd, KTh, LoadingBlock, PanelTitle, StatCard } from '@/pages/kassa/shared';
+import {
+	CardUnassignedWarning,
+	ChannelIcon,
+	DiffPill,
+	ErrorBox,
+	InfoStrip,
+	KTable,
+	KTd,
+	KTh,
+	LoadingBlock,
+	PanelTitle,
+	StatCard,
+} from '@/pages/kassa/shared';
 import { useCompanyName, useFileDownloader, usePdfOpener } from '@/pages/kassa/hooks';
 import { closingTypeLabel } from '@/pages/kassa/kassaType';
 import { KassaTypeBadge } from '@/pages/kassa/KassaTypeUi';
@@ -145,7 +157,7 @@ export default function KassaClosingDetailPage() {
 		som: round2(sellers.reduce((s, u) => s + num(u.amounts.cash_som), 0)),
 		usd: round2(sellers.reduce((s, u) => s + num(u.amounts.cash_usd), 0)),
 		transfer: round2(sellers.reduce((s, u) => s + num(u.amounts.transfer), 0)),
-		cards: round2(sellers.reduce((s, u) => s + cardSum(u.amounts, cardCodes), 0)),
+		cards: round2(sellers.reduce((s, u) => s + num(u.card_total ?? cardSum(u.amounts, cardCodes)), 0)),
 	};
 
 	return (
@@ -205,6 +217,8 @@ export default function KassaClosingDetailPage() {
 						{closing.cancel_reason && <span className='mt-1 block'>Sabab: {closing.cancel_reason}</span>}
 					</InfoStrip>
 				)}
+
+				<CardUnassignedWarning total={closing.card_unassigned} />
 
 				<div className='grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'>
 					<StatCard
@@ -353,7 +367,7 @@ export default function KassaClosingDetailPage() {
 									</thead>
 									<tbody>
 										{sellers.map((u, i) => {
-											const cards = cardSum(u.amounts, cardCodes);
+											const cards = u.card_total ?? cardSum(u.amounts, cardCodes);
 											return (
 												<tr key={u.user ?? `x-${i}`}>
 													<KTd>{u.name || '—'}</KTd>

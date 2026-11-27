@@ -59,7 +59,14 @@ export function fmtChannel(value: string | number | null | undefined, channel: C
 	return `$ ${text}`;
 }
 
-/** "Naqd so'm" | "Naqd dollar" | "Transfer" | "Uzcard *4521" | "Kartasi belgilanmagan". */
+/** "Uzcard *4521 (Ali Valiyev)": the owner in brackets only when entered. */
+export function cardLabel(card: { card_name?: string | null; last4?: string | null; owner_name?: string | null }): string {
+	const name = card.card_name || 'Karta';
+	const base = card.last4 ? `${name} *${card.last4}` : name;
+	return card.owner_name ? `${base} (${card.owner_name})` : base;
+}
+
+/** "Naqd so'm" | "Naqd dollar" | "Transfer" | "Uzcard *4521 (Ali Valiyev)" | old acts' "Kartasi belgilanmagan". */
 export function channelLabel(ch: CashChannelBase, short = false): string {
 	switch (ch.channel) {
 		case 'cash_som':
@@ -70,7 +77,7 @@ export function channelLabel(ch: CashChannelBase, short = false): string {
 			return 'Transfer';
 		default:
 			if (ch.card == null) return ch.card_name || 'Kartasi belgilanmagan';
-			return ch.last4 ? `${ch.card_name ?? 'Karta'} *${ch.last4}` : (ch.card_name ?? 'Karta');
+			return cardLabel(ch);
 	}
 }
 
@@ -236,6 +243,21 @@ export function sumSources(sources: CashSourceRow[], codes: string[], kinds?: Ca
 
 export function isCardChannel(ch: CashChannelBase) {
 	return ch.channel === 'card';
+}
+
+/** One line of a "Karta" popover. */
+export interface CardItem {
+	key: string;
+	label: string;
+	amount: string | number;
+}
+
+/** Popover lines for the card channels of `channels`, with the amount `pick` takes from each (missing → 0). */
+export function cardItems<T extends CashChannelBase>(
+	channels: T[],
+	pick: (ch: T) => string | number | null | undefined,
+): CardItem[] {
+	return channels.filter(isCardChannel).map((ch) => ({ key: ch.code, label: channelLabel(ch), amount: pick(ch) ?? 0 }));
 }
 
 /** Text color of a signed amount: green in, red out, dimmed zero. */

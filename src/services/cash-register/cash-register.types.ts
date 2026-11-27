@@ -13,14 +13,40 @@ export type CashRegisterType = 1 | 2 | 3;
 export type CashChannelKind = 'cash_som' | 'cash_usd' | 'transfer' | 'card';
 export type CashSourceKind = 'order' | 'debt' | 'expense' | 'vozvrat' | 'correction';
 
-/** Identity of one kassa channel. `code` is `cash_som` | `cash_usd` | `transfer` | `card:<id>` | `card:none`. */
+/**
+ * Identity of one kassa channel. `code` is `cash_som` | `cash_usd` | `transfer` | `card:<id>`; only old acts
+ * still have `card:none` (the kassa now counts only cards picked on the record).
+ */
 export interface CashChannelBase {
 	code: string;
 	channel: CashChannelKind;
 	card: number | null;
 	card_name: string | null;
+	/** Card owner; `null` on non-card channels, `""` when not entered. */
+	owner_name?: string | null;
 	card_type: string | null;
 	last4: string | null;
+}
+
+/**
+ * Card money on records with no card picked (e.g. a vozvrat paid back to a card): it is in no card channel and no
+ * total, so it is reported on its own. Usually 0; otherwise the page shows a warning.
+ */
+export interface CashCardUnassigned {
+	total: Money;
+	sources?: Partial<Record<'order' | 'debt' | 'expense' | 'vozvrat', Money>>;
+}
+
+/** The single "Karta" column of 01 / 03: every card channel summed by the backend. */
+export interface CashCardSummary {
+	/** Card channel codes, in `channels` order. */
+	codes: string[];
+	count: number;
+	opening: Money;
+	turnover: Money;
+	/** `null` on the initial closing. */
+	expected: Money | null;
+	expected_usd: Money | null;
 }
 
 export interface CashRegisterChannel extends CashChannelBase {
@@ -40,6 +66,8 @@ export interface CashSourceRow {
 	count: number | null;
 	/** `{ code: money }` — one value per channel code. */
 	amounts: Record<string, Money>;
+	/** Σ of the `card:*` amounts ("Karta" cell); on `current`. */
+	card_total?: Money;
 	/** Only on the daily report. */
 	total_usd?: Money | null;
 }
@@ -58,6 +86,8 @@ export interface CashSeller {
 	count: number;
 	/** `{ code: money }`. */
 	amounts: Record<string, Money>;
+	/** Σ of the `card:*` amounts; on `current`. */
+	card_total?: Money;
 }
 
 export interface CashRegisterCurrent {
@@ -72,6 +102,8 @@ export interface CashRegisterCurrent {
 	sources: CashSourceRow[];
 	/** Records created in the period, corrections excluded (= Σ sources[].count). */
 	count: number;
+	card_summary: CashCardSummary;
+	card_unassigned?: CashCardUnassigned;
 	/** Most records first; `[]` on the initial closing. Feeds the "Sotuvchi" filter of the open period. */
 	sellers: CashSeller[];
 	totals: { opening_usd: Money | null; turnover_usd: Money | null; expected_usd: Money | null } | null;
@@ -94,6 +126,7 @@ export interface CashRegisterDaily {
 	exchange_rate: Money | null;
 	channels: CashRegisterDailyChannel[];
 	sources: CashSourceRow[];
+	card_unassigned?: CashCardUnassigned;
 	totals: { count: number; income_usd: Money | null; outcome_usd: Money | null; net_usd: Money | null };
 }
 
@@ -102,6 +135,7 @@ export type CashMovementAction = 'create' | 'update' | 'delete' | 'other';
 export interface CashMovementCard {
 	card: number;
 	card_name: string;
+	owner_name?: string | null;
 	card_type: string;
 	last4: string;
 	amount: Money;
@@ -117,8 +151,11 @@ export interface CashMovement {
 	som: Money;
 	usd: Money;
 	transfer: Money;
+	/** Σ of the picked cards (= Σ cards[].amount on new records). */
 	card: Money;
 	cards: CashMovementCard[];
+	/** Card money of this record with no card picked: not in `card`; non-zero gets a warning mark. */
+	card_unassigned?: Money;
 	/** Legacy: username for records, full name for corrections. Show `created_by_name`. */
 	created_by: string;
 	/** "Kim": who entered the record, or who changed it for a correction; `null` / `""` on the detail-less row. */
@@ -128,11 +165,26 @@ export interface CashMovement {
 
 export type CashMovementCounts = Record<CashSourceKind, number>;
 
+export interface CashMovementTotals {
+	som: Money;
+	usd: Money;
+	transfer: Money;
+	/** = Σ cards[].amount + correction_card. */
+	card: Money;
+	/** New records split by card (the "Karta" popover of the total row). */
+	cards: (CashMovementCard & { code: string })[];
+	/** The card part of corrections, which aren't split by card ("Tuzatishlar" in the popover). */
+	correction_card: Money;
+	card_unassigned: Money;
+}
+
 export interface CashMovementsResponse {
 	pagination: PaginationMeta;
 	results: CashMovement[];
 	/** For the tab titles: the whole period of the kassa, ignoring both `kind` and `created_by`. */
 	counts: CashMovementCounts;
+	/** The "Jami" row: every row matching the filters (`kind`, `created_by`, `closing`, `date`), all pages. */
+	totals: CashMovementTotals;
 	filters: unknown;
 }
 
@@ -222,6 +274,8 @@ export interface CashClosingDetail extends CashClosing {
 	sources: CashSourceRow[];
 	/** Frozen when the closing was made; `[]` on old closings. */
 	sellers: CashSeller[];
+	/** Card money of the period with no card picked (`"0.00"` on old acts). */
+	card_unassigned?: Money;
 }
 
 export interface CashClosingStats {
@@ -268,6 +322,9 @@ export interface CashRegisterSummaryRow {
 	count: number | null;
 	/** `{ code: expected }` ("Dasturda" per channel). */
 	amounts: Record<string, Money> | null;
+	/** Σ of the card channels ("Karta" cell). */
+	card_total: Money | null;
+	card_unassigned?: Money;
 	/** Same as that type's `current.totals.expected_usd`. */
 	expected_usd: Money | null;
 }
@@ -287,6 +344,8 @@ export interface CashRegisterSummary {
 		count: number;
 		amounts: Record<string, Money>;
 		expected_usd: Money | null;
+		card_total: Money;
+		card_unassigned?: Money;
 		initial_types: CashRegisterType[];
 	};
 }

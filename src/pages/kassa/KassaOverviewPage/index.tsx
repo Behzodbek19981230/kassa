@@ -13,6 +13,8 @@ import { useCompanyName } from '@/pages/kassa/hooks';
 import { kassaTypeLabel } from '@/pages/kassa/kassaType';
 import { KassaTypeBadge } from '@/pages/kassa/KassaTypeUi';
 import {
+	CardBreakdown,
+	CardUnassignedWarning,
 	ErrorBox,
 	EyeButton,
 	InfoStrip,
@@ -24,7 +26,7 @@ import {
 	STAT_GRID,
 	StatCard,
 } from '@/pages/kassa/shared';
-import { channelLabel, fmtChannel, fmtShortDateTime, fmtUsd, num } from '@/pages/kassa/utils';
+import { cardItems, channelLabel, fmtChannel, fmtShortDateTime, fmtUsd, isCardChannel, num } from '@/pages/kassa/utils';
 import { useCashRegisterSummaryQuery } from '@/services/cash-register/cash-register.queries';
 import type { CashRegisterType } from '@/services/cash-register/cash-register.types';
 import type { Tone } from '@/pages/kassa/utils';
@@ -69,6 +71,10 @@ function KassaOverviewContent() {
 
 	const { channels, types, totals } = data;
 	const initialTypes = totals.initial_types ?? [];
+	// Naqd so'm, naqd dollar and transfer keep a column each; every card shares one "Karta" column.
+	const plainChannels = channels.filter((c) => !isCardChannel(c));
+	const cardChannels = channels.filter(isCardChannel);
+	const hasCards = cardChannels.length > 0;
 	const fullTypes = types.length - initialTypes.length;
 
 	return (
@@ -79,6 +85,7 @@ function KassaOverviewContent() {
 					to'lovi, xarajat, vozvrat) uni kiritgan foydalanuvchining turi bo'yicha kassaga tushadi. Pastdagi "Jami"
 					qatori kompaniyaning umumiy kassasiga teng.
 				</InfoStrip>
+				<CardUnassignedWarning total={totals.card_unassigned} />
 				{initialTypes.length > 0 && (
 					<InfoStrip tone='orange'>
 						<b>Jami to'liq emas:</b> {initialTypes.map((t) => kassaTypeLabel(t)).join(', ')} kassasida hali
@@ -122,11 +129,12 @@ function KassaOverviewContent() {
 							<KTh>Kassa turi</KTh>
 							<KTh>Davr boshi</KTh>
 							<KTh align='right'>Yozuvlar</KTh>
-							{channels.map((ch) => (
+							{plainChannels.map((ch) => (
 								<KTh key={ch.code} align='right'>
 									{channelLabel(ch)}
 								</KTh>
 							))}
+							{hasCards && <KTh align='right'>Karta</KTh>}
 							<KTh align='right'>Jami ($ ekv.)</KTh>
 							<KTh className='w-16' />
 						</tr>
@@ -145,7 +153,7 @@ function KassaOverviewContent() {
 								<KTd align='right' className={cn(row.is_initial && 'text-ca-text/60')}>
 									{row.count ?? '—'}
 								</KTd>
-								{channels.map((ch) => {
+								{plainChannels.map((ch) => {
 									const amount = row.amounts?.[ch.code];
 									if (amount == null) {
 										return (
@@ -164,6 +172,18 @@ function KassaOverviewContent() {
 										</KTd>
 									);
 								})}
+								{hasCards && (
+									<KTd
+										align='right'
+										className={cn(!num(row.card_total) && 'text-ca-text/70', num(row.card_total) < 0 && 'text-red-500')}
+									>
+										<CardBreakdown
+											total={row.amounts ? row.card_total : null}
+											items={cardItems(cardChannels, (ch) => row.amounts?.[ch.code])}
+											title={`${kassaTypeLabel(row.user_type, true)}: kartalar bo'yicha`}
+										/>
+									</KTd>
+								)}
 								<KTd align='right' className={cn('font-bold', row.is_initial && 'font-normal text-ca-text/60')}>
 									{row.is_initial ? '—' : fmtUsd(row.expected_usd)}
 								</KTd>
@@ -194,11 +214,20 @@ function KassaOverviewContent() {
 							<KTd align='right' className='font-bold'>
 								{totals.count}
 							</KTd>
-							{channels.map((ch) => (
+							{plainChannels.map((ch) => (
 								<KTd key={ch.code} align='right' className='font-bold'>
 									{fmtChannel(totals.amounts[ch.code], ch.channel)}
 								</KTd>
 							))}
+							{hasCards && (
+								<KTd align='right' className='font-bold'>
+									<CardBreakdown
+										total={totals.card_total}
+										items={cardItems(cardChannels, (ch) => totals.amounts[ch.code])}
+										title="Kompaniya kassasi: kartalar bo'yicha"
+									/>
+								</KTd>
+							)}
 							<KTd align='right' className='font-bold'>
 								{fmtUsd(totals.expected_usd)}
 							</KTd>

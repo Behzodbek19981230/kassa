@@ -6,10 +6,24 @@ import { formatDateTime } from '@/lib/date';
 import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { cn } from '@/lib/utils';
-import { ErrorBox, EyeButton, InfoStrip, KTable, KTd, KTh, LoadingBlock, Pill, STAT_GRID, StatCard } from '@/pages/kassa/shared';
+import {
+	CardBreakdown,
+	CardUnassignedWarning,
+	ErrorBox,
+	EyeButton,
+	InfoStrip,
+	KTable,
+	KTd,
+	KTh,
+	LoadingBlock,
+	Pill,
+	STAT_GRID,
+	StatCard,
+} from '@/pages/kassa/shared';
 import { kassaTypeLabel } from '@/pages/kassa/kassaType';
 import { KassaTypeBadge } from '@/pages/kassa/KassaTypeUi';
 import {
+	cardItems,
 	channelLabel,
 	fmtAmount,
 	fmtChannel,
@@ -34,7 +48,8 @@ function channelStat(ch: CashRegisterChannel | undefined) {
 
 /**
  * 01 "Joriy davr" of one kassa type: opening + every source of the open period = what the program expects.
- * Only records whose creator has this `type` are counted.
+ * Only records whose creator has this `type` are counted. Every card sits in one "Karta" column (the backend's
+ * totals); a click on a card amount lists the cards behind it.
  */
 export default function CurrentTab({ type, canWrite }: { type: CashRegisterType; canWrite: boolean }) {
 	const navigate = useNavigate();
@@ -54,6 +69,7 @@ export default function CurrentTab({ type, canWrite }: { type: CashRegisterType;
 					boshlang'ich qoldiqni kiriting. Birinchi topshirishda sanalgan summa kassaning boshlang'ich qoldig'i
 					sifatida yoziladi.
 				</InfoStrip>
+				<CardUnassignedWarning total={data.card_unassigned?.total} sources={data.card_unassigned?.sources} />
 				<div className='flex justify-center rounded-md border border-dashed border-ca-border py-10'>
 					<Button
 						type='button'
@@ -69,12 +85,12 @@ export default function CurrentTab({ type, canWrite }: { type: CashRegisterType;
 		);
 	}
 
-	const { channels, sources, previous } = data;
+	const { channels, sources, previous, card_summary: cardSummary } = data;
 	const byCode = (code: string) => channels.find((c) => c.code === code);
-	const cards = channels.filter(isCardChannel);
-	const cardsExpected = cards.reduce((s, c) => s + num(c.expected), 0);
-	const cardsOpening = cards.reduce((s, c) => s + num(c.opening), 0);
-	const cardsTurnover = cards.reduce((s, c) => s + num(c.turnover), 0);
+	// Naqd so'm, naqd dollar and transfer keep a column each; the cards share one.
+	const plainChannels = channels.filter((c) => !isCardChannel(c));
+	const hasCards = channels.some(isCardChannel);
+	const cardChannels = channels.filter((c) => cardSummary.codes.includes(c.code));
 	const correctionCount = countsQuery.data?.counts.correction;
 	const countOf = (source: string, count: number | null) =>
 		source === 'correction' ? (correctionCount ?? null) : count;
@@ -106,9 +122,9 @@ export default function CurrentTab({ type, canWrite }: { type: CashRegisterType;
 				<StatCard
 					icon={<FaCreditCard />}
 					tone='purple'
-					label={`Kartalar (${cards.length} ta)`}
-					value={`${fmtAmount(cardsExpected)} so'm`}
-					sub={`boshida ${fmtAmount(cardsOpening)} · ${fmtSigned(cardsTurnover)}`}
+					label={`Kartalar (${cardSummary.count} ta)`}
+					value={`${fmtAmount(cardSummary.expected)} so'm`}
+					sub={`boshida ${fmtAmount(cardSummary.opening)} · ${fmtSigned(cardSummary.turnover)}`}
 				/>
 				<StatCard
 					icon={<TbSum />}
@@ -119,16 +135,19 @@ export default function CurrentTab({ type, canWrite }: { type: CashRegisterType;
 				/>
 			</div>
 
+			<CardUnassignedWarning total={data.card_unassigned?.total} sources={data.card_unassigned?.sources} />
+
 			<KTable>
 				<thead>
 					<tr>
 						<KTh>Manba</KTh>
 						<KTh align='right'>Soni</KTh>
-						{channels.map((ch) => (
+						{plainChannels.map((ch) => (
 							<KTh key={ch.code} align='right'>
 								{channelLabel(ch)}
 							</KTh>
 						))}
+						{hasCards && <KTh align='right'>Karta</KTh>}
 						<KTh className='w-12' />
 					</tr>
 				</thead>
@@ -140,11 +159,20 @@ export default function CurrentTab({ type, canWrite }: { type: CashRegisterType;
 						<KTd align='right' className='text-ca-text'>
 							—
 						</KTd>
-						{channels.map((ch) => (
+						{plainChannels.map((ch) => (
 							<KTd key={ch.code} align='right' className='text-ca-text'>
 								{fmtAmount(ch.opening)}
 							</KTd>
 						))}
+						{hasCards && (
+							<KTd align='right' className='text-ca-text'>
+								<CardBreakdown
+									total={cardSummary.opening}
+									items={cardItems(cardChannels, (ch) => ch.opening)}
+									title="Davr boshi, kartalar bo'yicha"
+								/>
+							</KTd>
+						)}
 						<KTd />
 					</tr>
 					{sources.map((row) => {
@@ -159,11 +187,21 @@ export default function CurrentTab({ type, canWrite }: { type: CashRegisterType;
 									</span>
 								</KTd>
 								<KTd align='right'>{count ?? '—'}</KTd>
-								{channels.map((ch) => (
+								{plainChannels.map((ch) => (
 									<KTd key={ch.code} align='right' className={signTone(row.amounts[ch.code])}>
 										{fmtSigned(row.amounts[ch.code])}
 									</KTd>
 								))}
+								{hasCards && (
+									<KTd align='right' className={signTone(row.card_total)}>
+										<CardBreakdown
+											signed
+											total={row.card_total ?? 0}
+											items={cardItems(cardChannels, (ch) => row.amounts[ch.code])}
+											title={`${row.label}, kartalar bo'yicha`}
+										/>
+									</KTd>
+								)}
 								<KTd align='center'>
 									<EyeButton
 										title="Harakatlarni ko'rish"
@@ -178,11 +216,20 @@ export default function CurrentTab({ type, canWrite }: { type: CashRegisterType;
 						<KTd align='right' className='font-bold'>
 							{totalCount}
 						</KTd>
-						{channels.map((ch) => (
+						{plainChannels.map((ch) => (
 							<KTd key={ch.code} align='right' className='font-bold'>
 								{fmtChannel(ch.expected, ch.channel)}
 							</KTd>
 						))}
+						{hasCards && (
+							<KTd align='right' className='font-bold'>
+								<CardBreakdown
+									total={cardSummary.expected}
+									items={cardItems(cardChannels, (ch) => ch.expected)}
+									title="Dasturda, kartalar bo'yicha"
+								/>
+							</KTd>
+						)}
 						<KTd />
 					</tr>
 				</tbody>

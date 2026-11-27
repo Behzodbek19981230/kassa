@@ -1,8 +1,9 @@
 import type { ReactNode, TdHTMLAttributes, ThHTMLAttributes } from 'react';
+import * as PopoverPrimitive from '@radix-ui/react-popover';
 import { FaCreditCard, FaDollarSign, FaExchangeAlt, FaExclamationTriangle, FaEye, FaMoneyBillWave } from 'react-icons/fa';
 import { cn } from '@/lib/utils';
-import type { CashChannelKind } from '@/services/cash-register/cash-register.types';
-import { round2, type Tone } from '@/pages/kassa/utils';
+import type { CashCardUnassigned, CashChannelKind, Money } from '@/services/cash-register/cash-register.types';
+import { fmtAmount, fmtSigned, num, round2, SOURCE_SHORT, type CardItem, type Tone } from '@/pages/kassa/utils';
 
 const TONE_SOFT: Record<Tone, string> = {
 	green: 'bg-emerald-500/15 text-emerald-500',
@@ -244,5 +245,103 @@ export function PageSizeInfo({
 				{total} tadan {from} dan {to} gacha ko'rsatilmoqda
 			</span>
 		</div>
+	);
+}
+
+/**
+ * A "Karta" amount: the backend's total of every card, opening a popover with each card behind it on click.
+ * `signed` formats turnover (+/−); otherwise a balance. With no cards behind it the total is plain text.
+ */
+export function CardBreakdown({
+	total,
+	items,
+	signed = false,
+	className,
+	title = "Kartalar bo'yicha",
+}: {
+	total: Money | number | null | undefined;
+	items: CardItem[];
+	signed?: boolean;
+	className?: string;
+	title?: string;
+}) {
+	const format = (v: Money | number | null | undefined) => (signed ? fmtSigned(v) : fmtAmount(v));
+	if (total === null || total === undefined) return <span className='text-ca-text/60'>—</span>;
+	if (!items.length) return <span className={className}>{format(total)}</span>;
+	return (
+		<PopoverPrimitive.Root>
+			<PopoverPrimitive.Trigger asChild>
+				<button
+					type='button'
+					className={cn(
+						'cursor-pointer tabular-nums underline decoration-dotted underline-offset-4 hover:text-ca-theme',
+						className,
+					)}
+				>
+					{format(total)}
+				</button>
+			</PopoverPrimitive.Trigger>
+			<PopoverPrimitive.Portal>
+				<PopoverPrimitive.Content
+					align='end'
+					sideOffset={4}
+					collisionPadding={8}
+					className='z-[1070] max-w-[calc(100vw-16px)] min-w-64 rounded-[3px] border border-ca-border bg-ca-silver-light p-2 text-xs text-ca-heading shadow-[0_2px_5px_-1px_rgba(0,0,0,0.2)]'
+				>
+					<div className='mb-1 px-1 font-semibold'>{title}</div>
+					<table className='w-full border-collapse'>
+						<tbody>
+							{items.map((item) => (
+								<tr key={item.key}>
+									<td className='px-1 py-1 text-ca-text'>{item.label}</td>
+									<td className={cn('px-1 py-1 text-right whitespace-nowrap tabular-nums', signed && signToneOf(item.amount))}>
+										{format(item.amount)}
+									</td>
+								</tr>
+							))}
+							<tr className='border-t border-ca-border font-semibold'>
+								<td className='px-1 pt-1.5'>Jami</td>
+								<td className='px-1 pt-1.5 text-right whitespace-nowrap tabular-nums'>{format(total)}</td>
+							</tr>
+						</tbody>
+					</table>
+				</PopoverPrimitive.Content>
+			</PopoverPrimitive.Portal>
+		</PopoverPrimitive.Root>
+	);
+}
+
+function signToneOf(value: Money | number) {
+	const v = round2(num(value));
+	if (v > 0) return 'text-emerald-500';
+	if (v < 0) return 'text-red-500';
+	return 'text-ca-text/70';
+}
+
+/**
+ * Yellow strip for card money entered without a card: it is in no card channel and no total, so it must not
+ * vanish silently. Nothing is shown while it is 0.
+ */
+export function CardUnassignedWarning({
+	total,
+	sources,
+}: {
+	total: Money | number | null | undefined;
+	sources?: CashCardUnassigned['sources'];
+}) {
+	if (!round2(num(total))) return null;
+	const parts = Object.entries(sources ?? {})
+		.filter(([, v]) => round2(num(v)) !== 0)
+		.map(([k, v]) => `${SOURCE_SHORT[k as keyof typeof SOURCE_SHORT] ?? k} ${fmtSigned(v)}`);
+	return (
+		<InfoStrip tone='orange'>
+			<span className='flex items-start gap-2'>
+				<FaExclamationTriangle className='mt-0.5 shrink-0 text-amber-500' />
+				<span>
+					Kartasi tanlanmagan karta summasi: <b>{fmtAmount(total)} so'm</b> (kassaga kirmagan)
+					{parts.length > 0 && <span className='text-ca-text'> · {parts.join(' · ')}</span>}
+				</span>
+			</span>
+		</InfoStrip>
 	);
 }

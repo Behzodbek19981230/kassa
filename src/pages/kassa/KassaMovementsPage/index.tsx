@@ -1,14 +1,25 @@
-import { FaArrowLeft, FaFileExcel } from 'react-icons/fa';
+import { FaArrowLeft, FaExclamationTriangle, FaFileExcel } from 'react-icons/fa';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Pagination, Panel } from '@/components/ui';
 import { formatDate, formatDateTime } from '@/lib/date';
 import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
-import { EyeButton, KTable, KTd, KTh, PageSizeInfo, PanelTitle, Pill } from '@/pages/kassa/shared';
+import {
+	CardBreakdown,
+	CardUnassignedWarning,
+	EyeButton,
+	KTable,
+	KTd,
+	KTh,
+	PageSizeInfo,
+	PanelTitle,
+	Pill,
+} from '@/pages/kassa/shared';
 import { useFileDownloader, usePdfOpener } from '@/pages/kassa/hooks';
 import { closingTypeLabel, kassaTypeLabel, type KassaTypeState } from '@/pages/kassa/kassaType';
 import { KassaTypeBoundary, KassaTypeSwitcher } from '@/pages/kassa/KassaTypeUi';
 import {
+	cardLabel,
 	docNumber,
 	fmtAmount,
 	fmtChannel,
@@ -16,23 +27,23 @@ import {
 	fmtSigned,
 	movementBadge,
 	num,
+	round2,
 	signTone,
 	SOURCE_LABELS,
 	SOURCE_TONE,
-	sumSources,
 	todayIso,
 	toneButton,
+	type CardItem,
 	type Tone,
 } from '@/pages/kassa/utils';
 import {
 	useCashClosingQuery,
 	useCashMovementsQuery,
 	useCashRegisterCurrentQuery,
-	useCashRegisterDailyQuery,
 	useCashRegisterSummaryQuery,
 } from '@/services/cash-register/cash-register.queries';
 import { cashRegisterService } from '@/services/cash-register/cash-register.service';
-import type { CashMovement, CashSourceKind, CashSourceRow } from '@/services/cash-register/cash-register.types';
+import type { CashMovement, CashMovementTotals, CashSourceKind } from '@/services/cash-register/cash-register.types';
 import { soldHistoryService } from '@/services/sold-history/sold-history.service';
 import { useUserListQuery } from '@/services/user/user.queries';
 import { SYSTEM_USER_PARAMS, userFullName } from '@/services/user/user.types';
@@ -59,26 +70,45 @@ function AmountCell({ value }: { value: string }) {
 	);
 }
 
+/** Yellow mark on a row whose card money has no card picked (it isn't in `card` or any total). */
+function UnassignedMark({ value }: { value?: string }) {
+	if (!round2(num(value))) return null;
+	const text = `Kartasi tanlanmagan karta summasi: ${fmtAmount(value)} so'm (kassaga kirmagan)`;
+	return (
+		<span title={text} aria-label={text} className='mr-1.5 inline-flex text-amber-500'>
+			<FaExclamationTriangle />
+		</span>
+	);
+}
+
+/** The "Karta" cell: the record's card total; a click lists the picked cards. Corrections aren't split by card. */
 function CardCell({ row }: { row: CashMovement }) {
-	if (row.cards.length) {
+	const items: CardItem[] =
+		row.kind === 'correction'
+			? []
+			: row.cards.map((c) => ({ key: String(c.card), label: cardLabel(c), amount: c.amount }));
+	if (!num(row.card)) {
 		return (
-			<KTd align='right'>
-				<span className='flex flex-col items-end gap-0.5'>
-					{row.cards.map((c) => (
-						<span key={c.card} className={signTone(c.amount)}>
-							{c.card_name} {fmtAmount(c.amount)}
-						</span>
-					))}
-				</span>
+			<KTd align='right' className='text-ca-text/60'>
+				<UnassignedMark value={row.card_unassigned} />—
 			</KTd>
 		);
 	}
-	if (!num(row.card)) return <KTd align='right' className='text-ca-text/60'>—</KTd>;
 	return (
-		<KTd align='right' className={signTone(row.card)} title='Kartasi belgilanmagan'>
-			{fmtAmount(row.card)}
+		<KTd align='right' className={signTone(row.card)}>
+			<UnassignedMark value={row.card_unassigned} />
+			<CardBreakdown total={row.card} items={items} />
 		</KTd>
 	);
+}
+
+/** Popover lines of the total row: new records by card, then the corrections' card part (not split by card). */
+function totalCardItems(totals: CashMovementTotals): CardItem[] {
+	const items: CardItem[] = (totals.cards ?? []).map((c) => ({ key: c.code, label: cardLabel(c), amount: c.amount }));
+	if (round2(num(totals.correction_card))) {
+		items.push({ key: 'correction', label: 'Tuzatishlar', amount: totals.correction_card });
+	}
+	return items;
 }
 
 const sellerSelectClass =
@@ -126,9 +156,8 @@ function KassaMovementsContent({ kassa }: { kassa: KassaTypeState }) {
 		page,
 		limit,
 	});
-	// The total row is the whole period's total, not the page's: it comes from the matching summary.
+	// The open period's start (title) and its sellers (filter).
 	const currentQuery = useCashRegisterCurrentQuery(type, !closing && !date);
-	const dailyQuery = useCashRegisterDailyQuery(type, date === todayIso() ? undefined : date, Boolean(date));
 	const summaryQuery = useCashRegisterSummaryQuery(showSwitcher && !date);
 	const dayUsersQuery = useUserListQuery({ ...SYSTEM_USER_PARAMS, type, limit: 200 }, Boolean(date));
 
@@ -169,41 +198,25 @@ function KassaMovementsContent({ kassa }: { kassa: KassaTypeState }) {
 		? (dayUsersQuery.data?.results ?? []).map((u) => ({ id: u.id, name: userFullName(u) }))
 		: (sellerSource ?? []).flatMap((u) => (u.user == null ? [] : [{ id: u.user, name: u.name, count: u.count }]));
 	const sellersLoaded = date ? Boolean(dayUsersQuery.data) : Boolean(sellerSource);
-	const selectedKinds = kindParam.length ? kindParam : allowedKinds;
-	const selectedCount = counts ? selectedKinds.reduce((s, k) => s + (counts[k] ?? 0), 0) : 0;
+	// The total row is the server's: every row matching the filters on every page, the seller filter included.
+	const totals = data?.totals;
 
-	let sources: CashSourceRow[] | undefined;
 	let title = 'Davr harakatlari';
 	let sub: string | undefined;
 	if (closing) {
 		const c = closingQuery.data;
-		sources = c?.sources;
 		title = c ? `Topshirish ${closingTypeLabel(c.user_type, true)} #${c.number} harakatlari` : 'Topshirish harakatlari';
 		sub = c
 			? `${c.user_type_display || closingTypeLabel(c.user_type)} · ${c.is_initial ? "Boshlang'ich" : formatDateTime(c.period_start)} → ${formatDateTime(c.closed_at)}`
 			: undefined;
 	} else if (date) {
-		sources = dailyQuery.data?.sources;
 		title = 'Kun harakatlari';
 		sub = `${typeLabel} · ${formatDate(date)}`;
 	} else {
 		const c = currentQuery.data;
-		sources = c?.sources;
 		const period = c?.period_start ? `${formatDateTime(c.period_start)} → hozir` : c ? 'boshlanmagan' : undefined;
 		sub = period ? `${typeLabel} · ${period}` : typeLabel;
 	}
-	const cardCodes = [...new Set((sources ?? []).flatMap((s) => Object.keys(s.amounts).filter((k) => k.startsWith('card'))))];
-	// The summaries aren't split by seller (and a seller's corrections aren't in `sellers[].amounts`), so with a
-	// seller picked there is no exact period total to show.
-	const totals =
-		sources && !createdBy
-			? {
-					som: sumSources(sources, ['cash_som'], selectedKinds),
-					usd: sumSources(sources, ['cash_usd'], selectedKinds),
-					transfer: sumSources(sources, ['transfer'], selectedKinds),
-					card: sumSources(sources, cardCodes, selectedKinds),
-				}
-			: undefined;
 
 	const tabs: { key: string; label: string; tone: Tone; count?: number }[] = [
 		{
@@ -313,6 +326,12 @@ function KassaMovementsContent({ kassa }: { kassa: KassaTypeState }) {
 				</label>
 			</div>
 
+			{totals && (
+				<div className='mb-3'>
+					<CardUnassignedWarning total={totals.card_unassigned} />
+				</div>
+			)}
+
 			<div className={cn('transition-opacity', movementsQuery.isFetching && 'opacity-70')}>
 				<KTable>
 					<thead>
@@ -385,10 +404,10 @@ function KassaMovementsContent({ kassa }: { kassa: KassaTypeState }) {
 								);
 							})
 						)}
-						{totals && counts && (
+						{totals && data && (
 							<tr className='bg-ca-silver'>
 								<KTd colSpan={4} className='font-bold'>
-									{date ? "Kun bo'yicha jami" : "Davr bo'yicha jami"} ({selectedCount} yozuv)
+									{date ? "Kun bo'yicha jami" : "Davr bo'yicha jami"} ({data.pagination.total} yozuv)
 								</KTd>
 								<KTd align='right' className='font-bold'>
 									{fmtSigned(totals.som)}
@@ -400,7 +419,7 @@ function KassaMovementsContent({ kassa }: { kassa: KassaTypeState }) {
 									{fmtSigned(totals.transfer)}
 								</KTd>
 								<KTd align='right' className='font-bold'>
-									{fmtSigned(totals.card)}
+									<CardBreakdown signed total={totals.card} items={totalCardItems(totals)} />
 								</KTd>
 								<KTd colSpan={2} />
 							</tr>

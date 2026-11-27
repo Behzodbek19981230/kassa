@@ -56,7 +56,8 @@ const expenseFormSchema = z
 		payment_card: z.string(),
 	})
 	.superRefine((values, ctx) => {
-		if (num(values.summ_cart) > 1 && !values.payment_card) {
+		// Any card amount needs its card: the kassa counts only picked cards (unpicked money lands in no kassa).
+		if (num(values.summ_cart) > 0 && !values.payment_card) {
 			ctx.addIssue({ code: 'custom', path: ['payment_card'], message: 'Karta tanlanishi shart' });
 		}
 	});
@@ -114,7 +115,7 @@ export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseF
 	});
 
 	const [sumSom, summDollar, summCart, paymentCard] = watch(['sum_som', 'summ_dollar', 'summ_cart', 'payment_card']);
-	const paidByCard = num(summCart) > 1;
+	const paidByCard = num(summCart) > 0;
 	const { data: selectedCard } = usePaymentCardQuery(paymentCard ? Number(paymentCard) : undefined);
 
 	// Card balances come from the kassa, which only Super Admin / Admin may read; for other roles the check is skipped.
@@ -200,7 +201,7 @@ export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseF
 			sum_som: num(values.sum_som),
 			summ_dollar: num(values.summ_dollar),
 			summ_cart: num(values.summ_cart),
-			payment_card: num(values.summ_cart) > 1 ? Number(values.payment_card) : null,
+			payment_card: num(values.summ_cart) > 0 ? Number(values.payment_card) : null,
 			all_summ_dollar: allSummDollar,
 			summa: keepSavedTotal && item ? num(item.summa) : allSummDollar,
 			company,

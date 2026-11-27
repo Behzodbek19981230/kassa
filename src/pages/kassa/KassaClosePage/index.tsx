@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { FaArrowLeft, FaLock } from 'react-icons/fa';
+import { FaArrowLeft, FaChevronDown, FaChevronRight, FaLock } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
@@ -22,7 +22,19 @@ import {
 	type LineInput,
 	type PreviewRow,
 } from '@/pages/kassa/KassaClosePage/closeForm';
-import { ChannelIcon, DiffPill, ErrorBox, InfoStrip, KTable, KTd, KTh, LoadingBlock, PanelTitle } from '@/pages/kassa/shared';
+import {
+	CardUnassignedWarning,
+	ChannelIcon,
+	DiffPill,
+	ErrorBox,
+	InfoStrip,
+	KTable,
+	KTd,
+	KTh,
+	LoadingBlock,
+	PanelTitle,
+	Pill,
+} from '@/pages/kassa/shared';
 import { kassaTypeLabel, kassaTypePlural, type KassaTypeState } from '@/pages/kassa/kassaType';
 import { KassaTypeBadge, KassaTypeBoundary } from '@/pages/kassa/KassaTypeUi';
 import { channelLabel, fmtAmount, fmtChannel, fmtSigned, fmtUsd, round2 } from '@/pages/kassa/utils';
@@ -112,6 +124,8 @@ function KassaCloseForm({ kassa }: { kassa: KassaTypeState }) {
 	const [errors, setErrors] = useState<FormErrors>(NO_ERRORS);
 	const [confirmOpen, setConfirmOpen] = useState(false);
 	const [conflict, setConflict] = useState<string | null>(null);
+	// The "Kartalar (N ta)" row is folded until opened, or until a card has a difference or an error.
+	const [cardsOpen, setCardsOpen] = useState(false);
 
 	// Closings are numbered inside each type, so the draft number comes from this type's last closing.
 	const lastQuery = useCashClosingListQuery({ user_type: type, ordering: '-number', limit: 1 });
@@ -164,6 +178,29 @@ function KassaCloseForm({ kassa }: { kassa: KassaTypeState }) {
 
 	const isInitial = current.is_initial;
 	const { rows, usd, diffRows } = preview;
+
+	// Every card is counted on its own (bank balances differ per card), under one foldable "Kartalar" row.
+	const plainRows = rows.filter((r) => r.channel.channel !== 'card');
+	const cardRows = rows.filter((r) => r.channel.channel === 'card');
+	const cardSummary = current.card_summary;
+	const filledCards = cardRows.filter((r) => r.filled);
+	const sumCards = (pick: (r: PreviewRow) => number | null) =>
+		filledCards.length ? round2(filledCards.reduce((s, r) => s + (pick(r) ?? 0), 0)) : null;
+	const cardTotals = {
+		actual: sumCards((r) => r.actual),
+		diff: isInitial ? null : sumCards((r) => r.diff),
+		handed: round2(cardRows.reduce((s, r) => s + r.handed, 0)),
+		rest: sumCards((r) => r.rest),
+	};
+	// Checked per card, not on the sum: −100 on one card and +100 on another is still a difference.
+	const cardHasDiff = cardRows.some((r) => r.diff !== null && r.diff !== 0);
+	const cardHasError = cardRows.some((r) => errors.lines[r.channel.code]);
+	const cardsForced = cardHasDiff || cardHasError;
+	// Once forced open it stays open, so fixing a card doesn't fold the row away mid-typing.
+	if (cardsForced && !cardsOpen) setCardsOpen(true);
+	const cardsExpanded = cardsOpen || cardsForced;
+	// Folding is refused while a card has a difference or an error.
+	const toggleCards = () => setCardsOpen(!cardsExpanded || cardsForced);
 	const nextNumber = (lastQuery.data?.results[0]?.number ?? current.previous?.number ?? 0) + 1;
 	const sourceCount = (source: string) => current.sources.find((s) => s.source === source)?.count ?? 0;
 
@@ -180,6 +217,8 @@ function KassaCloseForm({ kassa }: { kassa: KassaTypeState }) {
 	function openConfirm() {
 		const next = validate(rows, comment, receivedBy, isInitial);
 		setErrors(next);
+		// An empty card that is folded away must be shown.
+		if (cardRows.some((r) => next.lines[r.channel.code])) setCardsOpen(true);
 		if (hasErrors(next)) return;
 		setConflict(null);
 		setConfirmOpen(true);
@@ -225,6 +264,85 @@ function KassaCloseForm({ kassa }: { kassa: KassaTypeState }) {
 			}
 			notify({ title: 'Xatolik', text: getApiErrorMessage(err, "Kassani topshirib bo'lmadi") });
 		}
+	}
+
+	/** One channel's row; `child` = a card inside the folded "Kartalar" row. */
+	function renderLine(r: PreviewRow, child = false) {
+		const ch = r.channel;
+		const lineErrors = errors.lines[ch.code];
+		// 12 digits = up to 999 mlrd so'm; naqd dollar up to $ 999 mln.
+		const maxDigits = ch.channel === 'cash_usd' ? 9 : 12;
+		return (
+			<tr key={ch.code} className={cn(child && 'bg-ca-silver/40')}>
+				<KTd className={cn(child && 'pl-9')}>
+					<span className='flex min-w-0 items-center gap-2' title={channelLabel(ch)}>
+						<ChannelIcon channel={ch.channel} />
+						<span className='truncate'>{channelLabel(ch)}</span>
+					</span>
+					<FieldError>{lineErrors?.card}</FieldError>
+				</KTd>
+				<KTd align='right' className='text-ca-text'>
+					{fmtChannel(r.opening, ch.channel)}
+				</KTd>
+				<KTd align='right'>{fmtChannel(r.turnover, ch.channel)}</KTd>
+				{!isInitial && (
+					<KTd align='right' className='font-bold'>
+						{fmtChannel(r.expected, ch.channel)}
+					</KTd>
+				)}
+				<KTd align='right'>
+					<PriceInput
+						value={r.input.actual}
+						onChange={(v) => setLine(ch.code, { actual: v })}
+						placeholder='0'
+						maxIntegerDigits={maxDigits}
+						aria-label={`${channelLabel(ch)}: sanalgan summa`}
+						className={cn(
+							'h-9! text-right text-sm font-semibold lg:h-9! lg:text-sm',
+							lineErrors?.actual && 'border-red-500',
+						)}
+					/>
+					<FieldError>{lineErrors?.actual}</FieldError>
+				</KTd>
+				{!isInitial && (
+					<KTd align='right'>
+						{r.diff === null ? (
+							<span className='text-ca-text/60'>—</span>
+						) : (
+							<span className='inline-flex items-center gap-1.5'>
+								<span
+									className={cn(
+										r.diff < 0 && 'text-red-500',
+										r.diff > 0 && 'text-emerald-500',
+										r.diff === 0 && 'text-ca-text',
+									)}
+								>
+									{fmtSigned(r.diff)}
+								</span>
+								<DiffPill value={r.diff} />
+							</span>
+						)}
+					</KTd>
+				)}
+				<KTd align='right'>
+					<PriceInput
+						value={r.input.handed_over}
+						onChange={(v) => setLine(ch.code, { handed_over: v })}
+						placeholder='0'
+						maxIntegerDigits={maxDigits}
+						aria-label={`${channelLabel(ch)}: topshirilgan summa`}
+						className={cn(
+							'h-9! text-right text-sm font-semibold lg:h-9! lg:text-sm',
+							lineErrors?.handed_over && 'border-red-500',
+						)}
+					/>
+					<FieldError>{lineErrors?.handed_over}</FieldError>
+				</KTd>
+				<KTd align='right' className={cn(r.rest !== null && r.rest < 0 && 'text-red-500')}>
+					{r.rest === null ? <span className='text-ca-text/60'>—</span> : fmtChannel(r.rest, ch.channel)}
+				</KTd>
+			</tr>
+		);
 	}
 
 	// Column shares (sum to 100%): "Kanal" stays narrow, the amount columns get the rest.
@@ -285,6 +403,8 @@ function KassaCloseForm({ kassa }: { kassa: KassaTypeState }) {
 					)}
 				</InfoStrip>
 
+				<CardUnassignedWarning total={current.card_unassigned?.total} sources={current.card_unassigned?.sources} />
+
 				{errors.general.length > 0 && (
 					<ErrorBox>
 						{errors.general.map((e, i) => (
@@ -334,83 +454,80 @@ function KassaCloseForm({ kassa }: { kassa: KassaTypeState }) {
 						</tr>
 					</thead>
 					<tbody>
-						{rows.map((r) => {
-							const ch = r.channel;
-							const lineErrors = errors.lines[ch.code];
-							// 12 digits = up to 999 mlrd so'm; naqd dollar up to $ 999 mln.
-							const maxDigits = ch.channel === 'cash_usd' ? 9 : 12;
-							return (
-								<tr key={ch.code}>
-									<KTd>
-										<span className='flex min-w-0 items-center gap-2' title={channelLabel(ch)}>
-											<ChannelIcon channel={ch.channel} />
-											<span className='truncate'>{channelLabel(ch)}</span>
-										</span>
-										<FieldError>{lineErrors?.card}</FieldError>
+						{plainRows.map((r) => renderLine(r))}
+						{cardRows.length > 0 && (
+							<tr className='cursor-pointer bg-ca-silver/60 hover:bg-ca-table-hover' onClick={toggleCards}>
+								<KTd>
+									<button
+										type='button'
+										aria-expanded={cardsExpanded}
+										className='flex min-w-0 items-center gap-2 font-semibold'
+										onClick={(e) => {
+											e.stopPropagation();
+											toggleCards();
+										}}
+									>
+										{cardsExpanded ? (
+											<FaChevronDown className='shrink-0 text-[10px] text-ca-text' />
+										) : (
+											<FaChevronRight className='shrink-0 text-[10px] text-ca-text' />
+										)}
+										<ChannelIcon channel='card' />
+										<span className='truncate'>Kartalar ({cardSummary?.count ?? cardRows.length} ta)</span>
+									</button>
+								</KTd>
+								<KTd align='right' className='text-ca-text'>
+									{fmtAmount(cardSummary?.opening)}
+								</KTd>
+								<KTd align='right'>{fmtAmount(cardSummary?.turnover)}</KTd>
+								{!isInitial && (
+									<KTd align='right' className='font-bold'>
+										{fmtAmount(cardSummary?.expected)}
 									</KTd>
-									<KTd align='right' className='text-ca-text'>
-										{fmtChannel(r.opening, ch.channel)}
-									</KTd>
-									<KTd align='right'>{fmtChannel(r.turnover, ch.channel)}</KTd>
-									{!isInitial && (
-										<KTd align='right' className='font-bold'>
-											{fmtChannel(r.expected, ch.channel)}
-										</KTd>
-									)}
+								)}
+								<KTd align='right' className='font-semibold'>
+									{cardTotals.actual === null ? <span className='text-ca-text/60'>—</span> : fmtAmount(cardTotals.actual)}
+								</KTd>
+								{!isInitial && (
 									<KTd align='right'>
-										<PriceInput
-											value={r.input.actual}
-											onChange={(v) => setLine(ch.code, { actual: v })}
-											placeholder='0'
-											maxIntegerDigits={maxDigits}
-											aria-label={`${channelLabel(ch)}: sanalgan summa`}
-											className={cn(
-												'h-9! text-right text-sm font-semibold lg:h-9! lg:text-sm',
-												lineErrors?.actual && 'border-red-500',
-											)}
-										/>
-										<FieldError>{lineErrors?.actual}</FieldError>
-									</KTd>
-									{!isInitial && (
-										<KTd align='right'>
-											{r.diff === null ? (
-												<span className='text-ca-text/60'>—</span>
-											) : (
-												<span className='inline-flex items-center gap-1.5'>
-													<span
-														className={cn(
-															r.diff < 0 && 'text-red-500',
-															r.diff > 0 && 'text-emerald-500',
-															r.diff === 0 && 'text-ca-text',
-														)}
-													>
-														{fmtSigned(r.diff)}
-													</span>
-													<DiffPill value={r.diff} />
+										{cardTotals.diff === null ? (
+											<span className='text-ca-text/60'>—</span>
+										) : (
+											<span className='inline-flex items-center gap-1.5'>
+												<span
+													className={cn(
+														cardTotals.diff < 0 && 'text-red-500',
+														cardTotals.diff > 0 && 'text-emerald-500',
+														cardTotals.diff === 0 && 'text-ca-text',
+													)}
+												>
+													{fmtSigned(cardTotals.diff)}
 												</span>
-											)}
-										</KTd>
-									)}
-									<KTd align='right'>
-										<PriceInput
-											value={r.input.handed_over}
-											onChange={(v) => setLine(ch.code, { handed_over: v })}
-											placeholder='0'
-											maxIntegerDigits={maxDigits}
-											aria-label={`${channelLabel(ch)}: topshirilgan summa`}
-											className={cn(
-												'h-9! text-right text-sm font-semibold lg:h-9! lg:text-sm',
-												lineErrors?.handed_over && 'border-red-500',
-											)}
-										/>
-										<FieldError>{lineErrors?.handed_over}</FieldError>
+												{cardHasDiff ? (
+													<Pill tone='orange'>Farq bor</Pill>
+												) : filledCards.length === cardRows.length ? (
+													<DiffPill value={0} />
+												) : (
+													<span className='text-[11px] text-ca-text'>
+														{filledCards.length}/{cardRows.length} sanaldi
+													</span>
+												)}
+											</span>
+										)}
 									</KTd>
-									<KTd align='right' className={cn(r.rest !== null && r.rest < 0 && 'text-red-500')}>
-										{r.rest === null ? <span className='text-ca-text/60'>—</span> : fmtChannel(r.rest, ch.channel)}
-									</KTd>
-								</tr>
-							);
-						})}
+								)}
+								<KTd align='right' className='font-semibold'>
+									{fmtAmount(cardTotals.handed)}
+								</KTd>
+								<KTd
+									align='right'
+									className={cn('font-semibold', cardTotals.rest !== null && cardTotals.rest < 0 && 'text-red-500')}
+								>
+									{cardTotals.rest === null ? <span className='text-ca-text/60'>—</span> : fmtAmount(cardTotals.rest)}
+								</KTd>
+							</tr>
+						)}
+						{cardsExpanded && cardRows.map((r) => renderLine(r, true))}
 						<tr className='bg-ca-silver'>
 							<KTd className='font-bold whitespace-normal'>
 								Jami ($ ekv.
