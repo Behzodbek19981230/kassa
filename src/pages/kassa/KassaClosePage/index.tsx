@@ -23,6 +23,8 @@ import {
 	type PreviewRow,
 } from '@/pages/kassa/KassaClosePage/closeForm';
 import { ChannelIcon, DiffPill, ErrorBox, InfoStrip, KTable, KTd, KTh, LoadingBlock, PanelTitle } from '@/pages/kassa/shared';
+import { kassaTypeLabel, kassaTypePlural, type KassaTypeState } from '@/pages/kassa/kassaType';
+import { KassaTypeBadge, KassaTypeBoundary } from '@/pages/kassa/KassaTypeUi';
 import { channelLabel, fmtAmount, fmtChannel, fmtSigned, fmtUsd, round2 } from '@/pages/kassa/utils';
 import {
 	cashRegisterKeys,
@@ -31,7 +33,7 @@ import {
 	useCashRegisterCurrentQuery,
 	useCreateCashClosingMutation,
 } from '@/services/cash-register/cash-register.queries';
-import type { CashRegisterCurrent } from '@/services/cash-register/cash-register.types';
+import type { CashRegisterCurrent, CashRegisterType } from '@/services/cash-register/cash-register.types';
 import { useUserListQuery } from '@/services/user/user.queries';
 import { ACTIVE_SYSTEM_USER_PARAMS } from '@/services/user/user.types';
 
@@ -58,7 +60,7 @@ function diffSummary(rows: PreviewRow[], sign: 1 | -1) {
 	return parts.length ? parts.join(' · ') : '0';
 }
 
-function SummaryLine({ label, value, tone }: { label: string; value: ReactNode; tone?: 'red' | 'green' }) {
+function SummaryLine({ label, value, tone }: { label: ReactNode; value: ReactNode; tone?: 'red' | 'green' }) {
 	return (
 		<div className='flex items-baseline justify-between gap-3 py-1'>
 			<span className='text-sm text-ca-text'>{label}</span>
@@ -75,14 +77,29 @@ function SummaryLine({ label, value, tone }: { label: string; value: ReactNode; 
 	);
 }
 
-/** 03 "Kassani topshirish": count the money per channel, hand part of it over, the rest opens the next period. */
+/**
+ * 03 "Kassani topshirish" of one seller type (`?type=`): count the money per channel, hand part of it over,
+ * the rest opens that type's next period. Only records entered by users of this type are in it.
+ */
 export default function KassaClosePage() {
+	return (
+		<KassaTypeBoundary title='Kassani topshirish'>
+			{/* A different type is a different kassa: nothing typed into the form carries over. */}
+			{(kassa) => <KassaCloseForm key={kassa.type} kassa={kassa} />}
+		</KassaTypeBoundary>
+	);
+}
+
+function KassaCloseForm({ kassa }: { kassa: KassaTypeState }) {
+	const type: CashRegisterType = kassa.type;
+	const typeLabel = kassaTypeLabel(type);
+	const currentPath = `/kassa/current?type=${type}`;
 	const navigate = useNavigate();
 	const location = useLocation();
 	const queryClient = useQueryClient();
 	const { notify } = useNotification();
 	const { canWrite } = useCurrentCompany();
-	const currentQuery = useCashRegisterCurrentQuery();
+	const currentQuery = useCashRegisterCurrentQuery(type);
 	// The figures are frozen when the form opens; only a 409 from the server replaces them.
 	const [frozen, setFrozen] = useState<CashRegisterCurrent | null>(null);
 	const current = frozen ?? currentQuery.data ?? null;
@@ -96,8 +113,12 @@ export default function KassaClosePage() {
 	const [confirmOpen, setConfirmOpen] = useState(false);
 	const [conflict, setConflict] = useState<string | null>(null);
 
-	const lastQuery = useCashClosingListQuery({ ordering: '-number', limit: 1 });
-	const countsQuery = useCashMovementsQuery({ page: 1, limit: 1 }, Boolean(current && !current.is_initial));
+	// Closings are numbered inside each type, so the draft number comes from this type's last closing.
+	const lastQuery = useCashClosingListQuery({ user_type: type, ordering: '-number', limit: 1 });
+	const countsQuery = useCashMovementsQuery(
+		{ user_type: type, page: 1, limit: 1 },
+		Boolean(current && !current.is_initial),
+	);
 	const usersQuery = useUserListQuery({ ...ACTIVE_SYSTEM_USER_PARAMS, limit: 200 });
 	const createMutation = useCreateCashClosingMutation();
 
@@ -120,7 +141,7 @@ export default function KassaClosePage() {
 			type='button'
 			variant='info'
 			size='sm'
-			onClick={() => (location.key === 'default' ? navigate('/kassa/current') : navigate(-1))}
+			onClick={() => (location.key === 'default' ? navigate(currentPath) : navigate(-1))}
 		>
 			<FaArrowLeft className='mr-1.5' /> Orqaga qaytish
 		</Button>
@@ -128,14 +149,14 @@ export default function KassaClosePage() {
 
 	if (currentQuery.isLoading && !current) {
 		return (
-			<Panel title={<PanelTitle title='Kassani topshirish' />} actions={backButton}>
+			<Panel title={<PanelTitle title='Kassani topshirish' sub={typeLabel} />} actions={backButton}>
 				<LoadingBlock />
 			</Panel>
 		);
 	}
 	if (!current || !preview) {
 		return (
-			<Panel title={<PanelTitle title='Kassani topshirish' />} actions={backButton}>
+			<Panel title={<PanelTitle title='Kassani topshirish' sub={typeLabel} />} actions={backButton}>
 				<ErrorBox>{getApiErrorMessage(currentQuery.error, "Kassani yuklab bo'lmadi")}</ErrorBox>
 			</Panel>
 		);
@@ -168,6 +189,7 @@ export default function KassaClosePage() {
 		if (!current) return;
 		try {
 			const closing = await createMutation.mutateAsync({
+				user_type: type,
 				state_token: current.state_token,
 				lines: current.channels.map((ch) => {
 					const input = inputs[ch.code] ?? EMPTY_LINE;
@@ -182,14 +204,17 @@ export default function KassaClosePage() {
 				received_by: receivedBy ? Number(receivedBy) : null,
 			});
 			setConfirmOpen(false);
-			notify({ title: 'Kassa topshirildi', text: `Topshirish akti #${closing.number} yaratildi` });
+			notify({
+				title: 'Kassa topshirildi',
+				text: `Topshirish akti: ${kassaTypeLabel(type, true)} #${closing.number} yaratildi`,
+			});
 			navigate(`/kassa/closings/${closing.id}`, { replace: true });
 		} catch (err) {
 			const changed = conflictOf(err);
 			if (changed) {
 				// Keep what the user typed; only "Dasturda"/"Farq" (and the token) are replaced.
 				setFrozen(changed.current);
-				queryClient.setQueryData(cashRegisterKeys.current(), changed.current);
+				queryClient.setQueryData(cashRegisterKeys.current(type), changed.current);
 				setConflict(changed.detail || null);
 				return;
 			}
@@ -234,7 +259,7 @@ export default function KassaClosePage() {
 			title={
 				<PanelTitle
 					title={isInitial ? "Boshlang'ich qoldiq" : 'Kassani topshirish'}
-					sub={`#${nextNumber} (qoralama)`}
+					sub={`${typeLabel} · #${nextNumber} (qoralama)`}
 				/>
 			}
 			actions={backButton}
@@ -244,16 +269,18 @@ export default function KassaClosePage() {
 					<InfoStrip tone='red'>Tanlangan kompaniya sizning savdo kompaniyangiz emas: faqat ko'rishga ruxsat bor.</InfoStrip>
 				)}
 				<InfoStrip>
+					Kassa: <KassaTypeBadge type={type} />{' '}
 					{isInitial ? (
 						<>
-							<b>Hali topshirish yo'q.</b> Kassadagi pulni sanab, <b>Qo'limda</b> ustuniga kiriting, kartalar uchun bank
-							ilovasidagi qoldiqni yozing. Sanalgan summa kassaning boshlang'ich qoldig'i bo'ladi, farq hisoblanmaydi.
+							<b>Bu kassada hali topshirish yo'q.</b> Shu kassadagi pulni sanab, <b>Qo'limda</b> ustuniga kiriting,
+							kartalar uchun bank ilovasidagi qoldiqni yozing. Sanalgan summa kassaning boshlang'ich qoldig'i bo'ladi,
+							farq hisoblanmaydi.
 						</>
 					) : (
 						<>
-							Davr: <b>{periodText}</b>. <b>Qo'limda</b> ustuniga sanab chiqqan pulingizni, kartalar uchun bank
-							ilovasidagi qoldiqni kiriting. <b>Topshirildi</b> = kassadan olib ketilayotgan summa. <b>Qoldiq</b> =
-							keyingi davr boshidagi summa.
+							Davr: <b>{periodText}</b>. Faqat {kassaTypePlural(type)} kiritgan yozuvlar hisoblangan.{' '}
+							<b>Qo'limda</b> ustuniga sanab chiqqan pulingizni, kartalar uchun bank ilovasidagi qoldiqni kiriting.{' '}
+							<b>Topshirildi</b> = kassadan olib ketilayotgan summa. <b>Qoldiq</b> = keyingi davr boshidagi summa.
 						</>
 					)}
 				</InfoStrip>
@@ -426,6 +453,7 @@ export default function KassaClosePage() {
 						<label className='block'>
 							<span className='mb-1 block text-sm text-ca-heading'>
 								Izoh <span className='text-red-500'>*</span>
+								{diffRows.length > 0 && <span className='ml-1 text-ca-text'>(farq bo'lgani uchun majburiy)</span>}
 							</span>
 							<Textarea
 								rows={3}
@@ -440,27 +468,37 @@ export default function KassaClosePage() {
 							/>
 							<FieldError>{errors.comment}</FieldError>
 						</label>
-						<div className='max-w-sm'>
-							<span className='mb-1 block text-sm text-ca-heading'>
-								Qabul qiluvchi <span className='text-red-500'>*</span>
-							</span>
-							<div className={cn('rounded-[3px]', errors.received_by && 'ring-1 ring-red-500')}>
-								<Combobox
-									value={receivedBy}
-									onChange={(v) => {
-										setReceivedBy(v);
-										if (errors.received_by) setErrors((prev) => ({ ...prev, received_by: undefined }));
-									}}
-									options={userOptions}
-									placeholder={usersQuery.isLoading ? 'Yuklanmoqda…' : 'Tanlang'}
-									clearable
-								/>
+						<div className='flex flex-wrap gap-x-6 gap-y-3'>
+							<div className='w-full max-w-sm'>
+								<span className='mb-1 block text-sm text-ca-heading'>Topshiruvchi</span>
+								<div className='h-9 truncate rounded-[3px] border border-ca-field-border bg-ca-silver px-3 text-sm leading-[34px] text-ca-heading'>
+									{kassa.userName}
+									{kassa.userType && <span className='text-ca-text'> · {kassaTypeLabel(kassa.userType)}</span>}
+								</div>
 							</div>
-							<FieldError>{errors.received_by}</FieldError>
+							<div className='w-full max-w-sm'>
+								<span className='mb-1 block text-sm text-ca-heading'>
+									Qabul qiluvchi <span className='text-red-500'>*</span>
+								</span>
+								<div className={cn('rounded-[3px]', errors.received_by && 'ring-1 ring-red-500')}>
+									<Combobox
+										value={receivedBy}
+										onChange={(v) => {
+											setReceivedBy(v);
+											if (errors.received_by) setErrors((prev) => ({ ...prev, received_by: undefined }));
+										}}
+										options={userOptions}
+										placeholder={usersQuery.isLoading ? 'Yuklanmoqda…' : 'Tanlang'}
+										clearable
+									/>
+								</div>
+								<FieldError>{errors.received_by}</FieldError>
+							</div>
 						</div>
 					</div>
 
 					<div className='rounded-md border border-ca-border bg-ca-silver px-4 py-3'>
+						<SummaryLine label='Kassa turi' value={<KassaTypeBadge type={type} short />} />
 						{!isInitial && (
 							<>
 								<SummaryLine label='Buyurtmalar' value={`${sourceCount('order')} ta`} />
@@ -479,7 +517,7 @@ export default function KassaClosePage() {
 							<SummaryLine label="Boshlang'ich qoldiq ($ ekv.)" value={fmtUsd(usd.actual)} />
 						)}
 						<div className='mt-3 flex justify-end gap-2'>
-							<Button type='button' variant='white' size='sm' onClick={() => navigate('/kassa/current')}>
+							<Button type='button' variant='white' size='sm' onClick={() => navigate(currentPath)}>
 								Bekor qilish
 							</Button>
 							<Button type='button' variant='success' size='sm' disabled={!canWrite} onClick={openConfirm}>
@@ -496,6 +534,7 @@ export default function KassaClosePage() {
 					setConfirmOpen(open);
 					if (!open) setConflict(null);
 				}}
+				typeLabel={typeLabel}
 				rows={rows}
 				diffCount={diffRows.length}
 				isInitial={isInitial}

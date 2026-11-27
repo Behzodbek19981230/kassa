@@ -87,6 +87,7 @@ import LogisticsPartnersPage from '@/pages/TwoStageImport/LogisticsPartnersPage'
 import LogisticsPartnerStockPage from '@/pages/TwoStageImport/LogisticsPartnerStockPage';
 import UzbekistanDispatchPage from '@/pages/TwoStageImport/UzbekistanDispatchPage';
 import UzbekistanInRoadPage from '@/pages/TwoStageImport/UzbekistanInRoadPage';
+import KassaOverviewPage from '@/pages/kassa/KassaOverviewPage';
 import KassaCurrentPage from '@/pages/kassa/KassaCurrentPage';
 import KassaMovementsPage from '@/pages/kassa/KassaMovementsPage';
 import KassaClosePage from '@/pages/kassa/KassaClosePage';
@@ -181,6 +182,7 @@ export default function App() {
 					{/* "Kassa": Super Admin + Admin, for now only is_staff users (cancelling a closing is Super Admin only, checked on the page). */}
 					<Route element={<KassaRoute />}>
 						<Route path='kassa' element={<Navigate to='/kassa/current' replace />} />
+						<Route path='kassa/overview' element={<KassaOverviewPage />} />
 						<Route path='kassa/current' element={<KassaCurrentPage />} />
 						<Route path='kassa/movements' element={<KassaMovementsPage />} />
 						<Route path='kassa/close' element={<KassaClosePage />} />

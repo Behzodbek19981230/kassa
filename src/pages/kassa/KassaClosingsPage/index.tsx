@@ -6,6 +6,9 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { EyeButton, KTable, KTd, KTh, PageSizeInfo, PanelTitle, Pill, STAT_GRID, StatCard } from '@/pages/kassa/shared';
 import { useCompanyName, usePdfOpener } from '@/pages/kassa/hooks';
+import { KASSA_TYPES, parseKassaType } from '@/pages/kassa/kassaType';
+import { KassaTypeBadge } from '@/pages/kassa/KassaTypeUi';
+import { usePermissions } from '@/lib/permissions';
 import { fmtShortDateTime, fmtUsd, num } from '@/pages/kassa/utils';
 import { useCashClosingListQuery } from '@/services/cash-register/cash-register.queries';
 import { cashRegisterService } from '@/services/cash-register/cash-register.service';
@@ -38,10 +41,15 @@ function FilterCell({ children }: { children?: ReactNode }) {
 	return <th className='border-b border-ca-border bg-ca-silver px-2 py-1.5 font-normal [&:not(:last-child)]:border-r'>{children}</th>;
 }
 
-/** 05 "Topshirishlar tarixi": every closing with the stats of the current filter. */
+/**
+ * 05 "Topshirishlar tarixi": every closing with the stats of the current filter. Each seller type numbers its
+ * closings on its own, so "Kassa turi" is part of a closing's name (Do'kon #6 ≠ Sklad #6); `?type=` filters.
+ */
 export default function KassaClosingsPage() {
 	const navigate = useNavigate();
 	const companyName = useCompanyName();
+	// Sellers only ever get their own type's closings from the server, so the filter is for admins.
+	const { canViewAllKassaTypes } = usePermissions();
 	const pdf = usePdfOpener();
 	const [searchParams, setSearchParams] = useSearchParams();
 
@@ -56,11 +64,17 @@ export default function KassaClosingsPage() {
 	const to = get('to');
 	const createdBy = get('created_by');
 	const receivedBy = get('received_by');
+	// `?type=1|2|3`, or `old` for the closings made before the kassa was split by type.
+	const rawTypeFilter = canViewAllKassaTypes ? get('type') : '';
+	const typeFilter = parseKassaType(rawTypeFilter);
+	const oldOnly = rawTypeFilter === 'old';
 
 	const params: CashClosingListParams = {
 		page,
 		limit,
 		ordering,
+		user_type: typeFilter ?? undefined,
+		user_type__isnull: oldOnly || undefined,
 		...status.params,
 		number: Number(numberFilter) || undefined,
 		closed_at__gte: from ? `${from}T00:00:00+05:00` : undefined,
@@ -140,6 +154,7 @@ export default function KassaClosingsPage() {
 										№ <SortIcon className='text-[11px] opacity-70' />
 									</button>
 								</KTh>
+								<KTh>Kassa turi</KTh>
 								<KTh>Davr</KTh>
 								<KTh>Topshirdi</KTh>
 								<KTh>Qabul qildi</KTh>
@@ -162,6 +177,23 @@ export default function KassaClosingsPage() {
 										onBlur={(e) => e.currentTarget.value !== numberFilter && update({ number: e.currentTarget.value })}
 										className='h-7! min-w-16 text-sm! lg:h-7!'
 									/>
+								</FilterCell>
+								<FilterCell>
+									{canViewAllKassaTypes && (
+										<select
+											value={typeFilter ?? (oldOnly ? 'old' : '')}
+											onChange={(e) => update({ type: e.target.value })}
+											className={cn(filterClass, 'min-w-28')}
+										>
+											<option value=''>Hammasi</option>
+											{KASSA_TYPES.map((t) => (
+												<option key={t.type} value={t.type}>
+													{t.short}
+												</option>
+											))}
+											<option value='old'>Umumiy (eski)</option>
+										</select>
+									)}
 								</FilterCell>
 								<FilterCell>
 									<div className='flex min-w-[260px] items-center gap-1'>
@@ -209,20 +241,20 @@ export default function KassaClosingsPage() {
 							{isLoading ? (
 								Array.from({ length: 5 }, (_, i) => (
 									<tr key={i}>
-										<KTd colSpan={10}>
+										<KTd colSpan={11}>
 											<div className='h-4 animate-pulse rounded bg-ca-silver' />
 										</KTd>
 									</tr>
 								))
 							) : isError ? (
 								<tr>
-									<KTd colSpan={10} align='center' className='py-8 text-ca-red'>
+									<KTd colSpan={11} align='center' className='py-8 text-ca-red'>
 										{getApiErrorMessage(error, "Topshirishlarni yuklab bo'lmadi")}
 									</KTd>
 								</tr>
 							) : results.length === 0 ? (
 								<tr>
-									<KTd colSpan={10} align='center' className='py-8 text-ca-text'>
+									<KTd colSpan={11} align='center' className='py-8 text-ca-text'>
 										Topshirishlar topilmadi
 									</KTd>
 								</tr>
@@ -235,6 +267,9 @@ export default function KassaClosingsPage() {
 												<Link to={`/kassa/closings/${c.id}`} className='text-ca-theme hover:underline'>
 													#{c.number}
 												</Link>
+											</KTd>
+											<KTd>
+												<KassaTypeBadge type={c.user_type} short />
 											</KTd>
 											<KTd>
 												{c.is_initial ? "Boshlang'ich" : `${fmtShortDateTime(c.period_start)} → ${fmtShortDateTime(c.closed_at)}`}

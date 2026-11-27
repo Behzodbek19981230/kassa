@@ -111,6 +111,13 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		label: 'Kassa',
 		requiredPermission: 'canViewKassa',
 		children: [
+			{
+				id: 'kassa-overview',
+				icon: 'chart-pie',
+				label: 'Umumiy holat',
+				path: '/kassa/overview',
+				requiredPermission: 'canViewAllKassaTypes',
+			},
 			{ id: 'kassa-current', icon: 'wallet', label: 'Joriy kassa', path: '/kassa/current' },
 			{ id: 'kassa-movements', icon: 'receipt', label: 'Davr harakatlari', path: '/kassa/movements' },
 			// { id: 'kassa-close', icon: 'check-circle', label: 'Kassani topshirish', path: '/kassa/close' },

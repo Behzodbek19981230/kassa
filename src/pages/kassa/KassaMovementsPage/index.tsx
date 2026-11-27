@@ -6,6 +6,8 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { EyeButton, KTable, KTd, KTh, PageSizeInfo, PanelTitle, Pill } from '@/pages/kassa/shared';
 import { useFileDownloader, usePdfOpener } from '@/pages/kassa/hooks';
+import { closingTypeLabel, kassaTypeLabel, type KassaTypeState } from '@/pages/kassa/kassaType';
+import { KassaTypeBoundary, KassaTypeSwitcher } from '@/pages/kassa/KassaTypeUi';
 import {
 	docNumber,
 	fmtAmount,
@@ -27,10 +29,20 @@ import {
 	useCashMovementsQuery,
 	useCashRegisterCurrentQuery,
 	useCashRegisterDailyQuery,
+	useCashRegisterSummaryQuery,
 } from '@/services/cash-register/cash-register.queries';
 import { cashRegisterService } from '@/services/cash-register/cash-register.service';
 import type { CashMovement, CashSourceKind, CashSourceRow } from '@/services/cash-register/cash-register.types';
 import { soldHistoryService } from '@/services/sold-history/sold-history.service';
+import { useUserListQuery } from '@/services/user/user.queries';
+import { SYSTEM_USER_PARAMS, userFullName } from '@/services/user/user.types';
+
+/** An option of the "Sotuvchi" filter; `count` = their records in the period, when known. */
+interface SellerOption {
+	id: number;
+	name: string;
+	count?: number;
+}
 
 const ALL_KINDS: CashSourceKind[] = ['order', 'debt', 'expense', 'vozvrat', 'correction'];
 const DAY_KINDS: CashSourceKind[] = ['order', 'debt', 'expense'];
@@ -69,8 +81,22 @@ function CardCell({ row }: { row: CashMovement }) {
 	);
 }
 
-/** 02 "Davr harakatlari": every record behind the kassa — the open period, one closing (`?closing=`) or one day (`?date=`). */
+const sellerSelectClass =
+	'h-8 min-w-[220px] rounded-[3px] border border-ca-field-border bg-ca-silver-light px-2 text-sm text-ca-heading focus:border-ca-field-border-strong focus:outline-none';
+
+/**
+ * 02 "Davr harakatlari": every record behind one seller type's kassa — the open period, one closing
+ * (`?closing=`, whose type wins over `?type=`) or one day (`?date=`). One type can have several sellers,
+ * so "Kim" and the seller filter (`?created_by=`) tell them apart. The sellers come from `current.sellers`
+ * (open period), the closing's frozen `sellers`, or — for a day — the users of that type.
+ */
 export default function KassaMovementsPage() {
+	return (
+		<KassaTypeBoundary title='Davr harakatlari'>{(kassa) => <KassaMovementsContent kassa={kassa} />}</KassaTypeBoundary>
+	);
+}
+
+function KassaMovementsContent({ kassa }: { kassa: KassaTypeState }) {
 	const navigate = useNavigate();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const closing = Number(searchParams.get('closing')) || undefined;
@@ -84,22 +110,40 @@ export default function KassaMovementsPage() {
 	const page = Math.max(Number(searchParams.get('page')) || 1, 1);
 	const limitParam = Number(searchParams.get('limit'));
 	const limit = PAGE_SIZES.includes(limitParam) ? limitParam : DEFAULT_LIMIT;
+	const createdBy = Number(searchParams.get('created_by')) || undefined;
 
-	const movementsQuery = useCashMovementsQuery({ kind: kind || undefined, closing, date, page, limit });
-	// The total row is the whole period's total, not the page's: it comes from the matching summary.
-	const currentQuery = useCashRegisterCurrentQuery(!closing && !date);
 	const closingQuery = useCashClosingQuery(closing);
-	const dailyQuery = useCashRegisterDailyQuery(date === todayIso() ? undefined : date, Boolean(date));
+	// A closing belongs to one type; until it loads, the URL's type is only a guess, so the switcher waits.
+	const type = (closing ? closingQuery.data?.user_type : undefined) ?? kassa.type;
+	const showSwitcher = kassa.canPickType && !closing;
+
+	const movementsQuery = useCashMovementsQuery({
+		user_type: closing ? undefined : type,
+		kind: kind || undefined,
+		created_by: createdBy,
+		closing,
+		date,
+		page,
+		limit,
+	});
+	// The total row is the whole period's total, not the page's: it comes from the matching summary.
+	const currentQuery = useCashRegisterCurrentQuery(type, !closing && !date);
+	const dailyQuery = useCashRegisterDailyQuery(type, date === todayIso() ? undefined : date, Boolean(date));
+	const summaryQuery = useCashRegisterSummaryQuery(showSwitcher && !date);
+	const dayUsersQuery = useUserListQuery({ ...SYSTEM_USER_PARAMS, type, limit: 200 }, Boolean(date));
 
 	const pdf = usePdfOpener();
 	const excel = useFileDownloader();
 
-	function update(next: { kind?: string; page?: number; limit?: number }) {
+	function update(next: { kind?: string; page?: number; limit?: number; createdBy?: number | null }) {
 		const params = new URLSearchParams();
+		if (kassa.canPickType && !closing) params.set('type', String(type));
 		if (closing) params.set('closing', String(closing));
 		if (date) params.set('date', date);
 		const k = next.kind ?? kind;
 		if (k) params.set('kind', k);
+		const seller = next.createdBy === undefined ? createdBy : next.createdBy;
+		if (seller) params.set('created_by', String(seller));
 		const l = next.limit ?? limit;
 		if (l !== DEFAULT_LIMIT) params.set('limit', String(l));
 		const p = next.page ?? 1;
@@ -119,6 +163,12 @@ export default function KassaMovementsPage() {
 	const data = movementsQuery.data;
 	const counts = data?.counts;
 	const results = data?.results ?? [];
+	const typeLabel = kassaTypeLabel(type);
+	const sellerSource = closing ? closingQuery.data?.sellers : date ? undefined : currentQuery.data?.sellers;
+	const sellers: SellerOption[] = date
+		? (dayUsersQuery.data?.results ?? []).map((u) => ({ id: u.id, name: userFullName(u) }))
+		: (sellerSource ?? []).flatMap((u) => (u.user == null ? [] : [{ id: u.user, name: u.name, count: u.count }]));
+	const sellersLoaded = date ? Boolean(dayUsersQuery.data) : Boolean(sellerSource);
 	const selectedKinds = kindParam.length ? kindParam : allowedKinds;
 	const selectedCount = counts ? selectedKinds.reduce((s, k) => s + (counts[k] ?? 0), 0) : 0;
 
@@ -128,24 +178,32 @@ export default function KassaMovementsPage() {
 	if (closing) {
 		const c = closingQuery.data;
 		sources = c?.sources;
-		title = c ? `Topshirish #${c.number} harakatlari` : 'Topshirish harakatlari';
-		sub = c ? `${c.is_initial ? "Boshlang'ich" : formatDateTime(c.period_start)} → ${formatDateTime(c.closed_at)}` : undefined;
+		title = c ? `Topshirish ${closingTypeLabel(c.user_type, true)} #${c.number} harakatlari` : 'Topshirish harakatlari';
+		sub = c
+			? `${c.user_type_display || closingTypeLabel(c.user_type)} · ${c.is_initial ? "Boshlang'ich" : formatDateTime(c.period_start)} → ${formatDateTime(c.closed_at)}`
+			: undefined;
 	} else if (date) {
 		sources = dailyQuery.data?.sources;
 		title = 'Kun harakatlari';
-		sub = formatDate(date);
+		sub = `${typeLabel} · ${formatDate(date)}`;
 	} else {
 		const c = currentQuery.data;
 		sources = c?.sources;
-		sub = c?.period_start ? `${formatDateTime(c.period_start)} → hozir` : c ? 'boshlanmagan' : undefined;
+		const period = c?.period_start ? `${formatDateTime(c.period_start)} → hozir` : c ? 'boshlanmagan' : undefined;
+		sub = period ? `${typeLabel} · ${period}` : typeLabel;
 	}
 	const cardCodes = [...new Set((sources ?? []).flatMap((s) => Object.keys(s.amounts).filter((k) => k.startsWith('card'))))];
-	const totals = sources && {
-		som: sumSources(sources, ['cash_som'], selectedKinds),
-		usd: sumSources(sources, ['cash_usd'], selectedKinds),
-		transfer: sumSources(sources, ['transfer'], selectedKinds),
-		card: sumSources(sources, cardCodes, selectedKinds),
-	};
+	// The summaries aren't split by seller (and a seller's corrections aren't in `sellers[].amounts`), so with a
+	// seller picked there is no exact period total to show.
+	const totals =
+		sources && !createdBy
+			? {
+					som: sumSources(sources, ['cash_som'], selectedKinds),
+					usd: sumSources(sources, ['cash_usd'], selectedKinds),
+					transfer: sumSources(sources, ['transfer'], selectedKinds),
+					card: sumSources(sources, cardCodes, selectedKinds),
+				}
+			: undefined;
 
 	const tabs: { key: string; label: string; tone: Tone; count?: number }[] = [
 		{
@@ -172,7 +230,13 @@ export default function KassaMovementsPage() {
 							type='button'
 							variant='slate'
 							size='sm'
-							onClick={() => navigate(date === todayIso() ? '/kassa/current?tab=daily' : `/kassa/current?tab=daily&date=${date}`)}
+							onClick={() =>
+								navigate(
+									date === todayIso()
+										? `/kassa/current?type=${type}&tab=daily`
+										: `/kassa/current?type=${type}&tab=daily&date=${date}`,
+								)
+							}
 						>
 							<FaArrowLeft className='mr-1.5' /> Hisobotga qaytish
 						</Button>
@@ -185,8 +249,13 @@ export default function KassaMovementsPage() {
 						onClick={() =>
 							excel.download(() =>
 								date
-									? cashRegisterService.dailyExcel(date)
-									: cashRegisterService.movementsExcel({ kind: kind || undefined, closing }),
+									? cashRegisterService.dailyExcel(type, date)
+									: cashRegisterService.movementsExcel({
+											user_type: closing ? undefined : type,
+											kind: kind || undefined,
+											closing,
+											created_by: createdBy,
+										}),
 							)
 						}
 					>
@@ -195,7 +264,19 @@ export default function KassaMovementsPage() {
 				</>
 			}
 		>
-			<div className='mb-3 flex flex-wrap gap-1.5'>
+			{showSwitcher && (
+				<KassaTypeSwitcher
+					type={type}
+					onChange={kassa.setType}
+					className='mb-3'
+					value={(t) => {
+						const row = date ? undefined : summaryQuery.data?.types.find((r) => r.user_type === t);
+						return row ? (row.count ?? 0) : undefined;
+					}}
+				/>
+			)}
+
+			<div className='mb-3 flex flex-wrap items-center gap-1.5'>
 				{tabs.map((t) => (
 					<button
 						key={t.key || 'all'}
@@ -210,6 +291,26 @@ export default function KassaMovementsPage() {
 						{t.count !== undefined && ` (${t.count})`}
 					</button>
 				))}
+				<label className='ml-auto flex items-center gap-2 text-xs text-ca-text'>
+					Sotuvchi:
+					<select
+						value={createdBy ?? ''}
+						onChange={(e) => update({ createdBy: Number(e.target.value) || null, page: 1 })}
+						className={sellerSelectClass}
+					>
+						<option value=''>Hammasi{sellersLoaded ? ` (${sellers.length})` : ''}</option>
+						{/* A seller picked by link who has no records here still needs an option to show. */}
+						{createdBy && sellersLoaded && !sellers.some((u) => u.id === createdBy) && (
+							<option value={createdBy}>#{createdBy}</option>
+						)}
+						{sellers.map((u) => (
+							<option key={u.id} value={u.id}>
+								{u.name}
+								{u.count !== undefined && ` (${u.count})`}
+							</option>
+						))}
+					</select>
+				</label>
 			</div>
 
 			<div className={cn('transition-opacity', movementsQuery.isFetching && 'opacity-70')}>
@@ -276,7 +377,7 @@ export default function KassaMovementsPage() {
 										<AmountCell value={row.usd} />
 										<AmountCell value={row.transfer} />
 										<CardCell row={row} />
-										<KTd>{row.created_by || '—'}</KTd>
+										<KTd>{row.created_by_name || row.created_by || '—'}</KTd>
 										<KTd align='center'>
 											<EyeButton onClick={() => openRecord(row)} disabled={!canOpen} />
 										</KTd>

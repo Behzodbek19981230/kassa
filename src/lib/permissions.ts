@@ -168,6 +168,9 @@ export function usePermissions() {
 	// "Kassa" (joriy kassa, harakatlar, topshirish, tarix): Super Admin + Admin. Cancelling a closing: Super Admin only.
 	// TEMP (test): is_staff only.
 	const canViewKassa = isStaff && (isSuperAdmin || isAdmin);
+	// The kassa is kept per user type (Do'kon / Sklad / Dastavka). Super Admin + Admin switch between the three and
+	// see "Umumiy holat"; anyone else is held to the kassa of their own `type` (the server enforces the same).
+	const canViewAllKassaTypes = isSuperAdmin || isAdmin;
 	// "Do'kon kartalari" (/system/payment-cards): Super Admin. TEMP (test): is_staff only.
 	const canViewPaymentCards = isStaff && isSuperAdmin;
 	const canCancelCashClosing = isSuperAdmin;
@@ -220,6 +223,7 @@ export function usePermissions() {
 		canViewSoldHistory,
 		isStaff,
 		canViewKassa,
+		canViewAllKassaTypes,
 		canViewPaymentCards,
 		canCancelCashClosing,
 		canManageMyDebts,

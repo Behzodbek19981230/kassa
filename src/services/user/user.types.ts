@@ -112,7 +112,7 @@ export interface UserPayload {
 	region: number;
 	district: number;
 	role: number;
-	/** null → no type (sent as an empty value); undefined → left out. */
+	/** Required for a system user (1–3; the backend answers 400 without it); undefined → left out. */
 	type?: number | null;
 	trade_company?: number;
 	current_company?: number;
@@ -186,7 +186,7 @@ export function isSystemUser(user: Pick<User, 'type' | 'is_system_user'>) {
 	return user.is_system_user ?? !isEmployeeType(user.type);
 }
 
-/** Types a system user (Tab 1) may have; leaving it empty sends `null`. Types 4 and 5 are never offered here. */
+/** Types a system user (Tab 1) must have one of; it also picks the user's kassa. Types 4 and 5 are never offered here. */
 export const USER_TYPE_OPTIONS = [
 	{ value: String(USER_TYPE.STORE_SELLER), label: "Do'kon sotuvchisi" },
 	{ value: String(USER_TYPE.SKLAD_SELLER), label: 'Sklad sotuvchisi' },

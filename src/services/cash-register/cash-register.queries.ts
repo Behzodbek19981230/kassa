@@ -4,30 +4,41 @@ import type {
 	CashClosingListParams,
 	CashClosingPayload,
 	CashMovementsParams,
+	CashRegisterType,
 } from '@/services/cash-register/cash-register.types';
 
 export const cashRegisterKeys = {
 	all: ['cash-register'] as const,
-	current: () => ['cash-register', 'current'] as const,
-	daily: (date?: string) => ['cash-register', 'daily', date ?? 'today'] as const,
+	summary: () => ['cash-register', 'summary'] as const,
+	current: (type: CashRegisterType) => ['cash-register', 'current', type] as const,
+	daily: (type: CashRegisterType, date?: string) => ['cash-register', 'daily', type, date ?? 'today'] as const,
 	movements: (params: CashMovementsParams) => ['cash-register', 'movements', params] as const,
 	closings: (params?: CashClosingListParams) => ['cash-register', 'closings', params] as const,
 	closing: (id: number) => ['cash-register', 'closing', id] as const,
 };
 
-/** The kassa is always computed from the source records, so nothing here is kept as fresh. */
-export function useCashRegisterCurrentQuery(enabled = true) {
+/** All three kassa types side by side ("Umumiy holat"); Super Admin / Admin only. */
+export function useCashRegisterSummaryQuery(enabled = true) {
 	return useQuery({
-		queryKey: cashRegisterKeys.current(),
-		queryFn: cashRegisterService.current,
+		queryKey: cashRegisterKeys.summary(),
+		queryFn: cashRegisterService.summary,
 		enabled,
 	});
 }
 
-export function useCashRegisterDailyQuery(date: string | undefined, enabled = true) {
+/** The kassa is always computed from the source records, so nothing here is kept as fresh. */
+export function useCashRegisterCurrentQuery(type: CashRegisterType, enabled = true) {
 	return useQuery({
-		queryKey: cashRegisterKeys.daily(date),
-		queryFn: () => cashRegisterService.daily(date),
+		queryKey: cashRegisterKeys.current(type),
+		queryFn: () => cashRegisterService.current(type),
+		enabled,
+	});
+}
+
+export function useCashRegisterDailyQuery(type: CashRegisterType, date: string | undefined, enabled = true) {
+	return useQuery({
+		queryKey: cashRegisterKeys.daily(type, date),
+		queryFn: () => cashRegisterService.daily(type, date),
 		placeholderData: (prev) => prev,
 		enabled,
 	});

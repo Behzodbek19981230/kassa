@@ -3,6 +3,13 @@ import type { PaginatedResponse, PaginationMeta } from '@/services/api/types';
 /** Money always arrives as a string with 2 decimals: `"20000000.00"`. */
 export type Money = string;
 
+/**
+ * `user_type`: which kassa a record belongs to — the `User.type` of whoever created it
+ * (1 Do'kon sotuvchisi, 2 Sklad sotuvchisi, 3 Dastavka sotuvchisi). Each type has its own
+ * period, numbering, balance and closings; the company kassa is the sum of the three.
+ */
+export type CashRegisterType = 1 | 2 | 3;
+
 export type CashChannelKind = 'cash_som' | 'cash_usd' | 'transfer' | 'card';
 export type CashSourceKind = 'order' | 'debt' | 'expense' | 'vozvrat' | 'correction';
 
@@ -44,7 +51,18 @@ export interface CashClosingRef {
 	created_by_name: string;
 }
 
+/** One user who entered records in a period, with the turnover of their new records (corrections aren't split). */
+export interface CashSeller {
+	user: number | null;
+	name: string;
+	count: number;
+	/** `{ code: money }`. */
+	amounts: Record<string, Money>;
+}
+
 export interface CashRegisterCurrent {
+	user_type: CashRegisterType;
+	user_type_label: string;
 	is_initial: boolean;
 	period_start: string | null;
 	previous: CashClosingRef | null;
@@ -52,6 +70,10 @@ export interface CashRegisterCurrent {
 	state_token: string;
 	channels: CashRegisterChannel[];
 	sources: CashSourceRow[];
+	/** Records created in the period, corrections excluded (= Σ sources[].count). */
+	count: number;
+	/** Most records first; `[]` on the initial closing. Feeds the "Sotuvchi" filter of the open period. */
+	sellers: CashSeller[];
 	totals: { opening_usd: Money | null; turnover_usd: Money | null; expected_usd: Money | null } | null;
 }
 
@@ -63,6 +85,8 @@ export interface CashRegisterDailyChannel extends CashChannelBase {
 }
 
 export interface CashRegisterDaily {
+	/** `null` = the whole company (an admin asked without `user_type`). */
+	user_type: CashRegisterType | null;
 	date: string;
 	day_start: string;
 	day_end: string;
@@ -95,7 +119,11 @@ export interface CashMovement {
 	transfer: Money;
 	card: Money;
 	cards: CashMovementCard[];
+	/** Legacy: username for records, full name for corrections. Show `created_by_name`. */
 	created_by: string;
+	/** "Kim": who entered the record, or who changed it for a correction; `null` / `""` on the detail-less row. */
+	created_by_id: number | null;
+	created_by_name: string;
 }
 
 export type CashMovementCounts = Record<CashSourceKind, number>;
@@ -103,13 +131,18 @@ export type CashMovementCounts = Record<CashSourceKind, number>;
 export interface CashMovementsResponse {
 	pagination: PaginationMeta;
 	results: CashMovement[];
+	/** For the tab titles: the whole period of the kassa, ignoring both `kind` and `created_by`. */
 	counts: CashMovementCounts;
 	filters: unknown;
 }
 
 export interface CashMovementsParams {
+	/** Required (for admins) on the open period; not needed with `closing`, optional with `date`. */
+	user_type?: CashRegisterType;
 	/** Comma-separated kinds; empty = all. */
 	kind?: string;
+	/** One seller: their records and the corrections of their records. */
+	created_by?: number;
 	closing?: number;
 	date?: string;
 	page?: number;
@@ -124,6 +157,7 @@ export interface CashClosingLinePayload {
 }
 
 export interface CashClosingPayload {
+	user_type: CashRegisterType;
 	state_token: string;
 	lines: CashClosingLinePayload[];
 	comment: string;
@@ -136,6 +170,10 @@ export type CashClosingResult = 'exact' | 'shortage' | 'surplus';
 export interface CashClosing {
 	id: number;
 	company: number;
+	/** `null` only on closings made before the kassa was split by type ("Umumiy (eski)"). */
+	user_type: CashRegisterType | null;
+	user_type_display: string | null;
+	/** Counted separately inside each type: Do'kon #6 and Sklad #3 are unrelated. */
 	number: number;
 	status: CashClosingStatus;
 	status_display: string;
@@ -182,6 +220,8 @@ export interface CashClosingLine extends CashChannelBase {
 export interface CashClosingDetail extends CashClosing {
 	lines: CashClosingLine[];
 	sources: CashSourceRow[];
+	/** Frozen when the closing was made; `[]` on old closings. */
+	sellers: CashSeller[];
 }
 
 export interface CashClosingStats {
@@ -200,6 +240,9 @@ export interface CashClosingListResponse extends PaginatedResponse<CashClosing> 
 }
 
 export interface CashClosingListParams {
+	user_type?: CashRegisterType;
+	/** `true` → only the pre-split company closings. */
+	user_type__isnull?: boolean;
 	status?: CashClosingStatus;
 	result?: CashClosingResult;
 	is_initial?: boolean;
@@ -212,6 +255,40 @@ export interface CashClosingListParams {
 	ordering?: string;
 	page?: number;
 	limit?: number;
+}
+
+/** One kassa type on "Umumiy holat". `count`, `amounts` and `expected_usd` are `null` while it `is_initial`. */
+export interface CashRegisterSummaryRow {
+	user_type: CashRegisterType;
+	user_type_label: string;
+	is_initial: boolean;
+	period_start: string | null;
+	previous: CashClosingRef | null;
+	/** Records created in the open period, corrections excluded. */
+	count: number | null;
+	/** `{ code: expected }` ("Dasturda" per channel). */
+	amounts: Record<string, Money> | null;
+	/** Same as that type's `current.totals.expected_usd`. */
+	expected_usd: Money | null;
+}
+
+/** `GET cash-register/summary/` (Super Admin / Admin): the three kassas side by side. */
+export interface CashRegisterSummary {
+	exchange_rate: Money | null;
+	/** Union of every type's channels, in the usual channel order. */
+	channels: CashChannelBase[];
+	/** Always three rows: 1, 2, 3. */
+	types: CashRegisterSummaryRow[];
+	/**
+	 * Sum of the types that are past their initial closing; `initial_types` lists the others, and while it is
+	 * not empty the total isn't the whole company kassa.
+	 */
+	totals: {
+		count: number;
+		amounts: Record<string, Money>;
+		expected_usd: Money | null;
+		initial_types: CashRegisterType[];
+	};
 }
 
 /** 409 body of `POST cash-closing/`: the kassa changed after the form was opened. */

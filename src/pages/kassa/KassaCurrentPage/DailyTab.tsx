@@ -23,7 +23,8 @@ import {
 	weekdayOf,
 } from '@/pages/kassa/utils';
 import { useCashRegisterDailyQuery } from '@/services/cash-register/cash-register.queries';
-import type { CashRegisterDailyChannel } from '@/services/cash-register/cash-register.types';
+import type { CashRegisterDailyChannel, CashRegisterType } from '@/services/cash-register/cash-register.types';
+import { kassaTypePlural } from '@/pages/kassa/kassaType';
 
 function channelStat(ch: CashRegisterDailyChannel | undefined) {
 	if (!ch) return { value: '—', sub: undefined };
@@ -112,11 +113,20 @@ function DayNavigator({ date, onChange }: { date: string; onChange: (date: strin
 	);
 }
 
-/** 07 "Sana bo'yicha hisobot": orders, debt payments and expenses entered on one calendar day. */
-export default function DailyTab({ date, onDateChange }: { date: string; onDateChange: (date: string) => void }) {
+/** 07 "Sana bo'yicha hisobot": orders, debt payments and expenses entered on one calendar day by this seller type. */
+export default function DailyTab({
+	type,
+	date,
+	onDateChange,
+}: {
+	type: CashRegisterType;
+	date: string;
+	onDateChange: (date: string) => void;
+}) {
 	const navigate = useNavigate();
 	// Today goes without `date`, so a client clock running ahead never asks for a "future" day.
 	const { data, isLoading, isError, error, isFetching } = useCashRegisterDailyQuery(
+		type,
 		date === todayIso() ? undefined : date,
 	);
 
@@ -124,8 +134,8 @@ export default function DailyTab({ date, onDateChange }: { date: string; onDateC
 		<div className='flex flex-wrap items-center justify-between gap-2'>
 			<DayNavigator date={date} onChange={onDateChange} />
 			<span className='text-xs text-ca-text'>
-				Faqat <b className='text-ca-heading'>{formatDate(date)}</b> kuni (00:00 → 23:59) kiritilgan buyurtma, qarz
-				to'lovi va xarajatlar
+				Faqat <b className='text-ca-heading'>{formatDate(date)}</b> kuni (00:00 → 23:59){' '}
+				{kassaTypePlural(type)} kiritgan buyurtma, qarz to'lovi va xarajatlar
 			</span>
 		</div>
 	);
@@ -215,7 +225,7 @@ export default function DailyTab({ date, onDateChange }: { date: string; onDateC
 									<KTd align='center'>
 										<EyeButton
 											title="Yozuvlarni ko'rish"
-											onClick={() => navigate(`/kassa/movements?date=${data.date}&kind=${row.source}`)}
+											onClick={() => navigate(`/kassa/movements?type=${type}&date=${data.date}&kind=${row.source}`)}
 										/>
 									</KTd>
 								</tr>

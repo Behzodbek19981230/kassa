@@ -24,11 +24,12 @@ const userKeys = {
   detail: (id: number) => ['users', 'detail', id] as const,
 }
 
-export function useUserListQuery(params?: UserListParams) {
+export function useUserListQuery(params?: UserListParams, enabled = true) {
   return useQuery({
     queryKey: userKeys.list(params),
     queryFn: () => userService.list(params),
     placeholderData: (prev) => prev,
+    enabled,
   })
 }
 

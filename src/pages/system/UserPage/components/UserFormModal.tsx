@@ -90,8 +90,9 @@ function buildUserFormSchema(mode: 'create' | 'edit', isEmployee: boolean) {
 			region: systemRequired('Viloyat tanlanishi shart'),
 			district: systemRequired('Tuman tanlanishi shart'),
 			role: systemRequired('Rol tanlanishi shart'),
-			// Empty → no type (null); 4 and 5 are never offered here.
-			type: z.string(),
+			// Required for a system user: the kassa is kept per type, and a record whose author has no type lands in
+			// no kassa (the backend answers 400 too). 4 and 5 are never offered here.
+			type: systemRequired('Turi tanlanishi shart'),
 			companies: isEmployee
 				? z.array(z.string())
 				: z.array(z.string()).min(1, 'Kamida bitta tashkilot tanlanishi shart'),
@@ -385,7 +386,7 @@ export default function UserFormModal({ open, setOpen, mode, item, employeeType 
 			region: Number(values.region),
 			district: Number(values.district),
 			role: Number(values.role),
-			type: values.type ? Number(values.type) : null,
+			type: Number(values.type),
 			companies: values.companies.map(Number),
 			trade_company: Number(values.trade_company),
 			type_sklads: values.type_sklads.map(Number),
@@ -672,6 +673,7 @@ export default function UserFormModal({ open, setOpen, mode, item, employeeType 
 									<FormField
 										label='Turi'
 										error={errors.type?.message}
+										required
 										horizontal={false}
 										className='mb-0'
 									>
@@ -683,9 +685,8 @@ export default function UserFormModal({ open, setOpen, mode, item, employeeType 
 													value={field.value}
 													onChange={(value) => field.onChange(value)}
 													options={USER_TYPE_OPTIONS}
-													placeholder='Tanlanmagan'
+													placeholder='Tanlang...'
 													searchPlaceholder='Turi qidirish...'
-													clearable
 												/>
 											)}
 										/>

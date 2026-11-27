@@ -22,8 +22,8 @@ import {
 import { useCurrentCompany } from '@/lib/company';
 import { formatNumber, roundMoney } from '@/lib/number';
 import { usePermissions } from '@/lib/permissions';
-import { useCashRegisterCurrentQuery } from '@/services/cash-register/cash-register.queries';
-import type { CashRegisterCurrent } from '@/services/cash-register/cash-register.types';
+import { useCashRegisterSummaryQuery } from '@/services/cash-register/cash-register.queries';
+import type { CashRegisterSummary } from '@/services/cash-register/cash-register.types';
 import { useCreateExpenseMutation, useUpdateExpenseMutation } from '@/services/expense/expense.queries';
 import type { Expense, ExpensePayload } from '@/services/expense/expense.types';
 import { useExpenseTypeListQuery } from '@/services/expense-type/expense-type.queries';
@@ -35,11 +35,14 @@ import { getApiErrorMessage } from '@/lib/errors';
 
 const num = (value: string | number | null | undefined) => Number(value) || 0;
 
-/** What the kassa says is on the card right now (period opening + turnover); a card with no kassa channel holds nothing. */
-function cardBalance(current: CashRegisterCurrent, cardId: number): number {
-	const channel = current.channels.find((ch) => ch.channel === 'card' && ch.card === cardId);
-	if (!channel) return 0;
-	return channel.expected != null ? num(channel.expected) : num(channel.opening) + num(channel.turnover);
+/**
+ * What the company kassa says is on the card right now: the kassa is split by seller type, but a card is one
+ * bank account, so its balance is the sum over the three types. A card with no kassa channel holds nothing.
+ * `null` while a type still has no initial closing: its share is unknown, so the balance can't be checked.
+ */
+function cardBalance(summary: CashRegisterSummary, cardId: number): number | null {
+	if (summary.totals.initial_types?.length) return null;
+	return num(summary.totals.amounts[`card:${cardId}`]);
 }
 
 const expenseFormSchema = z
@@ -117,10 +120,13 @@ export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseF
 	// Card balances come from the kassa, which only Super Admin / Admin may read; for other roles the check is skipped.
 	const { canViewKassa } = usePermissions();
 	const checkCardBalance = canViewKassa && paidByCard && Boolean(paymentCard);
-	const kassaQuery = useCashRegisterCurrentQuery(open && checkCardBalance);
+	const kassaQuery = useCashRegisterSummaryQuery(open && checkCardBalance);
 	/** The card's balance, plus what this expense already took from the same card when editing it. */
-	const availableOnCard = (current: CashRegisterCurrent, cardId: number) =>
-		cardBalance(current, cardId) + (mode === 'edit' && item?.payment_card === cardId ? num(item.summ_cart) : 0);
+	const availableOnCard = (summary: CashRegisterSummary, cardId: number) => {
+		const balance = cardBalance(summary, cardId);
+		if (balance === null) return null;
+		return balance + (mode === 'edit' && item?.payment_card === cardId ? num(item.summ_cart) : 0);
+	};
 	const shownAvailable =
 		checkCardBalance && kassaQuery.data ? availableOnCard(kassaQuery.data, Number(paymentCard)) : null;
 
@@ -178,7 +184,7 @@ export default function ExpenseFormModal({ open, setOpen, mode, item }: ExpenseF
 				return;
 			}
 			const available = availableOnCard(current, cardId);
-			if (num(values.summ_cart) > available) {
+			if (available !== null && num(values.summ_cart) > available) {
 				setError('summ_cart', {
 					type: 'manual',
 					message: `Kartada buncha summa mavjud emas (mavjud: ${formatNumber(Math.max(available, 0))} so'm)`,

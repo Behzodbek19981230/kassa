@@ -8,6 +8,8 @@ import { channelLabel, fmtAmount, fmtSigned } from '@/pages/kassa/utils';
 interface Props {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	/** "Dastavka sotuvchisi": the kassa being closed. */
+	typeLabel: string;
 	rows: PreviewRow[];
 	diffCount: number;
 	isInitial: boolean;
@@ -23,6 +25,7 @@ interface Props {
 export default function ConfirmCloseModal({
 	open,
 	onOpenChange,
+	typeLabel,
 	rows,
 	diffCount,
 	isInitial,
@@ -39,7 +42,10 @@ export default function ConfirmCloseModal({
 						<span className='flex h-8 w-8 items-center justify-center rounded-md bg-amber-500/15 text-amber-500'>
 							<FaExclamationTriangle />
 						</span>
-						{isInitial ? "Boshlang'ich qoldiqni tasdiqlang" : 'Kassani topshirishni tasdiqlang'}
+						<span>
+							{isInitial ? "Boshlang'ich qoldiqni tasdiqlang" : 'Kassani topshirishni tasdiqlang'}
+							<span className='block text-xs font-normal text-ca-text'>Kassa: {typeLabel}</span>
+						</span>
 					</ModalTitle>
 				</ModalHeader>
 				<ModalBody className='space-y-3'>

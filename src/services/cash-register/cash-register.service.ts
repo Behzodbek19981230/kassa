@@ -8,6 +8,8 @@ import type {
 	CashMovementsResponse,
 	CashRegisterCurrent,
 	CashRegisterDaily,
+	CashRegisterSummary,
+	CashRegisterType,
 } from '@/services/cash-register/cash-register.types';
 
 /** A downloaded file: the server's name from Content-Disposition when it is exposed, else `fallbackName`. */
@@ -34,28 +36,40 @@ async function getPdf(url: string, params?: object): Promise<Blob> {
 	return data;
 }
 
+/**
+ * Every kassa read takes the kassa `user_type` (1 Do'kon, 2 Sklad, 3 Dastavka). Super Admin / Admin must send it;
+ * any other role gets their own type (asking for another one is a 403).
+ */
 export const cashRegisterService = {
-	current: async () => {
-		const { data } = await apiClient.get<CashRegisterCurrent>('/cash-register/current/');
+	summary: async () => {
+		const { data } = await apiClient.get<CashRegisterSummary>('/cash-register/summary/');
 		return data;
 	},
-	currentPdf: () => getPdf('/cash-register/current/pdf/'),
 
-	daily: async (date?: string) => {
-		const { data } = await apiClient.get<CashRegisterDaily>('/cash-register/daily/', {
-			params: date ? { date } : undefined,
+	current: async (userType: CashRegisterType) => {
+		const { data } = await apiClient.get<CashRegisterCurrent>('/cash-register/current/', {
+			params: { user_type: userType },
 		});
 		return data;
 	},
-	dailyPdf: (date: string) => getPdf('/cash-register/daily/pdf/', { date }),
-	dailyExcel: (date: string) =>
-		getFile('/cash-register/daily/excel/', `kassa-kun-${date.replaceAll('-', '')}.xlsx`, { date }),
+	currentPdf: (userType: CashRegisterType) => getPdf('/cash-register/current/pdf/', { user_type: userType }),
+
+	daily: async (userType: CashRegisterType, date?: string) => {
+		const { data } = await apiClient.get<CashRegisterDaily>('/cash-register/daily/', {
+			params: date ? { user_type: userType, date } : { user_type: userType },
+		});
+		return data;
+	},
+	dailyPdf: (userType: CashRegisterType, date: string) =>
+		getPdf('/cash-register/daily/pdf/', { user_type: userType, date }),
+	dailyExcel: (userType: CashRegisterType, date: string) =>
+		getFile('/cash-register/daily/excel/', `kassa-kun-${date.replaceAll('-', '')}.xlsx`, { user_type: userType, date }),
 
 	movements: async (params: CashMovementsParams) => {
 		const { data } = await apiClient.get<CashMovementsResponse>('/cash-register/movements/', { params });
 		return data;
 	},
-	movementsExcel: (params: Pick<CashMovementsParams, 'kind' | 'closing'>) =>
+	movementsExcel: (params: Pick<CashMovementsParams, 'user_type' | 'kind' | 'closing' | 'created_by'>) =>
 		getFile('/cash-register/movements/excel/', 'kassa-harakatlar.xlsx', params),
 
 	closingList: async (params?: CashClosingListParams) => {

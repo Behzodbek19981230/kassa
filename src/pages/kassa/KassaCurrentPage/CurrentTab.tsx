@@ -7,6 +7,8 @@ import { getApiErrorMessage } from '@/lib/errors';
 import { formatNumber } from '@/lib/number';
 import { cn } from '@/lib/utils';
 import { ErrorBox, EyeButton, InfoStrip, KTable, KTd, KTh, LoadingBlock, Pill, STAT_GRID, StatCard } from '@/pages/kassa/shared';
+import { kassaTypeLabel } from '@/pages/kassa/kassaType';
+import { KassaTypeBadge } from '@/pages/kassa/KassaTypeUi';
 import {
 	channelLabel,
 	fmtAmount,
@@ -20,7 +22,7 @@ import {
 	sourceBadge,
 } from '@/pages/kassa/utils';
 import { useCashMovementsQuery, useCashRegisterCurrentQuery } from '@/services/cash-register/cash-register.queries';
-import type { CashRegisterChannel } from '@/services/cash-register/cash-register.types';
+import type { CashRegisterChannel, CashRegisterType } from '@/services/cash-register/cash-register.types';
 
 function channelStat(ch: CashRegisterChannel | undefined) {
 	if (!ch) return { value: '—', sub: undefined };
@@ -30,12 +32,16 @@ function channelStat(ch: CashRegisterChannel | undefined) {
 	};
 }
 
-/** 01 "Joriy davr": opening + every source of the open period = what the program expects in the kassa. */
-export default function CurrentTab({ canWrite }: { canWrite: boolean }) {
+/**
+ * 01 "Joriy davr" of one kassa type: opening + every source of the open period = what the program expects.
+ * Only records whose creator has this `type` are counted.
+ */
+export default function CurrentTab({ type, canWrite }: { type: CashRegisterType; canWrite: boolean }) {
 	const navigate = useNavigate();
-	const { data, isLoading, isError, error, isFetching } = useCashRegisterCurrentQuery();
+	const { data, isLoading, isError, error, isFetching } = useCashRegisterCurrentQuery(type);
 	// `sources[correction].count` is null: the number of corrections comes from the movements' counts.
-	const countsQuery = useCashMovementsQuery({ page: 1, limit: 1 }, Boolean(data && !data.is_initial));
+	const countsQuery = useCashMovementsQuery({ user_type: type, page: 1, limit: 1 }, Boolean(data && !data.is_initial));
+	const short = kassaTypeLabel(type, true);
 
 	if (isLoading) return <LoadingBlock />;
 	if (isError || !data) return <ErrorBox>{getApiErrorMessage(error, "Kassani yuklab bo'lmadi")}</ErrorBox>;
@@ -44,11 +50,18 @@ export default function CurrentTab({ canWrite }: { canWrite: boolean }) {
 		return (
 			<div className='space-y-4'>
 				<InfoStrip>
-					<b>Hali topshirish yo'q.</b> Kassadagi pulni sanab, boshlang'ich qoldiqni kiriting. Birinchi topshirishda
-					sanalgan summa kassaning boshlang'ich qoldig'i sifatida yoziladi.
+					Kassa: <KassaTypeBadge type={type} /> <b>Hali topshirish yo'q.</b> Shu kassadagi pulni sanab,
+					boshlang'ich qoldiqni kiriting. Birinchi topshirishda sanalgan summa kassaning boshlang'ich qoldig'i
+					sifatida yoziladi.
 				</InfoStrip>
 				<div className='flex justify-center rounded-md border border-dashed border-ca-border py-10'>
-					<Button type='button' variant='success' size='md' disabled={!canWrite} onClick={() => navigate('/kassa/close')}>
+					<Button
+						type='button'
+						variant='success'
+						size='md'
+						disabled={!canWrite}
+						onClick={() => navigate(`/kassa/close?type=${type}`)}
+					>
 						<FaLock className='mr-1.5' /> Boshlang'ich qoldiqni kiritish
 					</Button>
 				</div>
@@ -74,10 +87,16 @@ export default function CurrentTab({ canWrite }: { canWrite: boolean }) {
 	return (
 		<div className={cn('space-y-3 transition-opacity', isFetching && 'opacity-70')}>
 			<InfoStrip>
-				Joriy davr: <b>{formatDateTime(data.period_start, '—')}</b>
-				{previous && <> (#{previous.number} topshirishdan keyin)</>} → <b>hozir</b>. Summalar buyurtma, qarz to'lovi va
-				xarajatlarning <b>joriy holatidan</b> hisoblanadi: yozuv qo'shilsa, tahrirlansa yoki o'chirilsa kassa darhol
-				o'zgaradi.
+				Kassa: <KassaTypeBadge type={type} /> Joriy davr: <b>{formatDateTime(data.period_start, '—')}</b>
+				{previous && (
+					<>
+						{' '}
+						({short} #{previous.number} topshirishdan keyin)
+					</>
+				)}{' '}
+				→ <b>hozir</b>. Faqat <b>{kassaTypeLabel(type).toLowerCase()}</b> turidagi foydalanuvchilar kiritgan buyurtma,
+				qarz to'lovi, xarajat va vozvratlar hisoblanadi. Summalar yozuvlarning <b>joriy holatidan</b> olinadi: yozuv
+				qo'shilsa, tahrirlansa yoki o'chirilsa kassa darhol o'zgaradi.
 			</InfoStrip>
 
 			<div className={STAT_GRID}>
@@ -116,7 +135,7 @@ export default function CurrentTab({ canWrite }: { canWrite: boolean }) {
 				<tbody>
 					<tr className='text-ca-text italic'>
 						<KTd className='text-ca-text'>
-							Davr boshidagi qoldiq{previous ? ` (#${previous.number} dan)` : ''}
+							Davr boshidagi qoldiq{previous ? ` (${short} #${previous.number} dan)` : ''}
 						</KTd>
 						<KTd align='right' className='text-ca-text'>
 							—
@@ -148,7 +167,7 @@ export default function CurrentTab({ canWrite }: { canWrite: boolean }) {
 								<KTd align='center'>
 									<EyeButton
 										title="Harakatlarni ko'rish"
-										onClick={() => navigate(`/kassa/movements?kind=${row.source}`)}
+										onClick={() => navigate(`/kassa/movements?type=${type}&kind=${row.source}`)}
 									/>
 								</KTd>
 							</tr>
@@ -174,15 +193,15 @@ export default function CurrentTab({ canWrite }: { canWrite: boolean }) {
 					Oxirgi topshirish:{' '}
 					{previous ? (
 						<Link to={`/kassa/closings/${previous.id}`} className='text-ca-theme hover:underline'>
-							#{previous.number} · {formatDateTime(previous.closed_at)} · {previous.created_by_name}
+							{short} #{previous.number} · {formatDateTime(previous.closed_at)} · {previous.created_by_name}
 						</Link>
 					) : (
 						'—'
 					)}
 				</span>
 				<span>
-					"Tuzatish" qatori = {fmtShortDateTime(data.period_start)} gacha yaratilgan yozuvlarning shu davrda
-					tahrirlangani/o'chirilgani
+					"Tuzatish" qatori = {fmtShortDateTime(data.period_start)} gacha yaratilgan, shu turdagi yozuvlarning shu
+					davrda tahrirlangani/o'chirilgani
 				</span>
 			</div>
 		</div>

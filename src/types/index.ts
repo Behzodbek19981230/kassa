@@ -60,6 +60,8 @@ export interface SidebarMenuPermissions {
 	hasTopLevelUsersMenu: boolean;
 	/** "Kassa" menu: Super Admin + Admin (TEMP: is_staff only). */
 	canViewKassa: boolean;
+	/** "Kassa > Umumiy holat" and the kassa type switcher: Super Admin + Admin. */
+	canViewAllKassaTypes: boolean;
 	/** "Do'kon kartalari": Super Admin (TEMP: is_staff only). */
 	canViewPaymentCards: boolean;
 	/** True for the Manager role, which only gets a trimmed-down "Tizim boshqaruvi"/"Sozlamalar". */

@@ -19,18 +19,21 @@ import CancelClosingModal from '@/pages/kassa/KassaClosingDetailPage/CancelClosi
 import { ClosingStatusPill } from '@/pages/kassa/KassaClosingsPage';
 import { ChannelIcon, DiffPill, ErrorBox, InfoStrip, KTable, KTd, KTh, LoadingBlock, PanelTitle, StatCard } from '@/pages/kassa/shared';
 import { useCompanyName, useFileDownloader, usePdfOpener } from '@/pages/kassa/hooks';
+import { closingTypeLabel } from '@/pages/kassa/kassaType';
+import { KassaTypeBadge } from '@/pages/kassa/KassaTypeUi';
 import {
 	channelLabel,
 	durationLabel,
+	fmtAmount,
 	fmtChannel,
 	fmtShortDateTime,
 	fmtSigned,
 	fmtUsd,
 	num,
+	round2,
 	signTone,
 	SOURCE_LABELS,
 	SOURCE_SHORT,
-	sumSources,
 } from '@/pages/kassa/utils';
 import {
 	useCashClosingListQuery,
@@ -48,6 +51,12 @@ function diffLabel(line: CashClosingLine) {
 	return line.card_name || 'karta';
 }
 
+/** Σ of the card columns of an `{ code: money }` row. */
+function cardSum(amounts: Record<string, string>, cardCodes: string[]) {
+	const codes = cardCodes.length ? cardCodes : Object.keys(amounts).filter((k) => k.startsWith('card'));
+	return round2(codes.reduce((s, code) => s + num(amounts[code]), 0));
+}
+
 function InfoRow({ label, children }: { label: string; children: ReactNode }) {
 	return (
 		<div className='flex items-baseline justify-between gap-3 py-1.5'>
@@ -57,7 +66,10 @@ function InfoRow({ label, children }: { label: string; children: ReactNode }) {
 	);
 }
 
-/** 06 "Topshirish akti": the frozen result of one closing. */
+/**
+ * 06 "Topshirish akti": the frozen result of one closing of one seller type, built only from that type's
+ * records; every seller who entered records in the period gets a row of their own.
+ */
 export default function KassaClosingDetailPage() {
 	const { id } = useParams();
 	const closingId = Number(id) || 0;
@@ -70,8 +82,12 @@ export default function KassaClosingDetailPage() {
 	const [cancelOpen, setCancelOpen] = useState(false);
 
 	const { data, isLoading, isError, error } = useCashClosingQuery(closingId || undefined);
-	// Only the latest closed closing may be cancelled.
-	const latestQuery = useCashClosingListQuery({ status: 'closed', ordering: '-number', limit: 1 }, canCancelCashClosing);
+	// Only the latest closed closing of the same type may be cancelled; the other types are untouched.
+	// Pre-split closings (`type: null`) can't be cancelled: the kassa they closed no longer exists.
+	const latestQuery = useCashClosingListQuery(
+		{ user_type: data?.user_type ?? undefined, status: 'closed', ordering: '-number', limit: 1 },
+		canCancelCashClosing && data?.user_type != null,
+	);
 	const countsQuery = useCashMovementsQuery(
 		{ closing: closingId, page: 1, limit: 1 },
 		Boolean(data && !data.is_initial),
@@ -103,7 +119,7 @@ export default function KassaClosingDetailPage() {
 
 	const closing = data;
 	const isLatest = latestQuery.data?.results[0]?.id === closing.id;
-	const canCancel = canCancelCashClosing && closing.status === 'closed' && isLatest;
+	const canCancel = canCancelCashClosing && closing.status === 'closed' && closing.user_type !== null && isLatest;
 	const correctionCount = countsQuery.data?.counts.correction;
 
 	const recordCounts = closing.sources.filter((s) => s.source !== 'correction');
@@ -122,10 +138,19 @@ export default function KassaClosingDetailPage() {
 		: 'barcha kanallar to\'g\'ri';
 
 	const cardCodes = closing.lines.filter((l) => l.channel === 'card').map((l) => l.code);
+	const typeShort = closingTypeLabel(closing.user_type, true);
+	const sellers = closing.sellers ?? [];
+	const sellerTotals = {
+		count: sellers.reduce((s, u) => s + u.count, 0),
+		som: round2(sellers.reduce((s, u) => s + num(u.amounts.cash_som), 0)),
+		usd: round2(sellers.reduce((s, u) => s + num(u.amounts.cash_usd), 0)),
+		transfer: round2(sellers.reduce((s, u) => s + num(u.amounts.transfer), 0)),
+		cards: round2(sellers.reduce((s, u) => s + cardSum(u.amounts, cardCodes), 0)),
+	};
 
 	return (
 		<Panel
-			title={<PanelTitle title={`Topshirish akti #${closing.number}`} sub={closing.status_display} />}
+			title={<PanelTitle title={`Topshirish akti: ${typeShort} #${closing.number}`} sub={closing.status_display} />}
 			actions={
 				<>
 					<Button type='button' variant='slate' size='sm' onClick={goBack}>
@@ -285,7 +310,7 @@ export default function KassaClosingDetailPage() {
 									</thead>
 									<tbody>
 										{closing.sources.map((row) => {
-											const cards = sumSources([row], cardCodes.length ? cardCodes : Object.keys(row.amounts).filter((k) => k.startsWith('card')));
+											const cards = cardSum(row.amounts, cardCodes);
 											const count = row.source === 'correction' ? correctionCount : row.count;
 											return (
 												<tr key={row.source}>
@@ -310,9 +335,72 @@ export default function KassaClosingDetailPage() {
 								</KTable>
 							</>
 						)}
+						{sellers.length > 0 && (
+							<>
+								<div className='mt-3 mb-1.5 text-xs text-ca-text'>
+									Sotuvchilar bo'yicha (shu davrda yozuv kiritganlar)
+								</div>
+								<KTable>
+									<thead>
+										<tr>
+											<KTh>Sotuvchi</KTh>
+											<KTh align='right'>Yozuvlar</KTh>
+											<KTh align='right'>Naqd so'm</KTh>
+											<KTh align='right'>Naqd $</KTh>
+											<KTh align='right'>Transfer</KTh>
+											<KTh align='right'>Kartalar</KTh>
+										</tr>
+									</thead>
+									<tbody>
+										{sellers.map((u, i) => {
+											const cards = cardSum(u.amounts, cardCodes);
+											return (
+												<tr key={u.user ?? `x-${i}`}>
+													<KTd>{u.name || '—'}</KTd>
+													<KTd align='right'>{u.count}</KTd>
+													<KTd align='right' className={signTone(u.amounts.cash_som)}>
+														{fmtAmount(u.amounts.cash_som)}
+													</KTd>
+													<KTd align='right' className={signTone(u.amounts.cash_usd)}>
+														{fmtChannel(u.amounts.cash_usd, 'cash_usd')}
+													</KTd>
+													<KTd align='right' className={signTone(u.amounts.transfer)}>
+														{fmtAmount(u.amounts.transfer)}
+													</KTd>
+													<KTd align='right' className={signTone(cards)}>
+														{fmtAmount(cards)}
+													</KTd>
+												</tr>
+											);
+										})}
+										<tr className='bg-ca-silver'>
+											<KTd className='font-bold'>Jami aylanma</KTd>
+											<KTd align='right' className='font-bold'>
+												{sellerTotals.count}
+											</KTd>
+											<KTd align='right' className='font-bold'>
+												{fmtAmount(sellerTotals.som)}
+											</KTd>
+											<KTd align='right' className='font-bold'>
+												{fmtChannel(sellerTotals.usd, 'cash_usd')}
+											</KTd>
+											<KTd align='right' className='font-bold'>
+												{fmtAmount(sellerTotals.transfer)}
+											</KTd>
+											<KTd align='right' className='font-bold'>
+												{fmtAmount(sellerTotals.cards)}
+											</KTd>
+										</tr>
+									</tbody>
+								</KTable>
+							</>
+						)}
 					</div>
 
 					<div className='rounded-md border border-ca-border bg-ca-silver px-4 py-3'>
+						<InfoRow label='Kassa turi'>
+							<KassaTypeBadge type={closing.user_type} />
+						</InfoRow>
 						<InfoRow label='Topshirdi'>{closing.created_by_name || '—'}</InfoRow>
 						<InfoRow label='Qabul qildi'>{closing.received_by_name || '—'}</InfoRow>
 						<InfoRow label='Yakunlangan'>{formatDateTime(closing.closed_at, '—')}</InfoRow>
